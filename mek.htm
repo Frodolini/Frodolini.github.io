@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mekaniske Prinsipp</title>
+    <style>
+        body {
+            background-color: powderblue;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        svg {
+            width: 100%;
+            max-width: 600px;
+            height: auto;
+            margin: 20px 0;
+            border: 2px solid #ccc;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .principle-name {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin: 20px 0;
+        }
+        .description {
+            font-size: 16px;
+            color: #666;
+            margin: 10px 0 20px 0;
+        }
+        a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Mekaniske Prinsipp</h1>
+
+        <div class="principle-name" id="principleName">Spak (Lever)</div>
+        <div class="description" id="principleDesc">Ei spak gjer det lettare å løfta tunge ting ved å bruka eit dreiepunkt.</div>
+
+        <svg id="animationCanvas" viewBox="0 0 600 400" xmlns="http://www.w3.org/2000/svg">
+            <!-- Lever Principle Animation -->
+            <g id="leverAnimation">
+                <!-- Ground -->
+                <rect x="50" y="350" width="500" height="50" fill="#8B7355"/>
+                <line x1="50" y1="350" x2="550" y2="350" stroke="#333" stroke-width="2"/>
+                <pattern id="groundPattern" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+                    <line x1="0" y1="0" x2="20" y2="20" stroke="#666" stroke-width="1"/>
+                </pattern>
+
+                <!-- Fulcrum (dreiepunkt) -->
+                <polygon points="250,350 240,330 260,330" fill="#FF6B6B"/>
+                <circle cx="250" cy="330" r="5" fill="#333"/>
+
+                <!-- Lever bar -->
+                <line id="leverBar" x1="100" y1="330" x2="400" y2="330" stroke="#333" stroke-width="8" stroke-linecap="round"/>
+
+                <!-- Load (vekt som skal løftast) -->
+                <rect id="leverLoad" x="360" y="280" width="50" height="50" fill="#4CAF50" rx="4"/>
+                <text x="385" y="312" font-size="20" text-anchor="middle" fill="white" font-weight="bold">Vekt</text>
+
+                <!-- Effort point (kraft som blir påført) -->
+                <circle id="leverEffort" cx="100" cy="330" r="8" fill="#2196F3"/>
+                <text x="100" y="290" font-size="14" text-anchor="middle" fill="#333">Kraft</text>
+
+                <!-- Arrows showing motion -->
+                <g id="leverArrows">
+                    <defs>
+                        <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                            <polygon points="0 0, 10 3, 0 6" fill="#FF9800"/>
+                        </marker>
+                    </defs>
+                    <path d="M 100 260 L 100 240" stroke="#FF9800" stroke-width="2" marker-end="url(#arrowhead)"/>
+                    <path d="M 385 270 L 385 250" stroke="#FF9800" stroke-width="2" marker-end="url(#arrowhead)"/>
+                </g>
+
+                <!-- Labels -->
+                <text x="250" y="380" font-size="14" text-anchor="middle" fill="#333">Dreiepunkt</text>
+            </g>
+
+            <!-- Pulley System Animation (hidden by default) -->
+            <g id="pulleyAnimation" style="display: none;">
+                <!-- Ceiling -->
+                <rect x="50" y="30" width="500" height="20" fill="#8B7355"/>
+
+                <!-- Fixed pulley -->
+                <circle cx="150" cy="80" r="25" fill="none" stroke="#333" stroke-width="3"/>
+                <circle cx="150" cy="80" r="20" fill="none" stroke="#FF6B6B" stroke-width="2"/>
+                <rect x="130" y="60" width="40" height="15" fill="#8B7355"/>
+
+                <!-- Rope -->
+                <g id="ropeGroup">
+                    <line id="ropePart1" x1="150" y1="105" x2="150" y2="160" stroke="#8B4513" stroke-width="4"/>
+                    <line id="ropePart2" x1="150" y1="160" x2="350" y2="160" stroke="#8B4513" stroke-width="4"/>
+                    <line id="ropePart3" x1="350" y1="160" x2="350" y2="105" stroke="#8B4513" stroke-width="4"/>
+                </g>
+
+                <!-- Load hanging from pulley -->
+                <rect id="pulleyLoad" x="320" y="160" width="60" height="60" fill="#4CAF50" rx="4"/>
+                <text x="350" y="197" font-size="20" text-anchor="middle" fill="white" font-weight="bold">Vekt</text>
+
+                <!-- Effort hand -->
+                <circle id="pulleyHand" cx="150" cy="200" r="8" fill="#2196F3"/>
+                <text x="150" y="235" font-size="14" text-anchor="middle" fill="#333">Kraft</text>
+
+                <!-- Labels -->
+                <text x="150" y="45" font-size="14" text-anchor="middle" fill="#333">Fastskåre trinse</text>
+                <text x="350" y="240" font-size="14" text-anchor="middle" fill="#333">Løftet vekt</text>
+            </g>
+        </svg>
+
+        <button onclick="switchPrinciple()">Byt til neste prinsipp</button>
+        <p><a href="index.html">← Tilbake til forside</a></p>
+    </div>
+
+    <script>
+        let currentPrinciple = 0;
+        const principles = [
+            {
+                name: 'Spak (Lever)',
+                desc: 'Ei spak gjer det lettare å løfta tunge ting ved å bruka eit dreiepunkt.',
+                animation: 'leverAnimation'
+            },
+            {
+                name: 'Trinse (Pulley)',
+                desc: 'Ein trinse endrar retningen på kraften og gjer det lettare å løfta tunge ting.',
+                animation: 'pulleyAnimation'
+            }
+        ];
+
+        function switchPrinciple() {
+            document.getElementById(principles[currentPrinciple].animation).style.display = 'none';
+            currentPrinciple = (currentPrinciple + 1) % principles.length;
+            document.getElementById(principles[currentPrinciple].animation).style.display = 'block';
+            document.getElementById('principleName').textContent = principles[currentPrinciple].name;
+            document.getElementById('principleDesc').textContent = principles[currentPrinciple].desc;
+        }
+
+        // Animation function
+        function animate() {
+            if (currentPrinciple === 0) {
+                // Lever animation
+                const leverLoad = document.getElementById('leverLoad');
+                const leverBar = document.getElementById('leverBar');
+                const time = Date.now() / 1000;
+                const angle = Math.sin(time * 2) * 15;
+
+                leverLoad.style.transform = `translateY(${Math.sin(time * 2) * -30}px)`;
+                leverBar.style.transform = `rotate(${angle}deg)`;
+                leverBar.style.transformOrigin = '250px 330px';
+                leverBar.style.transformBox = 'fill-box';
+            } else {
+                // Pulley animation
+                const pulleyLoad = document.getElementById('pulleyLoad');
+                const time = Date.now() / 1000;
+                pulleyLoad.style.transform = `translateY(${Math.sin(time * 2) * 40}px)`;
+            }
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    </script>
+</body>
+</html>
