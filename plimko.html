@@ -70,6 +70,9 @@
         #nyttSpel {
             background-color: #2196F3;
         }
+        #lydKnapp {
+            background-color: #607d8b;
+        }
         .melding {
             min-height: 22px;
             font-size: 16px;
@@ -95,6 +98,7 @@
         <input type="number" id="innsats" value="10" min="1" step="1">
         <button id="slepp">Slepp ball</button>
         <button id="nyttSpel" hidden>Nytt spel</button>
+        <button id="lydKnapp">Lyd: på</button>
     </div>
     <div class="melding" id="melding">Trykk «Slepp ball» eller mellomrom for å spele.</div>
     <div class="historikk" id="historikk"></div>
@@ -145,6 +149,63 @@
     const meldingEl = document.getElementById('melding');
     const historikkEl = document.getElementById('historikk');
 
+    const lydKnappEl = document.getElementById('lydKnapp');
+    let lydPa = true;
+    try { lydPa = localStorage.getItem('plinkoLyd') !== 'av'; } catch (e) {}
+    let lydCtx = null;
+    let sistePinneLyd = 0;
+
+    function lyd() {
+        if (!lydPa) return null;
+        if (!lydCtx) {
+            const AC = window.AudioContext || window.webkitAudioContext;
+            if (!AC) return null;
+            lydCtx = new AC();
+        }
+        if (lydCtx.state === 'suspended') lydCtx.resume();
+        return lydCtx;
+    }
+
+    function tone(frekvens, start, lengd, type, volum) {
+        const ac = lyd();
+        if (!ac) return;
+        const t = ac.currentTime + start;
+        const osc = ac.createOscillator();
+        const gain = ac.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(frekvens, t);
+        gain.gain.setValueAtTime(volum, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + lengd);
+        osc.connect(gain).connect(ac.destination);
+        osc.start(t);
+        osc.stop(t + lengd);
+    }
+
+    function pinneLyd(y) {
+        const no = performance.now();
+        if (no - sistePinneLyd < 30) return;
+        sistePinneLyd = no;
+        const rad = (y - TOPP) / RAD_HOGDE;
+        tone(700 + rad * 45, 0, 0.05, 'triangle', 0.08);
+    }
+
+    function landingsLyd(mult) {
+        if (mult >= 16) {
+            [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, i * 0.08, 0.3, 'triangle', 0.2));
+        } else if (mult >= 5) {
+            [523, 659, 784, 1047].forEach((f, i) => tone(f, i * 0.07, 0.25, 'triangle', 0.18));
+        } else if (mult >= 1) {
+            tone(660, 0, 0.15, 'sine', 0.18);
+            tone(880, 0.08, 0.2, 'sine', 0.18);
+        } else {
+            tone(200, 0, 0.25, 'sine', 0.2);
+        }
+    }
+
+    function oppdaterLydKnapp() {
+        lydKnappEl.textContent = lydPa ? 'Lyd: på' : 'Lyd: av';
+    }
+
     function formater(tal) {
         return Number.isInteger(tal) ? String(tal) : tal.toFixed(1);
     }
@@ -172,8 +233,10 @@
             y: 15,
             vx: (Math.random() - 0.5) * 0.6,
             vy: 0,
-            innsats: innsats
+            innsats: innsats,
+            sistePinne: -1
         });
+        tone(320, 0, 0.08, 'sine', 0.15);
         meldingEl.textContent = '';
         oppdaterVisning();
     }
@@ -185,6 +248,7 @@
         const gevinst = Math.round(ball.innsats * mult * 10) / 10;
         saldo = Math.round((saldo + gevinst) * 10) / 10;
         blink[spor] = 1;
+        landingsLyd(mult);
         meldingEl.textContent = mult + 'x – du fekk ' + formater(gevinst) + ' poeng.';
         historikk.unshift(mult + 'x');
         if (historikk.length > 10) historikk.pop();
@@ -199,7 +263,8 @@
             ball.x += ball.vx;
             ball.y += ball.vy;
 
-            for (const p of pinnar) {
+            for (let j = 0; j < pinnar.length; j++) {
+                const p = pinnar[j];
                 const dx = ball.x - p.x;
                 const dy = ball.y - p.y;
                 const d = Math.hypot(dx, dy);
@@ -216,6 +281,10 @@
                     }
                     ball.vx += (Math.random() - 0.5) * 0.4;
                     ball.vx *= 0.9;
+                    if (ball.sistePinne !== j) {
+                        ball.sistePinne = j;
+                        pinneLyd(p.y);
+                    }
                 }
             }
 
@@ -291,6 +360,12 @@
     }
 
     sleppEl.addEventListener('click', sleppBall);
+    lydKnappEl.addEventListener('click', () => {
+        lydPa = !lydPa;
+        try { localStorage.setItem('plinkoLyd', lydPa ? 'pa' : 'av'); } catch (e) {}
+        oppdaterLydKnapp();
+        if (lydPa) tone(660, 0, 0.1, 'sine', 0.15);
+    });
     nyttSpelEl.addEventListener('click', () => {
         saldo = 100;
         historikk.length = 0;
@@ -305,6 +380,7 @@
         }
     });
 
+    oppdaterLydKnapp();
     oppdaterVisning();
     requestAnimationFrame(loop);
 </script>
