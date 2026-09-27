@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="nn">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Plinko 2</title>
+    <style>
+        body {
+            background-color: powderblue;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+        }
+        h1 {
+            color: #333;
+            margin: 10px 0;
+        }
+        .container {
+            max-width: 640px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        canvas {
+            width: 100%;
+            height: auto;
+            display: block;
+            background-color: #1d2b3a;
+            border-radius: 6px;
+        }
+        .kontroll {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin: 12px 0;
+        }
+        .status {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px 24px;
+            margin: 8px 0;
+        }
+        .saldo {
+            font-size: 22px;
+            font-weight: bold;
+        }
+        .tal {
+            font-size: 18px;
+            align-self: center;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button:disabled {
+            background-color: #aaa;
+            cursor: not-allowed;
+        }
+        #nyttSpel {
+            background-color: #2196F3;
+        }
+        #lydKnapp {
+            background-color: #607d8b;
+        }
+        .melding {
+            min-height: 22px;
+            font-size: 16px;
+        }
+        .historikk {
+            color: #666;
+            font-size: 14px;
+            min-height: 20px;
+        }
+        a {
+            display: inline-block;
+            margin-top: 16px;
+        }
+    </style>
+</head>
+<body>
+<h1>Plinko 2</h1>
+<div class="container">
+    <div class="status">
+        <div class="saldo"><span id="saldo">5,00 kr</span></div>
+        <div class="tal">Kast: <b id="kast">0</b></div>
+        <div class="tal">Rekord: <b id="rekord">0</b></div>
+    </div>
+    <canvas id="brett" width="600" height="560"></canvas>
+    <div class="kontroll">
+        <button id="slepp">Slepp ball (1 kr)</button>
+        <button id="nyttSpel" hidden>Nytt spel</button>
+        <button id="lydKnapp">Lyd: på</button>
+    </div>
+    <div class="melding" id="melding">Du startar med 5 kr. Kvart kast kostar 1 kr. Kor mange kast klarer du før du har under 1 kr?</div>
+    <div class="historikk" id="historikk"></div>
+</div>
+<a href="https://frodolini.github.io">Tilbake til heimesida</a>
+
+<script>
+    const canvas = document.getElementById('brett');
+    const ctx = canvas.getContext('2d');
+    const W = 600;
+    const H = 560;
+
+    const RADER = 12;
+    const AVSTAND = 40;
+    const TOPP = 50;
+    const RAD_HOGDE = 38;
+    const PINNE_R = 4;
+    const BALL_R = 7;
+    const TYNGD = 0.22;
+    const SPRETT = 0.4;
+    const LUFT = 0.94;
+    const MAKS_FART = 4;
+    const MULTIPLIKATORAR = [16, 5, 2, 1.4, 1.1, 0.7, 0.4, 0.7, 1.1, 1.4, 2, 5, 16];
+
+    const pinnar = [];
+    for (let r = 0; r < RADER; r++) {
+        const antal = r + 3;
+        for (let i = 0; i < antal; i++) {
+            pinnar.push({ x: W / 2 + (i - (antal - 1) / 2) * AVSTAND, y: TOPP + r * RAD_HOGDE });
+        }
+    }
+
+    const botnRad = TOPP + (RADER - 1) * RAD_HOGDE;
+    const SPOR_TOPP = botnRad + 22;
+    const SPOR_HOGDE = 40;
+    const SPOR_VENSTRE = W / 2 - (MULTIPLIKATORAR.length / 2) * AVSTAND;
+    const SPOR_HOGRE = W / 2 + (MULTIPLIKATORAR.length / 2) * AVSTAND;
+
+    const START_ORE = 500;
+    const KAST_PRIS = 100;
+
+    let saldo = START_ORE;
+    let kast = 0;
+    let rekord = 0;
+    try { rekord = Number(localStorage.getItem('plinko2Rekord')) || 0; } catch (e) {}
+    let spelSlutt = false;
+    let ballar = [];
+    const blink = new Array(MULTIPLIKATORAR.length).fill(0);
+    const historikk = [];
+
+    const saldoEl = document.getElementById('saldo');
+    const kastEl = document.getElementById('kast');
+    const rekordEl = document.getElementById('rekord');
+    const sleppEl = document.getElementById('slepp');
+    const nyttSpelEl = document.getElementById('nyttSpel');
+    const meldingEl = document.getElementById('melding');
+    const historikkEl = document.getElementById('historikk');
+
+    const lydKnappEl = document.getElementById('lydKnapp');
+    let lydPa = true;
+    try { lydPa = localStorage.getItem('plinkoLyd') !== 'av'; } catch (e) {}
+    let lydCtx = null;
+    let sistePinneLyd = 0;
+
+    function lyd() {
+        if (!lydPa) return null;
+        if (!lydCtx) {
+            const AC = window.AudioContext || window.webkitAudioContext;
+            if (!AC) return null;
+            lydCtx = new AC();
+        }
+        if (lydCtx.state === 'suspended') lydCtx.resume();
+        return lydCtx;
+    }
+
+    function tone(frekvens, start, lengd, type, volum) {
+        const ac = lyd();
+        if (!ac) return;
+        const t = ac.currentTime + start;
+        const osc = ac.createOscillator();
+        const gain = ac.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(frekvens, t);
+        gain.gain.setValueAtTime(volum, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + lengd);
+        osc.connect(gain).connect(ac.destination);
+        osc.start(t);
+        osc.stop(t + lengd);
+    }
+
+    function pinneLyd(y) {
+        const no = performance.now();
+        if (no - sistePinneLyd < 30) return;
+        sistePinneLyd = no;
+        const rad = (y - TOPP) / RAD_HOGDE;
+        tone(700 + rad * 45, 0, 0.05, 'triangle', 0.08);
+    }
+
+    function landingsLyd(mult) {
+        if (mult >= 16) {
+            [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, i * 0.08, 0.3, 'triangle', 0.2));
+        } else if (mult >= 5) {
+            [523, 659, 784, 1047].forEach((f, i) => tone(f, i * 0.07, 0.25, 'triangle', 0.18));
+        } else if (mult >= 1) {
+            tone(660, 0, 0.15, 'sine', 0.18);
+            tone(880, 0.08, 0.2, 'sine', 0.18);
+        } else {
+            tone(200, 0, 0.25, 'sine', 0.2);
+        }
+    }
+
+    function tapsLyd() {
+        [392, 330, 262, 196].forEach((f, i) => tone(f, 0.4 + i * 0.28, 0.4, 'triangle', 0.22));
+    }
+
+    function rekordLyd() {
+        [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.4 + i * 0.12, 0.3, 'triangle', 0.2));
+        [1047, 1319, 1568].forEach(f => tone(f, 0.4 + 4 * 0.12, 0.9, 'triangle', 0.14));
+    }
+
+    function oppdaterLydKnapp() {
+        lydKnappEl.textContent = lydPa ? 'Lyd: på' : 'Lyd: av';
+    }
+
+    function kroner(ore) {
+        return (ore / 100).toFixed(2).replace('.', ',') + ' kr';
+    }
+
+    function multTekst(mult) {
+        return String(mult).replace('.', ',') + 'x';
+    }
+
+    function oppdaterVisning() {
+        saldoEl.textContent = kroner(saldo);
+        kastEl.textContent = kast;
+        rekordEl.textContent = rekord;
+        sleppEl.disabled = spelSlutt || ballar.length > 0;
+        nyttSpelEl.hidden = !spelSlutt;
+    }
+
+    function sluttSpel() {
+        spelSlutt = true;
+        if (kast > rekord) {
+            rekord = kast;
+            try { localStorage.setItem('plinko2Rekord', String(rekord)); } catch (e) {}
+            rekordLyd();
+            meldingEl.textContent = 'Ny rekord! Du klarte ' + kast + ' kast før pengane tok slutt.';
+        } else {
+            tapsLyd();
+            meldingEl.textContent = 'Du har tapt! Du klarte ' + kast + ' kast. Rekorden er ' + rekord + '.';
+        }
+        oppdaterVisning();
+    }
+
+    function sleppBall() {
+        if (spelSlutt || ballar.length > 0 || saldo < KAST_PRIS) return;
+        saldo -= KAST_PRIS;
+        kast++;
+        ballar.push({
+            x: W / 2 + (Math.random() - 0.5) * 10,
+            y: 15,
+            vx: (Math.random() - 0.5) * 0.6,
+            vy: 0,
+            sistePinne: -1
+        });
+        tone(320, 0, 0.08, 'sine', 0.15);
+        meldingEl.textContent = '';
+        oppdaterVisning();
+    }
+
+    function landa(ball) {
+        let spor = Math.floor((ball.x - SPOR_VENSTRE) / AVSTAND);
+        spor = Math.max(0, Math.min(MULTIPLIKATORAR.length - 1, spor));
+        const mult = MULTIPLIKATORAR[spor];
+        const gevinst = Math.round(KAST_PRIS * mult / 10) * 10;
+        saldo += gevinst;
+        blink[spor] = 1;
+        landingsLyd(mult);
+        meldingEl.textContent = multTekst(mult) + ' – du fekk ' + kroner(gevinst) + '.';
+        historikk.unshift(multTekst(mult));
+        if (historikk.length > 10) historikk.pop();
+        historikkEl.textContent = 'Siste: ' + historikk.join('  ');
+        oppdaterVisning();
+    }
+
+    function steg() {
+        for (const ball of ballar) {
+            ball.vy = Math.min(MAKS_FART, ball.vy + TYNGD);
+            ball.vx *= LUFT;
+            ball.x += ball.vx;
+            ball.y += ball.vy;
+
+            for (let j = 0; j < pinnar.length; j++) {
+                const p = pinnar[j];
+                const dx = ball.x - p.x;
+                const dy = ball.y - p.y;
+                const d = Math.hypot(dx, dy);
+                const min = BALL_R + PINNE_R;
+                if (d < min && d > 0) {
+                    const nx = dx / d;
+                    const ny = dy / d;
+                    ball.x = p.x + nx * min;
+                    ball.y = p.y + ny * min;
+                    const vn = ball.vx * nx + ball.vy * ny;
+                    if (vn < 0) {
+                        ball.vx -= (1 + SPRETT) * vn * nx;
+                        ball.vy -= (1 + SPRETT) * vn * ny;
+                    }
+                    ball.vx += (Math.random() - 0.5) * 0.4;
+                    ball.vx *= 0.9;
+                    if (ball.sistePinne !== j) {
+                        ball.sistePinne = j;
+                        pinneLyd(p.y);
+                    }
+                }
+            }
+
+            if (ball.x < SPOR_VENSTRE + BALL_R) { ball.x = SPOR_VENSTRE + BALL_R; ball.vx = Math.abs(ball.vx) * SPRETT; }
+            if (ball.x > SPOR_HOGRE - BALL_R) { ball.x = SPOR_HOGRE - BALL_R; ball.vx = -Math.abs(ball.vx) * SPRETT; }
+
+            if (ball.y > SPOR_TOPP && !ball.ferdig) {
+                ball.ferdig = true;
+                landa(ball);
+            }
+        }
+        const forAntal = ballar.length;
+        ballar = ballar.filter(b => b.y < SPOR_TOPP + SPOR_HOGDE / 2);
+        if (ballar.length !== forAntal) {
+            if (ballar.length === 0 && saldo < KAST_PRIS) sluttSpel();
+            else oppdaterVisning();
+        }
+        for (let i = 0; i < blink.length; i++) blink[i] = Math.max(0, blink[i] - 0.03);
+    }
+
+    function sporFarge(i, lys) {
+        const midt = (MULTIPLIKATORAR.length - 1) / 2;
+        const t = Math.abs(i - midt) / midt;
+        const g = Math.round(200 - t * 170);
+        const l = Math.round(lys * 80);
+        return 'rgb(' + Math.min(255, 240 + l) + ',' + Math.min(255, g + l) + ',' + Math.min(255, 40 + l) + ')';
+    }
+
+    function teikn() {
+        ctx.clearRect(0, 0, W, H);
+
+        ctx.fillStyle = '#ffffff';
+        for (const p of pinnar) {
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, PINNE_R, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        for (let i = 0; i < MULTIPLIKATORAR.length; i++) {
+            const x = SPOR_VENSTRE + i * AVSTAND;
+            const loft = blink[i] * 6;
+            ctx.fillStyle = sporFarge(i, blink[i]);
+            ctx.fillRect(x + 2, SPOR_TOPP + 4 - loft, AVSTAND - 4, SPOR_HOGDE - 8);
+            ctx.fillStyle = '#1d2b3a';
+            ctx.font = 'bold 13px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(multTekst(MULTIPLIKATORAR[i]), x + AVSTAND / 2, SPOR_TOPP + SPOR_HOGDE / 2 - loft);
+        }
+
+        ctx.fillStyle = '#ff4fa3';
+        for (const ball of ballar) {
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, BALL_R, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        ctx.fillStyle = 'rgba(255,255,255,0.6)';
+        ctx.font = '14px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Midten gir lite – kantane gir mykje!', W / 2, H - 12);
+    }
+
+    let forrige = performance.now();
+    let akkumulert = 0;
+    const STEG_MS = 1000 / 60;
+    function loop(no) {
+        akkumulert += Math.min(100, no - forrige);
+        forrige = no;
+        while (akkumulert >= STEG_MS) {
+            steg();
+            akkumulert -= STEG_MS;
+        }
+        teikn();
+        requestAnimationFrame(loop);
+    }
+
+    sleppEl.addEventListener('click', sleppBall);
+    lydKnappEl.addEventListener('click', () => {
+        lydPa = !lydPa;
+        try { localStorage.setItem('plinkoLyd', lydPa ? 'pa' : 'av'); } catch (e) {}
+        oppdaterLydKnapp();
+        if (lydPa) tone(660, 0, 0.1, 'sine', 0.15);
+    });
+    nyttSpelEl.addEventListener('click', () => {
+        saldo = START_ORE;
+        kast = 0;
+        spelSlutt = false;
+        historikk.length = 0;
+        historikkEl.textContent = '';
+        meldingEl.textContent = 'Nytt spel! Lukke til.';
+        oppdaterVisning();
+    });
+    document.addEventListener('keydown', e => {
+        if (e.code === 'Space') {
+            e.preventDefault();
+            sleppBall();
+        }
+    });
+
+    oppdaterLydKnapp();
+    oppdaterVisning();
+    requestAnimationFrame(loop);
+</script>
+</body>
+</html>
