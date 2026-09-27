@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="nn">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Plinko</title>
+    <style>
+        body {
+            background-color: powderblue;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+        }
+        h1 {
+            color: #333;
+            margin: 10px 0;
+        }
+        .container {
+            max-width: 640px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        canvas {
+            width: 100%;
+            height: auto;
+            display: block;
+            background-color: #1d2b3a;
+            border-radius: 6px;
+        }
+        .kontroll {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin: 12px 0;
+        }
+        .saldo {
+            font-size: 22px;
+            font-weight: bold;
+            margin: 8px 0;
+        }
+        input {
+            width: 70px;
+            font-size: 16px;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button:disabled {
+            background-color: #aaa;
+            cursor: not-allowed;
+        }
+        #nyttSpel {
+            background-color: #2196F3;
+        }
+        .melding {
+            min-height: 22px;
+            font-size: 16px;
+        }
+        .historikk {
+            color: #666;
+            font-size: 14px;
+            min-height: 20px;
+        }
+        a {
+            display: inline-block;
+            margin-top: 16px;
+        }
+    </style>
+</head>
+<body>
+<h1>Plinko</h1>
+<div class="container">
+    <div class="saldo">Poeng: <span id="saldo">100</span></div>
+    <canvas id="brett" width="600" height="560"></canvas>
+    <div class="kontroll">
+        <label for="innsats">Innsats:</label>
+        <input type="number" id="innsats" value="10" min="1" step="1">
+        <button id="slepp">Slepp ball</button>
+        <button id="nyttSpel" hidden>Nytt spel</button>
+    </div>
+    <div class="melding" id="melding">Trykk «Slepp ball» eller mellomrom for å spele.</div>
+    <div class="historikk" id="historikk"></div>
+</div>
+<a href="https://frodolini.github.io">Tilbake til heimesida</a>
+
+<script>
+    const canvas = document.getElementById('brett');
+    const ctx = canvas.getContext('2d');
+    const W = 600;
+    const H = 560;
+
+    const RADER = 12;
+    const AVSTAND = 40;
+    const TOPP = 50;
+    const RAD_HOGDE = 38;
+    const PINNE_R = 4;
+    const BALL_R = 7;
+    const TYNGD = 0.22;
+    const SPRETT = 0.4;
+    const LUFT = 0.94;
+    const MAKS_FART = 4;
+    const MULTIPLIKATORAR = [16, 5, 2, 1.4, 1.1, 0.7, 0.4, 0.7, 1.1, 1.4, 2, 5, 16];
+
+    const pinnar = [];
+    for (let r = 0; r < RADER; r++) {
+        const antal = r + 3;
+        for (let i = 0; i < antal; i++) {
+            pinnar.push({ x: W / 2 + (i - (antal - 1) / 2) * AVSTAND, y: TOPP + r * RAD_HOGDE });
+        }
+    }
+
+    const botnRad = TOPP + (RADER - 1) * RAD_HOGDE;
+    const SPOR_TOPP = botnRad + 22;
+    const SPOR_HOGDE = 40;
+    const SPOR_VENSTRE = W / 2 - (MULTIPLIKATORAR.length / 2) * AVSTAND;
+    const SPOR_HOGRE = W / 2 + (MULTIPLIKATORAR.length / 2) * AVSTAND;
+
+    let saldo = 100;
+    let ballar = [];
+    const blink = new Array(MULTIPLIKATORAR.length).fill(0);
+    const historikk = [];
+
+    const saldoEl = document.getElementById('saldo');
+    const innsatsEl = document.getElementById('innsats');
+    const sleppEl = document.getElementById('slepp');
+    const nyttSpelEl = document.getElementById('nyttSpel');
+    const meldingEl = document.getElementById('melding');
+    const historikkEl = document.getElementById('historikk');
+
+    function formater(tal) {
+        return Number.isInteger(tal) ? String(tal) : tal.toFixed(1);
+    }
+
+    function oppdaterVisning() {
+        saldoEl.textContent = formater(saldo);
+        const slutt = saldo < 1 && ballar.length === 0;
+        nyttSpelEl.hidden = !slutt;
+        if (slutt) meldingEl.textContent = 'Tom for poeng! Trykk «Nytt spel» for å starte på nytt.';
+    }
+
+    function sleppBall() {
+        const innsats = Math.floor(Number(innsatsEl.value));
+        if (!(innsats >= 1)) {
+            meldingEl.textContent = 'Innsatsen må vere minst 1.';
+            return;
+        }
+        if (innsats > saldo) {
+            meldingEl.textContent = 'Du har ikkje nok poeng til den innsatsen.';
+            return;
+        }
+        saldo -= innsats;
+        ballar.push({
+            x: W / 2 + (Math.random() - 0.5) * 10,
+            y: 15,
+            vx: (Math.random() - 0.5) * 0.6,
+            vy: 0,
+            innsats: innsats
+        });
+        meldingEl.textContent = '';
+        oppdaterVisning();
+    }
+
+    function landa(ball) {
+        let spor = Math.floor((ball.x - SPOR_VENSTRE) / AVSTAND);
+        spor = Math.max(0, Math.min(MULTIPLIKATORAR.length - 1, spor));
+        const mult = MULTIPLIKATORAR[spor];
+        const gevinst = Math.round(ball.innsats * mult * 10) / 10;
+        saldo = Math.round((saldo + gevinst) * 10) / 10;
+        blink[spor] = 1;
+        meldingEl.textContent = mult + 'x – du fekk ' + formater(gevinst) + ' poeng.';
+        historikk.unshift(mult + 'x');
+        if (historikk.length > 10) historikk.pop();
+        historikkEl.textContent = 'Siste: ' + historikk.join('  ');
+        oppdaterVisning();
+    }
+
+    function steg() {
+        for (const ball of ballar) {
+            ball.vy = Math.min(MAKS_FART, ball.vy + TYNGD);
+            ball.vx *= LUFT;
+            ball.x += ball.vx;
+            ball.y += ball.vy;
+
+            for (const p of pinnar) {
+                const dx = ball.x - p.x;
+                const dy = ball.y - p.y;
+                const d = Math.hypot(dx, dy);
+                const min = BALL_R + PINNE_R;
+                if (d < min && d > 0) {
+                    const nx = dx / d;
+                    const ny = dy / d;
+                    ball.x = p.x + nx * min;
+                    ball.y = p.y + ny * min;
+                    const vn = ball.vx * nx + ball.vy * ny;
+                    if (vn < 0) {
+                        ball.vx -= (1 + SPRETT) * vn * nx;
+                        ball.vy -= (1 + SPRETT) * vn * ny;
+                    }
+                    ball.vx += (Math.random() - 0.5) * 0.4;
+                    ball.vx *= 0.9;
+                }
+            }
+
+            if (ball.x < SPOR_VENSTRE + BALL_R) { ball.x = SPOR_VENSTRE + BALL_R; ball.vx = Math.abs(ball.vx) * SPRETT; }
+            if (ball.x > SPOR_HOGRE - BALL_R) { ball.x = SPOR_HOGRE - BALL_R; ball.vx = -Math.abs(ball.vx) * SPRETT; }
+
+            if (ball.y > SPOR_TOPP && !ball.ferdig) {
+                ball.ferdig = true;
+                landa(ball);
+            }
+        }
+        const forAntal = ballar.length;
+        ballar = ballar.filter(b => b.y < SPOR_TOPP + SPOR_HOGDE / 2);
+        if (ballar.length !== forAntal) oppdaterVisning();
+        for (let i = 0; i < blink.length; i++) blink[i] = Math.max(0, blink[i] - 0.03);
+    }
+
+    function sporFarge(i, lys) {
+        const midt = (MULTIPLIKATORAR.length - 1) / 2;
+        const t = Math.abs(i - midt) / midt;
+        const g = Math.round(200 - t * 170);
+        const l = Math.round(lys * 80);
+        return 'rgb(' + Math.min(255, 240 + l) + ',' + Math.min(255, g + l) + ',' + Math.min(255, 40 + l) + ')';
+    }
+
+    function teikn() {
+        ctx.clearRect(0, 0, W, H);
+
+        ctx.fillStyle = '#ffffff';
+        for (const p of pinnar) {
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, PINNE_R, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        for (let i = 0; i < MULTIPLIKATORAR.length; i++) {
+            const x = SPOR_VENSTRE + i * AVSTAND;
+            const loft = blink[i] * 6;
+            ctx.fillStyle = sporFarge(i, blink[i]);
+            ctx.fillRect(x + 2, SPOR_TOPP + 4 - loft, AVSTAND - 4, SPOR_HOGDE - 8);
+            ctx.fillStyle = '#1d2b3a';
+            ctx.font = 'bold 13px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(MULTIPLIKATORAR[i] + 'x', x + AVSTAND / 2, SPOR_TOPP + SPOR_HOGDE / 2 - loft);
+        }
+
+        ctx.fillStyle = '#ff4fa3';
+        for (const ball of ballar) {
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, BALL_R, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        ctx.fillStyle = 'rgba(255,255,255,0.6)';
+        ctx.font = '14px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Midten gir lite – kantane gir mykje!', W / 2, H - 12);
+    }
+
+    let forrige = performance.now();
+    let akkumulert = 0;
+    const STEG_MS = 1000 / 60;
+    function loop(no) {
+        akkumulert += Math.min(100, no - forrige);
+        forrige = no;
+        while (akkumulert >= STEG_MS) {
+            steg();
+            akkumulert -= STEG_MS;
+        }
+        teikn();
+        requestAnimationFrame(loop);
+    }
+
+    sleppEl.addEventListener('click', sleppBall);
+    nyttSpelEl.addEventListener('click', () => {
+        saldo = 100;
+        historikk.length = 0;
+        historikkEl.textContent = '';
+        meldingEl.textContent = 'Nytt spel! Lukke til.';
+        oppdaterVisning();
+    });
+    document.addEventListener('keydown', e => {
+        if (e.code === 'Space' && document.activeElement !== innsatsEl) {
+            e.preventDefault();
+            sleppBall();
+        }
+    });
+
+    oppdaterVisning();
+    requestAnimationFrame(loop);
+</script>
+</body>
+</html>
