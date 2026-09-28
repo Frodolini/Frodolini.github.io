@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="800" height="500">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7ec8f2"/>
+      <stop offset="1" stop-color="#e6f6ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="500" fill="url(#sky)"/>
+  <circle cx="680" cy="80" r="40" fill="#ffe680"/>
+  <!-- fjell -->
+  <path d="M0 300 L120 160 L220 280 L330 140 L460 300 L560 200 L700 310 L800 240 L800 500 L0 500Z" fill="#c9dbe8"/>
+  <path d="M330 140 L300 185 L330 175 L350 190Z M120 160 L95 195 L120 185 L140 200Z" fill="#fff"/>
+
+  <g transform="rotate(10 400 400)">
+    <!-- snø -->
+    <rect x="-200" y="392" width="1200" height="400" fill="#fff"/>
+    <!-- slalomstenger -->
+    <g stroke="#555" stroke-width="4"><line x1="90" y1="392" x2="90" y2="325"/><line x1="720" y1="392" x2="720" y2="325"/></g>
+    <path d="M90 325 l32 8 l-32 8z" fill="#e63946"/>
+    <path d="M720 325 l32 8 l-32 8z" fill="#2a6fdb"/>
+
+    <!-- ski -->
+    <g fill="#e63946" stroke="#7a1420" stroke-width="2">
+      <path d="M170 380 H620 Q660 380 685 362 Q668 392 620 392 H170Z"/>
+    </g>
+    <g fill="#222"><rect x="300" y="372" width="36" height="8" rx="3"/><rect x="470" y="372" width="36" height="8" rx="3"/></g>
+
+    <!-- hale -->
+    <path d="M280 320 Q190 340 150 300 Q120 270 90 285 Q140 250 190 285 Q230 310 290 290Z" fill="#3f9b3a" stroke="#22601f" stroke-width="3"/>
+    <!-- bakbein -->
+    <path d="M300 330 L320 372 L300 376 L360 376 L360 350Z" fill="#3f9b3a" stroke="#22601f" stroke-width="3"/>
+    <!-- kropp -->
+    <ellipse cx="400" cy="305" rx="135" ry="52" fill="#4cb043" stroke="#22601f" stroke-width="3"/>
+    <path d="M285 322 Q400 362 515 322 Q400 345 285 322Z" fill="#d9e98a"/>
+    <!-- ryggpigger -->
+    <g fill="#2f7a2b"><path d="M300 262l14-20 14 22z"/><path d="M345 254l14-22 14 22z"/><path d="M390 252l14-22 14 22z"/><path d="M435 256l14-22 14 22z"/></g>
+    <!-- framfot -->
+    <path d="M450 330 L480 372 L458 378 L520 378 L510 345Z" fill="#4cb043" stroke="#22601f" stroke-width="3"/>
+
+    <!-- hovud og snute -->
+    <path d="M490 285 Q500 250 545 252 L640 275 Q660 285 640 305 L545 322 Q500 325 490 300Z" fill="#4cb043" stroke="#22601f" stroke-width="3"/>
+    <path d="M545 322 L640 305" stroke="#22601f" stroke-width="3" fill="none"/>
+    <g fill="#fff" stroke="#999" stroke-width="1">
+      <path d="M560 320 l6 12 l6 -13z"/><path d="M585 317 l6 12 l6 -13z"/><path d="M610 312 l6 12 l6 -13z"/>
+      <path d="M570 315 l5 -10 l6 10z"/><path d="M600 309 l5 -10 l6 10z"/>
+    </g>
+    <circle cx="640" cy="282" r="4" fill="#22601f"/>
+    <!-- auge + skibriller -->
+    <circle cx="530" cy="262" r="16" fill="#4cb043" stroke="#22601f" stroke-width="3"/>
+    <rect x="508" y="246" width="44" height="26" rx="12" fill="#ffb703" stroke="#222" stroke-width="3" opacity="0.9"/>
+    <circle cx="534" cy="259" r="5" fill="#111"/>
+    <path d="M508 258 Q470 262 470 290" stroke="#222" stroke-width="4" fill="none"/>
+    <!-- lue -->
+    <path d="M500 250 Q515 218 555 240 Q540 236 510 252Z" fill="#2a6fdb" stroke="#123a80" stroke-width="2"/>
+    <circle cx="528" cy="226" r="7" fill="#fff" stroke="#123a80" stroke-width="2"/>
+
+    <!-- armar og stavar -->
+    <path d="M470 305 L520 340" stroke="#22601f" stroke-width="9" stroke-linecap="round"/>
+    <line x1="520" y1="340" x2="600" y2="388" stroke="#444" stroke-width="4"/>
+    <circle cx="600" cy="388" r="6" fill="none" stroke="#444" stroke-width="3"/>
+    <path d="M330 300 L280 335" stroke="#22601f" stroke-width="9" stroke-linecap="round"/>
+    <line x1="280" y1="335" x2="215" y2="388" stroke="#444" stroke-width="4"/>
+    <circle cx="215" cy="388" r="6" fill="none" stroke="#444" stroke-width="3"/>
+  </g>
+
+  <!-- snøstøv -->
+  <g fill="#fff" opacity="0.9"><circle cx="160" cy="470" r="6"/><circle cx="130" cy="455" r="4"/><circle cx="185" cy="485" r="3"/></g>
+</svg>
