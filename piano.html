@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="nn">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Piano</title>
+    <style>
+        body {
+            background-color: powderblue;
+            font-family: Arial, sans-serif;
+            color: #333;
+            margin: 0;
+            padding: 20px 16px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px 24px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 { margin: 0 0 4px; }
+        .intro { color: #666; margin: 0 0 16px; }
+        .kontrollar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            align-items: center;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+        .kontrollar label { display: flex; gap: 6px; align-items: center; }
+        button {
+            font: inherit;
+            padding: 4px 10px;
+            border: 1px solid #aaa;
+            border-radius: 4px;
+            background: #f4f4f4;
+            cursor: pointer;
+        }
+        /* Pianoet: rulle sidelengs på smale skjermar */
+        .ramme {
+            overflow-x: auto;
+            background: #222;
+            padding: 12px 12px 8px;
+            border-radius: 8px;
+        }
+        .piano {
+            position: relative;
+            display: flex;
+            height: 220px;
+            min-width: 600px;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+        }
+        .kvit {
+            flex: 1;
+            position: relative;
+            background: linear-gradient(#fff, #eee);
+            border: 1px solid #999;
+            border-radius: 0 0 5px 5px;
+            margin: 0 1px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+            padding-bottom: 8px;
+            font-size: 12px;
+            color: #888;
+        }
+        .svart {
+            position: absolute;
+            top: 0;
+            height: 60%;
+            background: linear-gradient(#333, #000);
+            border-radius: 0 0 4px 4px;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+            padding-bottom: 6px;
+            font-size: 11px;
+            color: #aaa;
+            box-sizing: border-box;
+        }
+        .kvit.nede { background: linear-gradient(#cde, #9bd); }
+        .svart.nede { background: linear-gradient(#246, #123); }
+        .tast-bokstav { font-weight: bold; }
+        .skjul-bokstavar .tast-bokstav { display: none; }
+        .notenamn { margin-top: 2px; }
+        footer { margin-top: 20px; font-size: 13px; }
+        footer a { color: #0066cc; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Piano</h1>
+    <p class="intro">Klikk på tangentane, eller spel med tastaturet. Nedste rad (Z, S, X …) er den lågaste oktaven, rada med Q, 2, W … er den høgaste.</p>
+
+    <div class="kontrollar">
+        <label>Lyd
+            <select id="lyd">
+                <option value="piano">Piano</option>
+                <option value="orgel">Orgel</option>
+                <option value="sinus">Fløyte (sinus)</option>
+                <option value="square">8-bit (firkant)</option>
+            </select>
+        </label>
+        <label>Volum <input type="range" id="volum" min="0" max="1" step="0.01" value="0.6"></label>
+        <label>Oktav
+            <button id="ned">−</button>
+            <span id="oktavVis">4</span>
+            <button id="opp">+</button>
+        </label>
+        <label><input type="checkbox" id="visBokstavar" checked> Vis tastar</label>
+    </div>
+
+    <div class="ramme">
+        <div class="piano" id="piano"></div>
+    </div>
+
+    <footer><a href="index.html">← Tilbake til heimesida</a></footer>
+</div>
+
+<script>
+// Notane i ein oktav. Svarte tangentar har "#" i namnet.
+const NOTAR = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "H"];
+
+// Tastaturknappar for to oktavar (24 tonar) pluss øvste C.
+const TASTAR = [
+    "z", "s", "x", "d", "c", "v", "g", "b", "h", "n", "j", "m",
+    "q", "2", "w", "3", "e", "r", "5", "t", "6", "y", "7", "u",
+    "i"
+];
+
+let startOktav = 4;
+let lyd = null;         // AudioContext, lagast ved første klikk
+let hovudvolum = null;
+const spelande = {};    // tone-nummer -> { stopp() }
+
+const piano = document.getElementById("piano");
+
+// Frekvens for ein tone: A4 (440 Hz) er MIDI-nummer 69.
+function frekvens(midi) {
+    return 440 * Math.pow(2, (midi - 69) / 12);
+}
+
+function startLyd() {
+    if (!lyd) {
+        lyd = new (window.AudioContext || window.webkitAudioContext)();
+        hovudvolum = lyd.createGain();
+        hovudvolum.gain.value = document.getElementById("volum").value;
+        hovudvolum.connect(lyd.destination);
+    }
+    if (lyd.state === "suspended") lyd.resume();
+}
+
+// Lagar ein tone og returnerer ein funksjon som stoppar han.
+function spelTone(midi) {
+    startLyd();
+    const type = document.getElementById("lyd").value;
+    const no = lyd.currentTime;
+    const f = frekvens(midi);
+
+    const volum = lyd.createGain();
+    volum.connect(hovudvolum);
+
+    const oscillatorar = [];
+    function lagOsc(bolgje, frek, styrke) {
+        const o = lyd.createOscillator();
+        const g = lyd.createGain();
+        o.type = bolgje;
+        o.frequency.value = frek;
+        g.gain.value = styrke;
+        o.connect(g).connect(volum);
+        o.start(no);
+        oscillatorar.push(o);
+    }
+
+    let slepp = 0.3;
+    if (type === "piano") {
+        // Grunntone + overtonar, med rask anslag og langsam uttoning
+        lagOsc("triangle", f, 0.6);
+        lagOsc("sine", f * 2, 0.25);
+        lagOsc("sine", f * 3, 0.1);
+        volum.gain.setValueAtTime(0, no);
+        volum.gain.linearRampToValueAtTime(0.5, no + 0.01);
+        volum.gain.exponentialRampToValueAtTime(0.15, no + 1.2);
+        volum.gain.exponentialRampToValueAtTime(0.001, no + 4);
+        slepp = 0.4;
+    } else if (type === "orgel") {
+        lagOsc("sine", f, 0.4);
+        lagOsc("sine", f * 2, 0.3);
+        lagOsc("sine", f * 4, 0.15);
+        lagOsc("sine", f / 2, 0.2);
+        volum.gain.setValueAtTime(0, no);
+        volum.gain.linearRampToValueAtTime(0.4, no + 0.03);
+        slepp = 0.08;
+    } else if (type === "sinus") {
+        lagOsc("sine", f, 0.8);
+        volum.gain.setValueAtTime(0, no);
+        volum.gain.linearRampToValueAtTime(0.5, no + 0.05);
+        slepp = 0.25;
+    } else {
+        lagOsc("square", f, 0.2);
+        volum.gain.setValueAtTime(0.4, no);
+        slepp = 0.05;
+    }
+
+    return function stopp() {
+        const t = lyd.currentTime;
+        volum.gain.cancelScheduledValues(t);
+        volum.gain.setValueAtTime(Math.max(volum.gain.value, 0.0001), t);
+        volum.gain.exponentialRampToValueAtTime(0.0001, t + slepp);
+        oscillatorar.forEach(o => o.stop(t + slepp + 0.05));
+    };
+}
+
+// Teiknar tangentane for to oktavar frå startOktav, pluss øvste C.
+function teiknPiano() {
+    piano.innerHTML = "";
+    const antalTonar = 25;
+    const kvite = [];
+    for (let i = 0; i < antalTonar; i++) {
+        if (!NOTAR[i % 12].includes("#")) kvite.push(i);
+    }
+    const kvitBreidde = 100 / kvite.length;
+
+    let kvitIndeks = 0;
+    for (let i = 0; i < antalTonar; i++) {
+        const namn = NOTAR[i % 12];
+        const oktav = startOktav + Math.floor(i / 12);
+        const midi = 12 * (oktav + 1) + (i % 12);
+        const svart = namn.includes("#");
+
+        const tast = document.createElement("div");
+        tast.className = svart ? "svart" : "kvit";
+        tast.dataset.midi = midi;
+        tast.innerHTML =
+            '<span class="tast-bokstav">' + TASTAR[i].toUpperCase() + '</span>' +
+            (svart ? "" : '<span class="notenamn">' + namn + oktav + '</span>');
+
+        if (svart) {
+            // Plasser den svarte tangenten over skiljet mellom to kvite
+            tast.style.left = (kvitIndeks * kvitBreidde - kvitBreidde * 0.3) + "%";
+            tast.style.width = (kvitBreidde * 0.6) + "%";
+        } else {
+            kvitIndeks++;
+        }
+        piano.appendChild(tast);
+    }
+    document.getElementById("oktavVis").textContent = startOktav;
+}
+
+function trykkNed(midi) {
+    if (spelande[midi]) return;
+    spelande[midi] = spelTone(midi);
+    const el = piano.querySelector('[data-midi="' + midi + '"]');
+    if (el) el.classList.add("nede");
+}
+
+function sleppOpp(midi) {
+    if (!spelande[midi]) return;
+    spelande[midi]();
+    delete spelande[midi];
+    const el = piano.querySelector('[data-midi="' + midi + '"]');
+    if (el) el.classList.remove("nede");
+}
+
+function sleppAlle() {
+    Object.keys(spelande).forEach(m => sleppOpp(m));
+}
+
+// Mus og berøring: ein peikar kan dra over tangentane (glissando)
+const peikarTone = {};  // pointerId -> midi
+
+function toneUnder(x, y) {
+    const el = document.elementFromPoint(x, y);
+    if (!el) return null;
+    const tast = el.closest(".kvit, .svart");
+    return tast && piano.contains(tast) ? Number(tast.dataset.midi) : null;
+}
+
+piano.addEventListener("pointerdown", e => {
+    e.preventDefault();
+    const midi = toneUnder(e.clientX, e.clientY);
+    if (midi === null) return;
+    peikarTone[e.pointerId] = midi;
+    trykkNed(midi);
+});
+
+window.addEventListener("pointermove", e => {
+    if (!(e.pointerId in peikarTone)) return;
+    const midi = toneUnder(e.clientX, e.clientY);
+    const forrige = peikarTone[e.pointerId];
+    if (midi === forrige) return;
+    if (forrige !== null) sleppOpp(forrige);
+    peikarTone[e.pointerId] = midi;
+    if (midi !== null) trykkNed(midi);
+});
+
+function peikarSlutt(e) {
+    if (!(e.pointerId in peikarTone)) return;
+    const midi = peikarTone[e.pointerId];
+    delete peikarTone[e.pointerId];
+    if (midi !== null) sleppOpp(midi);
+}
+window.addEventListener("pointerup", peikarSlutt);
+window.addEventListener("pointercancel", peikarSlutt);
+
+// Tastatur
+function midiForTast(tast) {
+    const i = TASTAR.indexOf(tast.toLowerCase());
+    return i < 0 ? null : 12 * (startOktav + 1) + i;
+}
+
+window.addEventListener("keydown", e => {
+    if (e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.target.tagName === "SELECT" || e.target.tagName === "INPUT") return;
+    const midi = midiForTast(e.key);
+    if (midi !== null) trykkNed(midi);
+});
+
+window.addEventListener("keyup", e => {
+    const midi = midiForTast(e.key);
+    if (midi !== null) sleppOpp(midi);
+});
+
+window.addEventListener("blur", sleppAlle);
+
+// Kontrollar
+document.getElementById("volum").addEventListener("input", e => {
+    if (hovudvolum) hovudvolum.gain.value = e.target.value;
+});
+
+function byttOktav(endring) {
+    const ny = startOktav + endring;
+    if (ny < 1 || ny > 6) return;
+    sleppAlle();
+    startOktav = ny;
+    teiknPiano();
+}
+document.getElementById("ned").addEventListener("click", () => byttOktav(-1));
+document.getElementById("opp").addEventListener("click", () => byttOktav(1));
+
+document.getElementById("visBokstavar").addEventListener("change", e => {
+    piano.classList.toggle("skjul-bokstavar", !e.target.checked);
+});
+
+teiknPiano();
+</script>
+</body>
+</html>
