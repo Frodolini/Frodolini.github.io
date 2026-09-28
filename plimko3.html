@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="nn">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Plinko 3</title>
+    <style>
+        body {
+            background-color: powderblue;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+        }
+        h1 {
+            color: #333;
+            margin: 10px 0;
+        }
+        .container {
+            max-width: 640px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        canvas {
+            width: 100%;
+            height: auto;
+            display: block;
+            background-color: #1d2b3a;
+            border-radius: 6px;
+        }
+        .kontroll {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin: 12px 0;
+        }
+        .status {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px 24px;
+            margin: 8px 0;
+        }
+        .saldo {
+            font-size: 22px;
+            font-weight: bold;
+        }
+        .tal {
+            font-size: 18px;
+            align-self: center;
+        }
+        .risiko {
+            font-size: 17px;
+            margin: 4px 0 0;
+            min-height: 22px;
+        }
+        .risiko b {
+            color: #c62828;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button:disabled {
+            background-color: #aaa;
+            cursor: not-allowed;
+        }
+        #stopp {
+            background-color: #ef6c00;
+        }
+        #stopp:disabled {
+            background-color: #aaa;
+        }
+        #nyttSpel {
+            background-color: #2196F3;
+        }
+        #lydKnapp {
+            background-color: #607d8b;
+        }
+        .melding {
+            min-height: 22px;
+            font-size: 16px;
+        }
+        .tips {
+            min-height: 22px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #e65100;
+            margin-top: 4px;
+        }
+        .historikk {
+            color: #666;
+            font-size: 14px;
+            min-height: 20px;
+        }
+        .reglar {
+            text-align: left;
+            font-size: 14px;
+            color: #444;
+            margin-top: 12px;
+            border-top: 1px solid #ddd;
+            padding-top: 8px;
+        }
+        .reglar ul {
+            margin: 4px 0;
+            padding-left: 20px;
+        }
+        a {
+            display: inline-block;
+            margin-top: 16px;
+        }
+    </style>
+</head>
+<body>
+<h1>Plinko 3</h1>
+<div class="container">
+    <div class="status">
+        <div class="saldo"><span id="saldo">5,00 kr</span></div>
+        <div class="tal">Kast: <b id="kast">0</b></div>
+        <div class="tal">Rekord: <b id="rekord">0</b></div>
+    </div>
+    <canvas id="brett" width="600" height="560"></canvas>
+    <div class="risiko" id="risiko"></div>
+    <div class="kontroll">
+        <button id="slepp">Slepp ball (1 kr)</button>
+        <button id="stopp" disabled>Stopp og sikre poenga</button>
+        <button id="nyttSpel" hidden>Nytt spel</button>
+        <button id="lydKnapp">Lyd: på</button>
+    </div>
+    <div class="melding" id="melding">Pass deg for tjuven! Han gøymer seg i eit nytt spor før kvart kast.</div>
+    <div class="tips" id="tips"></div>
+    <div class="historikk" id="historikk"></div>
+    <div class="reglar">
+        <b>Reglar</b>
+        <ul>
+            <li>Du startar med 5 kr. Kvart kast kostar 1 kr.</li>
+            <li>Poenga dine er talet på kast.</li>
+            <li>Landar ballen i tjuvsporet, vert du rana for alt – og endar på 0 poeng.</li>
+            <li>Trykk «Stopp» når du vil sikre poenga. Gå deg ikkje for langt!</li>
+            <li>Har du under 1 kr, er spelet over, men du beheld poenga.</li>
+        </ul>
+    </div>
+</div>
+<a href="https://frodolini.github.io">Tilbake til heimesida</a>
+
+<script>
+    const canvas = document.getElementById('brett');
+    const ctx = canvas.getContext('2d');
+    const W = 600;
+    const H = 560;
+
+    const RADER = 12;
+    const AVSTAND = 40;
+    const TOPP = 50;
+    const RAD_HOGDE = 38;
+    const PINNE_R = 4;
+    const BALL_R = 7;
+    const TYNGD = 0.22;
+    const SPRETT = 0.4;
+    const LUFT = 0.94;
+    const MAKS_FART = 4;
+    const MULTIPLIKATORAR = [16, 5, 2, 1.4, 1.1, 0.7, 0.4, 0.7, 1.1, 1.4, 2, 5, 16];
+    // Målt med 20 000 simulerte fall i denne fysikkmotoren
+    const SANNSYN = [0.04, 0.5, 2.7, 7.2, 12.7, 17.2, 19.4, 17.2, 12.7, 7.2, 2.7, 0.5, 0.04];
+
+    const pinnar = [];
+    for (let r = 0; r < RADER; r++) {
+        const antal = r + 3;
+        for (let i = 0; i < antal; i++) {
+            pinnar.push({ x: W / 2 + (i - (antal - 1) / 2) * AVSTAND, y: TOPP + r * RAD_HOGDE });
+        }
+    }
+
+    const botnRad = TOPP + (RADER - 1) * RAD_HOGDE;
+    const SPOR_TOPP = botnRad + 22;
+    const SPOR_HOGDE = 40;
+    const SPOR_VENSTRE = W / 2 - (MULTIPLIKATORAR.length / 2) * AVSTAND;
+    const SPOR_HOGRE = W / 2 + (MULTIPLIKATORAR.length / 2) * AVSTAND;
+
+    const START_ORE = 500;
+    const KAST_PRIS = 100;
+
+    let saldo = START_ORE;
+    let kast = 0;
+    let rekord = 0;
+    try { rekord = Number(localStorage.getItem('plinko3Rekord')) || 0; } catch (e) {}
+    let spelSlutt = false;
+    let rana = false;
+    let ranBlink = 0;
+    let felle = nyFelle();
+    let ballar = [];
+    const blink = new Array(MULTIPLIKATORAR.length).fill(0);
+    const historikk = [];
+
+    const saldoEl = document.getElementById('saldo');
+    const kastEl = document.getElementById('kast');
+    const rekordEl = document.getElementById('rekord');
+    const risikoEl = document.getElementById('risiko');
+    const sleppEl = document.getElementById('slepp');
+    const stoppEl = document.getElementById('stopp');
+    const nyttSpelEl = document.getElementById('nyttSpel');
+    const meldingEl = document.getElementById('melding');
+    const tipsEl = document.getElementById('tips');
+    const historikkEl = document.getElementById('historikk');
+
+    const lydKnappEl = document.getElementById('lydKnapp');
+    let lydPa = true;
+    try { lydPa = localStorage.getItem('plinkoLyd') !== 'av'; } catch (e) {}
+    let lydCtx = null;
+    let sistePinneLyd = 0;
+
+    function nyFelle() {
+        return Math.floor(Math.random() * MULTIPLIKATORAR.length);
+    }
+
+    function lyd() {
+        if (!lydPa) return null;
+        if (!lydCtx) {
+            const AC = window.AudioContext || window.webkitAudioContext;
+            if (!AC) return null;
+            lydCtx = new AC();
+        }
+        if (lydCtx.state === 'suspended') lydCtx.resume();
+        return lydCtx;
+    }
+
+    function tone(frekvens, start, lengd, type, volum) {
+        const ac = lyd();
+        if (!ac) return;
+        const t = ac.currentTime + start;
+        const osc = ac.createOscillator();
+        const gain = ac.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(frekvens, t);
+        gain.gain.setValueAtTime(volum, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + lengd);
+        osc.connect(gain).connect(ac.destination);
+        osc.start(t);
+        osc.stop(t + lengd);
+    }
+
+    function pinneLyd(y) {
+        const no = performance.now();
+        if (no - sistePinneLyd < 30) return;
+        sistePinneLyd = no;
+        const rad = (y - TOPP) / RAD_HOGDE;
+        tone(700 + rad * 45, 0, 0.05, 'triangle', 0.08);
+    }
+
+    function landingsLyd(mult) {
+        if (mult >= 16) {
+            [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, i * 0.08, 0.3, 'triangle', 0.2));
+        } else if (mult >= 5) {
+            [523, 659, 784, 1047].forEach((f, i) => tone(f, i * 0.07, 0.25, 'triangle', 0.18));
+        } else if (mult >= 1) {
+            tone(660, 0, 0.15, 'sine', 0.18);
+            tone(880, 0.08, 0.2, 'sine', 0.18);
+        } else {
+            tone(200, 0, 0.25, 'sine', 0.2);
+        }
+    }
+
+    function ranLyd() {
+        for (let i = 0; i < 6; i++) {
+            tone(i % 2 ? 620 : 880, i * 0.22, 0.24, 'square', 0.09);
+        }
+        tone(110, 1.4, 0.8, 'sawtooth', 0.12);
+    }
+
+    function tapsLyd() {
+        [392, 330, 262, 196].forEach((f, i) => tone(f, 0.4 + i * 0.28, 0.4, 'triangle', 0.22));
+    }
+
+    function stoppLyd() {
+        tone(880, 0, 0.12, 'sine', 0.18);
+        tone(1175, 0.1, 0.35, 'sine', 0.18);
+    }
+
+    function rekordLyd() {
+        [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.2 + i * 0.12, 0.3, 'triangle', 0.2));
+        [1047, 1319, 1568].forEach(f => tone(f, 0.2 + 4 * 0.12, 0.9, 'triangle', 0.14));
+    }
+
+    function oppdaterLydKnapp() {
+        lydKnappEl.textContent = lydPa ? 'Lyd: på' : 'Lyd: av';
+    }
+
+    function kroner(ore) {
+        return (ore / 100).toFixed(2).replace('.', ',') + ' kr';
+    }
+
+    function multTekst(mult) {
+        return String(mult).replace('.', ',') + 'x';
+    }
+
+    function prosent(p) {
+        return p < 0.1 ? 'under 0,1 %' : String(p).replace('.', ',') + ' %';
+    }
+
+    function oppdaterVisning() {
+        saldoEl.textContent = kroner(saldo);
+        kastEl.textContent = kast;
+        rekordEl.textContent = rekord;
+        const iLufta = ballar.length > 0;
+        sleppEl.disabled = spelSlutt || iLufta;
+        stoppEl.disabled = spelSlutt || iLufta || kast === 0;
+        nyttSpelEl.hidden = !spelSlutt;
+        if (spelSlutt) {
+            risikoEl.textContent = '';
+        } else {
+            risikoEl.innerHTML = 'Tjuven gøymer seg i spor ' + (felle + 1) + ' – sjanse for ran: <b>' + prosent(SANNSYN[felle]) + '</b>';
+        }
+    }
+
+    function sluttSpel(korleis) {
+        spelSlutt = true;
+        tipsEl.textContent = '';
+        if (korleis === 'rana') {
+            ranLyd();
+            meldingEl.textContent = 'Du vart rana! Tjuven tok alle pengane – og poenga. Du endar på 0 poeng.';
+        } else if (kast > rekord) {
+            rekord = kast;
+            try { localStorage.setItem('plinko3Rekord', String(rekord)); } catch (e) {}
+            rekordLyd();
+            meldingEl.textContent = (korleis === 'stopp' ? 'Du stoppa i tide!' : 'Tom for pengar, men du slapp unna tjuven!') +
+                ' Ny rekord: ' + kast + ' kast.';
+        } else if (korleis === 'stopp') {
+            stoppLyd();
+            meldingEl.textContent = 'Du stoppa på ' + kast + ' kast. Rekorden er ' + rekord + '.';
+        } else {
+            tapsLyd();
+            meldingEl.textContent = 'Tom for pengar! Du endar på ' + kast + ' kast. Rekorden er ' + rekord + '.';
+        }
+        oppdaterVisning();
+    }
+
+    function sleppBall() {
+        if (spelSlutt || ballar.length > 0 || saldo < KAST_PRIS) return;
+        saldo -= KAST_PRIS;
+        kast++;
+        ballar.push({
+            x: W / 2 + (Math.random() - 0.5) * 10,
+            y: 15,
+            vx: (Math.random() - 0.5) * 0.6,
+            vy: 0,
+            sistePinne: -1
+        });
+        tone(320, 0, 0.08, 'sine', 0.15);
+        meldingEl.textContent = '';
+        tipsEl.textContent = '';
+        oppdaterVisning();
+    }
+
+    function stopp() {
+        if (spelSlutt || ballar.length > 0 || kast === 0) return;
+        sluttSpel('stopp');
+    }
+
+    function landa(ball) {
+        let spor = Math.floor((ball.x - SPOR_VENSTRE) / AVSTAND);
+        spor = Math.max(0, Math.min(MULTIPLIKATORAR.length - 1, spor));
+        blink[spor] = 1;
+        if (spor === felle) {
+            rana = true;
+            ranBlink = 1;
+            saldo = 0;
+            kast = 0;
+            historikk.unshift('RAN');
+        } else {
+            const mult = MULTIPLIKATORAR[spor];
+            const gevinst = Math.round(KAST_PRIS * mult / 10) * 10;
+            saldo += gevinst;
+            landingsLyd(mult);
+            meldingEl.textContent = multTekst(mult) + ' – du fekk ' + kroner(gevinst) + '.';
+            historikk.unshift(multTekst(mult));
+        }
+        if (historikk.length > 10) historikk.pop();
+        historikkEl.textContent = 'Siste: ' + historikk.join('  ');
+    }
+
+    function ballFerdig() {
+        if (rana) {
+            sluttSpel('rana');
+        } else if (saldo < KAST_PRIS) {
+            sluttSpel('blakk');
+        } else {
+            felle = nyFelle();
+            if (rekord > 0 && kast > rekord) {
+                tipsEl.textContent = 'Du er forbi rekorden din! Stopp no for å sikre han – eller våg eitt kast til?';
+            }
+            oppdaterVisning();
+        }
+    }
+
+    function steg() {
+        for (const ball of ballar) {
+            ball.vy = Math.min(MAKS_FART, ball.vy + TYNGD);
+            ball.vx *= LUFT;
+            ball.x += ball.vx;
+            ball.y += ball.vy;
+
+            for (let j = 0; j < pinnar.length; j++) {
+                const p = pinnar[j];
+                const dx = ball.x - p.x;
+                const dy = ball.y - p.y;
+                const d = Math.hypot(dx, dy);
+                const min = BALL_R + PINNE_R;
+                if (d < min && d > 0) {
+                    const nx = dx / d;
+                    const ny = dy / d;
+                    ball.x = p.x + nx * min;
+                    ball.y = p.y + ny * min;
+                    const vn = ball.vx * nx + ball.vy * ny;
+                    if (vn < 0) {
+                        ball.vx -= (1 + SPRETT) * vn * nx;
+                        ball.vy -= (1 + SPRETT) * vn * ny;
+                    }
+                    ball.vx += (Math.random() - 0.5) * 0.4;
+                    ball.vx *= 0.9;
+                    if (ball.sistePinne !== j) {
+                        ball.sistePinne = j;
+                        pinneLyd(p.y);
+                    }
+                }
+            }
+
+            if (ball.x < SPOR_VENSTRE + BALL_R) { ball.x = SPOR_VENSTRE + BALL_R; ball.vx = Math.abs(ball.vx) * SPRETT; }
+            if (ball.x > SPOR_HOGRE - BALL_R) { ball.x = SPOR_HOGRE - BALL_R; ball.vx = -Math.abs(ball.vx) * SPRETT; }
+
+            if (ball.y > SPOR_TOPP && !ball.ferdig) {
+                ball.ferdig = true;
+                landa(ball);
+            }
+        }
+        const forAntal = ballar.length;
+        ballar = ballar.filter(b => b.y < SPOR_TOPP + SPOR_HOGDE / 2);
+        if (ballar.length !== forAntal && ballar.length === 0) ballFerdig();
+        for (let i = 0; i < blink.length; i++) blink[i] = Math.max(0, blink[i] - 0.03);
+        ranBlink = Math.max(0, ranBlink - 0.01);
+    }
+
+    function sporFarge(i, lys) {
+        const midt = (MULTIPLIKATORAR.length - 1) / 2;
+        const t = Math.abs(i - midt) / midt;
+        const g = Math.round(200 - t * 170);
+        const l = Math.round(lys * 80);
+        return 'rgb(' + Math.min(255, 240 + l) + ',' + Math.min(255, g + l) + ',' + Math.min(255, 40 + l) + ')';
+    }
+
+    function teikn(no) {
+        ctx.clearRect(0, 0, W, H);
+
+        ctx.fillStyle = '#ffffff';
+        for (const p of pinnar) {
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, PINNE_R, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        for (let i = 0; i < MULTIPLIKATORAR.length; i++) {
+            const x = SPOR_VENSTRE + i * AVSTAND;
+            const loft = blink[i] * 6;
+            const midtY = SPOR_TOPP + SPOR_HOGDE / 2 - loft;
+            if (i === felle && (!spelSlutt || rana)) {
+                const puls = 0.5 + 0.5 * Math.sin(no / 180);
+                ctx.fillStyle = '#111';
+                ctx.fillRect(x + 2, SPOR_TOPP + 4 - loft, AVSTAND - 4, SPOR_HOGDE - 8);
+                ctx.strokeStyle = 'rgba(255,40,40,' + (0.5 + 0.5 * puls) + ')';
+                ctx.lineWidth = 3;
+                ctx.strokeRect(x + 3.5, SPOR_TOPP + 5.5 - loft, AVSTAND - 7, SPOR_HOGDE - 11);
+                ctx.fillStyle = '#ff3b3b';
+                ctx.font = 'bold 11px Arial';
+                ctx.fillText('TJUV', x + AVSTAND / 2, midtY);
+            } else {
+                ctx.fillStyle = sporFarge(i, blink[i]);
+                ctx.fillRect(x + 2, SPOR_TOPP + 4 - loft, AVSTAND - 4, SPOR_HOGDE - 8);
+                ctx.fillStyle = '#1d2b3a';
+                ctx.font = 'bold 13px Arial';
+                ctx.fillText(multTekst(MULTIPLIKATORAR[i]), x + AVSTAND / 2, midtY);
+            }
+        }
+
+        ctx.fillStyle = '#ff4fa3';
+        for (const ball of ballar) {
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, BALL_R, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        if (rana) {
+            ctx.fillStyle = 'rgba(200,0,0,' + (0.15 + 0.4 * ranBlink * (0.5 + 0.5 * Math.sin(no / 60))) + ')';
+            ctx.fillRect(0, 0, W, H);
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 64px Arial';
+            ctx.fillText('RANA!', W / 2, H / 2 - 40);
+        }
+
+        ctx.fillStyle = 'rgba(255,255,255,0.6)';
+        ctx.font = '14px Arial';
+        ctx.fillText('Midten gir lite – kantane gir mykje!', W / 2, H - 12);
+    }
+
+    let forrige = performance.now();
+    let akkumulert = 0;
+    const STEG_MS = 1000 / 60;
+    function loop(no) {
+        akkumulert += Math.min(100, no - forrige);
+        forrige = no;
+        while (akkumulert >= STEG_MS) {
+            steg();
+            akkumulert -= STEG_MS;
+        }
+        teikn(no);
+        requestAnimationFrame(loop);
+    }
+
+    sleppEl.addEventListener('click', sleppBall);
+    stoppEl.addEventListener('click', stopp);
+    lydKnappEl.addEventListener('click', () => {
+        lydPa = !lydPa;
+        try { localStorage.setItem('plinkoLyd', lydPa ? 'pa' : 'av'); } catch (e) {}
+        oppdaterLydKnapp();
+        if (lydPa) tone(660, 0, 0.1, 'sine', 0.15);
+    });
+    nyttSpelEl.addEventListener('click', () => {
+        saldo = START_ORE;
+        kast = 0;
+        spelSlutt = false;
+        rana = false;
+        ranBlink = 0;
+        felle = nyFelle();
+        historikk.length = 0;
+        historikkEl.textContent = '';
+        tipsEl.textContent = '';
+        meldingEl.textContent = 'Nytt spel! Pass deg for tjuven.';
+        oppdaterVisning();
+    });
+    document.addEventListener('keydown', e => {
+        if (e.code === 'Space') {
+            e.preventDefault();
+            sleppBall();
+        }
+    });
+
+    oppdaterLydKnapp();
+    oppdaterVisning();
+    requestAnimationFrame(loop);
+</script>
+</body>
+</html>
