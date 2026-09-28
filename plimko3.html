@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Plinko 3</title>
+    <title>Plimko 3 - PAUSEKONK for 2ITKA Stord</title>
     <style>
         body {
             background-color: powderblue;
@@ -125,7 +125,7 @@
     </style>
 </head>
 <body>
-<h1>Plinko 3</h1>
+<h1>Plimko 3 - PAUSEKONK for 2ITKA Stord</h1>
 <div class="container">
     <div class="status">
         <div class="saldo"><span id="saldo">5,00 kr</span></div>
@@ -140,7 +140,7 @@
         <button id="nyttSpel" hidden>Nytt spel</button>
         <button id="lydKnapp">Lyd: på</button>
     </div>
-    <div class="melding" id="melding">Pass deg for tjuven! Han gøymer seg i eit nytt spor før kvart kast.</div>
+    <div class="melding" id="melding">Pass deg for tjuven! Han flyttar seg alltid til sporet der den førre ballen landa.</div>
     <div class="tips" id="tips"></div>
     <div class="historikk" id="historikk"></div>
     <div class="reglar">
@@ -148,6 +148,7 @@
         <ul>
             <li>Du startar med 5 kr. Kvart kast kostar 1 kr.</li>
             <li>Poenga dine er talet på kast.</li>
+            <li>Tjuven gøymer seg i sporet der den førre ballen landa (første kastet: tilfeldig spor).</li>
             <li>Landar ballen i tjuvsporet, vert du rana for alt – og endar på 0 poeng.</li>
             <li>Trykk «Stopp» når du vil sikre poenga. Gå deg ikkje for langt!</li>
             <li>Har du under 1 kr, er spelet over, men du beheld poenga.</li>
@@ -201,6 +202,7 @@
     let rana = false;
     let ranBlink = 0;
     let felle = nyFelle();
+    let sisteSpor = felle;
     let ballar = [];
     const blink = new Array(MULTIPLIKATORAR.length).fill(0);
     const historikk = [];
@@ -373,6 +375,7 @@
         let spor = Math.floor((ball.x - SPOR_VENSTRE) / AVSTAND);
         spor = Math.max(0, Math.min(MULTIPLIKATORAR.length - 1, spor));
         blink[spor] = 1;
+        sisteSpor = spor;
         if (spor === felle) {
             rana = true;
             ranBlink = 1;
@@ -397,7 +400,7 @@
         } else if (saldo < KAST_PRIS) {
             sluttSpel('blakk');
         } else {
-            felle = nyFelle();
+            felle = sisteSpor;
             if (rekord > 0 && kast > rekord) {
                 tipsEl.textContent = 'Du er forbi rekorden din! Stopp no for å sikre han – eller våg eitt kast til?';
             }
