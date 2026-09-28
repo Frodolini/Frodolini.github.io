@@ -1,10 +1,26 @@
 <!DOCTYPE html>
+<!--
+    Plinko 3 – PAUSEKONK for 2ITKA Stord
+
+    Heile spelet ligg i denne eine fila, i tre delar:
+      1. CSS (<style>)  – korleis sida ser ut: fargar, knappar og oppsett.
+      2. HTML (<body>)  – innhaldet på sida: overskrift, teikneflate, knappar og tekstfelt.
+      3. JavaScript (<script>) – all logikken: fysikken til ballen, pengar, tjuven, lyd og teikning.
+
+    Reglane i korte trekk:
+      - Du startar med 5 kr, og kvart kast kostar 1 kr.
+      - Poenga dine er talet på kast.
+      - Tjuven gøymer seg i sporet der den førre ballen landa. Landar ballen der, mistar du alt.
+      - Du kan når som helst trykkje «Stopp» for å sikre poenga.
+-->
 <html lang="nn">
 <head>
     <meta charset="utf-8">
+    <!-- Gjer at sida vert tilpassa skjermbreidda på mobil i staden for å vise ein forminska PC-versjon -->
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Plimko 3 - PAUSEKONK for 2ITKA Stord</title>
+    <title>Plinko 3 - PAUSEKONK for 2ITKA Stord</title>
     <style>
+        /* ---------- Grunnoppsett for heile sida ---------- */
         body {
             background-color: powderblue;
             font-family: Arial, sans-serif;
@@ -16,6 +32,7 @@
             color: #333;
             margin: 10px 0;
         }
+        /* Den kvite boksen som spelet ligg i. max-width gjer at han ikkje vert for brei på store skjermar. */
         .container {
             max-width: 640px;
             margin: 0 auto;
@@ -24,6 +41,7 @@
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
+        /* Teikneflata vert skalert til breidda av boksen, slik at brettet passar på både mobil og PC. */
         canvas {
             width: 100%;
             height: auto;
@@ -31,6 +49,7 @@
             background-color: #1d2b3a;
             border-radius: 6px;
         }
+        /* Flexbox legg knappane på rad og bryt til ny linje når det ikkje er plass (t.d. på mobil). */
         .kontroll {
             display: flex;
             flex-wrap: wrap;
@@ -39,6 +58,7 @@
             gap: 10px;
             margin: 12px 0;
         }
+        /* Linja øvst med pengar, kast og rekord */
         .status {
             display: flex;
             flex-wrap: wrap;
@@ -54,6 +74,7 @@
             font-size: 18px;
             align-self: center;
         }
+        /* Linja som viser kvar tjuven er og kor stor sjansen for ran er */
         .risiko {
             font-size: 17px;
             margin: 4px 0 0;
@@ -62,6 +83,8 @@
         .risiko b {
             color: #c62828;
         }
+
+        /* ---------- Knappar ---------- */
         button {
             padding: 10px 20px;
             font-size: 16px;
@@ -74,6 +97,7 @@
         button:hover {
             background-color: #45a049;
         }
+        /* Grå knapp når han ikkje kan brukast, t.d. medan ballen er i lufta */
         button:disabled {
             background-color: #aaa;
             cursor: not-allowed;
@@ -90,6 +114,9 @@
         #lydKnapp {
             background-color: #607d8b;
         }
+
+        /* ---------- Tekstfelt under brettet ---------- */
+        /* min-height hindrar at sida hoppar opp og ned når teksten skiftar mellom tom og utfylt */
         .melding {
             min-height: 22px;
             font-size: 16px;
@@ -125,24 +152,30 @@
     </style>
 </head>
 <body>
-<h1>Plimko 3 - PAUSEKONK for 2ITKA Stord</h1>
+<h1>Plinko 3 - PAUSEKONK for 2ITKA Stord</h1>
 <div class="container">
+    <!-- Status øvst. Tala i id-ane vert oppdaterte frå JavaScript (sjå oppdaterVisning). -->
     <div class="status">
         <div class="saldo"><span id="saldo">5,00 kr</span></div>
         <div class="tal">Kast: <b id="kast">0</b></div>
         <div class="tal">Rekord: <b id="rekord">0</b></div>
     </div>
+
+    <!-- Teikneflata der brettet, ballen og tjuven vert teikna. 600x560 er det interne koordinatsystemet. -->
     <canvas id="brett" width="600" height="560"></canvas>
     <div class="risiko" id="risiko"></div>
+
     <div class="kontroll">
         <button id="slepp">Slepp ball (1 kr)</button>
         <button id="stopp" disabled>Stopp og sikre poenga</button>
         <button id="nyttSpel" hidden>Nytt spel</button>
         <button id="lydKnapp">Lyd: på</button>
     </div>
+
     <div class="melding" id="melding">Pass deg for tjuven! Han flyttar seg alltid til sporet der den førre ballen landa.</div>
     <div class="tips" id="tips"></div>
     <div class="historikk" id="historikk"></div>
+
     <div class="reglar">
         <b>Reglar</b>
         <ul>
@@ -158,25 +191,46 @@
 <a href="https://frodolini.github.io">Tilbake til heimesida</a>
 
 <script>
+    /* =====================================================================
+       1. TEIKNEFLATE
+       ctx er «penselen» vi brukar til å teikne på canvas-elementet.
+       W og H er breidda og høgda i det interne koordinatsystemet.
+       (0, 0) er øvst til venstre, og y-aksen peikar NEDOVER.
+       ===================================================================== */
     const canvas = document.getElementById('brett');
     const ctx = canvas.getContext('2d');
     const W = 600;
     const H = 560;
 
-    const RADER = 12;
-    const AVSTAND = 40;
-    const TOPP = 50;
-    const RAD_HOGDE = 38;
-    const PINNE_R = 4;
-    const BALL_R = 7;
-    const TYNGD = 0.22;
-    const SPRETT = 0.4;
-    const LUFT = 0.94;
-    const MAKS_FART = 4;
+    /* =====================================================================
+       2. INNSTILLINGAR FOR BRETTET OG FYSIKKEN
+       Alle mål er i pikslar. Fartar er pikslar per steg (60 steg i sekundet).
+       ===================================================================== */
+    const RADER = 12;        // Talet på rader med pinnar
+    const AVSTAND = 40;      // Avstand mellom pinnane – òg breidda på kvart spor
+    const TOPP = 50;         // y-posisjonen til den øvste pinneraden
+    const RAD_HOGDE = 38;    // Loddrett avstand mellom radene
+    const PINNE_R = 4;       // Radius på pinnane
+    const BALL_R = 7;        // Radius på ballen
+    const TYNGD = 0.22;      // Kor mykje farten nedover aukar kvart steg (tyngdekraft)
+    const SPRETT = 0.4;      // Kor mykje av farten ballen held på i eit støyt (0 = ingen sprett, 1 = full sprett)
+    const LUFT = 0.94;       // Luftmotstand: sidefarten vert gonga med dette kvart steg, så ballen roar seg
+    const MAKS_FART = 4;     // Høgaste fart nedover, slik at ballen ikkje susar rett gjennom pinnane
+
+    // Gevinsten i kvart spor, frå venstre til høgre. Kantane gir mest fordi ballen sjeldan hamnar der.
     const MULTIPLIKATORAR = [16, 5, 2, 1.4, 1.1, 0.7, 0.4, 0.7, 1.1, 1.4, 2, 5, 16];
-    // Målt med 20 000 simulerte fall i denne fysikkmotoren
+
+    // Sjansen (i prosent) for at ballen landar i kvart spor.
+    // Tala er målte ved å sleppe 20 000 ballar i akkurat denne fysikkmotoren.
+    // Fordelinga liknar ei normalfordeling («klokkekurve»): ballen går oftast til midten.
     const SANNSYN = [0.04, 0.5, 2.7, 7.2, 12.7, 17.2, 19.4, 17.2, 12.7, 7.2, 2.7, 0.5, 0.04];
 
+    /* =====================================================================
+       3. LAG PINNANE
+       Rad nummer r har r + 3 pinnar, og kvar rad er sentrert på midten av brettet.
+       Då vert kvar rad forskyvd ein halv avstand i forhold til rada over,
+       slik at ballen må velje venstre eller høgre kvar gong han treffer ein pinne.
+       ===================================================================== */
     const pinnar = [];
     for (let r = 0; r < RADER; r++) {
         const antal = r + 3;
@@ -185,28 +239,39 @@
         }
     }
 
+    // Plasseringa av spora (boksane) under den nedste pinneraden
     const botnRad = TOPP + (RADER - 1) * RAD_HOGDE;
     const SPOR_TOPP = botnRad + 22;
     const SPOR_HOGDE = 40;
     const SPOR_VENSTRE = W / 2 - (MULTIPLIKATORAR.length / 2) * AVSTAND;
     const SPOR_HOGRE = W / 2 + (MULTIPLIKATORAR.length / 2) * AVSTAND;
 
-    const START_ORE = 500;
-    const KAST_PRIS = 100;
+    /* =====================================================================
+       4. PENGAR OG SPELTILSTAND
+       Pengane vert lagra i ØRE (heiltal) i staden for kroner med desimalar.
+       Datamaskiner reknar ikkje alltid nøyaktig med desimaltal
+       (prøv 0.1 + 0.2 i konsollen – du får 0.30000000000000004!).
+       Med heiltal får vi alltid rett svar.
+       ===================================================================== */
+    const START_ORE = 500;   // 5,00 kr
+    const KAST_PRIS = 100;   // 1,00 kr
 
     let saldo = START_ORE;
     let kast = 0;
     let rekord = 0;
+    // localStorage lagrar data i nettlesaren, slik at rekorden er der neste gong du opnar sida.
+    // try/catch fordi nokre nettlesarar (t.d. i privat modus) ikkje tillèt lagring – då går spelet likevel.
     try { rekord = Number(localStorage.getItem('plinko3Rekord')) || 0; } catch (e) {}
     let spelSlutt = false;
     let rana = false;
-    let ranBlink = 0;
-    let felle = nyFelle();
-    let sisteSpor = felle;
-    let ballar = [];
-    const blink = new Array(MULTIPLIKATORAR.length).fill(0);
-    const historikk = [];
+    let ranBlink = 0;              // Styrken på det raude blinket etter eit ran (1 = fullt, 0 = borte)
+    let felle = nyFelle();         // Sporet der tjuven gøymer seg. Første kast: tilfeldig spor.
+    let sisteSpor = felle;         // Sporet der den førre ballen landa – tjuven flyttar hit etter kvart kast
+    let ballar = [];               // Ballane som er i lufta (i dette spelet maks éin om gongen)
+    const blink = new Array(MULTIPLIKATORAR.length).fill(0);  // Kor mykje kvart spor lyser etter ei landing
+    const historikk = [];          // Dei siste resultata, vist under knappane
 
+    // Tilvisingar til HTML-elementa vi skal endre teksten i
     const saldoEl = document.getElementById('saldo');
     const kastEl = document.getElementById('kast');
     const rekordEl = document.getElementById('rekord');
@@ -224,10 +289,19 @@
     let lydCtx = null;
     let sistePinneLyd = 0;
 
+    // Vel eit tilfeldig spor frå 0 til 12. Math.random() gir eit tal mellom 0 og 1.
     function nyFelle() {
         return Math.floor(Math.random() * MULTIPLIKATORAR.length);
     }
 
+    /* =====================================================================
+       5. LYD
+       Alle lydane vert laga direkte i nettlesaren med Web Audio – det trengst ingen lydfiler.
+       Ein «oscillator» lagar ein tone med ein gitt frekvens (Hz). Høgare frekvens = lysare tone.
+       ===================================================================== */
+
+    // Nettlesarar tillèt ikkje lyd før brukaren har klikka på sida.
+    // Difor vert lydmotoren (AudioContext) først laga ved første klikk på «Slepp ball».
     function lyd() {
         if (!lydPa) return null;
         if (!lydCtx) {
@@ -239,6 +313,11 @@
         return lydCtx;
     }
 
+    // Spel éin tone.
+    //   frekvens: tonehøgd i Hz        start: kor mange sekund til tonen startar
+    //   lengd:    varigheit i sekund    type:  lydform ('sine' er mjuk, 'square' og 'sawtooth' er skarpe)
+    //   volum:    styrke frå 0 til 1
+    // Volumet vert tona ned mot slutten, elles høyrest det eit lite «klikk» når tonen stoppar brått.
     function tone(frekvens, start, lengd, type, volum) {
         const ac = lyd();
         if (!ac) return;
@@ -254,6 +333,8 @@
         osc.stop(t + lengd);
     }
 
+    // Klikk når ballen treffer ein pinne. Tonen vert lysare jo lenger ned ballen kjem.
+    // Maks eitt klikk per 30 millisekund, så det ikkje vert ein surrande lyd.
     function pinneLyd(y) {
         const no = performance.now();
         if (no - sistePinneLyd < 30) return;
@@ -262,6 +343,8 @@
         tone(700 + rad * 45, 0, 0.05, 'triangle', 0.08);
     }
 
+    // Lyd ved landing: større gevinst gir ein lengre og gladare tonerekkje.
+    // Tala 523, 659, 784 og 1047 er tonane C, E, G og C (ein durakkord).
     function landingsLyd(mult) {
         if (mult >= 16) {
             [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, i * 0.08, 0.3, 'triangle', 0.2));
@@ -275,6 +358,7 @@
         }
     }
 
+    // Sirene (to tonar som vekslar) og ein djup «brumm» til slutt
     function ranLyd() {
         for (let i = 0; i < 6; i++) {
             tone(i % 2 ? 620 : 880, i * 0.22, 0.24, 'square', 0.09);
@@ -282,15 +366,18 @@
         tone(110, 1.4, 0.8, 'sawtooth', 0.12);
     }
 
+    // Fallande tonar når pengane er brukte opp
     function tapsLyd() {
         [392, 330, 262, 196].forEach((f, i) => tone(f, 0.4 + i * 0.28, 0.4, 'triangle', 0.22));
     }
 
+    // Kort «pling» når du stoppar utan ny rekord
     function stoppLyd() {
         tone(880, 0, 0.12, 'sine', 0.18);
         tone(1175, 0.1, 0.35, 'sine', 0.18);
     }
 
+    // Fanfare: stigande tonar og ein akkord til slutt
     function rekordLyd() {
         [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.2 + i * 0.12, 0.3, 'triangle', 0.2));
         [1047, 1319, 1568].forEach(f => tone(f, 0.2 + 4 * 0.12, 0.9, 'triangle', 0.14));
@@ -300,18 +387,31 @@
         lydKnappEl.textContent = lydPa ? 'Lyd: på' : 'Lyd: av';
     }
 
+    /* =====================================================================
+       6. HJELPEFUNKSJONAR FOR TEKST
+       Gjer om tal til norsk skrivemåte med komma i staden for punktum.
+       ===================================================================== */
+
+    // 440 øre -> «4,40 kr»
     function kroner(ore) {
         return (ore / 100).toFixed(2).replace('.', ',') + ' kr';
     }
 
+    // 1.4 -> «1,4x»
     function multTekst(mult) {
         return String(mult).replace('.', ',') + 'x';
     }
 
+    // 19.4 -> «19,4 %». Svært små sjansar vert viste som «under 0,1 %».
     function prosent(p) {
         return p < 0.1 ? 'under 0,1 %' : String(p).replace('.', ',') + ' %';
     }
 
+    /* =====================================================================
+       7. SPELLOGIKK
+       ===================================================================== */
+
+    // Skriv pengar, kast og rekord på sida, og slå knappane av eller på etter kva som er lov no.
     function oppdaterVisning() {
         saldoEl.textContent = kroner(saldo);
         kastEl.textContent = kast;
@@ -323,10 +423,13 @@
         if (spelSlutt) {
             risikoEl.textContent = '';
         } else {
+            // felle + 1 fordi spora er nummererte frå 0 i koden, men frå 1 for spelaren
             risikoEl.innerHTML = 'Tjuven gøymer seg i spor ' + (felle + 1) + ' – sjanse for ran: <b>' + prosent(SANNSYN[felle]) + '</b>';
         }
     }
 
+    // Avslutt spelet. «korleis» er 'rana', 'stopp' eller 'blakk' (tom for pengar).
+    // Ved ran vert poenga 0. Ved stopp eller tom for pengar kan det bli ny rekord.
     function sluttSpel(korleis) {
         spelSlutt = true;
         tipsEl.textContent = '';
@@ -349,16 +452,18 @@
         oppdaterVisning();
     }
 
+    // Slepp ein ny ball frå toppen. Kostar 1 kr og tel som eitt kast.
+    // Ballen startar litt tilfeldig til sides, slik at ingen kast vert heilt like.
     function sleppBall() {
         if (spelSlutt || ballar.length > 0 || saldo < KAST_PRIS) return;
         saldo -= KAST_PRIS;
         kast++;
         ballar.push({
-            x: W / 2 + (Math.random() - 0.5) * 10,
+            x: W / 2 + (Math.random() - 0.5) * 10,   // Posisjon
             y: 15,
-            vx: (Math.random() - 0.5) * 0.6,
+            vx: (Math.random() - 0.5) * 0.6,         // Fart sidelengs (vx) og nedover (vy)
             vy: 0,
-            sistePinne: -1
+            sistePinne: -1                           // Siste pinne ballen trefte, så klikk-lyden ikkje vert gjenteken
         });
         tone(320, 0, 0.08, 'sine', 0.15);
         meldingEl.textContent = '';
@@ -371,7 +476,10 @@
         sluttSpel('stopp');
     }
 
+    // Vert kalla i det augeblikket ballen når spora. Finn ut kva spor han landa i,
+    // og sjekk om tjuven sit der. Om ikkje, får du utbetalt gevinsten.
     function landa(ball) {
+        // Rekn ut sporet frå x-posisjonen. Math.max/min held talet innanfor 0–12.
         let spor = Math.floor((ball.x - SPOR_VENSTRE) / AVSTAND);
         spor = Math.max(0, Math.min(MULTIPLIKATORAR.length - 1, spor));
         blink[spor] = 1;
@@ -384,6 +492,7 @@
             historikk.unshift('RAN');
         } else {
             const mult = MULTIPLIKATORAR[spor];
+            // Gevinst i øre, runda av til næraste 10 øre
             const gevinst = Math.round(KAST_PRIS * mult / 10) * 10;
             saldo += gevinst;
             landingsLyd(mult);
@@ -394,6 +503,8 @@
         historikkEl.textContent = 'Siste: ' + historikk.join('  ');
     }
 
+    // Vert kalla når ballen har forsvunne ned i sporet. Avgjer om spelet er over,
+    // eller flyttar tjuven til sporet der ballen nett landa og gjer klar til neste kast.
     function ballFerdig() {
         if (rana) {
             sluttSpel('rana');
@@ -408,29 +519,41 @@
         }
     }
 
+    /* =====================================================================
+       8. FYSIKK
+       steg() flyttar ballen eitt lite tidssteg (1/60 sekund) fram i tid.
+       ===================================================================== */
     function steg() {
         for (const ball of ballar) {
+            // Tyngdekrafta aukar farten nedover, luftmotstanden bremsar farten sidelengs.
             ball.vy = Math.min(MAKS_FART, ball.vy + TYNGD);
             ball.vx *= LUFT;
             ball.x += ball.vx;
             ball.y += ball.vy;
 
+            // Sjekk om ballen treffer ein pinne.
+            // To sirklar overlappar når avstanden mellom sentera er mindre enn summen av radiane.
             for (let j = 0; j < pinnar.length; j++) {
                 const p = pinnar[j];
                 const dx = ball.x - p.x;
                 const dy = ball.y - p.y;
-                const d = Math.hypot(dx, dy);
+                const d = Math.hypot(dx, dy);    // Pytagoras: d = √(dx² + dy²)
                 const min = BALL_R + PINNE_R;
                 if (d < min && d > 0) {
+                    // (nx, ny) er ein pil med lengd 1 som peikar frå pinnen mot ballen («normalen»).
                     const nx = dx / d;
                     const ny = dy / d;
+                    // Skyv ballen ut slik at han akkurat kviler mot kanten av pinnen.
                     ball.x = p.x + nx * min;
                     ball.y = p.y + ny * min;
+                    // vn er den delen av farten som går rett inn mot pinnen.
+                    // Den delen vert snudd (med litt tap), resten av farten vert verande – slik sprett ein ball.
                     const vn = ball.vx * nx + ball.vy * ny;
                     if (vn < 0) {
                         ball.vx -= (1 + SPRETT) * vn * nx;
                         ball.vy -= (1 + SPRETT) * vn * ny;
                     }
+                    // Litt tilfeldigheit i kvart støyt, elles ville ballen alltid gått same vegen.
                     ball.vx += (Math.random() - 0.5) * 0.4;
                     ball.vx *= 0.9;
                     if (ball.sistePinne !== j) {
@@ -440,32 +563,46 @@
                 }
             }
 
+            // Usynlege veggar ved kanten av spora, så ballen ikkje dett utanfor brettet
             if (ball.x < SPOR_VENSTRE + BALL_R) { ball.x = SPOR_VENSTRE + BALL_R; ball.vx = Math.abs(ball.vx) * SPRETT; }
             if (ball.x > SPOR_HOGRE - BALL_R) { ball.x = SPOR_HOGRE - BALL_R; ball.vx = -Math.abs(ball.vx) * SPRETT; }
 
+            // Ballen har nådd spora: rekn ut resultatet (berre éin gong per ball)
             if (ball.y > SPOR_TOPP && !ball.ferdig) {
                 ball.ferdig = true;
                 landa(ball);
             }
         }
+        // Fjern ballar som har falle ned i sporet. Når siste ball er borte, går spelet vidare.
         const forAntal = ballar.length;
         ballar = ballar.filter(b => b.y < SPOR_TOPP + SPOR_HOGDE / 2);
         if (ballar.length !== forAntal && ballar.length === 0) ballFerdig();
+        // La lysa i spora og det raude ranblinket gradvis bli svakare
         for (let i = 0; i < blink.length; i++) blink[i] = Math.max(0, blink[i] - 0.03);
         ranBlink = Math.max(0, ranBlink - 0.01);
     }
 
+    /* =====================================================================
+       9. TEIKNING
+       ===================================================================== */
+
+    // Fargen på eit spor: gult i midten og raudare mot kantane.
+    // «lys» (0–1) gjer sporet lysare ein augeblink etter at ballen har landa der.
     function sporFarge(i, lys) {
         const midt = (MULTIPLIKATORAR.length - 1) / 2;
-        const t = Math.abs(i - midt) / midt;
+        const t = Math.abs(i - midt) / midt;     // 0 i midten, 1 ytst
         const g = Math.round(200 - t * 170);
         const l = Math.round(lys * 80);
         return 'rgb(' + Math.min(255, 240 + l) + ',' + Math.min(255, g + l) + ',' + Math.min(255, 40 + l) + ')';
     }
 
+    // Teikn heile brettet på nytt. Vert kalla rundt 60 gonger i sekundet.
+    // «no» er tida i millisekund, brukt til pulserande effektar.
     function teikn(no) {
+        // Visk ut alt frå førre bilete
         ctx.clearRect(0, 0, W, H);
 
+        // Pinnane
         ctx.fillStyle = '#ffffff';
         for (const p of pinnar) {
             ctx.beginPath();
@@ -473,13 +610,15 @@
             ctx.fill();
         }
 
+        // Spora. Tjuvsporet vert teikna svart med ein pulserande raud kant.
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         for (let i = 0; i < MULTIPLIKATORAR.length; i++) {
             const x = SPOR_VENSTRE + i * AVSTAND;
-            const loft = blink[i] * 6;
+            const loft = blink[i] * 6;      // Sporet hoppar litt opp når ballen landar
             const midtY = SPOR_TOPP + SPOR_HOGDE / 2 - loft;
             if (i === felle && (!spelSlutt || rana)) {
+                // Math.sin gir ein verdi som bølgjer mellom -1 og 1 over tid – brukt til pulsen
                 const puls = 0.5 + 0.5 * Math.sin(no / 180);
                 ctx.fillStyle = '#111';
                 ctx.fillRect(x + 2, SPOR_TOPP + 4 - loft, AVSTAND - 4, SPOR_HOGDE - 8);
@@ -498,6 +637,7 @@
             }
         }
 
+        // Ballen
         ctx.fillStyle = '#ff4fa3';
         for (const ball of ballar) {
             ctx.beginPath();
@@ -505,6 +645,7 @@
             ctx.fill();
         }
 
+        // Etter eit ran: raudt, blinkande lag over heile brettet og teksten «RANA!»
         if (rana) {
             ctx.fillStyle = 'rgba(200,0,0,' + (0.15 + 0.4 * ranBlink * (0.5 + 0.5 * Math.sin(no / 60))) + ')';
             ctx.fillRect(0, 0, W, H);
@@ -518,6 +659,13 @@
         ctx.fillText('Midten gir lite – kantane gir mykje!', W / 2, H - 12);
     }
 
+    /* =====================================================================
+       10. SPELLØKKA
+       requestAnimationFrame ber nettlesaren kalle loop() før kvar skjermoppdatering.
+       Skjermar oppdaterer seg ulikt raskt (60, 120 eller 144 gonger i sekundet),
+       så vi reknar fysikken i faste steg på 1/60 sekund. Då fell ballen like fort på alle skjermar.
+       Math.min(100, ...) hindrar eit stort hopp om fana har lege i bakgrunnen ei stund.
+       ===================================================================== */
     let forrige = performance.now();
     let akkumulert = 0;
     const STEG_MS = 1000 / 60;
@@ -532,6 +680,10 @@
         requestAnimationFrame(loop);
     }
 
+    /* =====================================================================
+       11. KNAPPAR OG TASTATUR
+       addEventListener koplar ein funksjon til ei hending, t.d. eit klikk.
+       ===================================================================== */
     sleppEl.addEventListener('click', sleppBall);
     stoppEl.addEventListener('click', stopp);
     lydKnappEl.addEventListener('click', () => {
@@ -540,6 +692,7 @@
         oppdaterLydKnapp();
         if (lydPa) tone(660, 0, 0.1, 'sine', 0.15);
     });
+    // Nytt spel: nullstill alt unntatt rekorden. Tjuven startar i eit tilfeldig spor igjen.
     nyttSpelEl.addEventListener('click', () => {
         saldo = START_ORE;
         kast = 0;
@@ -553,6 +706,7 @@
         meldingEl.textContent = 'Nytt spel! Pass deg for tjuven.';
         oppdaterVisning();
     });
+    // Mellomrom slepp ein ball. preventDefault hindrar at sida rullar nedover.
     document.addEventListener('keydown', e => {
         if (e.code === 'Space') {
             e.preventDefault();
@@ -560,6 +714,9 @@
         }
     });
 
+    /* =====================================================================
+       12. START
+       ===================================================================== */
     oppdaterLydKnapp();
     oppdaterVisning();
     requestAnimationFrame(loop);
