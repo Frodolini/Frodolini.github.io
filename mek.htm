@@ -1,195 +1,544 @@
 <!DOCTYPE html>
-<html>
+<html lang="nn">
 <head>
-    <title>Mekaniske Prinsipp</title>
-    <style>
-        body {
-            background-color: powderblue;
-            font-family: Arial, sans-serif;
-            text-align: center;
-            padding: 20px;
-        }
-        h1 {
-            color: #333;
-        }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        svg {
-            width: 100%;
-            max-width: 600px;
-            height: auto;
-            margin: 20px 0;
-            border: 2px solid #ccc;
-            border-radius: 4px;
-            background-color: #f9f9f9;
-        }
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            margin: 10px 5px;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-        .principle-name {
-            font-size: 24px;
-            font-weight: bold;
-            color: #333;
-            margin: 20px 0;
-        }
-        .description {
-            font-size: 16px;
-            color: #666;
-            margin: 10px 0 20px 0;
-        }
-        a {
-            color: #0066cc;
-            text-decoration: none;
-        }
-        a:hover {
-            text-decoration: underline;
-        }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mekaniske prinsipp</title>
+<style>
+    body {
+        background-color: powderblue;
+        font-family: Arial, sans-serif;
+        color: #333;
+        margin: 0;
+        padding: 20px 16px;
+    }
+    .container {
+        max-width: 900px;
+        margin: 0 auto;
+        background-color: white;
+        padding: 20px 24px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    h1 { margin: 0 0 4px; }
+    .intro { color: #666; margin: 0 0 16px; }
+    .tabs { display: flex; gap: 6px; border-bottom: 2px solid #ddd; margin-bottom: 16px; flex-wrap: wrap; }
+    .tabs button {
+        border: 0; background: none; padding: 10px 16px; font-size: 16px; font-weight: bold;
+        color: #666; cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px;
+    }
+    .tabs button.on { color: #0066cc; border-bottom-color: #0066cc; }
+    .panel[hidden] { display: none; }
+    .grid { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 20px; align-items: start; }
+    svg { width: 100%; height: auto; border: 1px solid #ddd; border-radius: 6px; background: #fbfcfd; display: block; }
+    .controls label { display: block; font-weight: bold; font-size: 14px; margin: 14px 0 4px; }
+    .controls label span { font-weight: normal; color: #0066cc; }
+    .controls input[type=range] { width: 100%; }
+    .seg { display: flex; flex-wrap: wrap; gap: 4px; }
+    .seg button {
+        flex: 1 1 auto; padding: 7px 8px; font-size: 13px; border: 1px solid #bbb; background: #f4f6f8;
+        border-radius: 4px; cursor: pointer;
+    }
+    .seg button.on { background: #0066cc; border-color: #0066cc; color: white; }
+    .play {
+        margin-top: 14px; width: 100%; padding: 10px; font-size: 16px; font-weight: bold;
+        background: #4CAF50; color: white; border: 0; border-radius: 4px; cursor: pointer;
+    }
+    .play:hover { background: #45a049; }
+    .readout { margin-top: 14px; border-collapse: collapse; width: 100%; font-size: 14px; }
+    .readout td { padding: 4px 0; border-bottom: 1px solid #eee; }
+    .readout td:last-child { text-align: right; font-weight: bold; font-variant-numeric: tabular-nums; }
+    .formula {
+        margin-top: 16px; padding: 12px 14px; background: #f1f7ff; border-left: 4px solid #0066cc;
+        border-radius: 4px; font-size: 15px; line-height: 1.6;
+    }
+    .formula .eq { font-family: Georgia, serif; font-size: 18px; }
+    .explain { margin-top: 16px; line-height: 1.55; }
+    .explain h3 { margin: 0 0 6px; font-size: 17px; }
+    .explain p { margin: 0 0 8px; }
+    .note { color: #888; font-size: 13px; }
+    footer { margin-top: 24px; font-size: 14px; }
+    footer a { color: #0066cc; text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+    @media (max-width: 720px) {
+        .grid { grid-template-columns: 1fr; }
+        .container { padding: 16px; }
+    }
+</style>
 </head>
 <body>
-    <div class="container">
-        <h1>Mekaniske Prinsipp</h1>
+<div class="container">
+    <h1>Mekaniske prinsipp</h1>
+    <p class="intro">Prøv sjølv: flytt på glidebrytarane og sjå korleis kraft, arm og veg heng saman.</p>
 
-        <div class="principle-name" id="principleName">Spak (Lever)</div>
-        <div class="description" id="principleDesc">Ei spak gjer det lettare å løfta tunge ting ved å bruka eit dreiepunkt.</div>
-
-        <svg id="animationCanvas" viewBox="0 0 600 400" xmlns="http://www.w3.org/2000/svg">
-            <!-- Lever Principle Animation -->
-            <g id="leverAnimation">
-                <!-- Ground -->
-                <rect x="50" y="350" width="500" height="50" fill="#8B7355"/>
-                <line x1="50" y1="350" x2="550" y2="350" stroke="#333" stroke-width="2"/>
-                <pattern id="groundPattern" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
-                    <line x1="0" y1="0" x2="20" y2="20" stroke="#666" stroke-width="1"/>
-                </pattern>
-
-                <!-- Fulcrum (dreiepunkt) -->
-                <polygon points="250,350 240,330 260,330" fill="#FF6B6B"/>
-                <circle cx="250" cy="330" r="5" fill="#333"/>
-
-                <!-- Lever bar -->
-                <line id="leverBar" x1="100" y1="330" x2="400" y2="330" stroke="#333" stroke-width="8" stroke-linecap="round"/>
-
-                <!-- Load (vekt som skal løftast) -->
-                <rect id="leverLoad" x="360" y="280" width="50" height="50" fill="#4CAF50" rx="4"/>
-                <text x="385" y="312" font-size="20" text-anchor="middle" fill="white" font-weight="bold">Vekt</text>
-
-                <!-- Effort point (kraft som blir påført) -->
-                <circle id="leverEffort" cx="100" cy="330" r="8" fill="#2196F3"/>
-                <text x="100" y="290" font-size="14" text-anchor="middle" fill="#333">Kraft</text>
-
-                <!-- Arrows showing motion -->
-                <g id="leverArrows">
-                    <defs>
-                        <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
-                            <polygon points="0 0, 10 3, 0 6" fill="#FF9800"/>
-                        </marker>
-                    </defs>
-                    <path d="M 100 260 L 100 240" stroke="#FF9800" stroke-width="2" marker-end="url(#arrowhead)"/>
-                    <path d="M 385 270 L 385 250" stroke="#FF9800" stroke-width="2" marker-end="url(#arrowhead)"/>
-                </g>
-
-                <!-- Labels -->
-                <text x="250" y="380" font-size="14" text-anchor="middle" fill="#333">Dreiepunkt</text>
-            </g>
-
-            <!-- Pulley System Animation (hidden by default) -->
-            <g id="pulleyAnimation" style="display: none;">
-                <!-- Ceiling -->
-                <rect x="50" y="30" width="500" height="20" fill="#8B7355"/>
-
-                <!-- Fixed pulley -->
-                <circle cx="150" cy="80" r="25" fill="none" stroke="#333" stroke-width="3"/>
-                <circle cx="150" cy="80" r="20" fill="none" stroke="#FF6B6B" stroke-width="2"/>
-                <rect x="130" y="60" width="40" height="15" fill="#8B7355"/>
-
-                <!-- Rope -->
-                <g id="ropeGroup">
-                    <line id="ropePart1" x1="150" y1="105" x2="150" y2="160" stroke="#8B4513" stroke-width="4"/>
-                    <line id="ropePart2" x1="150" y1="160" x2="350" y2="160" stroke="#8B4513" stroke-width="4"/>
-                    <line id="ropePart3" x1="350" y1="160" x2="350" y2="105" stroke="#8B4513" stroke-width="4"/>
-                </g>
-
-                <!-- Load hanging from pulley -->
-                <rect id="pulleyLoad" x="320" y="160" width="60" height="60" fill="#4CAF50" rx="4"/>
-                <text x="350" y="197" font-size="20" text-anchor="middle" fill="white" font-weight="bold">Vekt</text>
-
-                <!-- Effort hand -->
-                <circle id="pulleyHand" cx="150" cy="200" r="8" fill="#2196F3"/>
-                <text x="150" y="235" font-size="14" text-anchor="middle" fill="#333">Kraft</text>
-
-                <!-- Labels -->
-                <text x="150" y="45" font-size="14" text-anchor="middle" fill="#333">Fastskåre trinse</text>
-                <text x="350" y="240" font-size="14" text-anchor="middle" fill="#333">Løftet vekt</text>
-            </g>
-        </svg>
-
-        <button onclick="switchPrinciple()">Byt til neste prinsipp</button>
-        <p><a href="index.html">← Tilbake til forside</a></p>
+    <div class="tabs">
+        <button type="button" data-tab="lever" class="on">Vektstang (spak)</button>
+        <button type="button" data-tab="pulley">Trinse og talje</button>
     </div>
 
-    <script>
-        let currentPrinciple = 0;
-        const principles = [
-            {
-                name: 'Spak (Lever)',
-                desc: 'Ei spak gjer det lettare å løfta tunge ting ved å bruka eit dreiepunkt.',
-                animation: 'leverAnimation'
-            },
-            {
-                name: 'Trinse (Pulley)',
-                desc: 'Ein trinse endrar retningen på kraften og gjer det lettare å løfta tunge ting.',
-                animation: 'pulleyAnimation'
-            }
-        ];
+    <!-- ================= VEKTSTANG ================= -->
+    <section class="panel" id="lever">
+        <div class="grid">
+            <div>
+                <svg id="lvSvg" viewBox="0 0 600 380" aria-label="Animasjon av vektstang"></svg>
+                <div class="formula">
+                    <div class="eq">F · a<sub>F</sub> = G · a<sub>G</sub></div>
+                    <div id="lvEq"></div>
+                </div>
+            </div>
+            <div class="controls">
+                <label>Type vektstang</label>
+                <div class="seg" id="lvClass">
+                    <button type="button" data-c="1" class="on">1. klasse</button>
+                    <button type="button" data-c="2">2. klasse</button>
+                    <button type="button" data-c="3">3. klasse</button>
+                </div>
+                <label for="lvMass">Masse på lasta: <span id="lvMassV"></span></label>
+                <input type="range" id="lvMass" min="10" max="200" step="5" value="100">
+                <label for="lvPos"><span id="lvPosName" style="color:#333;font-weight:bold"></span>: <span id="lvPosV"></span></label>
+                <input type="range" id="lvPos" min="0" max="100" step="1" value="30">
+                <label for="lvTilt">Løft: <span id="lvTiltV"></span></label>
+                <input type="range" id="lvTilt" min="0" max="100" step="1" value="0">
+                <button type="button" class="play" id="lvPlay">▶ Animer</button>
+                <table class="readout">
+                    <tr><td>Tyngd av lasta, G</td><td id="lvG"></td></tr>
+                    <tr><td>Arm til lasta, a<sub>G</sub></td><td id="lvAG"></td></tr>
+                    <tr><td>Arm til krafta, a<sub>F</sub></td><td id="lvAF"></td></tr>
+                    <tr><td>Kraft du treng, F</td><td id="lvF"></td></tr>
+                    <tr><td>Utveksling (G / F)</td><td id="lvMA"></td></tr>
+                    <tr><td>Lasta flyttar seg</td><td id="lvSG"></td></tr>
+                    <tr><td>Krafta flyttar seg</td><td id="lvSF"></td></tr>
+                </table>
+            </div>
+        </div>
+        <div class="explain" id="lvExplain"></div>
+    </section>
 
-        function switchPrinciple() {
-            document.getElementById(principles[currentPrinciple].animation).style.display = 'none';
-            currentPrinciple = (currentPrinciple + 1) % principles.length;
-            document.getElementById(principles[currentPrinciple].animation).style.display = 'block';
-            document.getElementById('principleName').textContent = principles[currentPrinciple].name;
-            document.getElementById('principleDesc').textContent = principles[currentPrinciple].desc;
+    <!-- ================= TRINSE ================= -->
+    <section class="panel" id="pulley" hidden>
+        <div class="grid">
+            <div>
+                <svg id="puSvg" viewBox="0 0 600 480" aria-label="Animasjon av trinse og talje"></svg>
+                <div class="formula">
+                    <div class="eq">F = G / n &nbsp;&nbsp;og&nbsp;&nbsp; h = s / n</div>
+                    <div id="puEq"></div>
+                </div>
+            </div>
+            <div class="controls">
+                <label>Oppsett (n = bærande tau)</label>
+                <div class="seg" id="puN">
+                    <button type="button" data-n="1" class="on">Fast trinse</button>
+                    <button type="button" data-n="2">Laus trinse</button>
+                    <button type="button" data-n="3">Talje, n=3</button>
+                    <button type="button" data-n="4">Talje, n=4</button>
+                </div>
+                <label for="puMass">Masse på lasta: <span id="puMassV"></span></label>
+                <input type="range" id="puMass" min="10" max="200" step="5" value="80">
+                <label for="puPull">Dra i tauet: <span id="puPullV"></span></label>
+                <input type="range" id="puPull" min="0" max="160" step="1" value="0">
+                <button type="button" class="play" id="puPlay">▶ Animer</button>
+                <table class="readout">
+                    <tr><td>Tyngd av lasta, G</td><td id="puG"></td></tr>
+                    <tr><td>Bærande tau, n</td><td id="puNV"></td></tr>
+                    <tr><td>Kraft du treng, F</td><td id="puF"></td></tr>
+                    <tr><td>Tau du har dratt, s</td><td id="puS"></td></tr>
+                    <tr><td>Lasta har stige, h</td><td id="puH"></td></tr>
+                    <tr><td>Arbeid F · s</td><td id="puW1"></td></tr>
+                    <tr><td>Arbeid G · h</td><td id="puW2"></td></tr>
+                </table>
+            </div>
+        </div>
+        <div class="explain" id="puExplain"></div>
+    </section>
+
+    <p class="note">Utrekningane ser bort frå friksjon og vekta av stanga, trinsene og tauet. g = 9,81 m/s².</p>
+    <footer><a href="index.html">← Tilbake til forsida</a></footer>
+</div>
+
+<script>
+(() => {
+'use strict';
+const g = 9.81;
+const NS = 'http://www.w3.org/2000/svg';
+const $ = id => document.getElementById(id);
+const fmt = (x, d = 0) => x.toLocaleString('nb-NO', { minimumFractionDigits: d, maximumFractionDigits: d });
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function el(parent, tag, attrs = {}, text) {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    if (text != null) e.textContent = text;
+    parent.appendChild(e);
+    return e;
+}
+function defs(svg) {
+    const d = el(svg, 'defs');
+    const mk = (id, color) => {
+        const m = el(d, 'marker', { id, markerWidth: 10, markerHeight: 10, refX: 8, refY: 5, orient: 'auto', markerUnits: 'userSpaceOnUse' });
+        el(m, 'path', { d: 'M0,0 L10,5 L0,10 z', fill: color });
+    };
+    mk(svg.id + 'Red', '#d32f2f');
+    mk(svg.id + 'Blue', '#1565c0');
+    const p = el(d, 'pattern', { id: svg.id + 'Hatch', width: 10, height: 10, patternUnits: 'userSpaceOnUse' });
+    el(p, 'path', { d: 'M0,10 L10,0', stroke: '#8d6e63', 'stroke-width': 1.5 });
+}
+function arrow(parent, x1, y1, x2, y2, color, id) {
+    return el(parent, 'line', { x1, y1, x2, y2, stroke: color, 'stroke-width': 4, 'marker-end': `url(#${id})` });
+}
+
+// Tabs
+document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => {
+    document.querySelectorAll('.tabs button').forEach(x => x.classList.toggle('on', x === b));
+    document.querySelectorAll('.panel').forEach(p => { p.hidden = p.id !== b.dataset.tab; });
+});
+
+// Enkel animasjon fram og tilbake for ein glidebrytar
+function animator(input, button, draw) {
+    let raf = null, t0 = 0, start = 0;
+    const stop = () => { cancelAnimationFrame(raf); raf = null; button.textContent = '▶ Animer'; };
+    button.onclick = () => {
+        if (raf) return stop();
+        button.textContent = '⏸ Stopp';
+        t0 = performance.now();
+        start = +input.value / +input.max;
+        const phase = Math.acos(1 - 2 * start);
+        const loop = t => {
+            const u = (1 - Math.cos(phase + (t - t0) / 1000 * 1.6)) / 2;
+            input.value = Math.round(u * +input.max);
+            draw();
+            raf = requestAnimationFrame(loop);
+        };
+        raf = requestAnimationFrame(loop);
+    };
+    input.addEventListener('input', () => { if (raf) stop(); });
+    return stop;
+}
+
+/* =====================================================
+   VEKTSTANG
+   ===================================================== */
+const LV = {
+    svg: $('lvSvg'),
+    cls: 1,
+    L: 2.0,                // stonglengd i meter
+    x0: 60, x1: 540,        // stonga i pikslar (vassrett)
+    py: 250,                // høgd på dreiepunktet
+    ground: 330
+};
+LV.px = (LV.x1 - LV.x0) / LV.L; // piksel per meter
+defs(LV.svg);
+
+const LV_INFO = {
+    1: {
+        posName: 'Dreiepunkt',
+        text: `<h3>1. klasse: dreiepunktet ligg mellom lasta og krafta</h3>
+<p>Du trykkjer ned på den eine sida, og lasta på den andre sida går opp. Flytt dreiepunktet nærare lasta, så treng du mindre kraft – men då må du flytte handa lenger.</p>
+<p><b>Døme:</b> brekkjern, vippe (dumphuske), saks, tang.</p>`
+    },
+    2: {
+        posName: 'Plassering av lasta',
+        text: `<h3>2. klasse: lasta ligg mellom dreiepunktet og krafta</h3>
+<p>Dreiepunktet er i enden, og du løftar i den andre enden. Armen til krafta er alltid lengst, så du treng alltid <i>mindre</i> kraft enn tyngda av lasta.</p>
+<p><b>Døme:</b> trillebår (hjulet er dreiepunktet), nøtteknekkar, flaskeopnar.</p>`
+    },
+    3: {
+        posName: 'Plassering av krafta',
+        text: `<h3>3. klasse: krafta ligg mellom dreiepunktet og lasta</h3>
+<p>Her treng du <i>meir</i> kraft enn tyngda av lasta, men enden med lasta flyttar seg mykje lenger og fortare enn handa. Du byter kraft mot fart og lengd.</p>
+<p><b>Døme:</b> underarmen din (albogen er dreiepunktet, bicepsen dreg), pinsett, fiskestong, kost.</p>`
+    }
+};
+
+function lvGeometry() {
+    const f = +$('lvPos').value / 100;
+    const L = LV.L;
+    // Posisjonar langs stonga i meter frå venstre ende
+    let pivot, load, force;
+    if (LV.cls === 1) { pivot = 0.15 * L + f * 0.7 * L; load = 0.05 * L; force = L; }
+    else if (LV.cls === 2) { pivot = 0; load = 0.15 * L + f * 0.7 * L; force = L; }
+    else { pivot = 0; force = 0.15 * L + f * 0.7 * L; load = L; }
+    return { pivot, load, force, aG: Math.abs(load - pivot), aF: Math.abs(force - pivot) };
+}
+
+function drawLever() {
+    const svg = LV.svg;
+    [...svg.childNodes].forEach(n => { if (n.tagName !== 'defs') n.remove(); });
+    const m = +$('lvMass').value;
+    const G = m * g;
+    const geo = lvGeometry();
+    const F = G * geo.aG / geo.aF;
+
+    // Vinkel: 1. klasse – lasta (venstre) går opp når høgre side går ned (positiv vinkel).
+    // 2. og 3. klasse – dreiepunkt i venstre ende, alt går opp (negativ vinkel).
+    const tilt = +$('lvTilt').value / 100;
+    let maxDeg = 12;
+    if (LV.cls === 1) {
+        const down = (LV.L - geo.pivot) * LV.px;          // lengste arm som går ned
+        maxDeg = Math.min(15, Math.asin((LV.ground - LV.py - 8) / down) * 180 / Math.PI);
+    }
+    const th = (LV.cls === 1 ? 1 : -1) * tilt * maxDeg * Math.PI / 180;
+    const pX = LV.x0 + geo.pivot * LV.px, pY = LV.py;
+    const at = d => ({ x: pX + (d - geo.pivot) * LV.px * Math.cos(th), y: pY + (d - geo.pivot) * LV.px * Math.sin(th) });
+
+    // Bakke
+    el(svg, 'rect', { x: 0, y: LV.ground, width: 600, height: 50, fill: `url(#lvSvgHatch)` });
+    el(svg, 'line', { x1: 0, y1: LV.ground, x2: 600, y2: LV.ground, stroke: '#6d4c41', 'stroke-width': 3 });
+
+    // Stiplet utgangsstilling
+    const a0 = { x: LV.x0, y: pY }, a1 = { x: LV.x1, y: pY };
+    el(svg, 'line', { x1: a0.x, y1: a0.y, x2: a1.x, y2: a1.y, stroke: '#bbb', 'stroke-width': 2, 'stroke-dasharray': '6 6' });
+
+    // Dreiepunkt (trekant)
+    el(svg, 'polygon', { points: `${pX},${pY} ${pX - 26},${LV.ground} ${pX + 26},${LV.ground}`, fill: '#ef5350', stroke: '#b71c1c', 'stroke-width': 2 });
+    el(svg, 'text', { x: pX, y: LV.ground + 34, 'text-anchor': 'middle', 'font-size': 14, fill: '#333' }, 'Dreiepunkt');
+
+    // Stonga
+    const s0 = at(0), s1 = at(LV.L);
+    el(svg, 'line', { x1: s0.x, y1: s0.y, x2: s1.x, y2: s1.y, stroke: '#5d4037', 'stroke-width': 10, 'stroke-linecap': 'round' });
+    el(svg, 'circle', { cx: pX, cy: pY, r: 5, fill: '#222' });
+
+    // Lasta: ein kasse som står på stonga
+    const lp = at(geo.load);
+    const box = Math.max(34, Math.min(70, 26 + m * 0.22));
+    // Tyngd G (raud pil rett ned frå midten av kassa, teikna under kassa)
+    const h = box / 2 + 5;
+    const gx = lp.x + h * Math.sin(th), gy = lp.y - h * Math.cos(th);
+    const gLen = 20 + Math.min(80, G / 25);
+    arrow(svg, gx, gy, gx, gy + box / 2 + gLen, '#d32f2f', 'lvSvgRed');
+    el(svg, 'text', { x: gx + 10, y: gy + box / 2 + gLen - 4, 'font-size': 15, 'font-weight': 'bold', fill: '#d32f2f' }, 'G');
+    const lg = el(svg, 'g', { transform: `translate(${lp.x},${lp.y}) rotate(${th * 180 / Math.PI})` });
+    el(lg, 'rect', { x: -box / 2, y: -box - 5, width: box, height: box, rx: 4, fill: '#43a047', stroke: '#1b5e20', 'stroke-width': 2 });
+    el(lg, 'text', { x: 0, y: -box / 2 - 5, 'text-anchor': 'middle', 'dominant-baseline': 'middle', 'font-size': 14, 'font-weight': 'bold', fill: '#fff' }, `${m} kg`);
+
+    // Krafta F (blå pil): ned i 1. klasse, opp i 2./3. klasse
+    const fp = at(geo.force);
+    const fLen = 20 + Math.min(100, F / 25);
+    if (LV.cls === 1) {
+        arrow(svg, fp.x, fp.y - 8 - fLen, fp.x, fp.y - 8, '#1565c0', 'lvSvgBlue');
+        el(svg, 'text', { x: fp.x + 10, y: fp.y - 12 - fLen / 2, 'font-size': 15, 'font-weight': 'bold', fill: '#1565c0' }, 'F');
+    } else {
+        arrow(svg, fp.x, fp.y - 6, fp.x, fp.y - 6 - fLen, '#1565c0', 'lvSvgBlue');
+        el(svg, 'text', { x: fp.x + 10, y: fp.y - 10 - fLen / 2, 'font-size': 15, 'font-weight': 'bold', fill: '#1565c0' }, 'F');
+    }
+    el(svg, 'circle', { cx: fp.x, cy: fp.y, r: 7, fill: '#1565c0' });
+
+    // Armane teikna under stonga
+    const nx = -Math.sin(th), ny = Math.cos(th);
+    const arm = (d, color, label, lift) => {
+        const a = at(geo.pivot), b = at(d);
+        const o = 22 + lift;
+        const A = { x: a.x + nx * o, y: a.y + ny * o }, B = { x: b.x + nx * o, y: b.y + ny * o };
+        el(svg, 'line', { x1: A.x, y1: A.y, x2: B.x, y2: B.y, stroke: color, 'stroke-width': 2 });
+        for (const P of [A, B]) el(svg, 'line', { x1: P.x - nx * 6, y1: P.y - ny * 6, x2: P.x + nx * 6, y2: P.y + ny * 6, stroke: color, 'stroke-width': 2 });
+        el(svg, 'text', { x: (A.x + B.x) / 2 + nx * 16, y: (A.y + B.y) / 2 + ny * 16, 'text-anchor': 'middle', 'dominant-baseline': 'middle', 'font-size': 14, 'font-weight': 'bold', fill: color }, label);
+    };
+    // 1. klasse: armane går kvar sin veg. 2./3. klasse: same side, så vi legg dei i to «etasjar».
+    arm(geo.load, '#d32f2f', `aG = ${fmt(geo.aG, 2)} m`, LV.cls === 1 ? 0 : (geo.aG < geo.aF ? 0 : 30));
+    arm(geo.force, '#1565c0', `aF = ${fmt(geo.aF, 2)} m`, LV.cls === 1 ? 0 : (geo.aF < geo.aG ? 0 : 30));
+
+    // Utrekningar
+    const ang = Math.abs(th);
+    const sG = geo.aG * Math.sin(ang), sF = geo.aF * Math.sin(ang);
+    $('lvMassV').textContent = `${m} kg`;
+    $('lvPosV').textContent = LV.cls === 1 ? `${fmt(geo.pivot, 2)} m frå venstre` :
+        LV.cls === 2 ? `${fmt(geo.load, 2)} m frå dreiepunktet` : `${fmt(geo.force, 2)} m frå dreiepunktet`;
+    $('lvTiltV').textContent = `${fmt(ang * 180 / Math.PI, 1)}°`;
+    $('lvG').textContent = `${fmt(G)} N`;
+    $('lvAG').textContent = `${fmt(geo.aG, 2)} m`;
+    $('lvAF').textContent = `${fmt(geo.aF, 2)} m`;
+    $('lvF').textContent = `${fmt(F)} N`;
+    $('lvMA').textContent = `${fmt(G / F, 2)}`;
+    $('lvSG').textContent = `${fmt(sG * 100)} cm opp`;
+    $('lvSF').textContent = `${fmt(sF * 100)} cm ${LV.cls === 1 ? 'ned' : 'opp'}`;
+    $('lvEq').innerHTML = `F · ${fmt(geo.aF, 2)} m = ${fmt(G)} N · ${fmt(geo.aG, 2)} m &nbsp;⇒&nbsp; <b>F = ${fmt(F)} N</b>` +
+        (F < G ? ` (du sparer kraft)` : F > G ? ` (du treng meir kraft, men vinn lengd)` : '');
+}
+
+$('lvClass').addEventListener('click', e => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    LV.cls = +b.dataset.c;
+    $('lvClass').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+    $('lvPos').value = LV.cls === 1 ? 30 : 40;
+    $('lvPosName').textContent = LV_INFO[LV.cls].posName;
+    $('lvExplain').innerHTML = LV_INFO[LV.cls].text;
+    drawLever();
+});
+['lvMass', 'lvPos', 'lvTilt'].forEach(id => $(id).addEventListener('input', drawLever));
+$('lvPosName').textContent = LV_INFO[1].posName;
+$('lvExplain').innerHTML = LV_INFO[1].text;
+animator($('lvTilt'), $('lvPlay'), drawLever);
+drawLever();
+
+/* =====================================================
+   TRINSE OG TALJE
+   Trinsene står side om side. Tauet går skiftevis under ei laus
+   trinse (nede) og over ei fast trinse (oppe). Tauparti 0 … n-1
+   ber blokka med lasta, tauparti n går ned til handa.
+   ===================================================== */
+const PU = { svg: $('puSvg'), n: 1, ceil: 34, yT: 84, r: 26, yB0: 250, hand0: 60 };
+defs(PU.svg);
+
+const PU_INFO = {
+    1: `<h3>Fast trinse (n = 1)</h3>
+<p>Trinsa sit fast i taket. Ho gjer ikkje at du treng mindre kraft, men ho <b>snur retninga</b>: du kan dra <i>ned</i> for å løfte lasta <i>opp</i>. Då kan du bruke kroppsvekta di.</p>
+<p><b>Døme:</b> flaggstong, heis for bøtter på byggjeplass.</p>`,
+    2: `<h3>Laus trinse (n = 2)</h3>
+<p>Den nedste trinsa følgjer med lasta opp. Lasta heng i <b>to</b> tauparti, så kvart av dei ber berre halvparten: du treng halv kraft. Men du må dra dobbelt så mykje tau som lasta stig. Den øvste trinsa er fast og snur berre retninga.</p>`,
+    3: `<h3>Talje med tre bærande tau (n = 3)</h3>
+<p>Ei talje er fleire trinser saman. Tel tauparti som går opp frå den nedste blokka: her er det tre. Då treng du ein tredjedel av krafta, men må dra tre gonger så mykje tau.</p>
+<p><b>Døme:</b> seglbåtar, kraner, treningsapparat.</p>`,
+    4: `<h3>Talje med fire bærande tau (n = 4)</h3>
+<p>Fire tauparti ber blokka, så krafta vert ein firedel av tyngda. For å løfte lasta 10 cm må du dra 40 cm tau. <b>Arbeidet (kraft × veg) er det same</b> – du sparer kraft, men betaler med lengre veg.</p>`
+};
+
+function drawPulley() {
+    const svg = PU.svg;
+    [...svg.childNodes].forEach(n => { if (n.tagName !== 'defs') n.remove(); });
+    const n = PU.n, r = PU.r, s = 2 * r;
+    const m = +$('puMass').value;
+    const G = m * g, F = G / n;
+    const pull = +$('puPull').value;           // cm = px
+    const lift = pull / n;
+    const yT = PU.yT, yB = PU.yB0 - lift;
+
+    // x-posisjonar til tauparti 0 … n
+    const width = n * s;
+    const xStart = 300 - width / 2 - 20;
+    const X = i => xStart + i * s;
+
+    // Tak
+    el(svg, 'rect', { x: 0, y: 0, width: 600, height: PU.ceil, fill: `url(#puSvgHatch)` });
+    el(svg, 'line', { x1: 0, y1: PU.ceil, x2: 600, y2: PU.ceil, stroke: '#6d4c41', 'stroke-width': 3 });
+
+    // Trinser: k = 0 … n-1, mellom tauparti k og k+1. Siste er alltid oppe.
+    const pulleys = [];
+    for (let k = 0; k < n; k++) {
+        const top = (n - 1 - k) % 2 === 0;
+        pulleys.push({ k, cx: (X(k) + X(k + 1)) / 2, cy: top ? yT : yB, top });
+    }
+    const anchorTop = n % 2 === 0; // partal n: tauet er festa i taket
+
+    // Blokk nede (bøyle som held dei lause trinsene og kroken til lasta)
+    const bottomXs = pulleys.filter(p => !p.top).map(p => p.cx);
+    if (!anchorTop) bottomXs.push(X(0));
+    const bl = Math.min(...bottomXs), br = Math.max(...bottomXs);
+    const blockY = yB + r + 14;
+    const loadCx = (bl + br) / 2;
+
+    // Tau
+    const rope = { stroke: '#8d6e63', 'stroke-width': 5, fill: 'none', 'stroke-linecap': 'round' };
+    let d = '';
+    // Tauparti 0: startar i taket eller i blokka
+    const x0 = X(0);
+    const firstP = pulleys[0];
+    if (anchorTop) d += `M${x0},${PU.ceil} L${x0},${firstP.cy}`;
+    else d += `M${x0},${n === 1 ? yB + r : blockY} L${x0},${firstP.cy}`;
+    // Rundt kvar trinse og vidare
+    for (let k = 0; k < n; k++) {
+        const p = pulleys[k];
+        const xa = X(k), xb = X(k + 1);
+        // Over (fast trinse): bogen går over toppen. Under (laus): bogen går under.
+        d += ` A${r},${r} 0 0 ${p.top ? 1 : 0} ${xb},${p.cy}`;
+        const next = pulleys[k + 1];
+        const yEnd = next ? next.cy : PU.hand0 + yT + pull; // handa
+        d += ` L${xb},${yEnd}`;
+    }
+    el(svg, 'path', Object.assign({ d }, rope));
+
+    // Festepunkt i taket
+    if (anchorTop) el(svg, 'circle', { cx: x0, cy: PU.ceil + 2, r: 5, fill: '#333' });
+
+    // Trinser
+    for (const p of pulleys) {
+        if (p.top) el(svg, 'line', { x1: p.cx, y1: PU.ceil, x2: p.cx, y2: p.cy, stroke: '#555', 'stroke-width': 6 });
+        const gg = el(svg, 'g', { transform: `translate(${p.cx},${p.cy})` });
+        el(gg, 'circle', { r: r - 2, fill: p.top ? '#90caf9' : '#ffcc80', stroke: '#37474f', 'stroke-width': 3 });
+        // Eiker som roterer når tauet går
+        const rot = (p.top ? 1 : -1) * (pull * (p.k + 1) / n / (r - 2)) * 180 / Math.PI;
+        const sp = el(gg, 'g', { transform: `rotate(${rot})` });
+        for (let a = 0; a < 3; a++) {
+            const t = a * Math.PI / 3;
+            el(sp, 'line', { x1: Math.cos(t) * (r - 6), y1: Math.sin(t) * (r - 6), x2: -Math.cos(t) * (r - 6), y2: -Math.sin(t) * (r - 6), stroke: '#37474f', 'stroke-width': 2 });
         }
+        el(gg, 'circle', { r: 4, fill: '#37474f' });
+        if (!p.top) el(svg, 'line', { x1: p.cx, y1: p.cy, x2: p.cx, y2: blockY, stroke: '#555', 'stroke-width': 6 });
+    }
 
-        // Animation function
-        function animate() {
-            if (currentPrinciple === 0) {
-                // Lever animation
-                const leverLoad = document.getElementById('leverLoad');
-                const leverBar = document.getElementById('leverBar');
-                const time = Date.now() / 1000;
-                const angle = Math.sin(time * 2) * 15;
+    // Blokk + last
+    let hookY;
+    if (n === 1) {
+        hookY = yB + r;
+    } else {
+        el(svg, 'rect', { x: bl - 10, y: blockY - 5, width: br - bl + 20, height: 10, rx: 3, fill: '#555' });
+        hookY = blockY + 5;
+        el(svg, 'line', { x1: loadCx, y1: hookY, x2: loadCx, y2: hookY + 14, stroke: '#555', 'stroke-width': 4 });
+        hookY += 14;
+    }
+    const lx = n === 1 ? x0 : loadCx;
+    const box = Math.max(40, Math.min(76, 30 + m * 0.23));
+    el(svg, 'rect', { x: lx - box / 2, y: hookY, width: box, height: box, rx: 4, fill: '#43a047', stroke: '#1b5e20', 'stroke-width': 2 });
+    el(svg, 'text', { x: lx, y: hookY + box / 2, 'text-anchor': 'middle', 'dominant-baseline': 'middle', 'font-size': 14, 'font-weight': 'bold', fill: '#fff' }, `${m} kg`);
 
-                leverLoad.style.transform = `translateY(${Math.sin(time * 2) * -30}px)`;
-                leverBar.style.transform = `rotate(${angle}deg)`;
-                leverBar.style.transformOrigin = '250px 330px';
-                leverBar.style.transformBox = 'fill-box';
-            } else {
-                // Pulley animation
-                const pulleyLoad = document.getElementById('pulleyLoad');
-                const time = Date.now() / 1000;
-                pulleyLoad.style.transform = `translateY(${Math.sin(time * 2) * 40}px)`;
-            }
-            requestAnimationFrame(animate);
-        }
+    // Tyngd G
+    const gLen = 20 + Math.min(70, G / 25);
+    arrow(svg, lx, hookY + box, lx, hookY + box + gLen, '#d32f2f', 'puSvgRed');
+    el(svg, 'text', { x: lx + 10, y: hookY + box + gLen - 2, 'font-size': 15, 'font-weight': 'bold', fill: '#d32f2f' }, 'G');
 
-        animate();
-    </script>
+    // Hand og kraft F
+    const hx = X(n), hy = PU.hand0 + yT + pull;
+    el(svg, 'rect', { x: hx - 9, y: hy, width: 18, height: 26, rx: 8, fill: '#ffb74d', stroke: '#e65100', 'stroke-width': 2 });
+    const fLen = 16 + Math.min(90, F / 25);
+    arrow(svg, hx, hy + 30, hx, hy + 30 + fLen, '#1565c0', 'puSvgBlue');
+    el(svg, 'text', { x: hx + 12, y: hy + 30 + fLen / 2, 'font-size': 15, 'font-weight': 'bold', fill: '#1565c0' }, 'F');
+
+    // Tel bærande tau med små nummer
+    for (let i = 0; i < n && yB - yT > 70; i++) {
+        const ym = (yT + yB) / 2;
+        el(svg, 'circle', { cx: X(i), cy: ym, r: 11, fill: '#fff', stroke: '#d32f2f', 'stroke-width': 2 });
+        el(svg, 'text', { x: X(i), y: ym + 1, 'text-anchor': 'middle', 'dominant-baseline': 'middle', 'font-size': 13, 'font-weight': 'bold', fill: '#d32f2f' }, i + 1);
+    }
+
+    // Høgdemerke for lasta
+    const refY = n === 1 ? PU.yB0 + r : PU.yB0 + r + 33;
+    const mx = 560;
+    el(svg, 'line', { x1: mx - 10, y1: refY, x2: mx + 10, y2: refY, stroke: '#999', 'stroke-width': 2 });
+    el(svg, 'text', { x: mx, y: refY + 16, 'text-anchor': 'middle', 'font-size': 12, fill: '#999' }, 'start');
+    if (lift > 0.5) {
+        const topY = refY - lift;
+        el(svg, 'line', { x1: mx, y1: refY, x2: mx, y2: topY, stroke: '#2e7d32', 'stroke-width': 3 });
+        el(svg, 'line', { x1: mx - 10, y1: topY, x2: mx + 10, y2: topY, stroke: '#2e7d32', 'stroke-width': 2 });
+        el(svg, 'text', { x: mx - 14, y: (refY + topY) / 2, 'text-anchor': 'end', 'dominant-baseline': 'middle', 'font-size': 13, 'font-weight': 'bold', fill: '#2e7d32' }, `h = ${fmt(lift)} cm`);
+    }
+
+    // Tal
+    $('puMassV').textContent = `${m} kg`;
+    $('puPullV').textContent = `${pull} cm`;
+    $('puG').textContent = `${fmt(G)} N`;
+    $('puNV').textContent = n;
+    $('puF').textContent = `${fmt(F)} N`;
+    $('puS').textContent = `${pull} cm`;
+    $('puH').textContent = `${fmt(lift, 1)} cm`;
+    $('puW1').textContent = `${fmt(F * pull / 100)} J`;
+    $('puW2').textContent = `${fmt(G * lift / 100)} J`;
+    $('puEq').innerHTML = `F = ${fmt(G)} N / ${n} = <b>${fmt(F)} N</b> &nbsp;·&nbsp; h = ${pull} cm / ${n} = <b>${fmt(lift, 1)} cm</b>`;
+}
+
+$('puN').addEventListener('click', e => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    PU.n = +b.dataset.n;
+    $('puN').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+    $('puExplain').innerHTML = PU_INFO[PU.n];
+    drawPulley();
+});
+['puMass', 'puPull'].forEach(id => $(id).addEventListener('input', drawPulley));
+$('puExplain').innerHTML = PU_INFO[1];
+animator($('puPull'), $('puPlay'), drawPulley);
+drawPulley();
+
+if (reduced) { $('lvPlay').hidden = true; $('puPlay').hidden = true; }
+})();
+</script>
 </body>
 </html>
