@@ -1,0 +1,1576 @@
+<!DOCTYPE html>
+<html lang="nn">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Enkelbod</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+    <style>
+        body {
+            background-color: powderblue;
+            font-family: Arial, sans-serif;
+            color: #333;
+            margin: 0;
+            padding: 20px 16px;
+        }
+        .container {
+            max-width: 1320px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px 24px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 { margin: 0 0 4px; }
+        .intro { color: #666; margin: 0 0 16px; }
+        .tilbake { font-size: 14px; color: #0066cc; text-decoration: none; }
+        .layout {
+            display: grid;
+            grid-template-columns: 320px minmax(0, 1fr);
+            gap: 24px;
+            align-items: start;
+        }
+        .panel {
+            position: sticky;
+            top: 12px;
+            max-height: calc(100vh - 24px);
+            overflow-y: auto;
+            padding-right: 6px;
+        }
+        .panel section {
+            border-bottom: 1px solid #ddd;
+            padding: 0 0 12px;
+            margin: 0 0 12px;
+        }
+        h2 {
+            font-size: 16px;
+            margin: 0 0 8px;
+        }
+        main h2 {
+            font-size: 18px;
+            margin: 24px 0 8px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid #ddd;
+        }
+        label {
+            display: block;
+            font-size: 13px;
+            color: #555;
+            margin-bottom: 8px;
+        }
+        label.check { display: flex; gap: 6px; align-items: center; color: #333; }
+        input[type=number], input[type=text], select {
+            display: block;
+            width: 100%;
+            box-sizing: border-box;
+            margin-top: 3px;
+            padding: 5px 6px;
+            font: inherit;
+            font-size: 14px;
+            border: 1px solid #aaa;
+            border-radius: 4px;
+            background: #fff;
+            color: #333;
+        }
+        .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 10px; }
+        .hint { font-size: 12px; color: #777; margin: 0 0 8px; }
+        button {
+            font: inherit;
+            font-size: 14px;
+            padding: 6px 12px;
+            border: 1px solid #aaa;
+            border-radius: 4px;
+            background: #f4f4f4;
+            color: #333;
+            cursor: pointer;
+        }
+        button:hover { background: #e8e8e8; }
+        button.primary { background: #0066cc; border-color: #0066cc; color: #fff; }
+        button.primary:hover { background: #0055aa; }
+        .presets { display: flex; gap: 6px; flex-wrap: wrap; }
+        .vin {
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 8px 8px 0;
+            margin-bottom: 8px;
+            background: #fafafa;
+        }
+        .vin-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; font-size: 13px; font-weight: bold; }
+        .vin-top button { padding: 2px 8px; font-size: 12px; }
+        [data-tak="pult"] .vis-salt, [data-tak="salt"] .vis-pult { display: none; }
+        .toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+        .tips { font-size: 13px; color: #777; }
+        .nokkel { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+        .nokkel div { background: #f1f7fa; border-radius: 6px; padding: 6px 10px; font-size: 13px; color: #555; }
+        .nokkel b { display: block; font-size: 16px; color: #222; }
+        .sjekk { font-size: 13px; margin-bottom: 12px; }
+        .sjekk ul { list-style: none; margin: 4px 0; padding: 0; }
+        .sjekk li { padding: 2px 0; }
+        .ok::before { content: "✓ "; color: #1a7f37; font-weight: bold; }
+        .varsel::before { content: "! "; color: #c05600; font-weight: bold; }
+        .varsel { color: #8a4000; }
+        .sjekk p { color: #777; margin: 4px 0 0; font-size: 12px; }
+        .ark-wrap {
+            border: 1px solid #ccc;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            margin-bottom: 16px;
+            background: #fff;
+        }
+        .ark-wrap svg { display: block; width: 100%; height: auto; user-select: none; -webkit-user-select: none; }
+        [data-drag] { cursor: grab; }
+        [data-drag]:hover polygon[fill="transparent"] { fill: rgba(0,102,204,0.08); }
+        .dragging [data-drag] { cursor: grabbing; }
+        .tabell-wrap { overflow-x: auto; }
+        table { border-collapse: collapse; width: 100%; font-size: 14px; }
+        th, td { text-align: left; padding: 5px 6px; border-bottom: 1px solid #eee; vertical-align: top; }
+        th { font-size: 13px; color: #666; border-bottom: 2px solid #ddd; }
+        td.tal, th.tal { text-align: right; white-space: nowrap; }
+        tr.gruppe td { background: #f1f7fa; font-weight: bold; color: #333; }
+        tr.total td { font-weight: bold; border-top: 2px solid #ccc; font-size: 15px; }
+        td small { display: block; color: #888; font-size: 12px; }
+        td input.pris { width: 80px; display: inline-block; text-align: right; margin: 0; padding: 2px 4px; }
+        .note { font-size: 12px; color: #777; }
+        footer { margin-top: 24px; font-size: 13px; color: #888; }
+        @media (max-width: 860px) {
+            .layout { grid-template-columns: minmax(0, 1fr); }
+            .panel { position: static; max-height: none; overflow: visible; padding-right: 0; }
+            .container { padding: 16px; }
+        }
+        @media print {
+            @page { size: A4 landscape; margin: 0; }
+            body { background: #fff; padding: 0; }
+            .container { box-shadow: none; padding: 0; max-width: none; border-radius: 0; }
+            .panel, .toolbar, h1, .intro, .tilbake, .nokkel, .sjekk, footer, .noprint { display: none !important; }
+            .layout { display: block; }
+            .ark-wrap { border: 0; box-shadow: none; margin: 0; break-after: page; page-break-after: always; }
+            .ark-wrap svg { width: 297mm; height: 210mm; }
+            #matWrap { padding: 10mm 14mm; }
+            main h2 { margin-top: 0; }
+            td input.pris { border: 0; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <a class="tilbake" href="index.html">← Frodolini</a>
+    <h1>Enkelbod</h1>
+    <p class="intro">Teikn ei enkel utebod, eit utedo eller ei leikehytte. Du får fasadar, plan, snitt og fundament – og eit forslag til billeg materialliste. Alt kan lastast ned som PDF for utskrift.</p>
+
+    <div class="layout">
+        <aside class="panel" id="panel">
+            <section>
+                <h2>Start med</h2>
+                <div class="presets">
+                    <button data-preset="bod">Utebod</button>
+                    <button data-preset="do">Utedo</button>
+                    <button data-preset="hytte">Leikehytte</button>
+                </div>
+            </section>
+            <section>
+                <h2>Prosjekt</h2>
+                <label>Namn<input data-k="namn" type="text" maxlength="40"></label>
+                <label>Teikna av<input data-k="teiknar" type="text" maxlength="40"></label>
+            </section>
+            <section>
+                <h2>Storleik</h2>
+                <p class="hint">Alle mål i millimeter, målt på utsida av stenderverket.</p>
+                <div class="grid2">
+                    <label>Breidd (framside)<input data-k="B" type="number" step="100" min="900" max="6000"></label>
+                    <label>Djupn<input data-k="D" type="number" step="100" min="900" max="4000"></label>
+                </div>
+            </section>
+            <section>
+                <h2>Tak</h2>
+                <label>Taktype
+                    <select data-k="tak">
+                        <option value="pult">Pulttak (fall bakover)</option>
+                        <option value="salt">Saltak (gavl framme)</option>
+                    </select>
+                </label>
+                <div class="grid2 vis-pult">
+                    <label>Vegghøgd framme<input data-k="Hf" type="number" step="50"></label>
+                    <label>Vegghøgd bak<input data-k="Hb" type="number" step="50"></label>
+                </div>
+                <div class="grid2 vis-salt">
+                    <label>Vegghøgd<input data-k="H" type="number" step="50"></label>
+                    <label>Takvinkel (°)<input data-k="vinkel" type="number" step="1" min="5" max="50"></label>
+                </div>
+                <p class="hint">Vegghøgd er frå golv til topp vegg.</p>
+                <div class="grid2">
+                    <label>Takutstikk<input data-k="utstikk" type="number" step="50" min="0" max="600"></label>
+                    <label>Taktekking
+                        <select data-k="takdekke">
+                            <option value="papp">Takpapp</option>
+                            <option value="stal">Stålplater</option>
+                            <option value="shingel">Takshingel</option>
+                        </select>
+                    </label>
+                </div>
+            </section>
+            <section>
+                <h2>Kledning</h2>
+                <label>Type
+                    <select data-k="kledning">
+                        <option value="staande">Ståande ein-og-ein</option>
+                        <option value="liggande">Liggande dobbelfals</option>
+                    </select>
+                </label>
+                <label class="check"><input data-k="maling" type="checkbox"> Ta med maling i materiallista</label>
+            </section>
+            <section>
+                <h2>Dør (framside)</h2>
+                <div class="grid2">
+                    <label>Breidd<input data-k="dor.b" type="number" step="50"></label>
+                    <label>Høgd<input data-k="dor.h" type="number" step="50"></label>
+                    <label>Frå venstre hjørne<input data-k="dor.x" type="number" step="50"></label>
+                    <label>Hengsler
+                        <select data-k="dor.hengsel">
+                            <option value="venstre">Venstre</option>
+                            <option value="hogre">Høgre</option>
+                        </select>
+                    </label>
+                </div>
+                <label class="check"><input data-k="dor.hjarte" type="checkbox"> Hjarte i døra</label>
+            </section>
+            <section>
+                <h2>Vindauge</h2>
+                <div id="vinListe"></div>
+                <button id="leggTilVin">+ Legg til vindauge</button>
+            </section>
+            <section>
+                <button id="nullstill">Nullstill alt</button>
+            </section>
+        </aside>
+
+        <main>
+            <div class="toolbar">
+                <button id="pdfBtn" class="primary">Last ned PDF</button>
+                <button id="printBtn">Skriv ut</button>
+                <span class="tips">Tips: Du kan dra dør og vindauge rundt i fasadane.</span>
+            </div>
+            <div id="nokkel" class="nokkel"></div>
+            <div id="sjekk" class="sjekk"></div>
+            <div id="ark"></div>
+            <div id="matWrap">
+                <h2>Materialliste</h2>
+                <div class="tabell-wrap" id="mat"></div>
+                <p class="note">Prisane er grove overslag (2026) for billige standardvarer og kan endrast i tabellen. Mengdene er rekna med enkle tommelfingerreglar og litt svinn – kontroller før du bestiller. Dimensjonane passar for små, uisolerte bygg med moderat snølast; bur du der det kjem mykje snø, bør du auke dimensjonen på sperrene.</p>
+                <p class="noprint"><button id="nullstillPris">Nullstill prisar</button></p>
+            </div>
+        </main>
+    </div>
+    <footer>Laga for Frodolini – enkel teknisk teikning av småhus.</footer>
+</div>
+
+<script>
+'use strict';
+
+// ---------- Grunndata ----------
+const WALLS = ['framme', 'hogre', 'bak', 'venstre'];
+const WTITTEL = { framme: 'FRAMME', hogre: 'HØGRE SIDE', bak: 'BAK', venstre: 'VENSTRE SIDE' };
+const WNAMN = { framme: 'Framside', hogre: 'Høgre side', bak: 'Bakside', venstre: 'Venstre side' };
+const LAGER = 'enkelbod.v1';
+
+const PRESET = {
+    bod: {
+        type: 'bod', namn: 'Utebod', B: 2400, D: 1800, tak: 'pult', Hf: 2000, Hb: 1750, H: 1600, vinkel: 27,
+        utstikk: 250, kledning: 'staande', takdekke: 'papp', maling: true,
+        dor: { b: 900, h: 1850, x: 300, hengsel: 'venstre', hjarte: false },
+        vindauge: [{ vegg: 'hogre', b: 600, h: 500, x: 600, y: 1150 }]
+    },
+    do: {
+        type: 'do', namn: 'Utedo', B: 1200, D: 1500, tak: 'pult', Hf: 2000, Hb: 1800, H: 1600, vinkel: 27,
+        utstikk: 250, kledning: 'staande', takdekke: 'papp', maling: true,
+        dor: { b: 700, h: 1800, x: 250, hengsel: 'hogre', hjarte: true },
+        vindauge: []
+    },
+    hytte: {
+        type: 'hytte', namn: 'Leikehytte', B: 1800, D: 1800, tak: 'salt', Hf: 2000, Hb: 1750, H: 1300, vinkel: 30,
+        utstikk: 200, kledning: 'liggande', takdekke: 'shingel', maling: true,
+        dor: { b: 700, h: 1400, x: 550, hengsel: 'venstre', hjarte: false },
+        vindauge: [
+            { vegg: 'hogre', b: 500, h: 500, x: 650, y: 600 },
+            { vegg: 'venstre', b: 500, h: 500, x: 650, y: 600 }
+        ]
+    }
+};
+
+// Rettleiande prisar (kr per eining)
+const PRIS = {
+    imp48x148: 42, imp48x198: 58, k48x73: 19, k48x98: 25, k48x148: 36, k48x198: 52,
+    lekt36x48: 11, kled19x148: 24, bord21x145: 29, list19x98: 14, bord21x95: 15,
+    osb18: 349, plint: 89, pukk: 79, bjelkesko: 12, sperreband: 9, vinkel: 8,
+    spiker90: 229, kledspiker: 169, skrue: 249, papp: 899, pappspiker: 119, beslag: 89,
+    stalplate: 169, takskrue: 349, monebeslag: 249, underlag: 999, shingel: 449, shingelspiker: 149,
+    hengsel: 129, hespe: 99, krok: 39, vindauge: 990, maling: 99
+};
+
+const STIL = {
+    tjukk: { w: 0.5 }, med: { w: 0.35 }, tynn: { w: 0.18 }, hair: { w: 0.08, c: '#555555' },
+    dim: { w: 0.13 }, skjult: { w: 0.18, dash: [1.2, 0.8] }, akse: { w: 0.18, dash: [4, 1, 0.6, 1] }
+};
+
+let S = hentLagra() || kopi(PRESET.bod);
+if (!S.teiknar) S.teiknar = '';
+if (!S.prisar) S.prisar = {};
+
+function kopi(o) { return JSON.parse(JSON.stringify(o)); }
+
+function hentLagra() {
+    try {
+        const t = localStorage.getItem(LAGER);
+        if (!t) return null;
+        const o = JSON.parse(t);
+        return (o && o.B && o.dor) ? o : null;
+    } catch (e) { return null; }
+}
+function lagre() {
+    try { localStorage.setItem(LAGER, JSON.stringify(S)); } catch (e) { /* ikkje viktig */ }
+}
+
+// ---------- Hjelparar ----------
+const r2 = v => Math.round(v * 100) / 100;
+function nf(v, d = 0) {
+    const s = (Math.round(v * Math.pow(10, d)) / Math.pow(10, d)).toFixed(d);
+    const [i, f] = s.split('.');
+    return i.replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + (f ? ',' + f : '');
+}
+const kr = v => nf(v) + ' kr';
+const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+const clamp = (v, a, b, d) => { v = +v; if (!isFinite(v)) v = d; return Math.min(b, Math.max(a, v)); };
+function dato() {
+    const d = new Date();
+    return String(d.getDate()).padStart(2, '0') + '.' + String(d.getMonth() + 1).padStart(2, '0') + '.' + d.getFullYear();
+}
+function linspace(a, b, n) {
+    if (n <= 1) return [(a + b) / 2];
+    const r = [];
+    for (let i = 0; i < n; i++) r.push(a + (b - a) * i / (n - 1));
+    return r;
+}
+// Senterlinjer for bjelkar/sperrer/stendarar c/c 600, siste heilt ute ved enden
+function ccPos(len, w = 48, cc = 600) {
+    const a = w / 2, b = len - w / 2, r = [];
+    for (let v = a; v < b - 100; v += cc) r.push(v);
+    r.push(b);
+    return r;
+}
+
+// ---------- Teiknepennar (same teiknekode for skjerm og PDF) ----------
+class SvgPen {
+    constructor() { this.o = []; }
+    stil(st, fill) {
+        st = st || {};
+        let a = ` stroke="${st.c || '#000'}" stroke-width="${st.w ?? 0.25}"`;
+        if (st.dash) a += ` stroke-dasharray="${st.dash.join(' ')}"`;
+        a += ` fill="${fill || 'none'}"`;
+        if (st.ingenStrek) a = ` stroke="none" fill="${fill}"`;
+        return a;
+    }
+    line(x1, y1, x2, y2, st) {
+        this.o.push(`<line x1="${r2(x1)}" y1="${r2(y1)}" x2="${r2(x2)}" y2="${r2(y2)}"${this.stil(st)} stroke-linecap="round"/>`);
+    }
+    poly(pts, st, fill, open) {
+        const p = pts.map(q => r2(q[0]) + ',' + r2(q[1])).join(' ');
+        this.o.push(`<${open ? 'polyline' : 'polygon'} points="${p}"${this.stil(st, open ? null : fill)} stroke-linejoin="round"/>`);
+    }
+    rect(x, y, w, h, st, fill) { this.poly([[x, y], [x + w, y], [x + w, y + h], [x, y + h]], st, fill); }
+    text(x, y, s, o = {}) {
+        const size = o.size || 2.2;
+        const tr = o.rot ? ` transform="rotate(${-o.rot} ${r2(x)} ${r2(y)})"` : '';
+        const anc = o.anchor || 'start';
+        this.o.push(`<text x="${r2(x)}" y="${r2(y)}" font-size="${size}" font-family="Arial, Helvetica, sans-serif" text-anchor="${anc}"${o.bold ? ' font-weight="bold"' : ''} fill="${o.c || '#000'}"${tr}>${esc(s)}</text>`);
+    }
+    begin(id, s) { this.o.push(`<g data-drag="${id}" data-s="${s}">`); }
+    end() { this.o.push('</g>'); }
+    toString() { return this.o.join(''); }
+}
+
+class PdfPen {
+    constructor(doc) { this.d = doc; }
+    strek(st) {
+        st = st || {};
+        this.d.setLineWidth(st.w ?? 0.25);
+        this.d.setDrawColor(st.c || '#000000');
+        this.d.setLineDashPattern(st.dash || [], 0);
+    }
+    line(x1, y1, x2, y2, st) { this.strek(st); this.d.line(x1, y1, x2, y2); }
+    poly(pts, st, fill, open) {
+        if (fill === 'transparent') fill = null;
+        st = st || {};
+        this.strek(st);
+        let style = 'S';
+        if (fill && !open) { this.d.setFillColor(fill); style = st.ingenStrek ? 'F' : 'FD'; }
+        const deltas = [];
+        for (let i = 1; i < pts.length; i++) deltas.push([pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]]);
+        this.d.lines(deltas, pts[0][0], pts[0][1], [1, 1], style, !open);
+    }
+    rect(x, y, w, h, st, fill) { this.poly([[x, y], [x + w, y], [x + w, y + h], [x, y + h]], st, fill); }
+    text(x, y, s, o = {}) {
+        const d = this.d;
+        d.setFont('helvetica', o.bold ? 'bold' : 'normal');
+        d.setFontSize((o.size || 2.2) / 0.3528);
+        d.setTextColor(o.c || '#000000');
+        const w = d.getTextWidth(s);
+        const k = o.anchor === 'middle' ? 0.5 : o.anchor === 'end' ? 1 : 0;
+        const a = (o.rot || 0) * Math.PI / 180;
+        const x0 = x - Math.cos(a) * w * k, y0 = y + Math.sin(a) * w * k;
+        if (o.rot) d.text(s, x0, y0, { angle: o.rot }); else d.text(s, x0, y0);
+    }
+    begin() {}
+    end() {}
+}
+
+// Målsetjing
+function tekstBreidd(s, size) { return s.length * size * 0.52; }
+function tick(p, x, y) { p.line(x - 0.9, y + 0.9, x + 0.9, y - 0.9, { w: 0.3 }); }
+function kjedeH(p, xs, vals, y, yFra) {
+    // xs: papirposisjonar, vals: modellverdiar (mm)
+    const dir = y > yFra ? 1 : -1;
+    for (const x of xs) p.line(x, yFra + dir * 1, x, y + dir * 1.2, STIL.dim);
+    p.line(xs[0] - 1, y, xs[xs.length - 1] + 1, y, STIL.dim);
+    let lyft = false;
+    for (let i = 0; i < xs.length; i++) {
+        tick(p, xs[i], y);
+        if (i === 0) continue;
+        const t = nf(Math.round(vals[i] - vals[i - 1]));
+        const trong = tekstBreidd(t, 2) > xs[i] - xs[i - 1] - 0.6;
+        lyft = trong && !lyft;
+        p.text((xs[i] + xs[i - 1]) / 2, y - 0.7 - (lyft ? 2.4 : 0), t, { size: 2, anchor: 'middle' });
+    }
+}
+function kjedeV(p, ys, vals, x, xFra) {
+    const dir = x > xFra ? 1 : -1;
+    for (const y of ys) p.line(xFra + dir * 1, y, x + dir * 1.2, y, STIL.dim);
+    const lo = Math.max(...ys), hi = Math.min(...ys);
+    p.line(x, lo + 1, x, hi - 1, STIL.dim);
+    let lyft = false;
+    for (let i = 0; i < ys.length; i++) {
+        tick(p, x, ys[i]);
+        if (i === 0) continue;
+        const t = nf(Math.round(vals[i] - vals[i - 1]));
+        const trong = tekstBreidd(t, 2) > Math.abs(ys[i] - ys[i - 1]) - 0.6;
+        lyft = trong && !lyft;
+        p.text(x - 0.7 - (lyft ? 2.4 : 0), (ys[i] + ys[i - 1]) / 2, t, { size: 2, anchor: 'middle', rot: 90 });
+    }
+}
+function etikett(p, x, y, t, o = {}) {
+    const size = o.size || 2.2, w = tekstBreidd(t, size) + 1.2;
+    const x0 = o.anchor === 'middle' ? x - w / 2 : x - 0.6;
+    p.rect(x0, y - size * 0.95, w, size * 1.3, { ingenStrek: true }, '#ffffff');
+    p.text(x, y, t, o);
+}
+function unike(arr) {
+    const s = [...arr].sort((a, b) => a - b), r = [];
+    for (const v of s) if (!r.length || v - r[r.length - 1] > 1) r.push(v);
+    return r;
+}
+function pil(p, x1, y1, x2, y2, st) {
+    p.line(x1, y1, x2, y2, st);
+    const a = Math.atan2(y2 - y1, x2 - x1), l = 1.8;
+    p.poly([[x2, y2], [x2 - l * Math.cos(a - 0.4), y2 - l * Math.sin(a - 0.4)], [x2 - l * Math.cos(a + 0.4), y2 - l * Math.sin(a + 0.4)]], { w: 0.1 }, '#000000');
+}
+
+// ---------- Geometri ----------
+function scan(poly, dir, c) {
+    const xs = [];
+    for (let i = 0; i < poly.length; i++) {
+        const p1 = poly[i], p2 = poly[(i + 1) % poly.length];
+        const ia = dir === 'v' ? 0 : 1, ib = 1 - ia;
+        const a = p1[ia], b = p2[ia];
+        if ((a <= c && b > c) || (b <= c && a > c)) {
+            const t = (c - a) / (b - a);
+            xs.push(p1[ib] + t * (p2[ib] - p1[ib]));
+        }
+    }
+    xs.sort((a, b) => a - b);
+    const r = [];
+    for (let i = 0; i + 1 < xs.length; i += 2) r.push([xs[i], xs[i + 1]]);
+    return r;
+}
+function trekkFra(iv, a, b) {
+    const r = [];
+    for (const [x, y] of iv) {
+        if (b <= x || a >= y) { r.push([x, y]); continue; }
+        if (a > x) r.push([x, a]);
+        if (b < y) r.push([b, y]);
+    }
+    return r;
+}
+function klipp(iv, a, b) {
+    return iv.map(([x, y]) => [Math.max(x, a), Math.min(y, b)]).filter(([x, y]) => y - x > 1);
+}
+function areal(poly) {
+    let s = 0;
+    for (let i = 0; i < poly.length; i++) {
+        const p = poly[i], q = poly[(i + 1) % poly.length];
+        s += p[0] * q[1] - q[0] * p[1];
+    }
+    return Math.abs(s) / 2;
+}
+// Linjer/bord over ein veggflate. cuts: [{u1,u2,z1,z2}]
+function veggLinjer(W, cuts, dir, c0, steg, kant) {
+    const ut = [];
+    const zMax = Math.max(...W.poly.map(q => q[1]));
+    if (dir === 'v') {
+        for (let u = c0; u < W.L; u += steg) {
+            if (kant && (u < kant || u > W.L - kant)) continue;
+            let iv = scan(W.poly, 'v', u);
+            for (const q of cuts) if (u > q.u1 && u < q.u2) iv = trekkFra(iv, q.z1, q.z2);
+            for (const [a, b] of iv) if (b - a > 1) ut.push([u, a, u, b]);
+        }
+    } else {
+        for (let z = c0; z < zMax; z += steg) {
+            let iv = scan(W.poly, 'h', z);
+            if (kant) iv = klipp(iv, kant, W.L - kant);
+            for (const q of cuts) if (z > q.z1 && z < q.z2) iv = trekkFra(iv, q.u1, q.u2);
+            for (const [a, b] of iv) if (b - a > 1) ut.push([a, z, b, z]);
+        }
+    }
+    return ut;
+}
+
+function geom(N) {
+    const G = {};
+    const B = N.B, D = N.D, pult = N.tak === 'pult';
+    Object.assign(G, { B, D, o: N.utstikk, pult });
+    G.plintH = 100;
+    G.jH = D <= 2400 ? 148 : 198;
+    G.zUK = G.plintH;
+    G.zGolv = G.plintH + G.jH + 18;
+    G.st = 73;
+    G.kled = N.kledning === 'staande' ? 36 + 38 : 19;
+    if (pult) { G.span = D; G.alpha = Math.atan2(Math.max(N.Hf - N.Hb, 0), D); }
+    else { G.span = B / 2; G.alpha = N.vinkel * Math.PI / 180; }
+    G.tan = Math.tan(G.alpha);
+    G.cos = Math.cos(G.alpha);
+    G.sH = G.span <= 1800 ? 98 : G.span <= 2700 ? 148 : 198;
+    G.lag = N.takdekke === 'stal' ? 36 + 5 : 18 + 5;
+    G.sHv = G.sH / G.cos;
+    G.T = (G.sH + G.lag) / G.cos;
+    G.zu = pult
+        ? (px, py) => G.zGolv + N.Hf - G.tan * py
+        : (px, py) => G.zGolv + N.H + G.tan * (B / 2 - Math.abs(px - B / 2));
+    G.zTop = pult ? G.zu(0, -G.o) + G.T : G.zu(B / 2, 0) + G.T;
+    G.gesims = pult ? G.zGolv + N.Hf + G.T : G.zGolv + N.H + G.T;
+    G.BYA = (B + 2 * G.kled) * (D + 2 * G.kled) / 1e6;
+    G.BRA = (B - 2 * G.st) * (D - 2 * G.st) / 1e6;
+    G.grader = G.alpha * 180 / Math.PI;
+
+    G.joistX = ccPos(B);
+    G.sperreX = ccPos(B);
+    G.sperreY = ccPos(D);
+    const nP = Math.max(2, Math.ceil((B - 400) / 1500) + 1);
+    G.plintX = linspace(200, B - 200, nP);
+
+    const map = {
+        framme: u => [u, 0], hogre: u => [B, u], bak: u => [B - u, D], venstre: u => [0, D - u]
+    };
+    G.wpt = (wid, u, d) => ({
+        framme: [u, d], hogre: [B - d, u], bak: [B - u, D - d], venstre: [d, D - u]
+    })[wid];
+    G.walls = {};
+    for (const wid of WALLS) {
+        const L = (wid === 'framme' || wid === 'bak') ? B : D;
+        const top = u => G.zu(...map[wid](u));
+        const gavl = !pult && (wid === 'framme' || wid === 'bak');
+        const poly = [[0, G.zUK], [L, G.zUK], [L, top(L)]];
+        if (gavl) poly.push([B / 2, top(B / 2)]);
+        poly.push([0, top(0)]);
+        let plint;
+        if (wid === 'framme') plint = G.plintX.map(c => ({ a: c - 200, b: c + 200 }));
+        else if (wid === 'bak') plint = G.plintX.map(c => ({ a: B - c - 200, b: B - c + 200 }));
+        else plint = [{ a: -52, b: 148 }, { a: D - 148, b: D + 52 }];
+        G.walls[wid] = { id: wid, L, top, poly, gavl, plint, tittel: WTITTEL[wid] };
+    }
+    // Opningar i lokale veggkoordinatar (u frå venstre sett utanfrå, z frå terreng)
+    G.open = { framme: [], hogre: [], bak: [], venstre: [] };
+    G.open.framme.push({ kind: 'dor', id: 'dor', u: N.dor.x, z: G.zGolv, w: N.dor.b, h: N.dor.h });
+    N.vindauge.forEach((v, i) => {
+        G.open[v.vegg].push({ kind: 'vin', id: 'vin:' + i, u: v.x, z: G.zGolv + v.y, w: v.b, h: v.h });
+    });
+    return G;
+}
+
+function norm(S) {
+    const N = kopi(S);
+    N.namn = (N.namn || '').trim() || 'Bod';
+    N.B = Math.round(clamp(N.B, 900, 6000, 2400));
+    N.D = Math.round(clamp(N.D, 900, 4000, 1800));
+    N.Hf = clamp(N.Hf, 1200, 3000, 2000);
+    N.Hb = clamp(N.Hb, 1000, N.Hf, 1750);
+    N.H = clamp(N.H, 1000, 2600, 1600);
+    N.vinkel = clamp(N.vinkel, 5, 50, 27);
+    N.utstikk = clamp(N.utstikk, 0, 600, 250);
+    if (!['pult', 'salt'].includes(N.tak)) N.tak = 'pult';
+    if (!['papp', 'stal', 'shingel'].includes(N.takdekke)) N.takdekke = 'papp';
+    if (!['staande', 'liggande'].includes(N.kledning)) N.kledning = 'staande';
+    N.vindauge = (N.vindauge || []).filter(v => WALLS.includes(v.vegg));
+    const G = geom(N);
+    const d = N.dor;
+    d.b = clamp(d.b, 500, Math.min(1500, N.B - 200), 800);
+    d.x = clamp(d.x, 50, N.B - d.b - 50, (N.B - d.b) / 2);
+    const Wf = G.walls.framme;
+    d.h = clamp(d.h, 1000, Math.min(Wf.top(d.x), Wf.top(d.x + d.b)) - G.zGolv - 100, 1800);
+    for (const k of ['b', 'h', 'x']) d[k] = Math.round(d[k]);
+    if (d.hengsel !== 'hogre') d.hengsel = 'venstre';
+    for (const v of N.vindauge) {
+        const W = G.walls[v.vegg];
+        v.b = clamp(v.b, 200, Math.max(200, W.L - 300), 600);
+        v.x = clamp(v.x, 100, W.L - v.b - 100, 100);
+        const tilgj = Math.min(W.top(v.x), W.top(v.x + v.b)) - G.zGolv - 100;
+        v.h = clamp(v.h, 200, Math.max(200, tilgj - 300), 500);
+        v.y = clamp(v.y, 300, Math.max(300, tilgj - v.h), 1000);
+        for (const k of ['b', 'h', 'x', 'y']) v[k] = Math.round(v[k]);
+    }
+    return N;
+}
+
+// ---------- Visningar ----------
+function roofMode(G, wid) {
+    if (G.pult) {
+        if (wid === 'framme') return { face: true, zuE: G.zu(0, -G.o), synleg: false };
+        if (wid === 'bak') return { face: true, zuE: G.zu(0, G.D + G.o), synleg: true };
+        return { face: false };
+    }
+    if (wid === 'hogre' || wid === 'venstre') return { face: true, zuE: G.zu(-G.o, 0), synleg: true };
+    return { face: false };
+}
+
+function hjarte(cu, cz, size) {
+    const k = size / 32, r = [];
+    for (let i = 0; i < 40; i++) {
+        const t = i / 40 * Math.PI * 2;
+        const x = 16 * Math.pow(Math.sin(t), 3);
+        const y = 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t);
+        r.push([cu + x * k, cz + y * k]);
+    }
+    return r;
+}
+
+function fasade(N, G, wid) {
+    const W = G.walls[wid], L = W.L, o = G.o, ops = G.open[wid];
+    const rader = ops.length ? 2 : 1;
+    const top = G.zTop;
+    return {
+        size: s => ({ w: (L + 2 * o) / s + 25, h: top / s + 7 + rader * 6 + 8 }),
+        draw(p, x, y, s) {
+            const ox = x + 19 + o / s, oy = y + 5 + top / s;
+            const X = u => ox + u / s, Y = z => oy - z / s, P = q => [X(q[0]), Y(q[1])];
+            // fundament
+            for (const c of W.plint) p.rect(X(c.a), Y(G.zUK), (c.b - c.a) / s, G.zUK / s, STIL.tynn, '#eeeeee');
+            // vegg og kledning
+            p.poly(W.poly.map(P), STIL.med, '#ffffff');
+            const kutt = ops.map(q => ({ u1: q.u - 70, u2: q.u + q.w + 70, z1: q.kind === 'dor' ? -1e9 : q.z - 70, z2: q.z + q.h + 70 }));
+            const lin = N.kledning === 'staande'
+                ? veggLinjer(W, kutt, 'v', 125, 125, 98)
+                : veggLinjer(W, kutt, 'h', G.zUK + 125, 125, 98);
+            for (const l of lin) p.line(X(l[0]), Y(l[1]), X(l[2]), Y(l[3]), STIL.hair);
+            for (const u of [98, L - 98]) {
+                for (const [a, b] of scan(W.poly, 'v', u)) p.line(X(u), Y(a), X(u), Y(b), STIL.tynn);
+            }
+            // opningar
+            for (const q of ops) {
+                const x1 = X(q.u), x2 = X(q.u + q.w), y1 = Y(q.z), y2 = Y(q.z + q.h);
+                p.begin(q.id, s);
+                if (q.kind === 'dor') {
+                    p.poly([[X(q.u - 70), y1], [X(q.u - 70), Y(q.z + q.h + 70)], [X(q.u + q.w + 70), Y(q.z + q.h + 70)], [X(q.u + q.w + 70), y1]], STIL.tynn, null, true);
+                    p.rect(x1, y2, x2 - x1, y1 - y2, STIL.med, '#ffffff');
+                    for (let u = q.u + 140; u < q.u + q.w - 40; u += 140) p.line(X(u), y1, X(u), y2, STIL.hair);
+                    const hx = N.dor.hengsel === 'venstre' ? q.u : q.u + q.w;
+                    const dir = N.dor.hengsel === 'venstre' ? 1 : -1;
+                    for (const z of [q.z + 220, q.z + q.h - 220]) p.line(X(hx), Y(z), X(hx + dir * 380), Y(z), { w: 0.45 });
+                    const hu = N.dor.hengsel === 'venstre' ? q.u + q.w - 90 : q.u + 60;
+                    p.rect(X(hu), Y(q.z + 1080), 30 / s, 160 / s, STIL.tynn, '#000000');
+                    if (N.dor.hjarte) p.poly(hjarte(q.u + q.w / 2, q.z + q.h - 330, Math.min(180, q.w * 0.3)).map(P), STIL.tynn, '#333333');
+                } else {
+                    p.rect(X(q.u - 70), Y(q.z + q.h + 70), (q.w + 140) / s, (q.h + 140) / s, STIL.tynn, '#ffffff');
+                    p.rect(x1, y2, x2 - x1, y1 - y2, STIL.med, '#ffffff');
+                    p.rect(X(q.u + 45), Y(q.z + q.h - 45), (q.w - 90) / s, (q.h - 90) / s, STIL.hair, '#eef5fa');
+                    if (q.w >= 500) p.line(X(q.u + q.w / 2), Y(q.z + 45), X(q.u + q.w / 2), Y(q.z + q.h - 45), STIL.hair);
+                    if (q.h >= 500) p.line(X(q.u + 45), Y(q.z + q.h / 2), X(q.u + q.w - 45), Y(q.z + q.h / 2), STIL.hair);
+                }
+                p.rect(x1, y2, x2 - x1, y1 - y2, { w: 0 }, 'transparent');
+                p.end();
+            }
+            // tak
+            const m = roofMode(G, wid);
+            if (!m.face) {
+                const us = [-o, L + o];
+                if (W.gavl) us.splice(1, 0, L / 2);
+                const under = us.map(u => [u, W.top(u)]);
+                const over = us.map(u => [u, W.top(u) + G.T]).reverse();
+                p.poly(under.concat(over).map(P), STIL.med, '#ffffff');
+                const ls = us.map(u => [u, W.top(u) + G.sHv]);
+                p.poly(ls.map(P), STIL.hair, null, true);
+            } else {
+                const zOver = m.synleg ? G.zTop : m.zuE + G.T;
+                p.rect(X(-o), Y(zOver), (L + 2 * o) / s, (zOver - m.zuE) / s, STIL.med, '#ffffff');
+                if (m.synleg) {
+                    const zk = m.zuE + G.T;
+                    p.line(X(-o), Y(zk), X(L + o), Y(zk), STIL.tynn);
+                    if (N.takdekke === 'stal') {
+                        for (let u = -o + 200; u < L + o - 20; u += 200) p.line(X(u), Y(zk), X(u), Y(G.zTop), STIL.hair);
+                    } else {
+                        const steg = (N.takdekke === 'papp' ? 900 : 143) * Math.sin(G.alpha);
+                        if (steg / s > 0.8) for (let z = zk + steg; z < G.zTop - steg * 0.3; z += steg) p.line(X(-o), Y(z), X(L + o), Y(z), STIL.hair);
+                    }
+                    if (!G.pult) p.line(X(-o), Y(G.zTop), X(L + o), Y(G.zTop), STIL.tynn);
+                }
+            }
+            // terreng
+            p.line(X(-o - 250), oy, X(L + o + 250), oy, STIL.tjukk);
+            // mål
+            let yd = oy + 5;
+            if (ops.length) {
+                const v = unike([0, L, ...ops.flatMap(q => [q.u, q.u + q.w])]);
+                kjedeH(p, v.map(X), v, yd, oy + 0.5);
+                yd += 6;
+            }
+            kjedeH(p, [X(0), X(L)], [0, L], yd, oy + 0.5);
+            const zs = unike([0, G.zGolv, W.top(0), G.zTop]);
+            kjedeV(p, zs.map(Y), zs, X(-o) - 5, X(-o) - 1);
+            p.text(X(L / 2), yd + 7, 'FASADE ' + W.tittel, { size: 3, bold: true, anchor: 'middle' });
+        }
+    };
+}
+
+function plan(N, G) {
+    const { B, D, o } = G, k = G.kled, t = G.st;
+    const dor = G.open.framme[0];
+    const yMin = Math.min(-o, -k - dor.w - 60);
+    const hogreOps = G.open.hogre;
+    return {
+        size: s => ({ w: (B + 2 * o) / s + 10 + (hogreOps.length ? 20 : 14) + (G.pult ? 0 : 4), h: (D + o - yMin) / s + 6 + 14 + 8 + (G.pult ? 6 : 0) }),
+        draw(p, x, y, s) {
+            const ox = x + 7 + o / s, oy = y + 6 + (D + o) / s;
+            const X = px => ox + px / s, Y = py => oy - py / s;
+            const WP = (wid, u, d) => { const q = G.wpt(wid, u, d); return [X(q[0]), Y(q[1])]; };
+            // takutstikk
+            p.rect(X(-o), Y(D + o), (B + 2 * o) / s, (D + 2 * o) / s, STIL.skjult);
+            if (!G.pult) p.line(X(B / 2), Y(-o), X(B / 2), Y(D + o), STIL.akse);
+            // veggar
+            for (const wid of WALLS) {
+                const W = G.walls[wid], ops = G.open[wid];
+                let iv = [[-k, W.L + k]];
+                for (const q of ops) iv = trekkFra(iv, q.u, q.u + q.w);
+                for (const [a, b] of iv) {
+                    p.poly([WP(wid, a, -k), WP(wid, b, -k), WP(wid, b, t), WP(wid, a, t)], { ingenStrek: true }, '#c8c8c8');
+                }
+                for (const [a, b] of iv) {
+                    p.line(...WP(wid, a, -k), ...WP(wid, b, -k), STIL.med);
+                    const [ia, ib] = [Math.max(a, t), Math.min(b, W.L - t)];
+                    if (ib > ia) p.line(...WP(wid, ia, t), ...WP(wid, ib, t), STIL.med);
+                    const [fa, fb] = [Math.max(a, 0), Math.min(b, W.L)];
+                    if (fb > fa) p.line(...WP(wid, fa, 0), ...WP(wid, fb, 0), STIL.hair);
+                }
+                for (const q of ops) {
+                    for (const u of [q.u, q.u + q.w]) p.line(...WP(wid, u, -k), ...WP(wid, u, t), STIL.med);
+                    if (q.kind === 'vin') {
+                        for (const d of [t / 2 - 12, t / 2 + 12]) p.line(...WP(wid, q.u, d), ...WP(wid, q.u + q.w, d), STIL.tynn);
+                        p.line(...WP(wid, q.u, -k), ...WP(wid, q.u + q.w, -k), STIL.hair);
+                    } else {
+                        const hv = N.dor.hengsel === 'venstre';
+                        const uh = hv ? q.u : q.u + q.w, dir = hv ? 1 : -1;
+                        p.line(...WP(wid, uh, -k), ...WP(wid, uh, -k - q.w), { w: 0.35 });
+                        const bue = [];
+                        for (let i = 0; i <= 24; i++) {
+                            const a = i / 24 * Math.PI / 2;
+                            bue.push(WP(wid, uh + dir * q.w * Math.cos(a), -k - q.w * Math.sin(a)));
+                        }
+                        p.poly(bue, STIL.hair, null, true);
+                    }
+                }
+            }
+            // snittmarkering
+            if (G.pult) {
+                let cx = B * 0.5;
+                for (const f of [0.5, 0.3, 0.7, 0.2, 0.8]) {
+                    const c = B * f;
+                    if (c < dor.u - 150 || c > dor.u + dor.w + 150) { cx = c; break; }
+                }
+                const y1 = Y(-o) + 3, y2 = Y(D + o) - 3;
+                p.line(X(cx), y1, X(cx), y2, STIL.akse);
+                for (const yy of [y1, y2]) {
+                    const d = yy === y1 ? 1 : -1;
+                    p.line(X(cx), yy, X(cx), yy - d * 3, { w: 0.6 });
+                    pil(p, X(cx), yy, X(cx) - 3.5, yy, { w: 0.25 });
+                    p.text(X(cx) - 2, yy + d * 3.5 + (d > 0 ? 0 : 1.2), 'A', { size: 2.6, bold: true, anchor: 'middle' });
+                }
+            } else {
+                const x1 = X(-o) - 3, x2 = X(B + o) + 3, yy = Y(D / 2);
+                p.line(x1, yy, x2, yy, STIL.akse);
+                for (const xx of [x1, x2]) {
+                    const d = xx === x1 ? 1 : -1;
+                    p.line(xx, yy, xx + d * 3, yy, { w: 0.6 });
+                    pil(p, xx, yy, xx, yy - 3.5, { w: 0.25 });
+                    p.text(xx - d * 2.5, yy - 1.5, 'A', { size: 2.6, bold: true, anchor: 'middle' });
+                }
+            }
+            etikett(p, X(B / 2), Y(D * (G.pult ? 0.5 : 0.3)), 'BRA ca. ' + nf(G.BRA, 1) + ' m²', { size: 2.2, anchor: 'middle' });
+            // mål
+            let yd = Math.max(Y(yMin), Y(-o) + (G.pult ? 6 : 0)) + 5;
+            if (dor) {
+                const v = unike([0, B, dor.u, dor.u + dor.w]);
+                kjedeH(p, v.map(X), v, yd, yd - 4.5);
+                yd += 6;
+            }
+            kjedeH(p, [X(0), X(B)], [0, B], yd, yd - 10.5);
+            let xd = X(B + o) + (G.pult ? 5 : 9);
+            if (hogreOps.length) {
+                const v = unike([0, D, ...hogreOps.flatMap(q => [q.u, q.u + q.w])]);
+                kjedeV(p, v.map(Y), v, xd, X(B + o) + 0.5);
+                xd += 6;
+            }
+            kjedeV(p, [Y(0), Y(D)], [0, D], xd, X(B + o) + 0.5);
+            p.text(X(B / 2), yd + 7, 'PLAN', { size: 3, bold: true, anchor: 'middle' });
+        }
+    };
+}
+
+function snitt(N, G) {
+    const pult = G.pult, o = G.o, k = G.kled, t = G.st;
+    const L = pult ? G.D : G.B;
+    const zu = pult ? (u => G.zu(0, u)) : (u => G.zu(u, 0));
+    const topL = pult ? G.zGolv + N.Hf : G.zGolv + N.H;
+    const topR = pult ? G.zGolv + N.Hb : G.zGolv + N.H;
+    const kolonne = 62;
+    return {
+        size: s => ({ w: (L + 2 * o) / s + 20 + 8 + kolonne, h: G.zTop / s + 6 + 5 + 9 }),
+        draw(p, x, y, s) {
+            const ox = x + 19 + o / s, oy = y + 6 + G.zTop / s;
+            const X = u => ox + u / s, Y = z => oy - z / s, P = q => [X(q[0]), Y(q[1])];
+            const kryss = (u1, z1, u2, z2) => {
+                p.rect(X(u1), Y(z2), (u2 - u1) / s, (z2 - z1) / s, STIL.tynn, '#ffffff');
+                p.line(X(u1), Y(z1), X(u2), Y(z2), STIL.hair);
+                p.line(X(u1), Y(z2), X(u2), Y(z1), STIL.hair);
+            };
+            // fundament
+            if (pult) {
+                for (const [a, b] of [[-52, 148], [L - 148, L + 52]]) {
+                    p.rect(X(a - 60), Y(-100), (b - a + 120) / s, 100 / s, STIL.hair, '#e4e4e4');
+                    p.rect(X(a), Y(G.zUK), (b - a) / s, (G.zUK + 100) / s, STIL.tynn, '#d8d8d8');
+                }
+            } else {
+                for (const c of G.plintX) p.rect(X(c - 200), Y(G.zUK), 400 / s, G.zUK / s, STIL.hair, '#eeeeee');
+            }
+            // bjelkelag
+            const zb = G.zUK, zt = G.zUK + G.jH;
+            if (pult) {
+                p.rect(X(96), Y(zt), (L - 192) / s, G.jH / s, STIL.tynn, '#ffffff');
+                kryss(0, zb, 96, zt);
+                kryss(L - 96, zb, L, zt);
+            } else {
+                p.rect(X(0), Y(zt), L / s, G.jH / s, STIL.hair, '#ffffff');
+                for (const c of G.joistX) kryss(c - 24, zb, c + 24, zt);
+            }
+            p.rect(X(0), Y(G.zGolv), L / s, 18 / s, STIL.tynn, '#bbbbbb');
+            // veggar
+            const vegg = (u0, dir, top) => {
+                const ui = u0 + dir * t;
+                const [a, b] = dir > 0 ? [u0, ui] : [ui, u0];
+                p.rect(X(a), Y(top), (b - a) / s, (top - G.zGolv) / s, STIL.med, '#ffffff');
+                kryss(a, G.zGolv, b, G.zGolv + 48);
+                kryss(a, top - 48, b, top);
+                const [ka, kb] = dir > 0 ? [u0 - k, u0] : [u0, u0 + k];
+                p.rect(X(ka), Y(top), k / s, (top - G.zUK) / s, STIL.tynn, '#e6e6e6');
+            };
+            vegg(0, 1, topL);
+            vegg(L, -1, topR);
+            // tak
+            const segs = pult ? [[-o, L + o]] : [[-o, L / 2], [L / 2, L + o]];
+            for (const [a, b] of segs) {
+                p.poly([[a, zu(a)], [b, zu(b)], [b, zu(b) + G.sHv], [a, zu(a) + G.sHv]].map(P), STIL.med, '#ffffff');
+            }
+            const us = pult ? [-o, L + o] : [-o, L / 2, L + o];
+            const lagPoly = us.map(u => [u, zu(u) + G.sHv]).concat(us.slice().reverse().map(u => [u, zu(u) + G.T]));
+            p.poly(lagPoly.map(P), STIL.tynn, '#cccccc');
+            let zh = 0;
+            if (!pult) {
+                zh = G.zGolv + N.H + 0.5 * G.tan * L / 2;
+                const du = (zh - G.zGolv - N.H) / G.tan;
+                p.rect(X(du), Y(zh + 98), (L - 2 * du) / s, 98 / s, STIL.tynn, '#ffffff');
+            }
+            for (const u of [-o, L + o]) {
+                const d = u < 0 ? -1 : 1;
+                p.rect(X(u + (d < 0 ? -21 : 0)), Y(zu(u) + G.T), 21 / s, 145 / s, STIL.tynn, '#ffffff');
+            }
+            // terreng
+            p.line(X(-o - 250), oy, X(L + o + 250), oy, STIL.tjukk);
+            for (let xx = X(-o - 250) + 1; xx < X(L + o + 250); xx += 2.5) p.line(xx, oy, xx - 1.2, oy + 1.2, STIL.hair);
+            // mål
+            const zs = unike([0, G.zGolv, topL, G.zTop]);
+            kjedeV(p, zs.map(Y), zs, X(-o) - 5, X(-o) - 1);
+            // tekstar med peikelinjer
+            const takTxt = { papp: 'Takpapp på 18 mm OSB-taktro', stal: 'Stålplater på lekter 36x48 c/c 600', shingel: 'Takshingel på underlag og 18 mm OSB' }[N.takdekke];
+            const kledTxt = N.kledning === 'staande' ? 'Ståande ein-og-ein 19x148 på lekt 36x48' : 'Liggande dobbelfals 19x148';
+            const uj = pult ? L * 0.5 : G.joistX[Math.floor(G.joistX.length * 0.6)];
+            const lab = [
+                [L * 0.8, zu(L * 0.8) + (G.sHv + G.T) / 2, takTxt],
+                [L * 0.64, zu(L * 0.64) + G.sHv / 2, `Sperrer 48x${G.sH} c/c 600`],
+                [L - t / 2, (G.zGolv + topR) / 2, 'Stendarar 48x73 c/c 600'],
+                [L + k / 2, G.zGolv + 250, kledTxt],
+                [L * 0.85, G.zGolv - 9, 'Golv: 18 mm OSB'],
+                [uj, G.zUK + G.jH / 2, `Bjelkar 48x${G.jH} imp. c/c 600`],
+                [pult ? L - 48 : G.plintX[G.plintX.length - 1], G.zUK / 2, 'Fundamentblokk på pukk']
+            ];
+            if (!pult) lab.splice(2, 0, [L * 0.62, zh + 49, 'Hanebjelke 48x98 kvart sperrepar']);
+            const lx = X(L + o) + 9;
+            lab.sort((a, b) => b[1] - a[1]);
+            let prev = -1e9;
+            for (const [u, z, txt] of lab) {
+                const py = Y(z);
+                const ly = Math.max(py + 0.7, prev + 3.6);
+                prev = ly;
+                p.line(X(u), py, lx - 1, ly - 0.7, STIL.dim);
+                p.rect(X(u) - 0.35, py - 0.35, 0.7, 0.7, { w: 0.1 }, '#000000');
+                p.text(lx, ly, txt, { size: 2.1 });
+            }
+            p.text(X(L / 2), oy + 12, 'SNITT A-A', { size: 3, bold: true, anchor: 'middle' });
+        }
+    };
+}
+
+function fundament(N, G) {
+    const { B, D } = G;
+    return {
+        size: s => ({ w: B / s + 10 + 14, h: D / s + 6 + 14 + 12 }),
+        draw(p, x, y, s) {
+            const ox = x + 8, oy = y + 6 + D / s;
+            const X = px => ox + px / s, Y = py => oy - py / s;
+            for (const c of G.plintX) for (const py of [48, D - 48]) {
+                p.rect(X(c - 200), Y(py + 100), 400 / s, 200 / s, STIL.skjult, '#eeeeee');
+            }
+            for (const py of [0, D - 96]) {
+                p.rect(X(0), Y(py + 96), B / s, 96 / s, STIL.med);
+                p.line(X(0), Y(py + 48), X(B), Y(py + 48), STIL.hair);
+            }
+            for (const c of G.joistX) p.rect(X(c - 24), Y(D - 96), 48 / s, (D - 192) / s, STIL.tynn);
+            const v = unike([0, B, ...G.plintX]);
+            kjedeH(p, v.map(X), v, Y(0) + 5, Y(0) + 0.5);
+            kjedeH(p, [X(0), X(B)], [0, B], Y(0) + 11, Y(0) + 0.5);
+            kjedeV(p, [Y(0), Y(D)], [0, D], X(B) + 6, X(B) + 0.5);
+            p.text(X(B / 2), Y(0) + 18, 'FUNDAMENT OG BJELKELAG', { size: 3, bold: true, anchor: 'middle' });
+            p.text(X(B / 2), Y(0) + 21.5, `Doble randbjelkar og bjelkar 48x${G.jH} imp. c/c 600. ${G.plintX.length * 2} fundamentblokker på pukk.`, { size: 2, anchor: 'middle' });
+        }
+    };
+}
+
+function takplan(N, G) {
+    const { B, D, o } = G;
+    return {
+        size: s => ({ w: (B + 2 * o) / s + 10 + 14, h: (D + 2 * o) / s + 6 + 14 + 12 }),
+        draw(p, x, y, s) {
+            const ox = x + 8 + o / s, oy = y + 6 + (D + o) / s;
+            const X = px => ox + px / s, Y = py => oy - py / s;
+            p.rect(X(0), Y(D), B / s, D / s, STIL.skjult);
+            if (G.pult) {
+                for (const c of G.sperreX) p.rect(X(c - 24), Y(D + o), 48 / s, (D + 2 * o) / s, STIL.tynn);
+            } else {
+                for (const c of G.sperreY) {
+                    p.rect(X(-o), Y(c + 24), (B / 2 + o) / s, 48 / s, STIL.tynn);
+                    p.rect(X(B / 2), Y(c + 24), (B / 2 + o) / s, 48 / s, STIL.tynn);
+                }
+            }
+            p.rect(X(-o), Y(D + o), (B + 2 * o) / s, (D + 2 * o) / s, STIL.med);
+            if (G.pult) {
+                const cx = X(B / 2) + 2;
+                pil(p, cx, Y(D * 0.3), cx, Y(D * 0.7), { w: 0.35 });
+                const fall = N.Hf - N.Hb > 1 ? '1:' + nf(D / (N.Hf - N.Hb), 1) : 'flatt';
+                etikett(p, cx + 1.5, Y(D * 0.5), `FALL ${fall} (${nf(G.grader, 1)}°)`, { size: 2.2, bold: true });
+            } else {
+                p.line(X(B / 2), Y(-o), X(B / 2), Y(D + o), STIL.med);
+                const yy = Y(D / 2) - 2;
+                pil(p, X(B / 2) - 1, yy, X(B / 4) - 1, yy, { w: 0.35 });
+                pil(p, X(B / 2) + 1, yy, X(3 * B / 4) + 1, yy, { w: 0.35 });
+                etikett(p, X(B / 2), Y(D / 2) + 3.5, `${nf(G.grader, 0)}°`, { size: 2.2, bold: true, anchor: 'middle' });
+            }
+            const v = [-o, 0, B, B + o];
+            kjedeH(p, v.map(X), v, Y(-o) + 5, Y(-o) + 0.5);
+            kjedeH(p, [X(-o), X(B + o)], [-o, B + o], Y(-o) + 11, Y(-o) + 0.5);
+            const w = [-o, 0, D, D + o];
+            kjedeV(p, w.map(Y), w, X(B + o) + 6, X(B + o) + 0.5);
+            p.text(X(B / 2), Y(-o) + 18, 'TAKPLAN MED SPERRER', { size: 3, bold: true, anchor: 'middle' });
+            p.text(X(B / 2), Y(-o) + 21.5, `Sperrer 48x${G.sH} c/c 600. Takutstikk ${nf(o)} mm.`, { size: 2, anchor: 'middle' });
+        }
+    };
+}
+
+// ---------- Ark ----------
+const SKALAR = [10, 20, 25, 50, 75, 100];
+const OMR = { x: 12, y: 12, w: 273, h: 162 };
+
+function plasser(views, kandidatar) {
+    for (const s of SKALAR) {
+        for (const rader of kandidatar) {
+            const sz = views.map(v => v.size(s));
+            const rw = rader.map(r => r.reduce((a, i) => a + sz[i].w, 0) + (r.length - 1) * 4);
+            const rh = rader.map(r => Math.max(...r.map(i => sz[i].h)));
+            if (Math.max(...rw) <= OMR.w && rh.reduce((a, b) => a + b, 0) + (rader.length - 1) * 4 <= OMR.h) {
+                return { s, rader, sz, rh, rw };
+            }
+        }
+    }
+    const s = 100, rader = kandidatar[0], sz = views.map(v => v.size(s));
+    return { s, rader, sz, rh: rader.map(r => Math.max(...r.map(i => sz[i].h))), rw: rader.map(r => r.reduce((a, i) => a + sz[i].w, 0)) };
+}
+
+function lagArk(N, G) {
+    const defs = [
+        { innhald: 'Fasadar', views: WALLS.map(w => fasade(N, G, w)), kand: [[[0, 1], [2, 3]], [[0, 1, 2, 3]]] },
+        { innhald: 'Plan og snitt', views: [plan(N, G), snitt(N, G)], kand: [[[0, 1]], [[0], [1]]] },
+        { innhald: 'Fundament og takplan', views: [fundament(N, G), takplan(N, G)], kand: [[[0, 1]], [[0], [1]]] }
+    ];
+    return defs.map((d, ai) => {
+        const l = plasser(d.views, d.kand);
+        return {
+            innhald: d.innhald, s: l.s,
+            draw(p) {
+                p.rect(0, 0, 297, 210, { w: 0 }, '#ffffff');
+                const totH = l.rh.reduce((a, b) => a + b, 0);
+                const gy = (OMR.h - totH) / (l.rader.length + 1);
+                let yy = OMR.y + gy;
+                l.rader.forEach((r, ri) => {
+                    const gx = (OMR.w - (l.rw[ri] - (r.length - 1) * 4)) / (r.length + 1);
+                    let xx = OMR.x + gx;
+                    for (const i of r) {
+                        const sz = l.sz[i];
+                        d.views[i].draw(p, xx, yy + l.rh[ri] - sz.h, l.s);
+                        xx += sz.w + gx;
+                    }
+                    yy += l.rh[ri] + gy;
+                });
+                tittelfelt(p, N, d.innhald, ai + 1, defs.length, l.s);
+            }
+        };
+    });
+}
+
+function tittelfelt(p, N, innhald, nr, av, s) {
+    p.rect(10, 10, 277, 190, STIL.tjukk);
+    const x0 = 187, y0 = 176;
+    p.rect(x0, y0, 100, 24, STIL.med, '#ffffff');
+    p.line(x0, y0 + 8, x0 + 100, y0 + 8, STIL.tynn);
+    p.line(x0, y0 + 16, x0 + 100, y0 + 16, STIL.tynn);
+    p.line(x0 + 62, y0, x0 + 62, y0 + 24, STIL.tynn);
+    const cap = (x, y, t) => p.text(x, y, t, { size: 1.7, c: '#666666' });
+    cap(x0 + 1.5, y0 + 2.4, 'Prosjekt');
+    p.text(x0 + 1.5, y0 + 6.6, N.namn, { size: 3.4, bold: true });
+    cap(x0 + 63.5, y0 + 2.4, 'Teikna av');
+    p.text(x0 + 63.5, y0 + 6.4, N.teiknar || '-', { size: 2.4 });
+    cap(x0 + 1.5, y0 + 10.4, 'Innhald');
+    p.text(x0 + 1.5, y0 + 14.4, innhald, { size: 2.8 });
+    cap(x0 + 63.5, y0 + 10.4, 'Ark');
+    p.text(x0 + 63.5, y0 + 14.4, `${nr} av ${av}`, { size: 2.8 });
+    cap(x0 + 1.5, y0 + 18.4, 'Målestokk');
+    p.text(x0 + 1.5, y0 + 22.4, `1:${s} (A4)`, { size: 2.8 });
+    cap(x0 + 63.5, y0 + 18.4, 'Dato');
+    p.text(x0 + 63.5, y0 + 22.4, dato(), { size: 2.8 });
+    p.text(13, 194.5, 'Alle mål i mm, målt på utsida av stenderverket. Kledning kjem i tillegg. Kontroller mål på staden før kapping.', { size: 2, c: '#444444' });
+    p.text(13, 197.8, 'Teikna med Enkelbod - frodolini.github.io/enkelbod.html', { size: 2, c: '#777777' });
+}
+
+// ---------- Materialliste ----------
+const LENGDER = [3000, 3600, 4200, 4800, 5400];
+function pakk(bitar) {
+    const liste = [];
+    for (let b of bitar) {
+        b = Math.ceil(b);
+        if (b < 30) continue;
+        if (b > 5400) { const n = Math.ceil(b / 4800); for (let i = 0; i < n; i++) liste.push(Math.ceil(b / n)); }
+        else liste.push(b);
+    }
+    liste.sort((a, b) => b - a);
+    const binger = [];
+    for (const b of liste) {
+        let best = null;
+        for (const g of binger) {
+            if (g.brukt + 5 + b <= g.cap && (!best || g.cap - g.brukt < best.cap - best.brukt)) best = g;
+        }
+        if (best) best.brukt += 5 + b;
+        else binger.push({ cap: b > 4800 ? 5400 : 4800, brukt: b });
+    }
+    const tal = {};
+    let lm = 0;
+    for (const g of binger) {
+        const l = LENGDER.find(v => v >= g.brukt) || 5400;
+        tal[l] = (tal[l] || 0) + 1;
+        lm += l / 1000;
+    }
+    const txt = Object.keys(tal).map(Number).sort((a, b) => b - a)
+        .map(l => `${tal[l]} stk à ${nf(l / 1000, 1)} m`).join(' + ');
+    return { lm, txt };
+}
+
+const GRUPPER = ['Fundament', 'Bjelkelag og golv', 'Vegger', 'Tak', 'Kledning og lister', 'Dør og vindauge', 'Beslag og festemiddel', 'Overflate'];
+
+function materialar(N, G) {
+    const L = [];
+    const add = (gr, id, namn, mengd, eining, merk) => { if (mengd > 0) L.push({ gr, id, namn, mengd, eining, merk: merk || '' }); };
+    const tre = (gr, id, namn, bitar, ekstra) => {
+        if (!bitar.length) return;
+        const r = pakk(bitar);
+        let lm = r.lm, merk = r.txt;
+        if (ekstra) { lm = Math.ceil(lm * (1 + ekstra) * 10) / 10; merk += ` (+${Math.round(ekstra * 100)} % svinn)`; }
+        add(gr, id, namn, lm, 'lm', merk);
+        return lm;
+    };
+    const { B, D, o } = G, pult = G.pult;
+    let rammeLm = 0;
+
+    // Fundament
+    const nPl = G.plintX.length * 2;
+    add('Fundament', 'plint', 'Fundamentblokk betong 40x20x20 cm', nPl, 'stk', 'Legg på komprimert pukk, ca. 30 cm under terreng');
+    add('Fundament', 'pukk', 'Pukk 16-22 mm, sekk 25 kg', nPl * 2, 'sekk');
+
+    // Bjelkelag og golv
+    const jId = G.jH === 148 ? 'imp48x148' : 'imp48x198';
+    const jBitar = [B, B, B, B, ...G.joistX.map(() => D - 192)];
+    rammeLm += tre('Bjelkelag og golv', jId, `Impregnert 48x${G.jH} (randbjelkar og bjelkar)`, jBitar);
+    add('Bjelkelag og golv', 'bjelkesko', `Bjelkesko 48x${G.jH}`, 2 * G.joistX.length, 'stk');
+    add('Bjelkelag og golv', 'osb18', 'OSB 18 mm 1200x2400 (golv)', Math.ceil(B * D / 1e6 / 2.88 * 1.08), 'plate');
+
+    // Vegger
+    const stBitar = [];
+    for (const wid of WALLS) {
+        const W = G.walls[wid];
+        const side = wid === 'hogre' || wid === 'venstre';
+        const u0 = side ? 73 : 0, u1 = side ? W.L - 73 : W.L, Lf = u1 - u0;
+        const hTop = u => (W.gavl ? N.H : W.top(u) - G.zGolv);
+        stBitar.push(Lf, W.gavl ? Lf : Math.hypot(Lf, W.top(u0) - W.top(u1)));
+        for (const c of ccPos(Lf)) {
+            const uc = u0 + c;
+            stBitar.push(hTop(uc) - 96);
+            if (W.gavl) {
+                const gh = G.tan * (B / 2 - Math.abs(uc - B / 2)) - 40;
+                if (gh > 150) stBitar.push(gh);
+            }
+        }
+        if (W.gavl) stBitar.push(B / 2 / G.cos, B / 2 / G.cos);
+        for (const q of G.open[wid]) {
+            stBitar.push(hTop(q.u) - 96, hTop(q.u + q.w) - 96, q.w + 96, q.w + 96);
+            if (q.kind === 'vin') stBitar.push(q.w);
+        }
+    }
+    rammeLm += tre('Vegger', 'k48x73', 'Konstruksjonsvirke 48x73 C24 (stenderverk)', stBitar);
+    add('Vegger', 'vinkel', 'Vinkelbeslag 70 mm (vegg mot golv)', 12, 'stk');
+
+    // Kledning (rekna på veggflatene)
+    let kledAreal = 0;
+    const kBitar = [], lektBitar = [], listBitar = [];
+    for (const wid of WALLS) {
+        const W = G.walls[wid], ops = G.open[wid];
+        kledAreal += areal(W.poly) - ops.reduce((a, q) => a + q.w * q.h, 0);
+        const kutt = ops.map(q => ({ u1: q.u, u2: q.u + q.w, z1: q.z, z2: q.z + q.h }));
+        const lin = N.kledning === 'staande'
+            ? veggLinjer(W, kutt, 'v', 62, 125, 0)
+            : veggLinjer(W, kutt, 'h', G.zUK + 62, 125, 0);
+        for (const l of lin) kBitar.push(Math.hypot(l[2] - l[0], l[3] - l[1]));
+        if (N.kledning === 'staande') {
+            for (const l of veggLinjer(W, [], 'h', G.zUK + 50, 600, 0)) lektBitar.push(l[2] - l[0]);
+        }
+        for (const u of [0, W.L]) for (const [a, b] of scan(W.poly, 'v', u === 0 ? 1 : W.L - 1)) listBitar.push(b - a);
+        for (const q of ops) {
+            listBitar.push(q.h + 98, q.h + 98, q.w + 196);
+            if (q.kind === 'vin') listBitar.push(q.w + 196);
+        }
+    }
+    kledAreal /= 1e6;
+    const kNamn = N.kledning === 'staande' ? 'Kledning 19x148 grunna, ståande ein-og-ein' : 'Dobbelfals kledning 19x148 grunna, liggande';
+    tre('Kledning og lister', 'kled19x148', kNamn, kBitar, 0.08);
+    if (lektBitar.length) tre('Kledning og lister', 'lekt36x48', 'Lekt 36x48 (spikarslag for ståande kledning)', lektBitar);
+    tre('Kledning og lister', 'list19x98', 'Bord 19x98 grunna (hjørnebord og omramming)', listBitar, 0.05);
+
+    // Tak
+    const sId = { 98: 'k48x98', 148: 'k48x148', 198: 'k48x198' }[G.sH];
+    let takAreal, kantLm, sperreTal;
+    const vsBitar = [];
+    const tBitar = [];
+    let skrå;
+    if (pult) {
+        skrå = (D + 2 * o) / G.cos;
+        sperreTal = G.sperreX.length;
+        G.sperreX.forEach(() => tBitar.push(skrå + 50));
+        vsBitar.push(skrå, skrå, B + 2 * o, B + 2 * o);
+        takAreal = (B + 2 * o) * skrå / 1e6;
+        kantLm = (2 * (B + 2 * o) + 2 * skrå) / 1000;
+    } else {
+        skrå = (B / 2 + o) / G.cos;
+        sperreTal = G.sperreY.length * 2;
+        G.sperreY.forEach(() => tBitar.push(skrå + 50, skrå + 50));
+        tBitar.push(D + 2 * o);
+        vsBitar.push(skrå, skrå, skrå, skrå, D + 2 * o, D + 2 * o);
+        takAreal = 2 * (D + 2 * o) * skrå / 1e6;
+        kantLm = (2 * (D + 2 * o) + 4 * skrå) / 1000;
+    }
+    rammeLm += tre('Tak', sId, `Konstruksjonsvirke 48x${G.sH} C24 (sperrer${pult ? '' : ' og mønebord'})`, tBitar);
+    if (!pult) tre('Tak', 'k48x98', 'Konstruksjonsvirke 48x98 (hanebjelkar)', G.sperreY.map(() => B / 2 + 100));
+    add('Tak', 'sperreband', 'Sperreband', sperreTal * 2, 'stk');
+    tre('Tak', 'bord21x145', 'Bord 21x145 grunna (vindskier og vassbord)', vsBitar);
+    if (N.takdekke === 'stal') {
+        const lekter = [];
+        if (pult) {
+            const rader = Math.ceil(skrå / 600) + 1;
+            for (let i = 0; i < rader; i++) lekter.push(B + 2 * o);
+            const nPl = Math.ceil((B + 2 * o) / 1000);
+            add('Tak', 'stalplate', 'Profilerte takplater stål (dekkbreidd ca. 1 m)', Math.ceil(nPl * 1.1 * skrå / 1000 * 10) / 10, 'm²', `${nPl} plater à ${nf(Math.ceil(skrå / 10) * 10)} mm`);
+        } else {
+            const rader = Math.ceil(skrå / 600) + 1;
+            for (let i = 0; i < 2 * rader; i++) lekter.push(D + 2 * o);
+            const nPl = 2 * Math.ceil((D + 2 * o) / 1000);
+            add('Tak', 'stalplate', 'Profilerte takplater stål (dekkbreidd ca. 1 m)', Math.ceil(nPl * 1.1 * skrå / 1000 * 10) / 10, 'm²', `${nPl} plater à ${nf(Math.ceil(skrå / 10) * 10)} mm`);
+            add('Tak', 'monebeslag', 'Mønebeslag stål, 2 m', Math.ceil((D + 2 * o) / 1900), 'stk');
+        }
+        tre('Tak', 'lekt36x48', 'Lekt 36x48 (under takplatene)', lekter);
+        add('Tak', 'takskrue', 'Takskruar med tetningsskive, pk 250', Math.max(1, Math.ceil(takAreal * 8 / 250)), 'pk');
+    } else {
+        add('Tak', 'osb18', 'OSB 18 mm 1200x2400 (taktro)', Math.ceil(takAreal / 2.88 * 1.1), 'plate');
+        if (N.takdekke === 'papp') {
+            add('Tak', 'papp', 'Takpapp for spikring, rull 1x10 m', Math.ceil(takAreal * 1.15 / 10), 'rull');
+            add('Tak', 'pappspiker', 'Pappspiker varmforsinka, 1 kg', 1, 'pk');
+        } else {
+            add('Tak', 'underlag', 'Underlagsbelegg for shingel, rull 1x15 m', Math.ceil(takAreal * 1.15 / 15), 'rull');
+            add('Tak', 'shingel', 'Takshingel, pakke ca. 3 m²', Math.ceil(takAreal * 1.1 / 3) + (pult ? 0 : 1), 'pk');
+            add('Tak', 'shingelspiker', 'Shingelspiker, 1 kg', Math.max(1, Math.ceil(takAreal / 12)), 'pk');
+        }
+        add('Tak', 'beslag', 'Takkantbeslag / dryppkant, 2 m', Math.ceil(kantLm / 1.9), 'stk');
+    }
+
+    // Dør og vindauge
+    const d = N.dor;
+    tre('Dør og vindauge', 'kled19x148', 'Dørblad: bord 19x148 grunna, tett', Array(Math.ceil(d.b / 140)).fill(d.h - 10));
+    tre('Dør og vindauge', 'bord21x95', 'Z-avstiving dør, bord 21x95', [d.b - 20, d.b - 20, Math.hypot(d.b - 20, d.h - 400)]);
+    add('Dør og vindauge', 'hengsel', 'Bodhengsel / grindhengsel 400 mm', d.h > 1700 ? 3 : 2, 'stk');
+    add('Dør og vindauge', 'hespe', 'Hespe med beslag for hengelås', 1, 'stk');
+    if (N.type === 'do' || d.hjarte) add('Dør og vindauge', 'krok', 'Krok og ring (innvendig lås)', 1, 'stk');
+    N.vindauge.forEach(v => add('Dør og vindauge', 'vindauge', `Bodvindauge ca. ${v.b}x${v.h} mm (${WNAMN[v.vegg].toLowerCase()})`, 1, 'stk', 'Billig alternativ: pleksiglas 4 mm med lister'));
+
+    // Festemiddel
+    add('Beslag og festemiddel', 'spiker90', 'Spiker 3,1x90 varmforsinka, 2,5 kg', Math.max(1, Math.ceil(rammeLm / 150)), 'pk');
+    add('Beslag og festemiddel', 'kledspiker', 'Kledningsspiker 2,5x55 varmforsinka, 1 kg', Math.max(1, Math.ceil(kledAreal / 7)), 'pk');
+    add('Beslag og festemiddel', 'skrue', 'Treskrue 5x90 utandørs, 200 stk', B * D > 6e6 ? 2 : 1, 'pk');
+
+    // Overflate
+    if (N.maling) {
+        const flate = kledAreal + d.b * d.h / 1e6 * 2 + kantLm * 0.15;
+        add('Overflate', 'maling', 'Dekkbeis / maling utvendig, 2 strøk', Math.ceil(flate * 2 / 8), 'L', `Ca. ${nf(flate, 1)} m² flate`);
+    }
+    return { liste: L, kledAreal, takAreal };
+}
+
+function pris(id) {
+    const v = S.prisar && S.prisar[id];
+    return (v !== undefined && v !== '' && isFinite(+v)) ? +v : PRIS[id];
+}
+
+// ---------- Regelsjekk ----------
+function sjekk(N, G) {
+    const minF = { papp: 5, stal: 10, shingel: 15 }[N.takdekke];
+    const dekk = { papp: 'takpapp', stal: 'stålplater', shingel: 'takshingel' }[N.takdekke];
+    return [
+        [G.BYA <= 15, `Bygd areal (BYA) ${nf(G.BYA, 1)} m² – maks 15 m² utan søknad`],
+        [G.zTop <= 3000, `Mønehøgd ${nf(G.zTop / 1000, 2)} m – maks 3,0 m`],
+        [G.gesims <= 2500, `Gesimshøgd ${nf(G.gesims / 1000, 2)} m – maks 2,5 m`],
+        [G.grader >= minF - 0.05, `Takfall ${nf(G.grader, 1)}° – ${dekk} bør ha minst ${minF}°`]
+    ];
+}
+
+// ---------- Skjerm ----------
+let ARK = [], MAT = null, N = null, G = null;
+
+function render() {
+    N = norm(S);
+    G = geom(N);
+    document.getElementById('panel').dataset.tak = N.tak;
+    ARK = lagArk(N, G);
+    const arkDiv = document.getElementById('ark');
+    while (arkDiv.children.length < ARK.length) {
+        const w = document.createElement('div');
+        w.className = 'ark-wrap';
+        w.innerHTML = '<svg viewBox="0 0 297 210" xmlns="http://www.w3.org/2000/svg"></svg>';
+        arkDiv.appendChild(w);
+        koplDrag(w.firstChild);
+    }
+    ARK.forEach((a, i) => {
+        const p = new SvgPen();
+        a.draw(p);
+        arkDiv.children[i].firstChild.innerHTML = p.toString();
+        arkDiv.children[i].firstChild.setAttribute('aria-label', a.innhald);
+    });
+    MAT = materialar(N, G);
+    visMat();
+    const sj = sjekk(N, G);
+    document.getElementById('sjekk').innerHTML =
+        '<b>Sjekk mot reglane for små frittliggande bygg (SAK10 § 4-1)</b><ul>' +
+        sj.map(([ok, t]) => `<li class="${ok ? 'ok' : 'varsel'}">${esc(t)}</li>`).join('') +
+        '</ul><p>Bygget må stå minst 1 m frå andre bygg og nabogrensa og kan ikkje brukast til å bu i. Sjekk alltid reguleringsplanen i kommunen.</p>';
+    lagre();
+}
+
+function visMat() {
+    const liste = MAT.liste;
+    let total = 0, h = '<table><thead><tr><th>Vare</th><th class="tal">Mengd</th><th>Eining</th><th class="tal">Pris/eining</th><th class="tal">Sum</th></tr></thead><tbody>';
+    for (const gr of GRUPPER) {
+        const rader = liste.filter(r => r.gr === gr);
+        if (!rader.length) continue;
+        h += `<tr class="gruppe"><td colspan="5">${esc(gr)}</td></tr>`;
+        for (const r of rader) {
+            const p = pris(r.id), sum = p * r.mengd;
+            total += sum;
+            h += `<tr><td>${esc(r.namn)}${r.merk ? `<small>${esc(r.merk)}</small>` : ''}</td>
+                <td class="tal">${nf(r.mengd, r.eining === 'lm' || r.eining === 'm²' ? 1 : 0)}</td><td>${esc(r.eining)}</td>
+                <td class="tal"><input class="pris" type="number" min="0" step="1" data-pris="${r.id}" value="${p}"> kr</td>
+                <td class="tal">${kr(sum)}</td></tr>`;
+        }
+    }
+    h += `<tr class="total"><td colspan="4">Sum materialar (overslag)</td><td class="tal">${kr(total)}</td></tr></tbody></table>`;
+    document.getElementById('mat').innerHTML = h;
+    MAT.total = total;
+    document.getElementById('nokkel').innerHTML = [
+        ['BYA', nf(G.BYA, 1) + ' m²'], ['Golvareal', nf(G.BRA, 1) + ' m²'],
+        ['Mønehøgd', nf(G.zTop / 1000, 2) + ' m'], ['Takfall', nf(G.grader, 1) + '°'],
+        ['Materialar ca.', kr(Math.round(total / 100) * 100)]
+    ].map(([a, b]) => `<div>${a}<b>${b}</b></div>`).join('');
+}
+
+// ---------- Skjema ----------
+function settSti(obj, sti, v) {
+    const ks = sti.split('.');
+    let o = obj;
+    for (let i = 0; i < ks.length - 1; i++) o = o[ks[i]];
+    o[ks[ks.length - 1]] = v;
+}
+function hentSti(obj, sti) { return sti.split('.').reduce((o, k) => o == null ? o : o[k], obj); }
+
+function byggVinListe() {
+    const el = document.getElementById('vinListe');
+    el.innerHTML = S.vindauge.map((v, i) => `
+        <div class="vin">
+            <div class="vin-top">Vindauge ${i + 1} <button data-fjern="${i}">Fjern</button></div>
+            <label>Vegg<select data-k="vindauge.${i}.vegg">${WALLS.map(w => `<option value="${w}">${WNAMN[w]}</option>`).join('')}</select></label>
+            <div class="grid2">
+                <label>Breidd<input data-k="vindauge.${i}.b" type="number" step="50"></label>
+                <label>Høgd<input data-k="vindauge.${i}.h" type="number" step="50"></label>
+                <label>Frå venstre<input data-k="vindauge.${i}.x" type="number" step="50"></label>
+                <label>Over golv<input data-k="vindauge.${i}.y" type="number" step="50"></label>
+            </div>
+        </div>`).join('') || '<p class="hint">Ingen vindauge.</p>';
+}
+
+function synk() {
+    document.querySelectorAll('[data-k]').forEach(el => {
+        const v = hentSti(S, el.dataset.k);
+        if (el.type === 'checkbox') el.checked = !!v;
+        else el.value = v ?? '';
+    });
+}
+
+function bruk(ferdig) {
+    // Skriv normaliserte verdiar tilbake til tilstanden
+    if (ferdig) {
+        const n = norm(S);
+        for (const k of ['B', 'D', 'Hf', 'Hb', 'H', 'vinkel', 'utstikk']) S[k] = n[k];
+        S.dor = n.dor;
+        S.vindauge = n.vindauge;
+    }
+}
+
+const panel = document.getElementById('panel');
+panel.addEventListener('input', e => {
+    const el = e.target;
+    if (!el.dataset.k) return;
+    let v = el.type === 'checkbox' ? el.checked : el.type === 'number' ? (el.value === '' ? '' : +el.value) : el.value;
+    settSti(S, el.dataset.k, v);
+    render();
+});
+panel.addEventListener('change', e => {
+    if (!e.target.dataset.k) return;
+    bruk(true);
+    synk();
+    render();
+});
+panel.addEventListener('click', e => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    if (b.dataset.preset) {
+        const pr = S.prisar, t = S.teiknar;
+        S = kopi(PRESET[b.dataset.preset]);
+        S.prisar = pr; S.teiknar = t;
+        byggVinListe(); synk(); render();
+    } else if (b.dataset.fjern !== undefined) {
+        S.vindauge.splice(+b.dataset.fjern, 1);
+        byggVinListe(); synk(); render();
+    } else if (b.id === 'leggTilVin') {
+        const brukt = S.vindauge.map(v => v.vegg);
+        const vegg = ['hogre', 'venstre', 'bak', 'framme'].find(w => !brukt.includes(w)) || 'hogre';
+        S.vindauge.push({ vegg, b: 600, h: 500, x: 300, y: 1100 });
+        byggVinListe(); bruk(true); synk(); render();
+    } else if (b.id === 'nullstill') {
+        if (!confirm('Vil du nullstille teikninga og prisane?')) return;
+        S = kopi(PRESET.bod); S.teiknar = ''; S.prisar = {};
+        byggVinListe(); synk(); render();
+    }
+});
+document.getElementById('mat').addEventListener('change', e => {
+    const id = e.target.dataset.pris;
+    if (!id) return;
+    S.prisar[id] = e.target.value === '' ? undefined : Math.max(0, +e.target.value);
+    visMat(); lagre();
+});
+document.getElementById('nullstillPris').addEventListener('click', () => { S.prisar = {}; visMat(); lagre(); });
+
+// Dra dør og vindauge i fasadane
+function koplDrag(svg) {
+    let drag = null;
+    const pkt = e => {
+        const m = svg.getScreenCTM();
+        if (!m) return { x: 0, y: 0 };
+        const p = new DOMPoint(e.clientX, e.clientY).matrixTransform(m.inverse());
+        return { x: p.x, y: p.y };
+    };
+    svg.addEventListener('pointerdown', e => {
+        const g = e.target.closest('[data-drag]');
+        if (!g) return;
+        e.preventDefault();
+        const id = g.dataset.drag, p = pkt(e);
+        const obj = id === 'dor' ? S.dor : S.vindauge[+id.split(':')[1]];
+        drag = { obj, s: +g.dataset.s, x0: p.x, y0: p.y, u0: +obj.x, z0: id === 'dor' ? null : +obj.y };
+        svg.setPointerCapture(e.pointerId);
+        document.body.classList.add('dragging');
+    });
+    svg.addEventListener('pointermove', e => {
+        if (!drag) return;
+        const p = pkt(e);
+        drag.obj.x = Math.round((drag.u0 + (p.x - drag.x0) * drag.s) / 10) * 10;
+        if (drag.z0 !== null) drag.obj.y = Math.round((drag.z0 - (p.y - drag.y0) * drag.s) / 10) * 10;
+        bruk(true);
+        render();
+        synk();
+    });
+    const slutt = () => {
+        if (!drag) return;
+        drag = null;
+        document.body.classList.remove('dragging');
+        bruk(true); synk(); render();
+    };
+    svg.addEventListener('pointerup', slutt);
+    svg.addEventListener('pointercancel', slutt);
+}
+
+// ---------- PDF ----------
+function filnamn() {
+    const n = (N.namn || 'bod').toLowerCase().replace(/æ/g, 'ae').replace(/ø/g, 'o').replace(/å/g, 'a').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    return (n || 'bod') + '-teikning.pdf';
+}
+
+function lagPdf() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+    doc.setProperties({ title: N.namn + ' - teikning og materialliste', creator: 'Enkelbod' });
+    ARK.forEach((a, i) => {
+        if (i) doc.addPage('a4', 'landscape');
+        a.draw(new PdfPen(doc));
+    });
+    matPdf(doc);
+    return doc;
+}
+
+function matPdf(doc) {
+    doc.addPage('a4', 'portrait');
+    const forste = doc.getNumberOfPages();
+    let y = 18;
+    doc.setTextColor('#000000');
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(16);
+    doc.text('Materialliste - ' + N.namn, 15, y);
+    y += 6;
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor('#444444');
+    const taktype = N.tak === 'pult' ? 'pulttak' : `saltak ${nf(N.vinkel, 0)}°`;
+    const dekk = { papp: 'takpapp', stal: 'stålplater', shingel: 'takshingel' }[N.takdekke];
+    const kled = N.kledning === 'staande' ? 'ståande kledning' : 'liggande kledning';
+    doc.text(`${nf(N.B)} x ${nf(N.D)} mm, ${taktype} med ${dekk}, ${kled}. BYA ${nf(G.BYA, 1)} m², mønehøgd ${nf(G.zTop / 1000, 2)} m. Dato ${dato()}.`, 15, y);
+    y += 8;
+    const hovud = () => {
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor('#000000');
+        doc.text('Vare', 15, y);
+        doc.text('Mengd', 128, y, { align: 'right' });
+        doc.text('Eining', 131, y);
+        doc.text('Pris', 168, y, { align: 'right' });
+        doc.text('Sum', 195, y, { align: 'right' });
+        doc.setDrawColor('#000000'); doc.setLineWidth(0.3); doc.setLineDashPattern([], 0);
+        doc.line(15, y + 1.5, 195, y + 1.5);
+        y += 6;
+    };
+    hovud();
+    let total = 0;
+    for (const gr of GRUPPER) {
+        const rader = MAT.liste.filter(r => r.gr === gr);
+        if (!rader.length) continue;
+        if (y > 265) { doc.addPage('a4', 'portrait'); y = 20; hovud(); }
+        doc.setFillColor('#e8f1f5'); doc.rect(15, y - 3.8, 180, 5.4, 'F');
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(9.5); doc.setTextColor('#000000');
+        doc.text(gr, 16, y);
+        y += 6;
+        for (const r of rader) {
+            doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
+            const namn = doc.splitTextToSize(r.namn, 88);
+            doc.setFontSize(7.5);
+            const merk = r.merk ? doc.splitTextToSize(r.merk, 100) : [];
+            const hgt = namn.length * 4 + merk.length * 3.3 + 1.6;
+            if (y + hgt > 280) { doc.addPage('a4', 'portrait'); y = 20; hovud(); }
+            const p = pris(r.id), sum = p * r.mengd;
+            total += sum;
+            doc.setFontSize(9); doc.setTextColor('#000000');
+            doc.text(namn, 15, y);
+            doc.text(nf(r.mengd, r.eining === 'lm' || r.eining === 'm²' ? 1 : 0), 128, y, { align: 'right' });
+            doc.text(r.eining, 131, y);
+            doc.text(nf(p), 168, y, { align: 'right' });
+            doc.text(kr(sum), 195, y, { align: 'right' });
+            let yy = y + namn.length * 4 - 0.6;
+            if (merk.length) {
+                doc.setFontSize(7.5); doc.setTextColor('#666666');
+                doc.text(merk, 18, yy);
+                yy += merk.length * 3.3;
+            }
+            y = yy + 1.6;
+            doc.setDrawColor('#dddddd'); doc.setLineWidth(0.1);
+            doc.line(15, y - 3.4, 195, y - 3.4);
+        }
+        y += 1.5;
+    }
+    if (y > 268) { doc.addPage('a4', 'portrait'); y = 20; }
+    doc.setDrawColor('#000000'); doc.setLineWidth(0.4);
+    doc.line(15, y - 2, 195, y - 2);
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor('#000000');
+    doc.text('Sum materialar (overslag)', 15, y + 3);
+    doc.text(kr(total), 195, y + 3, { align: 'right' });
+    y += 11;
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor('#555555');
+    const note = 'Prisane er grove overslag for billige standardvarer og varierer mellom butikkar. Mengdene er rekna med enkle tommelfingerreglar, standardlengder frå 3,0 til 5,4 m og litt svinn - kontroller før du bestiller. Dimensjonane passar for små, uisolerte bygg med moderat snølast. Bygget må stå minst 1 m frå andre bygg og nabogrensa; sjekk reguleringsplanen i kommunen.';
+    doc.setFontSize(7.5);
+    doc.text(doc.splitTextToSize(note, 180), 15, y - 1);
+    const sist = doc.getNumberOfPages();
+    for (let i = forste; i <= sist; i++) {
+        doc.setPage(i);
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor('#888888');
+        doc.text(`${N.namn} - materialliste side ${i - forste + 1} av ${sist - forste + 1}`, 15, 292);
+        doc.text('frodolini.github.io/enkelbod.html', 195, 292, { align: 'right' });
+    }
+}
+
+document.getElementById('pdfBtn').addEventListener('click', () => {
+    if (!window.jspdf) {
+        alert('Klarte ikkje å laste PDF-biblioteket. Bruk «Skriv ut» og vel «Lagre som PDF» i staden.');
+        return;
+    }
+    lagPdf().save(filnamn());
+});
+document.getElementById('printBtn').addEventListener('click', () => window.print());
+
+// ---------- Start ----------
+byggVinListe();
+bruk(true);
+synk();
+render();
+</script>
+</body>
+</html>
