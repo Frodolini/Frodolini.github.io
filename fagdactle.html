@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="nn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IM-Stord sin FAGDACTLE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700&family=Noto+Sans+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+    --bg: #1e2331;
+    --panel: #232938;
+    --panel2: #2c3346;
+    --border: #3a4257;
+    --text: #e4e7ee;
+    --muted: #9aa3b5;
+    --block: #bcc3d3;
+    --blocktext: #1e2331;
+    --accent: #7c3aed;
+    --accent-hover: #6d28d9;
+    --hl: #f5c542;
+    --hltext: #1e2331;
+    --late: #7dd3fc;
+    --ok: #34d399;
+    --bad: #f87171;
+    --fs: 20px;
+    color-scheme: dark;
+}
+:root[data-theme="light"] {
+    --bg: #f5f6fa;
+    --panel: #ffffff;
+    --panel2: #eceff5;
+    --border: #d4d9e3;
+    --text: #1c2130;
+    --muted: #5d667a;
+    --block: #3b4252;
+    --blocktext: #ffffff;
+    --accent: #7c3aed;
+    --accent-hover: #6d28d9;
+    --hl: #f5c542;
+    --hltext: #1c2130;
+    --late: #0369a1;
+    --ok: #047857;
+    --bad: #b91c1c;
+    color-scheme: light;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Noto Sans", Arial, sans-serif;
+    font-size: 15px;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+button, select, input { font: inherit; color: inherit; }
+button {
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-weight: 600;
+}
+button:hover { border-color: var(--muted); }
+button:disabled { opacity: .45; cursor: default; }
+button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+button.primary:hover { background: var(--accent-hover); }
+select, input[type="text"], input:not([type]) {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 10px;
+}
+
+/* ---------- Topplinje ---------- */
+header.top {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 8px 16px;
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+}
+.brand { display: flex; align-items: baseline; gap: 8px; white-space: nowrap; }
+.brand-small { color: var(--muted); font-weight: 600; font-size: 14px; }
+.logo { font-weight: 700; font-size: 22px; letter-spacing: 1px; }
+.logo-r { background: var(--block); color: var(--block); border-radius: 2px; padding: 0 2px; margin: 0 1px; }
+header nav { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+header nav > button { background: transparent; border-color: transparent; font-weight: 400; }
+header nav > button:hover { background: var(--panel2); border-color: var(--border); }
+.picker { display: inline-flex; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+.picker button, .picker select { border: 0; border-radius: 0; background: transparent; padding: 4px 8px; }
+.picker select { font-weight: 700; cursor: pointer; }
+.picker select option { background: var(--panel); }
+.zoom { margin-left: auto; display: flex; gap: 4px; }
+
+/* ---------- Oppsett ---------- */
+main.layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 380px;
+    flex: 1;
+    min-height: 0;
+}
+.articlewrap {
+    overflow-y: auto;
+    padding: 12px 24px 60px;
+    font-family: "Noto Sans Mono", ui-monospace, Consolas, monospace;
+    font-size: var(--fs);
+    line-height: 1.75;
+}
+.side {
+    border-left: 1px solid var(--border);
+    background: var(--panel);
+    padding: 12px 16px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.side > * { flex-shrink: 0; }
+
+/* ---------- Artikkel ---------- */
+.meta { font-family: "Noto Sans", Arial, sans-serif; font-size: 14px; color: var(--muted); }
+.title { font-size: 1.9em; margin: 4px 0 18px; font-weight: 600; line-height: 1.4; }
+.article p { margin: 0 0 .9em; }
+.article h2 { font-size: 1.35em; font-weight: 600; margin: 1.3em 0 .5em; line-height: 1.5; }
+.article h3 { font-size: 1.15em; font-weight: 600; margin: 1.1em 0 .4em; line-height: 1.5; }
+.article h4 { font-size: 1em; font-weight: 600; margin: 1em 0 .3em; }
+.article ul { margin: 0 0 .9em; padding-left: 1.4em; }
+.article li { margin: 0 0 .2em; }
+.r {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 1.1em;
+    vertical-align: -0.18em;
+    background: var(--block);
+    color: var(--blocktext);
+    border-radius: 2px;
+    cursor: pointer;
+    user-select: none;
+    overflow: hidden;
+}
+.r .n { font-size: .62em; font-weight: 600; font-family: "Noto Sans", Arial, sans-serif; }
+.w.hl { background: var(--hl); color: var(--hltext); border-radius: 3px; box-shadow: 0 0 0 2px var(--hl); }
+.w.cur { outline: 3px solid var(--accent); outline-offset: 2px; }
+.w.late { color: var(--late); }
+.credit { font-family: "Noto Sans", Arial, sans-serif; font-size: 13px; color: var(--muted); margin-top: 32px; }
+.credit a { color: inherit; }
+.loading, .error { font-family: "Noto Sans", Arial, sans-serif; font-size: 18px; color: var(--muted); padding: 40px 0; }
+.error { color: var(--bad); }
+.error button { margin-top: 12px; }
+
+/* ---------- Sidepanel ---------- */
+.row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.stats { margin-left: auto; font-variant-numeric: tabular-nums; color: var(--muted); font-size: 14px; text-align: right; }
+.stats b { color: var(--text); }
+.guessform { display: flex; gap: 0; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.guessform button, .guessform input { border: 0; border-radius: 0; }
+.guessform input { flex: 1; min-width: 0; font-size: 18px; padding: 10px 12px; background: var(--bg); }
+.guessform input:focus { outline: 2px solid var(--accent); outline-offset: -2px; }
+.msg { min-height: 1.4em; font-size: 14px; color: var(--muted); }
+.msg.good { color: var(--ok); }
+.msg.bad { color: var(--bad); }
+.endbox {
+    border: 1px solid var(--accent);
+    background: var(--panel2);
+    border-radius: 10px;
+    padding: 14px;
+    font-size: 16px;
+    line-height: 1.5;
+}
+.endbox h3 { margin: 0 0 6px; font-size: 20px; }
+.endbox .btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+.endbox a.btnlink {
+    display: inline-block; padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border);
+    color: var(--text); text-decoration: none; font-weight: 600; background: var(--panel);
+}
+table.guesses { width: 100%; border-collapse: collapse; font-size: 16px; }
+table.guesses th { text-align: left; color: var(--muted); font-weight: 600; font-size: 13px; padding: 4px 6px; border-bottom: 1px solid var(--border); }
+table.guesses td { padding: 5px 6px; border-bottom: 1px solid var(--border); }
+table.guesses td:first-child, table.guesses th:first-child { width: 3em; color: var(--muted); }
+table.guesses td:last-child, table.guesses th:last-child { text-align: right; width: 4em; font-variant-numeric: tabular-nums; }
+table.guesses tbody tr { cursor: pointer; }
+table.guesses tbody tr:hover { background: var(--panel2); }
+table.guesses tr.zero td { color: var(--muted); }
+table.guesses tr.titlehit td:nth-child(2) { color: var(--ok); font-weight: 700; }
+table.guesses tr.sel { background: var(--panel2); }
+table.guesses tr.sel td:nth-child(2) { text-decoration: underline; text-decoration-color: var(--hl); text-decoration-thickness: 3px; }
+.tips { list-style: none; padding: 0; margin: 4px 0 0; color: var(--muted); font-size: 14px; }
+.tips li { margin: 0 0 10px; padding-left: 26px; position: relative; }
+.tips li span { position: absolute; left: 0; }
+
+/* ---------- Dialogar ---------- */
+dialog {
+    background: var(--panel);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    max-width: min(560px, calc(100vw - 32px));
+    width: 100%;
+    font-size: 16px;
+    line-height: 1.55;
+}
+dialog::backdrop { background: rgba(0,0,0,.55); }
+dialog h2 { margin: 0 0 12px; font-size: 22px; }
+dialog ul { padding-left: 20px; }
+dialog label { display: block; margin: 12px 0 4px; font-weight: 600; }
+dialog .opts { display: flex; gap: 14px; flex-wrap: wrap; }
+dialog .opts label { display: inline-flex; gap: 6px; align-items: center; margin: 0; font-weight: 400; }
+dialog .actions { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; margin-top: 18px; }
+dialog input[type="text"] { width: 100%; }
+dialog .note { color: var(--muted); font-size: 14px; }
+dialog .linkout { width: 100%; margin-top: 8px; font-size: 13px; }
+canvas.confetti { position: fixed; inset: 0; pointer-events: none; z-index: 1000; }
+
+/* ---------- Smal skjerm ---------- */
+@media (max-width: 900px) {
+    body { display: block; height: auto; }
+    main.layout { display: flex; flex-direction: column-reverse; }
+    .side { border-left: 0; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 5; max-height: 45vh; }
+    .articlewrap { overflow: visible; padding: 12px 16px 60px; }
+    .tips { display: none; }
+    .zoom { margin-left: 0; }
+}
+</style>
+</head>
+<body>
+<header class="top">
+    <div class="brand"><span class="brand-small">IM-Stord sin</span><span class="logo">FAG<span class="logo-r">D</span>ACTLE</span></div>
+    <nav>
+        <button id="btnNew" type="button">Ny artikkel</button>
+        <div class="picker">
+            <button id="btnPrev" type="button" aria-label="Førre artikkel">«</button>
+            <select id="sel" aria-label="Vel artikkelnummer"></select>
+            <button id="btnNext" type="button" aria-label="Neste artikkel">»</button>
+        </div>
+        <button id="btnCustom" type="button">Eigen artikkel</button>
+        <button id="btnSettings" type="button">Innstillingar</button>
+        <button id="btnHelp" type="button">Slik spelar de</button>
+    </nav>
+    <div class="zoom">
+        <button id="fsDown" type="button" title="Mindre tekst">A−</button>
+        <button id="fsUp" type="button" title="Større tekst">A+</button>
+    </div>
+</header>
+
+<main class="layout">
+    <section class="articlewrap" id="articleWrap">
+        <div class="meta" id="meta"></div>
+        <h1 class="title" id="title"></h1>
+        <div class="article" id="article"></div>
+        <p class="credit" id="credit"></p>
+    </section>
+    <aside class="side">
+        <div class="row">
+            <button id="btnHint" type="button">💡 Hint (5)</button>
+            <button id="btnGiveUp" type="button">Gje opp</button>
+            <span class="stats" id="stats"></span>
+        </div>
+        <form id="form" class="guessform" autocomplete="off">
+            <button type="button" id="btnTop" title="Til toppen av artikkelen">▲</button>
+            <input id="inp" placeholder="Skriv eit ord …" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Gjett eit ord">
+            <button type="submit" class="primary">Gjett</button>
+        </form>
+        <div id="msg" class="msg" aria-live="polite"></div>
+        <div id="endbox" class="endbox" hidden></div>
+        <table class="guesses">
+            <thead><tr><th>#</th><th>Ord</th><th>Treff</th></tr></thead>
+            <tbody id="glist"></tbody>
+        </table>
+        <ul class="tips" id="tips">
+            <li><span>🔍</span>Gjett eit ord for å avsløre det i heile artikkelen, også bøyingsformer (datamaskin → datamaskinen, datamaskinar …).</li>
+            <li><span>🏆</span>Avslør alle orda i tittelen for å vinne. De treng ikkje resten av artikkelen.</li>
+            <li><span>🔢</span>Klikk på ein sladda blokk for å sjå kor mange teikn ordet har.</li>
+            <li><span>↕️</span>Klikk på eit ord i lista for å hoppe mellom treffa i teksten.</li>
+        </ul>
+    </aside>
+</main>
+
+<dialog id="dlgHelp">
+    <h2>Slik spelar de FAGDACTLE</h2>
+    <p>Ein artikkel om informasjonsteknologi og media frå norsk Wikipedia (nynorsk eller bokmål) er sladda. Finn ut kva artikkelen handlar om!</p>
+    <ul>
+        <li>Skriv eit ord og trykk <b>Enter</b>. Alle stader ordet står i artikkelen vert synlege – også bøyingsformer.</li>
+        <li>Vanlege småord (og, i, på, er, som …) er synlege frå start.</li>
+        <li>Klikk på ein sladda blokk for å sjå kor mange teikn ordet har.</li>
+        <li>Klikk på eit gjetta ord i lista for å hoppe mellom treffa.</li>
+        <li>De vinn når alle orda i <b>tittelen</b> øvst er avslørte. Ord i parentes i Wikipedia-tittelen tel ikkje.</li>
+        <li>Står de fast, kan de bruke <b>💡 Hint</b> (avslører eit vanleg ord) eller <b>Gje opp</b>.</li>
+        <li><b>A− / A+</b> endrar tekststorleiken – fint på storskjerm.</li>
+    </ul>
+    <p class="note">Artiklane vert henta direkte frå Wikipedia, så de treng nett. Framgangen vert lagra i nettlesaren.</p>
+    <div class="actions"><button type="button" class="primary" data-close>Lat oss spele!</button></div>
+</dialog>
+
+<dialog id="dlgSettings">
+    <h2>Innstillingar</h2>
+    <label>Språk på nye artiklar</label>
+    <div class="opts">
+        <label><input type="radio" name="lang" value="begge"> Begge</label>
+        <label><input type="radio" name="lang" value="nn"> Nynorsk</label>
+        <label><input type="radio" name="lang" value="no"> Bokmål</label>
+    </div>
+    <label>Tema</label>
+    <div class="opts">
+        <label><input type="radio" name="theme" value="dark"> Mørkt</label>
+        <label><input type="radio" name="theme" value="light"> Lyst</label>
+    </div>
+    <label for="fsRange">Tekststorleik: <span id="fsVal"></span> px</label>
+    <input type="range" id="fsRange" min="14" max="44" step="1" style="width:100%">
+    <label>Lagra spel</label>
+    <p class="note">Nullstill markeringar for løyste artiklar og lagra framgang på denne maskina.</p>
+    <button type="button" id="btnReset">Nullstill alt</button>
+    <div class="actions"><button type="button" class="primary" data-close>Ferdig</button></div>
+</dialog>
+
+<dialog id="dlgCustom">
+    <h2>Eigen artikkel</h2>
+    <p class="note">Lim inn ei lenke til ein artikkel på nynorsk eller bokmål Wikipedia, eller skriv tittelen. «Kopier hemmeleg lenke» gir ei lenke der tittelen er løynd, slik at de kan opne ho på storskjermen utan å avsløre svaret.</p>
+    <label for="cTitle">Tittel eller lenke</label>
+    <input type="text" id="cTitle" placeholder="t.d. https://nn.wikipedia.org/wiki/Datamaskin">
+    <label>Språk (viss du skriv tittel)</label>
+    <div class="opts">
+        <label><input type="radio" name="clang" value="nn" checked> Nynorsk</label>
+        <label><input type="radio" name="clang" value="no"> Bokmål</label>
+    </div>
+    <input type="text" id="cLink" class="linkout" readonly hidden>
+    <div class="actions">
+        <button type="button" data-close>Avbryt</button>
+        <button type="button" id="cCopy">Kopier hemmeleg lenke</button>
+        <button type="button" id="cStart" class="primary">Start</button>
+    </div>
+</dialog>
+
+<script>
+(() => {
+'use strict';
+
+// Faste artikkelnummer – legg berre til nye nedst, så nummera held seg.
+const ARTICLES = [
+    // Nynorsk
+    ['nn', 'Datamaskin'], ['nn', 'Internett'], ['nn', 'Operativsystem'], ['nn', 'Linux'],
+    ['nn', 'Microsoft Windows'], ['nn', 'Programmeringsspråk'], ['nn', 'Python (programmeringsspråk)'],
+    ['nn', 'JavaScript'], ['nn', 'HTML'], ['nn', 'World Wide Web'], ['nn', 'Kunstig intelligens'],
+    ['nn', 'Algoritme'], ['nn', 'Alan Turing'], ['nn', 'Ada Lovelace'], ['nn', 'Tim Berners-Lee'],
+    ['nn', 'Linus Torvalds'], ['nn', 'Steve Jobs'], ['nn', 'Bill Gates'], ['nn', 'E-post'],
+    ['nn', 'Wikipedia'], ['nn', 'Google'], ['nn', 'Microsoft'], ['nn', 'Byte'], ['nn', 'Bit'],
+    ['nn', 'Harddisk'], ['nn', 'Tastatur'], ['nn', 'Datamus'], ['nn', 'Kryptografi'],
+    ['nn', 'Datavirus'], ['nn', 'Smarttelefon'], ['nn', 'Mobiltelefon'], ['nn', 'Minecraft'],
+    ['nn', 'Tetris'], ['nn', 'Nettlesar'], ['nn', 'Søkjemotor'], ['nn', 'Database'], ['nn', 'Unicode'],
+    ['nn', 'ASCII'], ['nn', 'Transistor'], ['nn', 'Facebook'], ['nn', 'YouTube'], ['nn', 'Bitcoin'],
+    ['nn', 'Informasjonsteknologi'], ['nn', 'Programvare'], ['nn', 'Maskinvare'], ['nn', 'Kjeldekode'],
+    ['nn', 'Open kjeldekode'], ['nn', 'Datanettverk'], ['nn', 'Dataspel'], ['nn', 'Fotografi'],
+    // Bokmål
+    ['no', 'Datamaskin'], ['no', 'Internett'], ['no', 'Operativsystem'], ['no', 'Linux'],
+    ['no', 'Microsoft Windows'], ['no', 'MacOS'], ['no', 'Programmeringsspråk'],
+    ['no', 'Python (programmeringsspråk)'], ['no', 'JavaScript'], ['no', 'HTML'],
+    ['no', 'Cascading Style Sheets'], ['no', 'World Wide Web'], ['no', 'IP-adresse'],
+    ['no', 'Domain Name System'], ['no', 'Hypertext Transfer Protocol'], ['no', 'Kryptografi'],
+    ['no', 'Datavirus'], ['no', 'Phishing'], ['no', 'Kunstig intelligens'], ['no', 'Maskinlæring'],
+    ['no', 'Algoritme'], ['no', 'Database'], ['no', 'SQL'], ['no', 'Harddisk'], ['no', 'Mikroprosessor'],
+    ['no', 'Hovedkort'], ['no', 'Datamus'], ['no', 'Grafikkort'], ['no', 'Wi-Fi'], ['no', 'Bluetooth'],
+    ['no', 'Ethernet'], ['no', 'Byte'], ['no', 'Unicode'], ['no', 'ASCII'], ['no', 'Git'],
+    ['no', 'Åpen kildekode'], ['no', 'Alan Turing'], ['no', 'Ada Lovelace'], ['no', 'Tim Berners-Lee'],
+    ['no', 'Linus Torvalds'], ['no', 'Steve Jobs'], ['no', 'Bill Gates'], ['no', 'Smarttelefon'],
+    ['no', 'Raspberry Pi'], ['no', 'Arduino'], ['no', 'Blokkjede'], ['no', 'Bitcoin'], ['no', 'E-post'],
+    ['no', 'Søkemotor'], ['no', 'Nettleser'], ['no', 'Kompilator'], ['no', 'Kildekode'], ['no', 'Piksel'],
+    ['no', 'Passord'], ['no', 'Løsepengevirus'], ['no', 'Datanettverk'], ['no', 'Datasikkerhet'],
+    ['no', 'Universal Serial Bus'], ['no', 'Emoji'], ['no', 'QR-kode'], ['no', 'Minecraft'], ['no', 'Tetris'],
+    ['no', 'Wikipedia'], ['no', 'Google'], ['no', 'Microsoft'], ['no', 'ChatGPT'],
+    ['no', 'Tingenes internett'], ['no', 'Virtuell virkelighet'], ['no', '3D-printing'],
+    ['no', 'Sosiale medier'], ['no', 'YouTube'], ['no', 'Facebook'], ['no', 'TikTok'], ['no', 'JPEG'],
+    ['no', 'MP3'], ['no', 'Podkast'], ['no', 'Digitalkamera'], ['no', 'Adobe Photoshop'],
+    ['no', 'Transistor'], ['no', 'Moores lov'], ['no', 'Kvantedatamaskin'], ['no', 'Personvern'],
+    ['no', 'Opphavsrett'], ['no', 'Creative Commons'], ['no', 'Deepfake'], ['no', 'Informasjonsteknologi'],
+    ['no', 'Dataspill'], ['no', 'ENIAC'], ['no', 'Commodore 64'], ['no', 'Stuxnet'], ['no', 'Robot']
+];
+
+const LANGNAME = { nn: 'nynorsk', no: 'bokmål' };
+const HINTS = 5;
+const MIN_WORDS = 100;
+const MAX_WORDS = 5000;
+const WORD_RE = /[\p{L}\p{M}\p{N}]+/gu;
+
+// Vanlege småord som er synlege frå start (nynorsk + bokmål).
+const STOP = new Set(`
+og i på er var vart vert ble blir blei bli blitt vore vorte vært vere være som det den de dei ein eit ei en et
+av til for med frå fra om at å har hadde ha kan kunne skal skulle vil ville må måtte ikkje ikke eller men så seg
+sin sitt sine si han ho hun henne hans hennar hennes deira deres dem eg jeg meg du deg vi me oss dykk dere her der
+no nå også òg etter ved under over mellom mot gjennom inn ut opp ned når kva hva kor hvor kven hvem korleis hvordan
+dette denne desse disse slik berre bare enn fordi sidan siden alle alt all noko noe nokre noen nokon ingen sjølv selv
+både enten verken før per mange fleire flere mest meir mer andre anna annet annan annen same samme viss hvis dersom
+medan mens blant bak utan uten innan innen rundt hjå hos då da the of and
+`.trim().split(/\s+/));
+
+// Overskrifter der artikkelteksten sluttar.
+const STOP_HEADINGS = new Set([
+    'referansar', 'referanser', 'kjelder', 'kilder', 'kjelde', 'kilde', 'fotnotar', 'fotnoter', 'noter', 'notar',
+    'litteratur', 'bibliografi', 'vidare lesing', 'videre lesning', 'lenker', 'lenkjer', 'eksterne lenker',
+    'eksterne lenkjer', 'eksterne lenke', 'sjå òg', 'sjå også', 'se også', 'kjelder og referansar',
+    'kilder og referanser', 'litteratur og kjelder', 'referansar og notar', 'referanser og noter'
+]);
+
+const SUFFIXES = ['arane', 'erane', 'ande', 'ende', 'ane', 'ene', 'ar', 'er', 'en', 'et', 'a', 'e'];
+
+// ---------- Hjelpefunksjonar ----------
+const $ = id => document.getElementById(id);
+const norm = w => w.toLocaleLowerCase('nb');
+const len = w => [...w].length;
+const esc = s => s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+const store = {
+    get(k, d) {
+        try { const v = localStorage.getItem('fagdactle:' + k); return v == null ? d : JSON.parse(v); }
+        catch (e) { return d; }
+    },
+    set(k, v) { try { localStorage.setItem('fagdactle:' + k, JSON.stringify(v)); } catch (e) { /* ignorer */ } },
+    clear() {
+        try {
+            Object.keys(localStorage).filter(k => k.startsWith('fagdactle:') && k !== 'fagdactle:settings')
+                .forEach(k => localStorage.removeItem(k));
+        } catch (e) { /* ignorer */ }
+    }
+};
+
+const b64e = s => btoa(String.fromCharCode(...new TextEncoder().encode(s)))
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+const b64d = s => new TextDecoder().decode(
+    Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0)));
+
+// Enkel norsk stamme: fjernar vanlege bøyingsendingar, slik at t.d.
+// «datamaskin», «datamaskinen» og «datamaskinar» vert same ord.
+function stem(w) {
+    if (/\d/.test(w) || len(w) <= 3) return w;
+    for (const s of SUFFIXES) {
+        if (w.endsWith(s) && len(w) - s.length >= 3) { w = w.slice(0, -s.length); break; }
+    }
+    if (len(w) > 3 && /([bcdfghjklmnpqrstvwxz])\1$/.test(w)) w = w.slice(0, -1);
+    return w;
+}
+function keysOf(low) {
+    const k = [stem(low)];
+    if (len(low) > 4 && low.endsWith('s') && !low.endsWith('ss')) {
+        const k2 = stem(low.slice(0, -1)); // genitiv: «Googles» → «Google»
+        if (k2 !== k[0]) k.push(k2);
+    }
+    return k;
+}
+
+// ---------- Innstillingar ----------
+const S = Object.assign({ lang: 'begge', theme: 'dark', fs: 20 }, store.get('settings', {}));
+function applySettings() {
+    S.fs = Math.max(14, Math.min(44, S.fs));
+    document.documentElement.style.setProperty('--fs', S.fs + 'px');
+    document.documentElement.dataset.theme = S.theme;
+    $('fsVal').textContent = S.fs;
+    $('fsRange').value = S.fs;
+    store.set('settings', S);
+}
+
+// ---------- Artikkelval ----------
+const specId = sp => sp.kind === 'n' ? 'n' + sp.n : 'x:' + sp.lang + ':' + sp.title;
+const hashFor = sp => sp.kind === 'n' ? String(sp.n) : 'x=' + b64e(sp.lang + ':' + sp.title);
+function specFromHash() {
+    const h = location.hash.slice(1);
+    let m = h.match(/^(\d+)$/);
+    if (m) { const n = +m[1]; if (n >= 1 && n <= ARTICLES.length) return { kind: 'n', n }; }
+    m = h.match(/^x=([A-Za-z0-9_-]+)$/);
+    if (m) {
+        try {
+            const d = b64d(m[1]);
+            const mm = d.match(/^(nn|no):(.+)$/);
+            if (mm) return { kind: 'x', lang: mm[1], title: mm[2] };
+        } catch (e) { /* ugyldig lenke */ }
+    }
+    return null;
+}
+const skipped = new Set();
+function pickRandom() {
+    const bad = store.get('bad', {});
+    const done = store.get('done', {});
+    const pool = ARTICLES.map((a, i) => i + 1).filter(n =>
+        (S.lang === 'begge' || ARTICLES[n - 1][0] === S.lang) &&
+        !bad['n' + n] && !skipped.has(n) && !(G && G.id === 'n' + n));
+    const fresh = pool.filter(n => !done['n' + n] && !store.get('g:n' + n, null));
+    const p = fresh.length ? fresh : pool;
+    return p.length ? p[Math.floor(Math.random() * p.length)] : null;
+}
+function fillSelect() {
+    const sel = $('sel');
+    const done = store.get('done', {});
+    const bad = store.get('bad', {});
+    sel.innerHTML = '';
+    if (G && G.spec.kind === 'x') {
+        const o = new Option('Eigen', 'x');
+        sel.add(o);
+    }
+    ARTICLES.forEach((a, i) => {
+        const id = 'n' + (i + 1);
+        const mark = done[id] === 'won' ? ' ✓' : done[id] === 'lost' ? ' ✗' : bad[id] ? ' ⚠' : '';
+        sel.add(new Option('#' + (i + 1) + mark, String(i + 1)));
+    });
+    sel.value = G ? (G.spec.kind === 'n' ? String(G.spec.n) : 'x') : '';
+}
+
+// ---------- Henting og uttrekk ----------
+function apiUrl(lang, title) {
+    return 'https://' + lang + '.wikipedia.org/w/api.php?action=parse&format=json&formatversion=2&origin=*' +
+        '&redirects=1&prop=text%7Cproperties&disableeditsection=1&disabletoc=1&page=' + encodeURIComponent(title);
+}
+const clean = t => t.replace(/\[\s*(\d+|[a-zæøå]|nb|n \d+|trenger referanse|treng kjelde)\s*\]/gi, '')
+    .replace(/\s+/g, ' ').trim();
+const countWords = t => (t.match(WORD_RE) || []).filter(w => !STOP.has(norm(w))).length;
+
+function extract(html) {
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const root = doc.querySelector('.mw-parser-output') || doc.body;
+    root.querySelectorAll([
+        'sup.reference', '.reference', '.mw-editsection', 'style', 'script', 'link', 'table', 'figure',
+        '.thumb', '.infobox', '.navbox', '.reflist', '.references', '.mw-references-wrap', '.hatnote',
+        '.dablink', '.noprint', '.metadata', '.toc', '#toc', '.gallery', '.mw-empty-elt', '.mwe-math-element',
+        '.rellink', '.sisterproject', '.portal', '.ambox', '.noexcerpt', '.coordinates', '#coordinates',
+        'img', 'audio', 'video', '.mw-cite-backlink', '.error'
+    ].join(',')).forEach(e => e.remove());
+
+    const blocks = [];
+    let words = 0, stop = false;
+    const push = (type, text) => {
+        const t = clean(text);
+        if (len(t) < 2) return;
+        blocks.push({ type, text: t });
+        words += countWords(t);
+    };
+    (function walk(el) {
+        for (const c of el.children) {
+            if (stop || words > MAX_WORDS) return;
+            const tag = c.tagName;
+            if (/^H[2-6]$/.test(tag) || (tag === 'DIV' && c.classList.contains('mw-heading'))) {
+                const h = /^H/.test(tag) ? c : c.querySelector('h2,h3,h4,h5,h6');
+                if (!h) continue;
+                const txt = clean(h.textContent);
+                if (STOP_HEADINGS.has(norm(txt))) { stop = true; return; }
+                if (txt) blocks.push({ type: 'h' + Math.min(+h.tagName[1], 4), text: txt });
+            } else if (tag === 'P' || tag === 'BLOCKQUOTE') {
+                push('p', c.textContent);
+            } else if (tag === 'UL' || tag === 'OL') {
+                const items = [...c.children].filter(li => li.tagName === 'LI')
+                    .map(li => clean(li.textContent)).filter(t => len(t) > 1);
+                if (items.length) {
+                    blocks.push({ type: 'ul', items });
+                    items.forEach(t => { words += countWords(t); });
+                }
+            } else if (tag === 'DL') {
+                [...c.children].forEach(d => push('p', d.textContent));
+            } else if (tag === 'SECTION' || (tag === 'DIV' && !c.className)) {
+                walk(c);
+            }
+        }
+    })(root);
+
+    // Fjern overskrifter utan innhald under seg.
+    for (let i = blocks.length - 1; i >= 0; i--) {
+        const b = blocks[i];
+        if (b.type[0] === 'h') {
+            const next = blocks[i + 1];
+            if (!next || (next.type[0] === 'h' && next.type <= b.type)) blocks.splice(i, 1);
+        }
+    }
+    return { blocks, words };
+}
+
+// ---------- Spelet ----------
+let G = null;
+let loadSeq = 0;
+
+function makeToken(word, inTitle) {
+    const low = norm(word);
+    const el = document.createElement('span');
+    const tok = { t: word, low, keys: keysOf(low), el, inTitle, shown: false, i: G.tokens.length };
+    el.dataset.i = tok.i;
+    G.tokens.push(tok);
+    for (const k of tok.keys) {
+        if (!G.byKey.has(k)) G.byKey.set(k, []);
+        G.byKey.get(k).push(tok.i);
+    }
+    if (inTitle) G.titleIdx.push(tok.i);
+    if (STOP.has(low)) reveal(tok); else hide(tok);
+    return el;
+}
+function renderText(text, container, inTitle) {
+    const frag = document.createDocumentFragment();
+    let last = 0;
+    for (const m of text.matchAll(WORD_RE)) {
+        if (m.index > last) frag.append(text.slice(last, m.index));
+        frag.append(makeToken(m[0], inTitle));
+        last = m.index + m[0].length;
+    }
+    if (last < text.length) frag.append(text.slice(last));
+    container.append(frag);
+}
+function hide(tok) {
+    tok.shown = false;
+    tok.el.className = 'r';
+    tok.el.style.width = len(tok.t) + 'ch';
+    tok.el.textContent = '';
+}
+function reveal(tok, cls) {
+    if (tok.shown) return;
+    tok.shown = true;
+    tok.el.className = 'w' + (cls ? ' ' + cls : '');
+    tok.el.style.width = '';
+    tok.el.textContent = tok.t;
+}
+
+function showLoading() {
+    $('meta').textContent = '';
+    $('title').textContent = '';
+    $('credit').textContent = '';
+    $('article').innerHTML = '<div class="loading">Hentar artikkel frå Wikipedia …</div>';
+    $('glist').innerHTML = '';
+    $('endbox').hidden = true;
+    msg('');
+}
+function showError(text) {
+    $('article').innerHTML = '';
+    const d = document.createElement('div');
+    d.className = 'error';
+    d.textContent = text;
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'primary';
+    b.textContent = 'Ta ein tilfeldig artikkel';
+    b.onclick = newGame;
+    d.append(document.createElement('br'), b);
+    $('article').append(d);
+    updateButtons();
+}
+
+async function loadArticle(spec, opts = {}) {
+    const { auto = false, tries = 0 } = opts;
+    const seq = ++loadSeq;
+    saveGame();
+    G = null;
+    const lang = spec.kind === 'n' ? ARTICLES[spec.n - 1][0] : spec.lang;
+    const reqTitle = spec.kind === 'n' ? ARTICLES[spec.n - 1][1] : spec.title;
+    const id = specId(spec);
+    history.replaceState(null, '', location.pathname + location.search + '#' + hashFor(spec));
+    store.set('last', hashFor(spec));
+    showLoading();
+    updateButtons();
+
+    let data;
+    try {
+        const r = await fetch(apiUrl(lang, reqTitle));
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        data = await r.json();
+    } catch (e) {
+        if (seq !== loadSeq) return;
+        showError('Fekk ikkje kontakt med Wikipedia. Sjekk nettilgangen og prøv igjen.');
+        return;
+    }
+    if (seq !== loadSeq) return;
+
+    let problem = null, ex = null;
+    if (data.error || !data.parse) problem = 'finst ikkje';
+    else if (data.parse.properties && 'disambiguation' in data.parse.properties) problem = 'er ei pekarside';
+    else {
+        ex = extract(data.parse.text);
+        if (ex.words < MIN_WORDS) problem = 'er for kort';
+    }
+    if (problem) {
+        if (spec.kind === 'n') {
+            const bad = store.get('bad', {});
+            bad[id] = 1;
+            store.set('bad', bad);
+            skipped.add(spec.n);
+        }
+        if (auto && tries < 10) {
+            const n = pickRandom();
+            if (n) return loadArticle({ kind: 'n', n }, { auto: true, tries: tries + 1 });
+        }
+        showError(spec.kind === 'n'
+            ? `Artikkel #${spec.n} fungerer ikkje (${problem}).`
+            : `Artikkelen «${reqTitle}» på ${LANGNAME[lang]} Wikipedia ${problem}.`);
+        fillSelect();
+        return;
+    }
+
+    const title = data.parse.title;
+    G = {
+        id, spec, lang, title,
+        url: 'https://' + lang + '.wikipedia.org/wiki/' + encodeURIComponent(title.replace(/ /g, '_')),
+        tokens: [], byKey: new Map(), titleIdx: [], guesses: [], hl: [], sel: null,
+        hintsLeft: HINTS, solved: false, gaveUp: false, elapsed: 0, runningSince: null
+    };
+
+    const shownTitle = title.replace(/\s*\([^)]*\)\s*$/, '').trim() || title;
+    $('title').textContent = '';
+    renderText(shownTitle, $('title'), true);
+    const art = $('article');
+    art.innerHTML = '';
+    for (const b of ex.blocks) {
+        if (b.type === 'ul') {
+            const ul = document.createElement('ul');
+            for (const t of b.items) { const li = document.createElement('li'); renderText(t, li, false); ul.append(li); }
+            art.append(ul);
+        } else {
+            const el = document.createElement(b.type);
+            renderText(b.text, el, false);
+            art.append(el);
+        }
+    }
+    $('meta').textContent = (spec.kind === 'n' ? '#' + spec.n : 'Eigen artikkel') + ' · ' +
+        LANGNAME[lang] + ' Wikipedia · ' + ex.words + ' sladda ord';
+    $('credit').textContent = 'Tekst frå Wikipedia, lisensiert under CC BY-SA 4.0.';
+    $('articleWrap').scrollTop = 0;
+
+    // Hent fram lagra framgang.
+    const saved = store.get('g:' + id, null);
+    if (saved && saved.title === title) {
+        G.hintsLeft = saved.hintsLeft ?? HINTS;
+        G.elapsed = saved.elapsed || 0;
+        for (const [w, h] of saved.guesses || []) applyGuess(w, !!h);
+        if (saved.solved) G.solved = true;
+        if (saved.gaveUp) G.gaveUp = true;
+    }
+    renderGuesses();
+    if (G.solved || G.gaveUp) finish(true);
+    else if (!G.guesses.length) G.elapsed = 0;
+    else G.runningSince = Date.now();
+    fillSelect();
+    updateButtons();
+    updateStats();
+    if (!G.solved && !G.gaveUp) $('inp').focus();
+}
+
+function matchIdx(keys) {
+    const set = new Set();
+    for (const k of keys) for (const i of (G.byKey.get(k) || [])) set.add(i);
+    return [...set].sort((a, b) => a - b);
+}
+function applyGuess(low, hint) {
+    const keys = keysOf(low);
+    const idx = matchIdx(keys);
+    const body = idx.filter(i => !G.tokens[i].inTitle);
+    const titleHit = idx.some(i => G.tokens[i].inTitle);
+    idx.forEach(i => reveal(G.tokens[i]));
+    G.guesses.push({ w: low, keys, idx: body, hits: body.length, title: titleHit, hint });
+    return G.guesses[G.guesses.length - 1];
+}
+function guessWord(word, hint) {
+    const low = norm(word);
+    if (STOP.has(low)) { msg(`«${word}» er eit vanleg småord og er alt synleg.`); return; }
+    const keys = keysOf(low);
+    const prev = G.guesses.findIndex(g => g.w === low || g.keys[0] === keys[0]);
+    if (prev >= 0) {
+        msg(`De har alt gjetta «${G.guesses[prev].w}».`);
+        select(prev, true);
+        return;
+    }
+    if (!G.runningSince && !G.solved) G.runningSince = Date.now();
+    const g = applyGuess(low, hint);
+    renderGuesses();
+    select(G.guesses.length - 1, true);
+    if (g.title) msg(`«${word}» står i tittelen! 🎯`, 'good');
+    else if (g.hits) msg(hint ? `💡 Hint: «${word}» (${g.hits} treff)` : `«${word}»: ${g.hits} treff.`, 'good');
+    else msg(`Ingen treff på «${word}».`, 'bad');
+    if (G.titleIdx.every(i => G.tokens[i].shown)) { G.solved = true; finish(false); }
+    saveGame();
+    updateStats();
+    updateButtons();
+}
+function submitGuess() {
+    const inp = $('inp');
+    const raw = inp.value;
+    inp.value = '';
+    if (!G || G.solved || G.gaveUp) return;
+    const words = raw.match(WORD_RE);
+    if (!words) { msg('Skriv eit ord.'); return; }
+    for (const w of words) { if (G.solved) break; guessWord(w, false); }
+}
+
+function select(gi, scroll) {
+    for (const i of G.hl) G.tokens[i].el.classList.remove('hl', 'cur');
+    const g = G.guesses[gi];
+    if (!g) return;
+    if (G.sel && G.sel.gi === gi && !scroll) G.sel.pos = (G.sel.pos + 1) % Math.max(1, g.idx.length);
+    else G.sel = { gi, pos: 0 };
+    G.hl = g.idx.slice();
+    for (const i of G.hl) G.tokens[i].el.classList.add('hl');
+    const cur = g.idx[G.sel.pos];
+    if (cur != null) {
+        const el = G.tokens[cur].el;
+        el.classList.add('cur');
+        el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }
+    [...$('glist').children].forEach(tr => tr.classList.toggle('sel', +tr.dataset.gi === gi));
+}
+function renderGuesses() {
+    const tb = $('glist');
+    tb.innerHTML = '';
+    for (let gi = G.guesses.length - 1; gi >= 0; gi--) {
+        const g = G.guesses[gi];
+        const tr = document.createElement('tr');
+        tr.dataset.gi = gi;
+        if (!g.hits && !g.title) tr.classList.add('zero');
+        if (g.title) tr.classList.add('titlehit');
+        if (G.sel && G.sel.gi === gi) tr.classList.add('sel');
+        tr.innerHTML = `<td>${gi + 1}</td><td>${g.hint ? '💡 ' : ''}${esc(g.w)}</td><td>${g.hits}</td>`;
+        tb.append(tr);
+    }
+    $('tips').hidden = G.guesses.length > 0;
+}
+
+function useHint() {
+    if (!G || G.solved || G.gaveUp || G.hintsLeft <= 0) return;
+    const titleKeys = new Set(G.titleIdx.flatMap(i => G.tokens[i].keys));
+    const counts = new Map();
+    for (const t of G.tokens) {
+        if (t.shown || t.inTitle || t.keys.some(k => titleKeys.has(k))) continue;
+        const c = counts.get(t.keys[0]) || { n: 0, low: t.low };
+        c.n++;
+        counts.set(t.keys[0], c);
+    }
+    let best = null;
+    for (const c of counts.values()) if (!best || c.n > best.n) best = c;
+    if (!best) { msg('Det er ingen fleire ord å gi hint om.'); return; }
+    G.hintsLeft--;
+    guessWord(best.low, true);
+    updateButtons();
+}
+function giveUp() {
+    if (!G || G.solved || G.gaveUp) return;
+    if (!confirm('Vil de verkeleg gje opp og sjå svaret?')) return;
+    G.gaveUp = true;
+    finish(false);
+    saveGame();
+}
+function finish(silent) {
+    if (G.runningSince) { G.elapsed += (Date.now() - G.runningSince) / 1000; G.runningSince = null; }
+    for (const t of G.tokens) reveal(t, 'late');
+    const done = store.get('done', {});
+    done[G.id] = G.solved ? 'won' : 'lost';
+    store.set('done', done);
+
+    const n = G.guesses.filter(g => !g.hint).length;
+    const acc = n ? Math.round(100 * G.guesses.filter(g => !g.hint && (g.hits || g.title)).length / n) : 0;
+    const hints = G.guesses.filter(g => g.hint).length;
+    const box = $('endbox');
+    box.innerHTML = (G.solved
+        ? `<h3>🎉 Gratulerer!</h3>De fann <b>${esc(G.title)}</b> etter <b>${n}</b> gjett` +
+          `${hints ? ' og ' + hints + ' hint' : ''} (${acc} % treff) på ${fmtTime(G.elapsed)}.`
+        : `<h3>Løysinga var …</h3><b>${esc(G.title)}</b><br>De brukte ${n} gjett.`) +
+        `<div class="btns"><a class="btnlink" href="${G.url}" target="_blank" rel="noopener">Les på Wikipedia ↗</a>` +
+        `<button type="button" class="primary" id="endNew">Ny artikkel</button></div>`;
+    box.hidden = false;
+    $('endNew').onclick = newGame;
+    $('credit').innerHTML = `Tekst frå artikkelen «<a href="${G.url}" target="_blank" rel="noopener">${esc(G.title)}</a>» ` +
+        `på ${LANGNAME[G.lang]} Wikipedia, lisensiert under ` +
+        `<a href="https://creativecommons.org/licenses/by-sa/4.0/deed.no" target="_blank" rel="noopener">CC BY-SA 4.0</a>.`;
+    fillSelect();
+    updateButtons();
+    updateStats();
+    if (!silent) {
+        $('articleWrap').scrollTo({ top: 0, behavior: 'smooth' });
+        if (G.solved) confetti();
+    }
+}
+
+function saveGame() {
+    if (!G) return;
+    store.set('g:' + G.id, {
+        title: G.title,
+        guesses: G.guesses.map(g => [g.w, g.hint ? 1 : 0]),
+        hintsLeft: G.hintsLeft,
+        solved: G.solved,
+        gaveUp: G.gaveUp,
+        elapsed: curElapsed()
+    });
+}
+const curElapsed = () => G ? G.elapsed + (G.runningSince ? (Date.now() - G.runningSince) / 1000 : 0) : 0;
+function fmtTime(s) {
+    s = Math.floor(s);
+    const h = Math.floor(s / 3600), m = Math.floor(s / 60) % 60, ss = s % 60;
+    return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(ss).padStart(2, '0');
+}
+function updateStats() {
+    if (!G) { $('stats').textContent = ''; return; }
+    const n = G.guesses.filter(g => !g.hint).length;
+    const acc = n ? Math.round(100 * G.guesses.filter(g => !g.hint && (g.hits || g.title)).length / n) : 0;
+    $('stats').innerHTML = `<b>${n}</b> gjett · <b>${acc} %</b> treff · <b>${fmtTime(curElapsed())}</b>`;
+}
+function updateButtons() {
+    const active = !!G && !G.solved && !G.gaveUp;
+    $('btnHint').textContent = `💡 Hint (${G ? G.hintsLeft : HINTS})`;
+    $('btnHint').disabled = !active || G.hintsLeft <= 0;
+    $('btnGiveUp').disabled = !active;
+    $('inp').disabled = !active;
+}
+function msg(text, cls) {
+    const m = $('msg');
+    m.textContent = text;
+    m.className = 'msg' + (cls ? ' ' + cls : '');
+}
+
+function newGame() {
+    const n = pickRandom();
+    if (!n) { showError('Fann ingen fleire artiklar med dette språkvalet.'); return; }
+    loadArticle({ kind: 'n', n }, { auto: true });
+}
+function step(d) {
+    let n = G && G.spec.kind === 'n' ? G.spec.n : (+$('sel').value || 0);
+    n = ((n - 1 + d + ARTICLES.length) % ARTICLES.length) + 1;
+    loadArticle({ kind: 'n', n });
+}
+
+function confetti() {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const c = document.createElement('canvas');
+    c.className = 'confetti';
+    document.body.append(c);
+    const ctx = c.getContext('2d');
+    const W = c.width = innerWidth, H = c.height = innerHeight;
+    const cols = ['#f5c542', '#7c3aed', '#34d399', '#f87171', '#60a5fa', '#f472b6'];
+    const P = Array.from({ length: 220 }, () => ({
+        x: Math.random() * W, y: -20 - Math.random() * H * 0.6,
+        vx: (Math.random() - 0.5) * 4, vy: 2 + Math.random() * 4,
+        s: 7 + Math.random() * 7, r: Math.random() * 6, vr: (Math.random() - 0.5) * 0.3,
+        c: cols[Math.floor(Math.random() * cols.length)]
+    }));
+    const t0 = performance.now();
+    (function frame(t) {
+        ctx.clearRect(0, 0, W, H);
+        for (const p of P) {
+            p.x += p.vx; p.y += p.vy; p.vy += 0.04; p.r += p.vr;
+            ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r);
+            ctx.fillStyle = p.c; ctx.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2);
+            ctx.restore();
+        }
+        if (t - t0 < 5000) requestAnimationFrame(frame); else c.remove();
+    })(t0);
+}
+
+// ---------- Eigen artikkel ----------
+function readCustom() {
+    const raw = $('cTitle').value.trim();
+    if (!raw) return null;
+    const m = raw.match(/\/\/(nn|no|nb)\.(?:m\.)?wikipedia\.org\/wiki\/([^?#]+)/i);
+    if (m) {
+        let t;
+        try { t = decodeURIComponent(m[2]); } catch (e) { t = m[2]; }
+        return { kind: 'x', lang: m[1].toLowerCase() === 'nn' ? 'nn' : 'no', title: t.replace(/_/g, ' ') };
+    }
+    const lang = document.querySelector('input[name="clang"]:checked').value;
+    return { kind: 'x', lang, title: raw };
+}
+
+// ---------- Hendingar ----------
+$('form').addEventListener('submit', e => { e.preventDefault(); submitGuess(); });
+$('inp').addEventListener('keydown', e => { if (e.key === 'Escape') e.target.value = ''; });
+$('btnHint').onclick = useHint;
+$('btnGiveUp').onclick = giveUp;
+$('btnNew').onclick = newGame;
+$('btnPrev').onclick = () => step(-1);
+$('btnNext').onclick = () => step(1);
+$('btnTop').onclick = () => { $('articleWrap').scrollTo({ top: 0, behavior: 'smooth' }); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+$('sel').onchange = e => { const n = +e.target.value; if (n) loadArticle({ kind: 'n', n }); };
+$('fsDown').onclick = () => { S.fs -= 2; applySettings(); };
+$('fsUp').onclick = () => { S.fs += 2; applySettings(); };
+$('fsRange').oninput = e => { S.fs = +e.target.value; applySettings(); };
+
+$('glist').addEventListener('click', e => {
+    const tr = e.target.closest('tr');
+    if (tr && G) select(+tr.dataset.gi, false);
+});
+function onBlockClick(e) {
+    const el = e.target.closest('.r');
+    if (!el || !G) return;
+    const t = G.tokens[+el.dataset.i];
+    if (el.firstChild) el.textContent = '';
+    else { const s = document.createElement('span'); s.className = 'n'; s.textContent = len(t.t); el.append(s); }
+}
+$('article').addEventListener('click', onBlockClick);
+$('title').addEventListener('click', onBlockClick);
+
+document.querySelectorAll('dialog [data-close]').forEach(b => { b.onclick = () => b.closest('dialog').close(); });
+document.querySelectorAll('dialog').forEach(d => d.addEventListener('close', () => { if (G && !$('inp').disabled) $('inp').focus(); }));
+$('btnHelp').onclick = () => $('dlgHelp').showModal();
+$('btnSettings').onclick = () => {
+    document.querySelector(`input[name="lang"][value="${S.lang}"]`).checked = true;
+    document.querySelector(`input[name="theme"][value="${S.theme}"]`).checked = true;
+    $('dlgSettings').showModal();
+};
+document.querySelectorAll('input[name="lang"]').forEach(r => r.onchange = () => { S.lang = r.value; applySettings(); });
+document.querySelectorAll('input[name="theme"]').forEach(r => r.onchange = () => { S.theme = r.value; applySettings(); });
+$('btnReset').onclick = () => {
+    if (!confirm('Slette all lagra framgang og alle markeringar på denne maskina?')) return;
+    store.clear();
+    skipped.clear();
+    fillSelect();
+};
+$('btnCustom').onclick = () => { $('cLink').hidden = true; $('dlgCustom').showModal(); $('cTitle').focus(); };
+$('cStart').onclick = () => {
+    const sp = readCustom();
+    if (!sp) { $('cTitle').focus(); return; }
+    $('cTitle').value = '';
+    $('dlgCustom').close();
+    loadArticle(sp);
+};
+$('cCopy').onclick = async () => {
+    const sp = readCustom();
+    if (!sp) { $('cTitle').focus(); return; }
+    const url = location.origin + location.pathname + '#' + hashFor(sp);
+    const out = $('cLink');
+    out.value = url;
+    out.hidden = false;
+    out.select();
+    try { await navigator.clipboard.writeText(url); $('cCopy').textContent = 'Kopiert ✓'; }
+    catch (e) { $('cCopy').textContent = 'Kopier lenka over'; }
+    setTimeout(() => { $('cCopy').textContent = 'Kopier hemmeleg lenke'; }, 2500);
+};
+
+window.addEventListener('hashchange', () => {
+    const sp = specFromHash();
+    if (sp && (!G || specId(sp) !== G.id)) loadArticle(sp);
+});
+window.addEventListener('pagehide', saveGame);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') saveGame(); });
+setInterval(() => { if (G && G.runningSince) updateStats(); }, 1000);
+
+// ---------- Start ----------
+applySettings();
+fillSelect();
+updateButtons();
+const first = specFromHash();
+if (first) loadArticle(first);
+else {
+    const last = store.get('last', null);
+    if (last) { history.replaceState(null, '', '#' + last); }
+    const sp = specFromHash();
+    if (sp) loadArticle(sp);
+    else newGame();
+}
+if (!store.get('seenHelp', false)) { store.set('seenHelp', true); $('dlgHelp').showModal(); }
+})();
+</script>
+</body>
+</html>
