@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="nn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Oppstart på skulenettet</title>
+<style>
+    body {
+        background-color: powderblue;
+        font-family: Arial, sans-serif;
+        color: #333;
+        margin: 0;
+        padding: 20px 16px;
+    }
+    .container {
+        max-width: 900px;
+        margin: 0 auto;
+        background-color: white;
+        padding: 20px 24px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    h1 { margin: 0 0 4px; }
+    .intro { color: #666; margin: 0 0 16px; line-height: 1.5; }
+    h2 {
+        font-size: 20px;
+        margin: 28px 0 10px;
+        padding-bottom: 4px;
+        border-bottom: 1px solid #ddd;
+    }
+    p, li { line-height: 1.55; }
+    a { color: #0066cc; }
+    code {
+        font-family: Consolas, "Courier New", monospace;
+        background: #f1f3f5;
+        padding: 1px 5px;
+        border-radius: 3px;
+        font-size: 0.92em;
+    }
+
+    /* ---------- animasjon ---------- */
+    .stage { border: 1px solid #ddd; border-radius: 6px; background: #fbfcfd; overflow: hidden; }
+    svg#net { width: 100%; height: auto; display: block; }
+    .cap {
+        border-top: 1px solid #ddd;
+        padding: 10px 14px;
+        min-height: 64px;
+        background: #f1f7ff;
+    }
+    .cap b { display: block; margin-bottom: 3px; color: #0066cc; }
+    .cap span { font-size: 15px; line-height: 1.45; }
+    .bar {
+        display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+        padding: 10px 14px; border-top: 1px solid #ddd; background: white;
+    }
+    .bar button {
+        padding: 7px 12px; font-size: 14px; border: 1px solid #bbb; background: #f4f6f8;
+        border-radius: 4px; cursor: pointer; color: #333;
+    }
+    .bar button:hover { background: #e8ecf0; }
+    .bar button.main {
+        background: #4CAF50; border-color: #4CAF50; color: white; font-weight: bold; min-width: 110px;
+    }
+    .bar button.main:hover { background: #45a049; }
+    .bar label { font-size: 14px; display: flex; align-items: center; gap: 5px; }
+    .bar select { font-size: 14px; padding: 4px; }
+    .bar .grow { flex: 1 1 auto; }
+    .dots { display: flex; gap: 4px; flex-wrap: wrap; padding: 0 14px 12px; background: white; }
+    .dots button {
+        width: 28px; height: 28px; border-radius: 50%; border: 1px solid #bbb; background: #f4f6f8;
+        font-size: 12px; cursor: pointer; padding: 0; color: #333;
+    }
+    .dots button.done { background: #d6ead8; border-color: #8bc48f; }
+    .dots button.on { background: #0066cc; border-color: #0066cc; color: white; font-weight: bold; }
+
+    .node text { font-size: 13px; fill: #333; }
+    .node .sub { font-size: 11px; fill: #777; }
+    .node .scr { font-size: 12px; fill: white; }
+    .node .scr2 { font-size: 11px; fill: #cfe3ff; }
+    .halo { opacity: 0; transition: opacity 0.9s ease-out; }
+    .halo.on { opacity: 0.35; transition: opacity 0.1s; }
+    .link { stroke: #9aa5b1; stroke-width: 3; fill: none; }
+    .pkt text { font-size: 12px; fill: white; font-weight: bold; }
+    .info text { font-size: 12px; fill: #333; font-family: Consolas, "Courier New", monospace; }
+    .info .k { fill: #777; }
+
+    /* ---------- tekst ---------- */
+    ol.steps { padding-left: 0; list-style: none; counter-reset: s; margin: 0; }
+    ol.steps > li {
+        counter-increment: s;
+        position: relative;
+        padding: 12px 14px 10px 54px;
+        margin: 0 0 8px;
+        border: 1px solid #e3e6ea;
+        border-radius: 6px;
+        transition: background 0.3s, border-color 0.3s;
+    }
+    ol.steps > li::before {
+        content: counter(s);
+        position: absolute; left: 12px; top: 12px;
+        width: 30px; height: 30px; border-radius: 50%;
+        background: #0066cc; color: white; font-weight: bold;
+        display: flex; align-items: center; justify-content: center;
+    }
+    ol.steps > li.now { background: #f1f7ff; border-color: #0066cc; }
+    ol.steps h3 { margin: 4px 0 6px; font-size: 17px; }
+    ol.steps h3 .tag {
+        font-size: 12px; font-weight: normal; color: #555; background: #eef1f4;
+        border-radius: 10px; padding: 2px 8px; margin-left: 6px; white-space: nowrap;
+    }
+    ol.steps p { margin: 0 0 8px; }
+    ol.steps ul { margin: 0 0 8px; padding-left: 20px; }
+    .show {
+        border: 0; background: none; color: #0066cc; cursor: pointer; padding: 0;
+        font-size: 14px; text-decoration: underline;
+    }
+    table { border-collapse: collapse; width: 100%; font-size: 14px; }
+    th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid #e3e6ea; vertical-align: top; }
+    th { background: #f4f6f8; }
+    .tablewrap { overflow-x: auto; }
+    .note { color: #888; font-size: 13px; }
+    footer { margin-top: 24px; font-size: 14px; }
+    footer a { text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+    @media (max-width: 600px) {
+        .container { padding: 16px; }
+        ol.steps > li { padding-left: 48px; }
+    }
+</style>
+</head>
+<body>
+<div class="container">
+    <h1>Når elev-PC-en blir slått på</h1>
+    <p class="intro">Kva skjer, punkt for punkt, når ei elevmaskin (BYOD – <i>Bring Your Own Device</i>) med Windows blir slått på og koplar seg til skulen sitt LAN? Sjå animasjonen først, og les forklaringa under. Trykk på eit punkt i lista for å sjå akkurat det steget.</p>
+
+    <!-- ================= ANIMASJON ================= -->
+    <div class="stage" id="anim">
+        <svg id="net" viewBox="0 0 800 430" role="img" aria-label="Animasjon av nettverket på skulen: elev-PC, aksesspunkt, kjerneswitch, RADIUS-, DHCP- og DNS-server, brannmur og internett">
+            <defs>
+                <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+                    <path d="M0,0 L10,5 L0,10 z" fill="#9aa5b1"/>
+                </marker>
+            </defs>
+
+            <!-- soner -->
+            <rect x="8" y="8" width="612" height="414" rx="10" fill="#f3f8f4" stroke="#cfe3d2" stroke-dasharray="6 4"/>
+            <text x="20" y="28" font-size="12" fill="#5b8a63" font-weight="bold">SKULEN SITT LAN</text>
+            <rect x="640" y="150" width="152" height="180" rx="10" fill="#f6f3fb" stroke="#ddd3ee" stroke-dasharray="6 4"/>
+            <text x="652" y="170" font-size="12" fill="#7a63a8" font-weight="bold">INTERNETT</text>
+
+            <!-- liner -->
+            <line id="wifiLink" x1="158" y1="240" x2="222" y2="240" stroke="#7b4bc4" stroke-width="3" stroke-dasharray="5 6" opacity="0.15"/>
+            <line class="link" x1="268" y1="240" x2="365" y2="240"/>
+            <line class="link" x1="445" y1="240" x2="555" y2="240"/>
+            <line class="link" x1="605" y1="240" x2="672" y2="240"/>
+            <line class="link" x1="385" y1="227" x2="295" y2="110"/>
+            <line class="link" x1="405" y1="227" x2="405" y2="110"/>
+            <line class="link" x1="425" y1="227" x2="515" y2="110"/>
+
+            <!-- lås på trådlaus link -->
+            <g id="lock" opacity="0" transform="translate(190 214)">
+                <rect x="-7" y="0" width="14" height="11" rx="2" fill="#7b4bc4"/>
+                <path d="M-4,0 v-4 a4,4 0 0 1 8,0 v4" fill="none" stroke="#7b4bc4" stroke-width="2"/>
+            </g>
+            <!-- VLAN-merke -->
+            <g id="vlan" opacity="0">
+                <rect x="276" y="214" width="82" height="18" rx="9" fill="#d9822b"/>
+                <text x="317" y="227" font-size="11" fill="white" text-anchor="middle" font-weight="bold">VLAN 20 Elev</text>
+            </g>
+
+            <!-- Elev-PC -->
+            <g class="node" id="n-pc">
+                <circle class="halo" cx="90" cy="232" r="64" fill="#0066cc"/>
+                <rect x="28" y="190" width="124" height="66" rx="4" fill="#444"/>
+                <rect id="screen" x="33" y="195" width="114" height="56" rx="2" fill="#111"/>
+                <text id="scr1" class="scr" x="90" y="219" text-anchor="middle" font-weight="bold"></text>
+                <text id="scr2" class="scr2" x="90" y="237" text-anchor="middle"></text>
+                <path d="M18,258 h144 l-9,10 h-126 z" fill="#666"/>
+                <text x="90" y="288" text-anchor="middle" font-weight="bold">Elev-PC (BYOD)</text>
+                <text class="sub" x="90" y="303" text-anchor="middle">Windows 11</text>
+            </g>
+
+            <!-- Aksesspunkt -->
+            <g class="node" id="n-ap">
+                <circle class="halo" cx="245" cy="240" r="40" fill="#0066cc"/>
+                <path d="M233,222 a16,16 0 0 1 24,0 M228,216 a24,24 0 0 1 34,0" fill="none" stroke="#7b4bc4" stroke-width="2.5"/>
+                <rect x="222" y="230" width="46" height="18" rx="9" fill="#e9e3f5" stroke="#7b4bc4" stroke-width="2"/>
+                <circle cx="245" cy="239" r="3" fill="#7b4bc4"/>
+                <text x="245" y="272" text-anchor="middle" font-weight="bold">Aksesspunkt</text>
+                <text class="sub" x="245" y="287" text-anchor="middle">SSID «Skule-Elev»</text>
+            </g>
+
+            <!-- Kjerneswitch -->
+            <g class="node" id="n-sw">
+                <circle class="halo" cx="405" cy="240" r="48" fill="#0066cc"/>
+                <rect x="365" y="227" width="80" height="26" rx="4" fill="#2f5d8a"/>
+                <g fill="#9fd0ff">
+                    <rect x="372" y="236" width="7" height="7"/><rect x="383" y="236" width="7" height="7"/>
+                    <rect x="394" y="236" width="7" height="7"/><rect x="405" y="236" width="7" height="7"/>
+                    <rect x="416" y="236" width="7" height="7"/><rect x="427" y="236" width="7" height="7"/>
+                </g>
+                <text x="405" y="272" text-anchor="middle" font-weight="bold">Kjerneswitch (L3)</text>
+                <text class="sub" x="405" y="287" text-anchor="middle">gateway 10.20.0.1</text>
+            </g>
+
+            <!-- Serverar -->
+            <g class="node" id="n-radius">
+                <circle class="halo" cx="285" cy="85" r="40" fill="#d9822b"/>
+                <rect x="267" y="62" width="36" height="46" rx="3" fill="#555"/>
+                <rect x="272" y="68" width="26" height="5" fill="#d9822b"/><rect x="272" y="78" width="26" height="5" fill="#888"/><rect x="272" y="88" width="26" height="5" fill="#888"/>
+                <text x="285" y="40" text-anchor="middle" font-weight="bold">RADIUS</text>
+                <text class="sub" x="285" y="54" text-anchor="middle">sjekkar brukar</text>
+            </g>
+            <g class="node" id="n-dhcp">
+                <circle class="halo" cx="405" cy="85" r="40" fill="#2e8b57"/>
+                <rect x="387" y="62" width="36" height="46" rx="3" fill="#555"/>
+                <rect x="392" y="68" width="26" height="5" fill="#2e8b57"/><rect x="392" y="78" width="26" height="5" fill="#888"/><rect x="392" y="88" width="26" height="5" fill="#888"/>
+                <text x="405" y="40" text-anchor="middle" font-weight="bold">DHCP</text>
+                <text class="sub" x="405" y="54" text-anchor="middle">deler ut IP</text>
+            </g>
+            <g class="node" id="n-dns">
+                <circle class="halo" cx="525" cy="85" r="40" fill="#0066cc"/>
+                <rect x="507" y="62" width="36" height="46" rx="3" fill="#555"/>
+                <rect x="512" y="68" width="26" height="5" fill="#3d8fe0"/><rect x="512" y="78" width="26" height="5" fill="#888"/><rect x="512" y="88" width="26" height="5" fill="#888"/>
+                <text x="525" y="40" text-anchor="middle" font-weight="bold">DNS</text>
+                <text class="sub" x="525" y="54" text-anchor="middle">10.0.0.53</text>
+            </g>
+
+            <!-- Brannmur -->
+            <g class="node" id="n-fw">
+                <circle class="halo" cx="580" cy="240" r="40" fill="#c0392b"/>
+                <rect x="556" y="220" width="48" height="40" rx="3" fill="#c0392b"/>
+                <g stroke="#f3c2bc" stroke-width="1.5">
+                    <line x1="556" y1="233" x2="604" y2="233"/><line x1="556" y1="247" x2="604" y2="247"/>
+                    <line x1="572" y1="220" x2="572" y2="233"/><line x1="588" y1="220" x2="588" y2="233"/>
+                    <line x1="564" y1="233" x2="564" y2="247"/><line x1="580" y1="233" x2="580" y2="247"/><line x1="596" y1="233" x2="596" y2="247"/>
+                    <line x1="572" y1="247" x2="572" y2="260"/><line x1="588" y1="247" x2="588" y2="260"/>
+                </g>
+                <text x="580" y="280" text-anchor="middle" font-weight="bold">Brannmur</text>
+                <text class="sub" x="580" y="295" text-anchor="middle">NAT + filter</text>
+            </g>
+
+            <!-- Internett -->
+            <g class="node" id="n-net">
+                <circle class="halo" cx="725" cy="240" r="46" fill="#7a63a8"/>
+                <path d="M688,258 a18,18 0 0 1 4,-34 a22,22 0 0 1 40,-8 a17,17 0 0 1 28,14 a14,14 0 0 1 -2,28 z" fill="#e6def5" stroke="#7a63a8" stroke-width="2"/>
+                <text x="725" y="282" text-anchor="middle" font-weight="bold">Skytenester</text>
+                <text class="sub" x="725" y="297" text-anchor="middle">Microsoft, Feide …</text>
+            </g>
+
+            <!-- Infoboks for PC-en -->
+            <g class="info">
+                <rect x="20" y="326" width="250" height="88" rx="6" fill="white" stroke="#ccd5de"/>
+                <text x="30" y="346"><tspan class="k">MAC    </tspan><tspan id="iMac">–</tspan></text>
+                <text x="30" y="364"><tspan class="k">IP     </tspan><tspan id="iIp">–</tspan></text>
+                <text x="30" y="382"><tspan class="k">GW/DNS </tspan><tspan id="iGw">–</tspan></text>
+                <text x="30" y="400"><tspan class="k">Status </tspan><tspan id="iStatus">Av</tspan></text>
+            </g>
+
+            <g id="pkts"></g>
+        </svg>
+        <div class="cap" aria-live="polite">
+            <b id="capTitle">Steg 1 av 11</b>
+            <span id="capText">Trykk «Spel» for å starte.</span>
+        </div>
+        <div class="bar">
+            <button type="button" class="main" id="bPlay">▶ Spel</button>
+            <button type="button" id="bPrev">◀ Førre</button>
+            <button type="button" id="bNext">Neste ▶</button>
+            <button type="button" id="bRestart">↺ Frå start</button>
+            <span class="grow"></span>
+            <label>Fart
+                <select id="speed">
+                    <option value="0.5">0,5×</option>
+                    <option value="1" selected>1×</option>
+                    <option value="1.5">1,5×</option>
+                    <option value="2">2×</option>
+                </select>
+            </label>
+            <label><input type="checkbox" id="auto" checked> Gå vidare automatisk</label>
+        </div>
+        <div class="dots" id="dots"></div>
+    </div>
+
+    <!-- ================= TEKST ================= -->
+    <h2>Punkt for punkt</h2>
+    <ol class="steps" id="steps">
+        <li>
+            <h3>Straumen kjem på – POST og UEFI <span class="tag">maskinvare</span></h3>
+            <p>Når eleven trykkjer på av/på-knappen, startar <b>fastvara (UEFI)</b> som ligg lagra på hovudkortet. UEFI er etterfølgjaren til BIOS. Først køyrer ho ein <b>POST</b> (<i>Power-On Self-Test</i>) som sjekkar at prosessor, minne og anna viktig maskinvare verkar.</p>
+            <p>Så finn UEFI oppstartsdisken (SSD-en) og startar <b>Windows Boot Manager</b>. <b>Secure Boot</b> sjekkar at oppstartsprogrammet er digitalt signert, slik at skadevare ikkje kan starte før Windows.</p>
+            <button type="button" class="show" data-step="0">Vis i animasjonen</button>
+        </li>
+        <li>
+            <h3>Windows startar og lastar drivarar <span class="tag">operativsystem</span></h3>
+            <p>Windows-kjernen blir lasta inn i minnet, og drivarane blir starta. Ein av dei er drivaren til <b>nettverkskortet</b> (Wi-Fi eller kabel). Kvart nettverkskort har ei <b>MAC-adresse</b>, som er ei fysisk adresse på lag 2. Windows kan bruke ei tilfeldig MAC-adresse for kvart nett for å verne om personvernet.</p>
+            <p>Nettverkstenestene startar òg, mellom anna <i>WLAN AutoConfig</i>, DHCP-klienten og DNS-klienten. Dei tek seg av resten av oppkoplinga, ofte allereie medan innloggingsskjermen står framme.</p>
+            <button type="button" class="show" data-step="1">Vis i animasjonen</button>
+        </li>
+        <li>
+            <h3>Maskina finn skulenettet <span class="tag">lag 1–2 · Wi-Fi 802.11</span></h3>
+            <p>Med kabel får nettverkskortet <i>link</i> mot ein port på ein switch. Dei fleste BYOD-maskiner brukar likevel trådlaust nett. Då lyttar maskina etter <b>beacon-signal</b> frå aksesspunkta og sender ut <b>probe-førespurnader</b> («kva nett finst her?»). Aksesspunktet svarar med nettnamnet (<b>SSID</b>), til dømes «Skule-Elev» eller <i>eduroam</i>.</p>
+            <p>Har maskina vore kopla til nettet før, har Windows lagra ein <b>nettverksprofil</b> og koplar til av seg sjølv. Maskina sender ein <i>association request</i> til det aksesspunktet som har best signal.</p>
+            <button type="button" class="show" data-step="2">Vis i animasjonen</button>
+        </li>
+        <li>
+            <h3>Innlogging på nettet med 802.1X <span class="tag">lag 2 · WPA2/WPA3-Enterprise · EAP · RADIUS</span></h3>
+            <p>Skulenettet for elevar har som regel ikkje eitt felles passord. Kvar elev loggar i staden inn med sin eigen brukar. Til å byrje med slepper aksesspunktet berre gjennom <b>EAP</b>-trafikk (autentisering). Dette sender det vidare til ein <b>RADIUS-server</b>, som sjekkar brukarnamnet og passordet til eleven (til dømes Feide- eller AD-brukaren) eller eit sertifikat.</p>
+            <ul>
+                <li>Maskina bør sjekke <b>sertifikatet</b> til serveren, slik at ho ikkje gir passordet til eit falskt aksesspunkt.</li>
+                <li>Godkjenner RADIUS-serveren brukaren, får aksesspunktet beskjed om å plassere maskina i eit eige <b>VLAN for elevar/BYOD</b>. Det er skilt frå nettet til dei tilsette og administrasjonen.</li>
+                <li>Til slutt lagar maskina og aksesspunktet <b>krypteringsnøklar</b> i eit 4-vegs handtrykk. Etter det er all trådlaus trafikk kryptert.</li>
+            </ul>
+            <button type="button" class="show" data-step="3">Vis i animasjonen</button>
+        </li>
+        <li>
+            <h3>DHCP – maskina får IP-adresse <span class="tag">lag 3 / 7 · DHCP (UDP 67/68)</span></h3>
+            <p>Maskina har enno inga IP-adresse. Difor sender ho ein <b>broadcast</b> (ei melding til alle) i VLAN-et. Kjerneswitchen er gateway for VLAN-et og sender meldinga vidare til DHCP-serveren (<i>DHCP relay</i>). Det går fire meldingar, som ein kallar <b>DORA</b>:</p>
+            <ul>
+                <li><b>D</b>iscover – «Er det ein DHCP-server her?»</li>
+                <li><b>O</b>ffer – «Du kan få 10.20.5.37.»</li>
+                <li><b>R</b>equest – «Ja takk, eg vil ha 10.20.5.37.»</li>
+                <li><b>A</b>ck – «Avtalt, adressa er di i 8 timar.»</li>
+            </ul>
+            <p>I tillegg til IP-adressa får maskina <b>nettmaske</b> (her /16), <b>standard gateway</b> (10.20.0.1), <b>DNS-server</b> og <b>leigetid</b>. Får ho ikkje noko svar, gir Windows seg sjølv ei <b>APIPA-adresse</b> (169.254.x.x). Med ei slik adresse kjem ein ikkje ut på internett.</p>
+            <button type="button" class="show" data-step="4">Vis i animasjonen</button>
+        </li>
+        <li>
+            <h3>ARP – finn gatewayen <span class="tag">lag 2–3 · ARP</span></h3>
+            <p>Windows sender først ein <i>gratuitous ARP</i> for å sjekke at ingen andre alt brukar den same IP-adressa. Pakkar på det lokale nettet blir leverte med MAC-adresser. For å sende noko ut av sitt eige nett må maskina difor vite MAC-adressa til standard gateway. Ho sender ein ARP-førespurnad som broadcast: «Kven har 10.20.0.1?» Gatewayen svarar med MAC-adressa si, og svaret blir lagra i <b>ARP-tabellen</b>.</p>
+            <button type="button" class="show" data-step="5">Vis i animasjonen</button>
+        </li>
+        <li>
+            <h3>Windows sjekkar om det er internett (NCSI) <span class="tag">lag 7 · DNS + HTTP</span></h3>
+            <p>Tenesta <b>NCSI</b> (<i>Network Connectivity Status Indicator</i>) gjer eit DNS-oppslag på <code>www.msftconnecttest.com</code> og hentar fila <code>connecttest.txt</code>. Får ho rett svar, viser nettverksikonet at maskina har tilgang til internett. Blir ho i staden send vidare til ei innloggingsside (<i>captive portal</i>), opnar Windows nettlesaren slik at eleven kan logge inn. Det er vanleg på gjestenett.</p>
+            <p>Første gong maskina er på nettet, blir det sett som <b>Offentleg nettverk</b>. Då stengjer Windows-brannmuren for fildeling og for at andre maskiner kan kople seg til eleven si maskin. Det er rett innstilling på skulen.</p>
+            <button type="button" class="show" data-step="6">Vis i animasjonen</button>
+        </li>
+        <li>
+            <h3>DNS – namn blir til IP-adresser <span class="tag">lag 7 · DNS (UDP 53)</span></h3>
+            <p>Kvar gong maskina skal nå ei teneste ved namn, til dømes <code>login.microsoftonline.com</code>, spør ho DNS-serveren som ho fekk frå DHCP. Kjenner ikkje DNS-serveren svaret, spør han vidare ute på internett (<b>rekursivt oppslag</b>). Svaret blir lagra i ein <b>DNS-buffer</b> på maskina ei stund, så neste oppslag går raskare. Skulen kan òg bruke DNS til å stoppe kjende skadelege nettstader.</p>
+            <button type="button" class="show" data-step="7">Vis i animasjonen</button>
+        </li>
+        <li>
+            <h3>Ruting, brannmur og NAT <span class="tag">lag 3–4 · IP, TCP/UDP</span></h3>
+            <p>Pakkar til adresser utanfor skulenettet går til standard gateway, som rutar dei vidare til <b>brannmuren</b>. Brannmuren sjekkar om elev-VLAN-et har lov til å sende trafikken, og han kan filtrere innhald. Han gjer òg <b>NAT</b>: den private adressa (10.20.5.37) blir bytt ut med den offentlege IP-adressa til skulen. <b>Portnummer</b> held styr på kva maskin svaret skal tilbake til. Trafikk som bryt med reglane, blir stoppa.</p>
+            <button type="button" class="show" data-step="8">Vis i animasjonen</button>
+        </li>
+        <li>
+            <h3>Klokke, oppdateringar og skytenester <span class="tag">lag 7 · NTP, HTTPS</span></h3>
+            <p>Windows stiller klokka med <b>NTP</b> (<code>time.windows.com</code>). Rett tid er viktig, elles kan sertifikat og innloggingar bli avviste. Så startar trafikken i bakgrunnen: <b>Windows Update</b>, nye virusdefinisjonar til <b>Microsoft Defender</b>, og synkronisering i <b>OneDrive</b> og <b>Teams</b>. Er maskina registrert i skulen sitt <b>Intune</b> (MDM), hentar ho òg reglar og appar derifrå. Når mange maskiner gjer dette samstundes, til dømes i første time, kan nettet bli tregt.</p>
+            <button type="button" class="show" data-step="9">Vis i animasjonen</button>
+        </li>
+        <li>
+            <h3>Eleven loggar inn og tek tenestene i bruk <span class="tag">lag 7 · HTTPS/TLS</span></h3>
+            <p>Innlogginga i Windows skjer <b>lokalt</b> på maskina, med lokal konto eller Microsoft-konto og PIN eller Windows Hello. Ei BYOD-maskin er ikkje meld inn i domenet til skulen, så ho får ingen gruppepolicyar (GPO) derifrå. Når eleven opnar læringsplattforma i nettlesaren, loggar hen inn med <b>Feide</b>. All trafikken går over <b>HTTPS</b>: Etter eit TLS-handtrykk, der maskina sjekkar sertifikatet til serveren, er innhaldet kryptert heile vegen frå maskina til serveren.</p>
+            <button type="button" class="show" data-step="10">Vis i animasjonen</button>
+        </li>
+    </ol>
+
+    <h2>Kortversjon</h2>
+    <div class="tablewrap">
+        <table>
+            <tr><th>#</th><th>Kva skjer</th><th>Protokoll / teknologi</th><th>OSI-lag</th></tr>
+            <tr><td>1</td><td>Maskinvaretest og oppstart</td><td>UEFI, POST, Secure Boot</td><td>–</td></tr>
+            <tr><td>2</td><td>Windows og drivarar</td><td>Nettverksdrivar, MAC-adresse</td><td>2</td></tr>
+            <tr><td>3</td><td>Finn og koplar til trådlaust nett</td><td>802.11, SSID, beacon/probe</td><td>1–2</td></tr>
+            <tr><td>4</td><td>Logg inn på nettet, får VLAN og kryptering</td><td>802.1X, EAP, RADIUS, WPA2/3</td><td>2</td></tr>
+            <tr><td>5</td><td>Får IP-adresse, gateway og DNS</td><td>DHCP (DORA)</td><td>3/7</td></tr>
+            <tr><td>6</td><td>Finn MAC-adressa til gatewayen</td><td>ARP</td><td>2–3</td></tr>
+            <tr><td>7</td><td>Sjekkar internettilgang</td><td>NCSI (DNS + HTTP)</td><td>7</td></tr>
+            <tr><td>8</td><td>Gjer om namn til IP-adresser</td><td>DNS</td><td>7</td></tr>
+            <tr><td>9</td><td>Ut på internett</td><td>Ruting, brannmur, NAT</td><td>3–4</td></tr>
+            <tr><td>10</td><td>Klokke og bakgrunnstenester</td><td>NTP, Windows Update, Intune</td><td>7</td></tr>
+            <tr><td>11</td><td>Innlogging og bruk</td><td>Feide, HTTPS/TLS</td><td>7</td></tr>
+        </table>
+    </div>
+
+    <h2>Sjekk det sjølv</h2>
+    <p>Opne <b>Ledetekst</b> eller <b>Terminal</b> på eiga maskin og prøv desse kommandoane:</p>
+    <ul>
+        <li><code>ipconfig /all</code> – IP-adresse, MAC-adresse, gateway, DNS-server og leigetid frå DHCP</li>
+        <li><code>ipconfig /release</code> og <code>ipconfig /renew</code> – gi frå deg IP-adressa og be om ei ny (DORA på nytt)</li>
+        <li><code>arp -a</code> – ARP-tabellen, med gatewayen sin MAC-adresse</li>
+        <li><code>nslookup vg.no</code> – eit DNS-oppslag</li>
+        <li><code>ipconfig /displaydns</code> – DNS-bufferen</li>
+        <li><code>tracert vg.no</code> – kva rutarar pakkane går gjennom</li>
+        <li><code>netsh wlan show interfaces</code> – SSID, signalstyrke og autentiseringstype</li>
+    </ul>
+    <p class="note">IP-adressene, VLAN-nummeret og nettnamnet på denne sida er døme. Kvar skule set opp nettet sitt litt ulikt.</p>
+
+    <footer><a href="index.html">← Tilbake til framsida</a></footer>
+</div>
+
+<script>
+(function () {
+    "use strict";
+
+    /* ---------- nettverksnodar (punkt pakkane går via) ---------- */
+    const P = {
+        pc: [158, 240], ap: [245, 240], sw: [405, 240],
+        radius: [285, 85], dhcp: [405, 85], dns: [525, 85],
+        fw: [580, 240], net: [725, 240]
+    };
+    const C = {
+        wifi: "#7b4bc4", eap: "#d9822b", dhcp: "#2e8b57", arp: "#138a9e",
+        dns: "#0066cc", http: "#555f6b", nat: "#8e44ad", bad: "#c0392b", tls: "#1e7f4f"
+    };
+    const NS = "http://www.w3.org/2000/svg";
+    const $ = (id) => document.getElementById(id);
+    const pk = $("pkts");
+
+    /* ---------- klokke som kan pausast ---------- */
+    let clock = 0, last = 0, playing = false, speed = 1, token = 0;
+    const waiters = new Set();
+    const ABORT = { abort: true };
+    function tick(now) {
+        const dt = last ? Math.min(now - last, 100) : 0;
+        last = now;
+        if (playing) clock += dt * speed;
+        for (const w of Array.from(waiters)) w();
+        requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+
+    function until(done) {
+        const my = token;
+        return new Promise((res, rej) => {
+            const w = () => {
+                if (my !== token) { waiters.delete(w); rej(ABORT); return; }
+                if (done()) { waiters.delete(w); res(); }
+            };
+            waiters.add(w);
+        });
+    }
+    const sleep = (ms) => { const end = clock + ms; return until(() => clock >= end); };
+    const after = (ms, fn) => sleep(ms).then(fn);
+
+    /* ---------- visuelle hjelparar ---------- */
+    function el(tag, attrs, parent) {
+        const e = document.createElementNS(NS, tag);
+        for (const k in attrs) e.setAttribute(k, attrs[k]);
+        (parent || pk).appendChild(e);
+        return e;
+    }
+
+    function flash(id) {
+        const h = document.querySelector("#n-" + id + " .halo");
+        if (!h) return;
+        h.classList.add("on");
+        setTimeout(() => h.classList.remove("on"), 450 / speed);
+    }
+
+    async function send(path, label, color, opt) {
+        opt = opt || {};
+        const g = el("g", { "class": "pkt" });
+        const dot = el("circle", { r: 7, fill: color, stroke: "white", "stroke-width": 2 }, g);
+        const bg = el("rect", { rx: 9, height: 19, fill: color, opacity: 0.95 }, g);
+        const tx = el("text", { "text-anchor": "middle" }, g);
+        tx.textContent = label;
+        const w = tx.getComputedTextLength() + 16;
+        bg.setAttribute("width", w);
+
+        const pts = path.map((n) => P[n]);
+        const seg = [];
+        let total = 0;
+        for (let i = 1; i < pts.length; i++) {
+            const d = Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
+            seg.push(d); total += d;
+        }
+        const dur = total / 0.2; // 200 px per sekund ved 1×
+        const start = clock;
+        const place = (x, y) => {
+            dot.setAttribute("cx", x); dot.setAttribute("cy", y);
+            // hald etiketten innanfor biletet
+            const lx = Math.max(w / 2 + 4, Math.min(796 - w / 2, x));
+            const ly = y - 14 - (opt.lift || 0);
+            bg.setAttribute("x", lx - w / 2); bg.setAttribute("y", ly - 14);
+            tx.setAttribute("x", lx); tx.setAttribute("y", ly);
+        };
+        place(pts[0][0], pts[0][1]);
+        try {
+            await until(() => {
+                const t = Math.min(1, (clock - start) / dur);
+                let d = t * total, i = 0;
+                while (i < seg.length - 1 && d > seg[i]) { d -= seg[i]; i++; }
+                const f = seg[i] ? d / seg[i] : 1;
+                const a = pts[i], b = pts[i + 1];
+                place(a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f);
+                return t >= 1;
+            });
+            flash(path[path.length - 1]);
+            if (opt.block) {
+                dot.setAttribute("fill", C.bad);
+                bg.setAttribute("fill", C.bad);
+                tx.textContent = "✕ Blokkert av filteret";
+                const w2 = tx.getComputedTextLength() + 16;
+                bg.setAttribute("width", w2);
+                bg.setAttribute("x", +tx.getAttribute("x") - w2 / 2);
+                await sleep(1400);
+            } else {
+                await sleep(opt.hold || 150);
+            }
+        } finally {
+            g.remove();
+        }
+    }
+
+    async function ripple(id) {
+        const [x, y] = P[id];
+        const rings = [0, 300, 600].map(() =>
+            el("circle", { cx: x, cy: y, r: 0, fill: "none", stroke: C.wifi, "stroke-width": 2 }));
+        const start = clock, dur = 1600;
+        try {
+            await until(() => {
+                const t = (clock - start) / dur;
+                rings.forEach((r, i) => {
+                    const u = Math.max(0, Math.min(1, t - i * 0.18) / 0.64);
+                    r.setAttribute("r", 8 + u * 110);
+                    r.setAttribute("opacity", u > 0 && u < 1 ? 1 - u : 0);
+                });
+                return t >= 1.4;
+            });
+        } finally {
+            rings.forEach((r) => r.remove());
+        }
+    }
+
+    /* ---------- tilstand som vert vist ---------- */
+    const S0 = {
+        power: false, scr: ["", ""], mac: "–", ip: "–", gw: "–", status: "Av",
+        wifi: 0.15, lock: false, vlan: false
+    };
+    let S = Object.assign({}, S0);
+    function set(p) { Object.assign(S, p); render(); }
+    function render() {
+        $("screen").setAttribute("fill", S.power ? "#1e3a5f" : "#111");
+        $("scr1").textContent = S.scr[0];
+        $("scr2").textContent = S.scr[1];
+        $("iMac").textContent = S.mac;
+        $("iIp").textContent = S.ip;
+        $("iGw").textContent = S.gw;
+        $("iStatus").textContent = S.status;
+        $("wifiLink").setAttribute("opacity", S.wifi);
+        $("lock").setAttribute("opacity", S.lock ? 1 : 0);
+        $("vlan").setAttribute("opacity", S.vlan ? 1 : 0);
+    }
+    let sayTxt = "";
+    function say(t) { sayTxt = t; $("capText").textContent = t; }
+
+    /* ---------- stega ---------- */
+    const toDns = ["pc", "ap", "sw", "dns"], fromDns = ["dns", "sw", "ap", "pc"];
+    const toNet = ["pc", "ap", "sw", "fw", "net"], fromNet = ["net", "fw", "sw", "ap", "pc"];
+
+    const steps = [
+        {
+            title: "Straumen kjem på – POST og UEFI",
+            end: { power: true, scr: ["Secure Boot ✓", "Boot Manager"], status: "Startar" },
+            run: async () => {
+                say("Eleven trykkjer på av/på-knappen. UEFI-fastvara startar og køyrer POST – ein test av prosessor, minne og anna maskinvare.");
+                set({ power: true, scr: ["POST", "sjekkar maskinvare"], status: "Startar" });
+                await sleep(2200);
+                say("UEFI finn oppstartsdisken (SSD-en) og startar Windows Boot Manager.");
+                set({ scr: ["UEFI", "finn oppstartsdisk"] });
+                await sleep(2000);
+                say("Secure Boot sjekkar at oppstartsprogrammet er digitalt signert – ingen skadevare får starte før Windows.");
+                set({ scr: ["Secure Boot ✓", "Boot Manager"] });
+                await sleep(2000);
+            }
+        },
+        {
+            title: "Windows startar og lastar drivarar",
+            end: { scr: ["Windows", "innloggingsskjerm"], mac: "3A-F1-6C-92-0D-17", status: "Ikkje tilkopla" },
+            run: async () => {
+                say("Windows-kjernen blir lasta inn i minnet.");
+                set({ scr: ["Windows", "lastar kjerne …"] });
+                await sleep(1800);
+                say("Drivarane blir starta – mellom anna for nettverkskortet. Kortet har ei MAC-adresse (lag 2). Windows kan velje ei tilfeldig MAC-adresse for kvart nett.");
+                set({ scr: ["Windows", "startar drivarar …"], mac: "3A-F1-6C-92-0D-17" });
+                await sleep(2600);
+                say("Nettverkstenestene (WLAN AutoConfig, DHCP- og DNS-klient) er klare. Oppkoplinga startar ofte medan innloggingsskjermen står framme.");
+                set({ scr: ["Windows", "innloggingsskjerm"], status: "Ikkje tilkopla" });
+                await sleep(2200);
+            }
+        },
+        {
+            title: "Maskina finn skulenettet (Wi-Fi)",
+            end: { wifi: 0.6, status: "Kopla til AP, ikkje godkj." },
+            run: async () => {
+                say("Maskina sender ut probe-førespurnader: «Kva trådlause nett finst her?»");
+                set({ status: "Søkjer etter nett …" });
+                await Promise.all([ripple("pc"), after(300, () => send(["pc", "ap"], "Probe request", C.wifi))]);
+                say("Aksesspunktet svarar med nettnamnet (SSID). Windows kjenner att «Skule-Elev» frå ein lagra profil.");
+                await send(["ap", "pc"], "Probe response: «Skule-Elev»", C.wifi, { hold: 500 });
+                say("Maskina ber om å få kople seg til aksesspunktet med best signal.");
+                await send(["pc", "ap"], "Association request", C.wifi);
+                await send(["ap", "pc"], "Association response", C.wifi);
+                set({ wifi: 0.6, status: "Kopla til AP, ikkje godkj." });
+                await sleep(500);
+            }
+        },
+        {
+            title: "Innlogging på nettet med 802.1X",
+            end: { wifi: 1, lock: true, vlan: true, status: "Godkjent, kryptert" },
+            run: async () => {
+                say("Aksesspunktet slepper berre gjennom autentiseringstrafikk (EAP) og spør kven maskina er.");
+                await send(["ap", "pc"], "EAP: Kven er du?", C.eap);
+                say("Maskina sender brukarnamn og passord (kryptert i ein TLS-tunnel). Aksesspunktet sender det vidare til RADIUS-serveren.");
+                await send(["pc", "ap", "sw", "radius"], "EAP: brukarnamn + passord", C.eap);
+                say("RADIUS-serveren sjekkar brukaren mot brukarkatalogen (t.d. Feide/AD) …");
+                await sleep(1200);
+                say("Godkjent! RADIUS seier òg kva VLAN maskina skal i: elev-VLAN 20, skilt frå nettet til dei tilsette.");
+                await send(["radius", "sw", "ap"], "Access-Accept + VLAN 20", C.eap);
+                set({ vlan: true });
+                await send(["ap", "pc"], "EAP-Success", C.eap);
+                say("Maskina og aksesspunktet lagar krypteringsnøklar i eit 4-vegs handtrykk.");
+                await send(["ap", "pc"], "Handtrykk 1/4", C.wifi, { hold: 0 });
+                await send(["pc", "ap"], "Handtrykk 2/4", C.wifi, { hold: 0 });
+                await send(["ap", "pc"], "Handtrykk 3/4", C.wifi, { hold: 0 });
+                await send(["pc", "ap"], "Handtrykk 4/4", C.wifi, { hold: 0 });
+                say("Ferdig – all trådlaus trafikk er no kryptert (WPA2/WPA3-Enterprise).");
+                set({ wifi: 1, lock: true, status: "Godkjent, kryptert" });
+                await sleep(900);
+            }
+        },
+        {
+            title: "DHCP – maskina får IP-adresse",
+            end: { ip: "10.20.5.37/16", gw: "10.20.0.1 / 10.0.0.53", status: "Har IP-adresse" },
+            run: async () => {
+                say("Maskina har inga IP-adresse og sender ein broadcast. Gatewayen sender han vidare til DHCP-serveren (DHCP relay).");
+                set({ ip: "0.0.0.0 (ingen enno)" });
+                await send(["pc", "ap", "sw", "dhcp"], "DHCP Discover (broadcast)", C.dhcp);
+                say("DHCP-serveren finn ei ledig adresse og tilbyr ho.");
+                await send(["dhcp", "sw", "ap", "pc"], "DHCP Offer: 10.20.5.37", C.dhcp);
+                say("Maskina takkar ja til tilbodet.");
+                await send(["pc", "ap", "sw", "dhcp"], "DHCP Request: 10.20.5.37", C.dhcp);
+                say("Serveren stadfestar. Maskina får IP-adresse, nettmaske, gateway, DNS-server og leigetid (DORA).");
+                await send(["dhcp", "sw", "ap", "pc"], "DHCP Ack: din i 8 timar", C.dhcp);
+                set({ ip: "10.20.5.37/16", gw: "10.20.0.1 / 10.0.0.53", status: "Har IP-adresse" });
+                await sleep(1200);
+            }
+        },
+        {
+            title: "ARP – finn gatewayen",
+            end: { status: "Kjenner gatewayen" },
+            run: async () => {
+                say("Først sjekkar maskina at ingen andre brukar same IP-adresse (gratuitous ARP).");
+                await send(["pc", "ap", "sw"], "ARP: 10.20.5.37 er meg", C.arp);
+                say("For å sende noko ut av nettet treng maskina MAC-adressa til gatewayen. Ho spør alle: «Kven har 10.20.0.1?»");
+                await send(["pc", "ap", "sw"], "ARP: Kven har 10.20.0.1?", C.arp);
+                say("Gatewayen svarar med MAC-adressa si. Svaret blir lagra i ARP-tabellen.");
+                await send(["sw", "ap", "pc"], "ARP-svar: 00-1B-54-AA-10-01", C.arp);
+                set({ status: "Kjenner gatewayen" });
+                await sleep(900);
+            }
+        },
+        {
+            title: "Windows sjekkar om det er internett (NCSI)",
+            end: { scr: ["Internett ✓", "Offentleg nettverk"], status: "Tilkopla, internett ✓" },
+            run: async () => {
+                say("Windows-tenesta NCSI vil teste om det er internett. Først spør ho DNS-serveren etter adressa til testserveren.");
+                await send(toDns, "DNS: www.msftconnecttest.com?", C.dns);
+                await send(fromDns, "DNS-svar: IP-adresse", C.dns);
+                say("Så hentar ho ei lita testfil frå Microsoft gjennom brannmuren.");
+                await send(toNet, "HTTP GET /connecttest.txt", C.http);
+                say("Rett svar betyr at det er internett. Kjem det ei innloggingsside i staden (captive portal), opnar Windows nettlesaren.");
+                await send(fromNet, "«Microsoft Connect Test»", C.http);
+                say("Nettverksikonet viser internett. Nettet er sett som Offentleg, så Windows-brannmuren stengjer for deling.");
+                set({ scr: ["Internett ✓", "Offentleg nettverk"], status: "Tilkopla, internett ✓" });
+                await sleep(1400);
+            }
+        },
+        {
+            title: "DNS – namn blir til IP-adresser",
+            end: {},
+            run: async () => {
+                say("Maskina skal nå Microsoft si innloggingsteneste og spør DNS-serveren til skulen etter IP-adressa.");
+                await send(toDns, "DNS: login.microsoftonline.com?", C.dns);
+                say("DNS-serveren veit ikkje svaret sjølv og spør vidare ute på internett (rekursivt oppslag).");
+                await send(["dns", "sw", "fw", "net"], "Rekursivt oppslag", C.dns);
+                await send(["net", "fw", "sw", "dns"], "Svar: 20.190.x.x", C.dns);
+                say("Svaret går tilbake til maskina og blir lagra i DNS-bufferen, så neste oppslag går raskare.");
+                await send(fromDns, "DNS-svar: 20.190.x.x", C.dns);
+                await sleep(800);
+            }
+        },
+        {
+            title: "Ruting, brannmur og NAT",
+            end: {},
+            run: async () => {
+                say("Pakken skal ut på internett. Han går til gatewayen og vidare til brannmuren – med den private avsendaradressa.");
+                await send(["pc", "ap", "sw", "fw"], "frå 10.20.5.37:51544", C.nat);
+                say("Brannmuren sjekkar reglane og gjer NAT: den private adressa blir bytt ut med den offentlege adressa til skulen.");
+                await sleep(600);
+                await send(["fw", "net"], "frå 203.0.113.10:40112", C.nat);
+                say("Svaret kjem tilbake. Portnummeret fortel brannmuren kva maskin på innsida det skal til.");
+                await send(["net", "fw"], "til 203.0.113.10:40112", C.nat);
+                await send(["fw", "sw", "ap", "pc"], "til 10.20.5.37:51544", C.nat);
+                say("Trafikk som bryt med reglane til skulen, blir stoppa i brannmuren.");
+                await send(["pc", "ap", "sw", "fw"], "til blokkert nettstad", C.bad, { block: true });
+                await sleep(400);
+            }
+        },
+        {
+            title: "Klokke, oppdateringar og skytenester",
+            end: { status: "Synkroniserer i bakgrunnen" },
+            run: async () => {
+                say("Windows stiller klokka med NTP, og trafikken i bakgrunnen kjem i gang: Windows Update, Defender, OneDrive og Teams.");
+                set({ status: "Synkroniserer i bakgrunnen" });
+                await Promise.all([
+                    send(toNet, "NTP: Kva er klokka?", C.dns),
+                    after(900, () => send(toNet, "Windows Update", C.http)),
+                    after(1800, () => send(toNet, "Defender-definisjonar", C.http)),
+                    after(2700, () => send(toNet, "OneDrive / Teams", C.http))
+                ]);
+                say("Svara strøymer inn. Når mange maskiner gjer dette samstundes, kan nettet bli tregt.");
+                await Promise.all([
+                    send(fromNet, "NTP: 08:14:03", C.dns),
+                    after(900, () => send(fromNet, "Oppdateringar", C.http)),
+                    after(1800, () => send(fromNet, "Filer synkronisert", C.http))
+                ]);
+                await sleep(600);
+            }
+        },
+        {
+            title: "Eleven loggar inn og tek tenestene i bruk",
+            end: { scr: ["Innlogga ✓", "læringsplattform"], status: "Klar til bruk ✓" },
+            run: async () => {
+                say("Eleven loggar inn i Windows med PIN eller Windows Hello. Det skjer lokalt på maskina, ikkje mot domenet til skulen.");
+                set({ scr: ["Windows Hello ✓", "Velkomen"] });
+                await sleep(2200);
+                say("Eleven opnar læringsplattforma i nettlesaren. Først kjem eit TLS-handtrykk: maskina sjekkar sertifikatet til serveren.");
+                set({ scr: ["Nettlesar", "Feide-innlogging"] });
+                await send(toNet, "HTTPS: TLS-handtrykk", C.tls);
+                await send(fromNet, "Sertifikat OK", C.tls);
+                say("Innlogginga med Feide går kryptert, heile vegen frå maskina til serveren.");
+                await send(toNet, "Feide-innlogging (kryptert)", C.tls);
+                await send(fromNet, "Velkomen!", C.tls);
+                say("Ferdig! Maskina er på skulenettet, har internett, og eleven er innlogga.");
+                set({ scr: ["Innlogga ✓", "læringsplattform"], status: "Klar til bruk ✓" });
+                await sleep(1500);
+            }
+        }
+    ];
+
+    /* ---------- styring ---------- */
+    let cur = 0;
+    const dots = $("dots");
+    const items = document.querySelectorAll("#steps > li");
+    steps.forEach((s, i) => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.textContent = i + 1;
+        b.title = s.title;
+        b.addEventListener("click", () => go(i, true));
+        dots.appendChild(b);
+    });
+
+    function stateBefore(i) {
+        const s = Object.assign({}, S0);
+        for (let k = 0; k < i; k++) Object.assign(s, steps[k].end);
+        return s;
+    }
+
+    function ui() {
+        $("bPlay").textContent = playing ? "❚❚ Pause" : (cur === steps.length - 1 && finished ? "↺ Spel igjen" : "▶ Spel");
+        $("capTitle").textContent = "Steg " + (cur + 1) + " av " + steps.length + ": " + steps[cur].title;
+        Array.from(dots.children).forEach((b, i) => {
+            b.classList.toggle("on", i === cur);
+            b.classList.toggle("done", i < cur);
+        });
+        items.forEach((li, i) => li.classList.toggle("now", i === cur));
+    }
+
+    let finished = false;
+    async function go(i, play) {
+        token++;
+        pk.textContent = "";
+        cur = i;
+        finished = false;
+        S = stateBefore(i);
+        render();
+        if (play !== undefined) playing = play;
+        ui();
+        const my = token;
+        try {
+            await steps[i].run();
+            set(steps[i].end);
+            await sleep(700);
+        } catch (e) {
+            if (e !== ABORT) throw e;
+            return;
+        }
+        if (my !== token) return;
+        if (i < steps.length - 1) {
+            if ($("auto").checked) { go(i + 1); return; }
+            playing = false;
+            say(sayTxt + " – Trykk «Neste» for å halde fram.");
+        } else {
+            playing = false;
+            finished = true;
+        }
+        ui();
+    }
+
+    $("bPlay").addEventListener("click", () => {
+        if (finished) { go(0, true); return; }
+        playing = !playing;
+        if (playing) $("capText").textContent = sayTxt;
+        ui();
+    });
+    $("bNext").addEventListener("click", () => go(Math.min(cur + 1, steps.length - 1), true));
+    $("bPrev").addEventListener("click", () => go(Math.max(cur - 1, 0), true));
+    $("bRestart").addEventListener("click", () => go(0, true));
+    $("speed").addEventListener("change", (e) => { speed = parseFloat(e.target.value); });
+    document.querySelectorAll(".show").forEach((b) => {
+        b.addEventListener("click", () => {
+            $("anim").scrollIntoView({ behavior: "smooth", block: "start" });
+            go(+b.dataset.step, true);
+        });
+    });
+
+    go(0, false);
+    $("capText").textContent = "Trykk «Spel» for å starte animasjonen.";
+})();
+</script>
+</body>
+</html>
