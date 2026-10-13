@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="nn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>QAM-labben</title>
+<style>
+:root {
+    --bg: #eef1f7;
+    --panel: #ffffff;
+    --panel2: #f3f5fa;
+    --border: #d4d9e3;
+    --text: #1c2130;
+    --muted: #5d667a;
+    --grid: #e2e6ee;
+    --axis: #8a93a6;
+    --pt: #b3bacb;
+    --i: #2563eb;
+    --q: #ea7a12;
+    --sum: #1c2130;
+    --accent: #7c3aed;
+    --ok: #059669;
+    --bad: #dc2626;
+    --badbg: #fde2e2;
+    color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #1e2331;
+        --panel: #262c3c;
+        --panel2: #2e3547;
+        --border: #3a4257;
+        --text: #e4e7ee;
+        --muted: #9aa3b5;
+        --grid: #323a4d;
+        --axis: #6f7891;
+        --pt: #59627a;
+        --i: #60a5fa;
+        --q: #fb923c;
+        --sum: #f1f3f8;
+        --accent: #a78bfa;
+        --ok: #34d399;
+        --bad: #f87171;
+        --badbg: #5a2530;
+        color-scheme: dark;
+    }
+}
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    line-height: 1.5;
+    padding: 16px;
+}
+main { max-width: 760px; margin: 0 auto; }
+a { color: var(--accent); }
+h1 { margin: 4px 0 4px; font-size: 26px; }
+.lead { color: var(--muted); margin: 0 0 16px; }
+.card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+.card h2 { margin: 0 0 6px; font-size: 18px; }
+.card p { margin: 0 0 10px; }
+.small { font-size: 14px; color: var(--muted); }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.seg { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.seg button {
+    border: 0; background: var(--panel2); color: var(--text);
+    padding: 8px 10px; font: inherit; font-size: 14px; cursor: pointer;
+    border-right: 1px solid var(--border);
+}
+.seg button:last-child { border-right: 0; }
+.seg button.on { background: var(--accent); color: #fff; }
+.btn {
+    border: 1px solid var(--border); background: var(--panel2); color: var(--text);
+    padding: 8px 12px; border-radius: 8px; font: inherit; font-size: 14px; cursor: pointer;
+}
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+canvas { display: block; width: 100%; touch-action: none; }
+#plane { max-width: 440px; margin: 8px auto 0; cursor: crosshair; }
+.readout {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 8px; margin-top: 12px;
+}
+.readout div { background: var(--panel2); border-radius: 8px; padding: 8px 10px; }
+.readout b { display: block; font-size: 12px; color: var(--muted); font-weight: 600; }
+.readout span { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 16px; }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 14px; margin-top: 6px; }
+.legend i { display: inline-block; width: 18px; height: 3px; vertical-align: middle; margin-right: 6px; border-radius: 2px; }
+label.slider { display: block; margin: 10px 0 4px; font-weight: 600; }
+input[type=range] { width: 100%; accent-color: var(--accent); }
+.ends { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); }
+input[type=text] {
+    flex: 1; min-width: 0; padding: 8px 10px; font: inherit;
+    border: 1px solid var(--border); border-radius: 8px; background: var(--panel2); color: var(--text);
+}
+.rx {
+    font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 18px;
+    background: var(--panel2); border-radius: 8px; padding: 10px; margin-top: 10px;
+    word-break: break-all; min-height: 46px;
+}
+.rx .err { background: var(--badbg); color: var(--bad); border-radius: 3px; }
+.stat { margin-top: 8px; font-size: 15px; }
+.stat .good { color: var(--ok); font-weight: 600; }
+.stat .badtxt { color: var(--bad); font-weight: 600; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+td, th { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border); }
+code { font-family: ui-monospace, Menlo, Consolas, monospace; }
+footer { font-size: 13px; color: var(--muted); text-align: center; margin: 8px 0 20px; }
+</style>
+</head>
+<body>
+<main>
+    <p class="small"><a href="index.html">← Frodolini</a></p>
+    <h1>QAM-labben</h1>
+    <p class="lead">Korleis Wi-Fi brukar imaginære tal til å sende bit gjennom lufta.</p>
+
+    <div class="card">
+        <h2>1. Eit punkt i det komplekse planet</h2>
+        <p>Den vassrette aksen er den <b>vanlege</b> delen av talet (kalla I). Den loddrette er den <b>imaginære</b> delen (kalla Q). Dra punktet rundt og sjå kva som skjer med signalet under.</p>
+        <div class="row">
+            <span class="small">Konstellasjon:</span>
+            <div class="seg" id="mSeg">
+                <button data-m="4">4</button>
+                <button data-m="16" class="on">16</button>
+                <button data-m="64">64</button>
+                <button data-m="256">256</button>
+                <button data-m="1024">1024</button>
+            </div>
+        </div>
+        <canvas id="plane"></canvas>
+        <div class="row" style="justify-content:center;margin-top:8px">
+            <button class="btn" id="snap">Fest til næraste punkt</button>
+            <button class="btn" id="mulI">× i &nbsp;(snu 90°)</button>
+        </div>
+        <div class="readout">
+            <div><b>Talet</b><span id="rNum"></span></div>
+            <div><b>Styrke (amplitude)</b><span id="rAmp"></span></div>
+            <div><b>Fase (vinkel)</b><span id="rPh"></span></div>
+            <div><b>Næraste punkt = bit</b><span id="rBits"></span></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>2. Det blir til ei radiobølgje</h2>
+        <p>Senderen lagar to bølgjer som er forskyvde ein kvart periode (90°): ei for den vanlege delen og ei for den imaginære. Summen er det som faktisk blir sendt frå antenna.</p>
+        <canvas id="wave"></canvas>
+        <div class="legend">
+            <span><i style="background:var(--i)"></i>Vanleg del (I)</span>
+            <span><i style="background:var(--q)"></i>Imaginær del (Q)</span>
+            <span><i style="background:var(--sum);height:4px"></i>Sendt signal</span>
+        </div>
+        <p class="small" style="margin-top:10px">Prøv «× i»: punktet snur 90°, og heile bølgja flyttar seg ein kvart periode. Det er det same som at i² = −1: to slike vendingar snur bølgja opp ned.</p>
+    </div>
+
+    <div class="card">
+        <h2>3. Send ein melding gjennom støy</h2>
+        <p>Teksten blir gjort om til bit, bit blir til punkt, og punkta blir sende med støy på. Mottakaren vel næraste punkt. Ligg støyen for nær eit nabopunkt, blir det feil.</p>
+        <div class="row">
+            <input type="text" id="msg" value="Hei frå Stord vgs!" maxlength="80">
+            <button class="btn primary" id="send">Send</button>
+        </div>
+        <label class="slider" for="snr">Signalkvalitet: <span id="snrVal"></span></label>
+        <input type="range" id="snr" min="0" max="45" step="1" value="30">
+        <div class="ends"><span>Langt frå ruteren (mykje støy)</span><span>Rett ved ruteren</span></div>
+        <div class="rx" id="rx"></div>
+        <div class="stat" id="stat"></div>
+        <p class="small" style="margin-top:10px">Dei mottekne punkta blir viste som ei sky i planet øvst. Prøv å byte mellom 16 og 1024 med same signalkvalitet.</p>
+    </div>
+
+    <div class="card">
+        <h2>Kvifor fell farten når du går frå ruteren?</h2>
+        <p>Fleire punkt gir fleire bit per signal, men punkta ligg tettare. Når signalet blir svakt, byter Wi-Fi automatisk til ein grovare konstellasjon som tåler meir støy.</p>
+        <table>
+            <tr><th>QAM</th><th>Bit per signal</th><th>Typisk bruk</th></tr>
+            <tr><td>4 (QPSK)</td><td>2</td><td>Svakt signal, lang avstand</td></tr>
+            <tr><td>16</td><td>4</td><td>Middels signal</td></tr>
+            <tr><td>64</td><td>6</td><td>Høgaste i Wi-Fi 4</td></tr>
+            <tr><td>256</td><td>8</td><td>Høgaste i Wi-Fi 5</td></tr>
+            <tr><td>1024</td><td>10</td><td>Høgaste i Wi-Fi 6</td></tr>
+            <tr><td>4096</td><td>12</td><td>Høgaste i Wi-Fi 7</td></tr>
+        </table>
+    </div>
+
+    <footer>Frodolini · IM-Stord</footer>
+</main>
+
+<script>
+(function () {
+    const R = 1.6; // synleg område i planet: −R … R
+
+    let M = 16;
+    let pt = { x: 0.6, y: 0.6 };
+    let cons = [];        // { x, y, bits }
+    let rxPoints = [];    // mottekne punkt
+    let noiseBase = [];   // standard normalfordelt støy, skalert med SNR
+    let txSymbols = [];   // indeksar i cons
+
+    const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+    const fmt = (v, d = 2) => v.toFixed(d).replace('.', ',').replace('-', '−');
+
+    // ---------- Konstellasjon med Gray-koding ----------
+    function buildCons(m) {
+        const side = Math.round(Math.sqrt(m));
+        const kAxis = Math.log2(side);
+        const scale = Math.sqrt(2 * (m - 1) / 3); // snittstyrke = 1
+        const gray = i => i ^ (i >> 1);
+        const toBits = (v, n) => v.toString(2).padStart(n, '0');
+        const out = [];
+        for (let qi = 0; qi < side; qi++) {
+            for (let ii = 0; ii < side; ii++) {
+                out.push({
+                    x: (2 * ii - (side - 1)) / scale,
+                    y: (2 * qi - (side - 1)) / scale,
+                    bits: toBits(gray(ii), kAxis) + toBits(gray(qi), kAxis)
+                });
+            }
+        }
+        return out;
+    }
+    function nearest(x, y) {
+        let best = 0, bd = Infinity;
+        for (let k = 0; k < cons.length; k++) {
+            const dx = cons[k].x - x, dy = cons[k].y - y, d = dx * dx + dy * dy;
+            if (d < bd) { bd = d; best = k; }
+        }
+        return best;
+    }
+
+    // ---------- Teikning ----------
+    const plane = document.getElementById('plane');
+    const wave = document.getElementById('wave');
+
+    function setupCanvas(c, h) {
+        const dpr = window.devicePixelRatio || 1;
+        const w = c.clientWidth;
+        const hh = h === 'square' ? w : h;
+        c.style.height = hh + 'px';
+        c.width = Math.round(w * dpr);
+        c.height = Math.round(hh * dpr);
+        const ctx = c.getContext('2d');
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        return { ctx, w, h: hh };
+    }
+
+    function drawPlane() {
+        const { ctx, w } = setupCanvas(plane, 'square');
+        const half = w / 2, s = half / R;
+        const X = x => half + x * s, Y = y => half - y * s;
+
+        ctx.clearRect(0, 0, w, w);
+        // rutenett
+        ctx.strokeStyle = css('--grid'); ctx.lineWidth = 1;
+        for (let v = -1.5; v <= 1.51; v += 0.5) {
+            ctx.beginPath(); ctx.moveTo(X(v), 0); ctx.lineTo(X(v), w); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(0, Y(v)); ctx.lineTo(w, Y(v)); ctx.stroke();
+        }
+        // aksar
+        ctx.strokeStyle = css('--axis'); ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(0, half); ctx.lineTo(w, half); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(half, 0); ctx.lineTo(half, w); ctx.stroke();
+        ctx.fillStyle = css('--muted'); ctx.font = '12px system-ui, sans-serif';
+        ctx.textAlign = 'right'; ctx.fillText('vanleg (I)', w - 4, half - 6);
+        ctx.textAlign = 'left'; ctx.fillText('imaginær (Q)', half + 6, 14);
+        ctx.textAlign = 'center';
+        ctx.fillText('1', X(1), half + 14); ctx.fillText('−1', X(-1), half + 14);
+        ctx.textAlign = 'left';
+        ctx.fillText('i', half + 6, Y(1) + 4); ctx.fillText('−i', half + 6, Y(-1) + 4);
+
+        // konstellasjonspunkt
+        const r = M <= 16 ? 4 : M <= 64 ? 3 : M <= 256 ? 2.2 : 1.4;
+        ctx.fillStyle = css('--pt');
+        for (const c of cons) { ctx.beginPath(); ctx.arc(X(c.x), Y(c.y), r, 0, 7); ctx.fill(); }
+        if (M <= 16) {
+            ctx.fillStyle = css('--muted'); ctx.font = '10px ui-monospace, monospace'; ctx.textAlign = 'center';
+            for (const c of cons) ctx.fillText(c.bits, X(c.x), Y(c.y) + 15);
+        }
+
+        // mottekne punkt (støysky)
+        if (rxPoints.length) {
+            ctx.globalAlpha = 0.55;
+            for (let k = 0; k < rxPoints.length; k++) {
+                const p = rxPoints[k];
+                ctx.fillStyle = p.ok ? css('--accent') : css('--bad');
+                ctx.beginPath(); ctx.arc(X(p.x), Y(p.y), 2.6, 0, 7); ctx.fill();
+            }
+            ctx.globalAlpha = 1;
+        }
+
+        // næraste punkt
+        const n = cons[nearest(pt.x, pt.y)];
+        ctx.strokeStyle = css('--accent'); ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(X(n.x), Y(n.y), r + 5, 0, 7); ctx.stroke();
+
+        // vektor og vinkel
+        const amp = Math.hypot(pt.x, pt.y), ph = Math.atan2(pt.y, pt.x);
+        if (amp > 0.05) {
+            ctx.strokeStyle = css('--muted'); ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.arc(half, half, Math.min(26, amp * s * 0.6), 0, -ph, ph > 0); ctx.stroke();
+        }
+        ctx.strokeStyle = css('--i'); ctx.lineWidth = 2; ctx.setLineDash([4, 4]);
+        ctx.beginPath(); ctx.moveTo(X(pt.x), half); ctx.lineTo(X(pt.x), Y(pt.y)); ctx.stroke();
+        ctx.strokeStyle = css('--q');
+        ctx.beginPath(); ctx.moveTo(half, Y(pt.y)); ctx.lineTo(X(pt.x), Y(pt.y)); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.strokeStyle = css('--sum'); ctx.lineWidth = 2.5;
+        ctx.beginPath(); ctx.moveTo(half, half); ctx.lineTo(X(pt.x), Y(pt.y)); ctx.stroke();
+        ctx.fillStyle = css('--accent');
+        ctx.beginPath(); ctx.arc(X(pt.x), Y(pt.y), 9, 0, 7); ctx.fill();
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
+    }
+
+    function drawWave() {
+        const { ctx, w, h } = setupCanvas(wave, 170);
+        const mid = h / 2, A = (h / 2 - 10) / (R * 1.42);
+        const periods = 2;
+        ctx.clearRect(0, 0, w, h);
+        ctx.strokeStyle = css('--grid'); ctx.lineWidth = 1;
+        for (let k = 0; k <= periods * 4; k++) {
+            const x = k / (periods * 4) * w;
+            ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+        }
+        ctx.strokeStyle = css('--axis');
+        ctx.beginPath(); ctx.moveTo(0, mid); ctx.lineTo(w, mid); ctx.stroke();
+
+        const curve = (f, color, lw) => {
+            ctx.strokeStyle = color; ctx.lineWidth = lw; ctx.beginPath();
+            for (let px = 0; px <= w; px++) {
+                const t = px / w * periods * 2 * Math.PI;
+                const y = mid - f(t) * A;
+                px ? ctx.lineTo(px, y) : ctx.moveTo(px, y);
+            }
+            ctx.stroke();
+        };
+        curve(t => pt.x * Math.cos(t), css('--i'), 1.8);
+        curve(t => -pt.y * Math.sin(t), css('--q'), 1.8);
+        curve(t => pt.x * Math.cos(t) - pt.y * Math.sin(t), css('--sum'), 3);
+    }
+
+    function readout() {
+        const amp = Math.hypot(pt.x, pt.y);
+        let deg = Math.atan2(pt.y, pt.x) * 180 / Math.PI;
+        if (deg < 0) deg += 360;
+        const sign = pt.y < 0 ? ' − ' : ' + ';
+        document.getElementById('rNum').textContent = fmt(pt.x) + sign + fmt(Math.abs(pt.y)) + 'i';
+        document.getElementById('rAmp').textContent = fmt(amp);
+        document.getElementById('rPh').textContent = Math.round(deg) + '°';
+        const n = cons[nearest(pt.x, pt.y)];
+        document.getElementById('rBits').textContent = n.bits;
+    }
+
+    function render() { drawPlane(); drawWave(); readout(); }
+
+    // ---------- Dra punktet ----------
+    let dragging = false;
+    function moveTo(e) {
+        const rect = plane.getBoundingClientRect();
+        const s = rect.width / 2 / R;
+        const x = (e.clientX - rect.left - rect.width / 2) / s;
+        const y = -(e.clientY - rect.top - rect.height / 2) / s;
+        pt.x = Math.max(-R, Math.min(R, x));
+        pt.y = Math.max(-R, Math.min(R, y));
+        render();
+    }
+    plane.addEventListener('pointerdown', e => { dragging = true; plane.setPointerCapture(e.pointerId); moveTo(e); });
+    plane.addEventListener('pointermove', e => { if (dragging) moveTo(e); });
+    plane.addEventListener('pointerup', () => { dragging = false; });
+    plane.addEventListener('pointercancel', () => { dragging = false; });
+
+    document.getElementById('snap').onclick = () => {
+        const n = cons[nearest(pt.x, pt.y)];
+        pt = { x: n.x, y: n.y }; render();
+    };
+    document.getElementById('mulI').onclick = () => {
+        // (a + bi) · i = −b + ai
+        pt = { x: -pt.y, y: pt.x }; render();
+    };
+
+    document.querySelectorAll('#mSeg button').forEach(b => {
+        b.onclick = () => {
+            document.querySelectorAll('#mSeg button').forEach(x => x.classList.remove('on'));
+            b.classList.add('on');
+            M = +b.dataset.m;
+            cons = buildCons(M);
+            const n = cons[nearest(pt.x, pt.y)];
+            pt = { x: n.x, y: n.y };
+            transmit(false);
+        };
+    });
+
+    // ---------- Sending gjennom støy ----------
+    function gauss() {
+        let u = 0, v = 0;
+        while (u === 0) u = Math.random();
+        while (v === 0) v = Math.random();
+        return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+    }
+    function textToBits(str) {
+        return Array.from(new TextEncoder().encode(str)).map(b => b.toString(2).padStart(8, '0')).join('');
+    }
+    function bitsToText(bits) {
+        const bytes = [];
+        for (let k = 0; k + 8 <= bits.length; k += 8) bytes.push(parseInt(bits.slice(k, k + 8), 2));
+        return new TextDecoder('utf-8', { fatal: false }).decode(new Uint8Array(bytes));
+    }
+
+    function transmit(newNoise) {
+        const msg = document.getElementById('msg').value;
+        const k = Math.log2(M);
+        let bits = textToBits(msg);
+        const origLen = bits.length;
+        while (bits.length % k) bits += '0';
+
+        const lookup = new Map(cons.map((c, idx) => [c.bits, idx]));
+        txSymbols = [];
+        for (let p = 0; p < bits.length; p += k) txSymbols.push(lookup.get(bits.slice(p, p + k)));
+
+        if (newNoise || noiseBase.length < txSymbols.length) {
+            noiseBase = [];
+            for (let p = 0; p < 2000; p++) noiseBase.push([gauss(), gauss()]);
+        }
+
+        const snrDb = +document.getElementById('snr').value;
+        const sigma = Math.sqrt(1 / (2 * Math.pow(10, snrDb / 10)));
+        let rxBits = '';
+        rxPoints = txSymbols.map((idx, j) => {
+            const c = cons[idx];
+            const x = c.x + sigma * noiseBase[j][0];
+            const y = c.y + sigma * noiseBase[j][1];
+            const got = nearest(x, y);
+            rxBits += cons[got].bits;
+            return { x, y, ok: got === idx };
+        });
+        rxBits = rxBits.slice(0, origLen);
+
+        let bitErr = 0;
+        for (let p = 0; p < origLen; p++) if (rxBits[p] !== bits[p]) bitErr++;
+        const symErr = rxPoints.filter(p => !p.ok).length;
+
+        // vis motteken tekst, marker teikn som er feil
+        const sent = Array.from(msg);
+        const got = Array.from(bitsToText(rxBits));
+        const rx = document.getElementById('rx');
+        rx.textContent = '';
+        got.forEach((ch, j) => {
+            const span = document.createElement('span');
+            span.textContent = ch === ' ' ? ' ' : ch;
+            if (ch !== sent[j]) span.className = 'err';
+            rx.appendChild(span);
+        });
+
+        const pct = origLen ? (100 * bitErr / origLen) : 0;
+        const st = document.getElementById('stat');
+        st.innerHTML =
+            txSymbols.length + ' signal à ' + k + ' bit. ' +
+            (bitErr === 0
+                ? '<span class="good">Ingen bitfeil.</span>'
+                : '<span class="badtxt">' + bitErr + ' bitfeil av ' + origLen + ' (' + fmt(pct, 1) + ' %)</span>, ' +
+                  symErr + ' signal landa ved feil punkt.');
+
+        render();
+    }
+
+    const snr = document.getElementById('snr');
+    const snrVal = () => document.getElementById('snrVal').textContent = snr.value + ' dB';
+    snr.addEventListener('input', () => { snrVal(); transmit(false); });
+    document.getElementById('send').onclick = () => transmit(true);
+    document.getElementById('msg').addEventListener('keydown', e => { if (e.key === 'Enter') transmit(true); });
+
+    window.addEventListener('resize', render);
+    matchMedia('(prefers-color-scheme: dark)').addEventListener('change', render);
+
+    cons = buildCons(M);
+    snrVal();
+    transmit(true);
+})();
+</script>
+</body>
+</html>
