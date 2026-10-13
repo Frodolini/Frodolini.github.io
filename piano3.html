@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="nn">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Piano 3</title>
+    <style>
+        body {
+            background-color: powderblue;
+            font-family: Arial, sans-serif;
+            color: #333;
+            margin: 0;
+            padding: 20px 16px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px 24px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 { margin: 0 0 4px; }
+        .intro { color: #666; margin: 0 0 16px; }
+        .kontrollar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px 16px;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+        .kontrollar label { display: flex; gap: 6px; align-items: center; }
+        select, input[type=text] { font: inherit; padding: 3px 6px; border: 1px solid #aaa; border-radius: 4px; }
+        #latVal { max-width: 260px; }
+        button {
+            font: inherit;
+            padding: 4px 10px;
+            border: 1px solid #aaa;
+            border-radius: 4px;
+            background: #f4f4f4;
+            cursor: pointer;
+        }
+        button:disabled, select:disabled { opacity: 0.45; cursor: default; }
+        #start { background: #2a7; color: white; border-color: #185; font-weight: bold; padding: 6px 16px; }
+        #start.stopp { background: #d33; border-color: #b11; }
+
+        /* Poengtavle */
+        .tavle {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .tavle div {
+            flex: 1;
+            min-width: 90px;
+            background: #f6f8fa;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 6px 10px;
+            font-size: 13px;
+            color: #666;
+        }
+        .tavle b { display: block; font-size: 22px; color: #222; }
+
+        /* Spelflata: fallande notar over pianoet, rullar sidelengs på smale skjermar */
+        .ramme {
+            overflow-x: auto;
+            background: #222;
+            padding: 12px 12px 8px;
+            border-radius: 8px;
+        }
+        .spelflate { min-width: 600px; }
+        #lerret {
+            display: block;
+            width: 100%;
+            height: 320px;
+            background: #111;
+            border-radius: 4px 4px 0 0;
+        }
+        .piano {
+            position: relative;
+            display: flex;
+            height: 180px;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+        }
+        .kvit {
+            flex: 1;
+            position: relative;
+            background: linear-gradient(#fff, #eee);
+            border: 1px solid #999;
+            border-radius: 0 0 5px 5px;
+            margin: 0 1px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+            padding-bottom: 8px;
+            font-size: 12px;
+            color: #888;
+        }
+        .svart {
+            position: absolute;
+            top: 0;
+            height: 60%;
+            background: linear-gradient(#333, #000);
+            border-radius: 0 0 4px 4px;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+            padding-bottom: 6px;
+            font-size: 11px;
+            color: #aaa;
+            box-sizing: border-box;
+        }
+        .kvit.nede { background: linear-gradient(#cde, #9bd); }
+        .svart.nede { background: linear-gradient(#246, #123); }
+        .kvit.treff { background: linear-gradient(#cfc, #6c6); }
+        .svart.treff { background: linear-gradient(#2a2, #050); }
+        .tast-bokstav { font-weight: bold; }
+        .skjul-bokstavar .tast-bokstav { display: none; }
+        .notenamn { margin-top: 2px; }
+
+        /* Resultat */
+        #resultat {
+            display: none;
+            margin-top: 16px;
+            padding: 14px 16px;
+            background: #f6f8fa;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        #resultat h2 { font-size: 18px; margin: 0 0 8px; }
+        .karakter { font-size: 48px; font-weight: bold; float: right; line-height: 1; margin-left: 12px; }
+        #resultat p { margin: 4px 0; font-size: 15px; }
+        .nyrekord { color: #c60; font-weight: bold; }
+
+        .hent { margin-top: 16px; font-size: 14px; }
+        .hent .rad { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+        .hent input { flex: 1; min-width: 0; }
+        #hentStatus { color: #555; margin-top: 6px; }
+        footer { margin-top: 20px; font-size: 13px; }
+        footer a { color: #0066cc; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Piano 3</h1>
+    <p class="intro">Notane fell ned mot pianoet. Trykk rett tangent akkurat når noten treffer streken! Spel med tastaturet (Z, S, X … og Q, 2, W …), mus eller fingrar. Mellomromstasten startar og stoppar. Låtar du har lagra i <a href="piano2.html">Piano 2</a> dukkar opp i lista.</p>
+
+    <div class="kontrollar">
+        <label>Låt <select id="latVal"></select></label>
+        <label>Tempo
+            <select id="tempo">
+                <option value="0.5">50 % (øving)</option>
+                <option value="0.75">75 %</option>
+                <option value="1" selected>100 %</option>
+                <option value="1.25">125 % (proff)</option>
+            </select>
+        </label>
+        <button id="start">▶ Start</button>
+    </div>
+    <div class="kontrollar">
+        <label>Lyd
+            <select id="lyd">
+                <option value="piano">Piano</option>
+                <option value="orgel">Orgel</option>
+                <option value="sinus">Fløyte (sinus)</option>
+                <option value="square">8-bit (firkant)</option>
+            </select>
+        </label>
+        <label>Volum <input type="range" id="volum" min="0" max="1" step="0.01" value="0.6"></label>
+        <label><input type="checkbox" id="hjelp"> Hjelpestemme</label>
+        <label><input type="checkbox" id="visBokstavar" checked> Vis tastar</label>
+    </div>
+
+    <div class="tavle">
+        <div>Poeng<b id="poeng">0</b></div>
+        <div>Kombo<b id="kombo">0</b></div>
+        <div>Treff<b id="treffVis">–</b></div>
+        <div>Rekord<b id="rekordVis">–</b></div>
+    </div>
+
+    <div class="ramme">
+        <div class="spelflate">
+            <canvas id="lerret"></canvas>
+            <div class="piano" id="piano"></div>
+        </div>
+    </div>
+
+    <div id="resultat"></div>
+
+    <div class="hent">
+        <b>Spel ein delt låt:</b> lim inn ei lenke frå «Kopier lenke» i Piano 2.
+        <div class="rad">
+            <input type="text" id="lenkeFelt" placeholder="https://frodolini.github.io/piano2.html#lat=…">
+            <button id="hentLenke">Hent</button>
+        </div>
+        <div id="hentStatus"></div>
+    </div>
+
+    <footer><a href="index.html">← Tilbake til heimesida</a></footer>
+</div>
+
+<script>
+// ---------- Lyd og piano (same motor som Piano 2) ----------
+const NOTAR = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "H"];
+const TASTAR = [
+    "z", "s", "x", "d", "c", "v", "g", "b", "h", "n", "j", "m",
+    "q", "2", "w", "3", "e", "r", "5", "t", "6", "y", "7", "u",
+    "i"
+];
+
+let startOktav = 4;
+let lyd = null;
+let hovudvolum = null;
+let hjelpevolum = null;
+const spelande = {};
+
+const piano = document.getElementById("piano");
+
+function frekvens(midi) {
+    return 440 * Math.pow(2, (midi - 69) / 12);
+}
+
+function startLyd() {
+    if (!lyd) {
+        lyd = new (window.AudioContext || window.webkitAudioContext)();
+        hovudvolum = lyd.createGain();
+        hovudvolum.gain.value = document.getElementById("volum").value;
+        hovudvolum.connect(lyd.destination);
+        hjelpevolum = lyd.createGain();
+        hjelpevolum.gain.value = 0.35;
+        hjelpevolum.connect(hovudvolum);
+    }
+    if (lyd.state === "suspended") lyd.resume();
+}
+
+function spelTone(midi, type, mal) {
+    startLyd();
+    const no = lyd.currentTime;
+    const f = frekvens(midi);
+    const volum = lyd.createGain();
+    volum.connect(mal || hovudvolum);
+
+    const oscillatorar = [];
+    function lagOsc(bolgje, frek, styrke) {
+        const o = lyd.createOscillator();
+        const g = lyd.createGain();
+        o.type = bolgje;
+        o.frequency.value = frek;
+        g.gain.value = styrke;
+        o.connect(g).connect(volum);
+        o.start(no);
+        oscillatorar.push(o);
+    }
+
+    let slepp = 0.3;
+    if (type === "piano") {
+        lagOsc("triangle", f, 0.6);
+        lagOsc("sine", f * 2, 0.25);
+        lagOsc("sine", f * 3, 0.1);
+        volum.gain.setValueAtTime(0, no);
+        volum.gain.linearRampToValueAtTime(0.5, no + 0.01);
+        volum.gain.exponentialRampToValueAtTime(0.15, no + 1.2);
+        volum.gain.exponentialRampToValueAtTime(0.001, no + 4);
+        slepp = 0.4;
+    } else if (type === "orgel") {
+        lagOsc("sine", f, 0.4);
+        lagOsc("sine", f * 2, 0.3);
+        lagOsc("sine", f * 4, 0.15);
+        lagOsc("sine", f / 2, 0.2);
+        volum.gain.setValueAtTime(0, no);
+        volum.gain.linearRampToValueAtTime(0.4, no + 0.03);
+        slepp = 0.08;
+    } else if (type === "sinus") {
+        lagOsc("sine", f, 0.8);
+        volum.gain.setValueAtTime(0, no);
+        volum.gain.linearRampToValueAtTime(0.5, no + 0.05);
+        slepp = 0.25;
+    } else {
+        lagOsc("square", f, 0.2);
+        volum.gain.setValueAtTime(0.4, no);
+        slepp = 0.05;
+    }
+
+    return function stopp() {
+        const t = lyd.currentTime;
+        volum.gain.cancelScheduledValues(t);
+        volum.gain.setValueAtTime(Math.max(volum.gain.value, 0.0001), t);
+        volum.gain.exponentialRampToValueAtTime(0.0001, t + slepp);
+        oscillatorar.forEach(o => o.stop(t + slepp + 0.05));
+    };
+}
+
+function teiknPiano() {
+    piano.innerHTML = "";
+    const kvite = [];
+    for (let i = 0; i < 25; i++) {
+        if (!NOTAR[i % 12].includes("#")) kvite.push(i);
+    }
+    const kvitBreidde = 100 / kvite.length;
+    let kvitIndeks = 0;
+    for (let i = 0; i < 25; i++) {
+        const namn = NOTAR[i % 12];
+        const oktav = startOktav + Math.floor(i / 12);
+        const midi = 12 * (oktav + 1) + (i % 12);
+        const svart = namn.includes("#");
+        const tast = document.createElement("div");
+        tast.className = svart ? "svart" : "kvit";
+        tast.dataset.midi = midi;
+        tast.innerHTML =
+            '<span class="tast-bokstav">' + TASTAR[i].toUpperCase() + '</span>' +
+            (svart ? "" : '<span class="notenamn">' + namn + oktav + '</span>');
+        if (svart) {
+            tast.style.left = (kvitIndeks * kvitBreidde - kvitBreidde * 0.3) + "%";
+            tast.style.width = (kvitBreidde * 0.6) + "%";
+        } else {
+            kvitIndeks++;
+        }
+        piano.appendChild(tast);
+    }
+    teikn();
+}
+
+function tastElement(midi) {
+    return piano.querySelector('[data-midi="' + midi + '"]');
+}
+
+function trykkNed(midi) {
+    midi = Number(midi);
+    if (spelande[midi]) return;
+    spelande[midi] = spelTone(midi, document.getElementById("lyd").value);
+    const el = tastElement(midi);
+    if (el) el.classList.add("nede");
+    if (spelar) vurder(midi);
+}
+
+function sleppOpp(midi) {
+    midi = Number(midi);
+    if (!spelande[midi]) return;
+    spelande[midi]();
+    delete spelande[midi];
+    const el = tastElement(midi);
+    if (el) el.classList.remove("nede");
+}
+
+function sleppAlle() {
+    Object.keys(spelande).forEach(m => sleppOpp(m));
+}
+
+// Mus og berøring
+const peikarTone = {};
+function toneUnder(x, y) {
+    const el = document.elementFromPoint(x, y);
+    if (!el) return null;
+    const tast = el.closest(".kvit, .svart");
+    return tast && piano.contains(tast) ? Number(tast.dataset.midi) : null;
+}
+piano.addEventListener("pointerdown", e => {
+    e.preventDefault();
+    const midi = toneUnder(e.clientX, e.clientY);
+    if (midi === null) return;
+    peikarTone[e.pointerId] = midi;
+    trykkNed(midi);
+});
+window.addEventListener("pointermove", e => {
+    if (!(e.pointerId in peikarTone)) return;
+    const midi = toneUnder(e.clientX, e.clientY);
+    const forrige = peikarTone[e.pointerId];
+    if (midi === forrige) return;
+    if (forrige !== null) sleppOpp(forrige);
+    peikarTone[e.pointerId] = midi;
+    if (midi !== null) trykkNed(midi);
+});
+function peikarSlutt(e) {
+    if (!(e.pointerId in peikarTone)) return;
+    const midi = peikarTone[e.pointerId];
+    delete peikarTone[e.pointerId];
+    if (midi !== null) sleppOpp(midi);
+}
+window.addEventListener("pointerup", peikarSlutt);
+window.addEventListener("pointercancel", peikarSlutt);
+
+// Tastatur
+function midiForTast(tast) {
+    const i = TASTAR.indexOf(tast.toLowerCase());
+    return i < 0 ? null : 12 * (startOktav + 1) + i;
+}
+window.addEventListener("keydown", e => {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.target.tagName === "SELECT" || e.target.tagName === "INPUT") return;
+    if (e.code === "Space") {
+        e.preventDefault();
+        if (!e.repeat) spelar ? avsluttSpel(false) : startSpel();
+        return;
+    }
+    if (e.repeat) return;
+    const midi = midiForTast(e.key);
+    if (midi !== null) trykkNed(midi);
+});
+window.addEventListener("keyup", e => {
+    const midi = midiForTast(e.key);
+    if (midi !== null) sleppOpp(midi);
+});
+window.addEventListener("blur", sleppAlle);
+
+document.getElementById("volum").addEventListener("input", e => {
+    if (hovudvolum) hovudvolum.gain.value = e.target.value;
+});
+document.getElementById("visBokstavar").addEventListener("change", e => {
+    piano.classList.toggle("skjul-bokstavar", !e.target.checked);
+});
+
+// ---------- Låtar ----------
+// Ein note er { m: midi-nummer, t: start (ms), l: lengd (ms) } – same format som Piano 2.
+function lagMelodi(namn, slag, melodi) {
+    let t = 0;
+    return {
+        namn: namn,
+        notar: melodi.map(([m, d]) => {
+            const n = { m: m, t: t, l: d * slag - 40 };
+            t += d * slag;
+            return n;
+        })
+    };
+}
+
+const DEMOAR = [
+    lagMelodi("Bæ, bæ, lille lam (lett)", 450, [
+        [60,1],[60,1],[67,1],[67,1],[69,1],[69,1],[67,2],
+        [65,1],[65,1],[64,1],[64,1],[62,1],[62,1],[60,2],
+        [67,1],[67,1],[65,1],[65,1],[64,1],[64,1],[62,2],
+        [67,1],[67,1],[65,1],[65,1],[64,1],[64,1],[62,2],
+        [60,1],[60,1],[67,1],[67,1],[69,1],[69,1],[67,2],
+        [65,1],[65,1],[64,1],[64,1],[62,1],[62,1],[60,2]
+    ]),
+    lagMelodi("Lisa gikk til skolen (lett)", 350, [
+        [60,1],[62,1],[64,1],[65,1],[67,2],[67,2],
+        [69,1],[69,1],[69,1],[69,1],[67,4],
+        [69,1],[69,1],[69,1],[69,1],[67,4],
+        [65,1],[65,1],[65,1],[65,1],[64,2],[64,2],
+        [62,1],[62,1],[62,1],[62,1],[60,4]
+    ]),
+    lagMelodi("Fader Jakob (middels)", 330, [
+        [60,1],[62,1],[64,1],[60,1],[60,1],[62,1],[64,1],[60,1],
+        [64,1],[65,1],[67,2],[64,1],[65,1],[67,2],
+        [67,.5],[69,.5],[67,.5],[65,.5],[64,1],[60,1],
+        [67,.5],[69,.5],[67,.5],[65,.5],[64,1],[60,1],
+        [60,1],[55,1],[60,2],[60,1],[55,1],[60,2]
+    ]),
+    lagMelodi("Ode til gleda (middels)", 380, [
+        [64,1],[64,1],[65,1],[67,1],[67,1],[65,1],[64,1],[62,1],
+        [60,1],[60,1],[62,1],[64,1],[64,1.5],[62,.5],[62,2],
+        [64,1],[64,1],[65,1],[67,1],[67,1],[65,1],[64,1],[62,1],
+        [60,1],[60,1],[62,1],[64,1],[62,1.5],[60,.5],[60,2],
+        [62,1],[62,1],[64,1],[60,1],[62,1],[64,.5],[65,.5],[64,1],[60,1],
+        [62,1],[64,.5],[65,.5],[64,1],[62,1],[60,1],[62,1],[55,2],
+        [64,1],[64,1],[65,1],[67,1],[67,1],[65,1],[64,1],[62,1],
+        [60,1],[60,1],[62,1],[64,1],[62,1.5],[60,.5],[60,2]
+    ]),
+    lagMelodi("Skala-sprinten (vanskeleg)", 160, [
+        [60,1],[62,1],[64,1],[65,1],[67,1],[69,1],[71,1],[72,1],
+        [74,1],[76,1],[77,1],[79,1],[81,1],[83,1],[84,2],
+        [83,1],[81,1],[79,1],[77,1],[76,1],[74,1],[72,1],
+        [71,1],[69,1],[67,1],[65,1],[64,1],[62,1],[60,2],
+        [60,1],[64,1],[67,1],[72,1],[76,1],[79,1],[84,2],
+        [79,1],[76,1],[72,1],[67,1],[64,1],[60,3]
+    ])
+];
+
+let latar = [];        // alle låtar i lista
+let delteLat = null;   // låt henta frå lenke
+
+function hentPiano2Latar() {
+    try {
+        const data = JSON.parse(localStorage.getItem("piano2-latar"));
+        return Array.isArray(data) ? data : [];
+    } catch (e) {
+        return [];
+    }
+}
+
+const latVal = document.getElementById("latVal");
+function fyllListe() {
+    latar = DEMOAR.slice();
+    hentPiano2Latar().forEach(l => {
+        if (l && Array.isArray(l.notar) && l.notar.length) {
+            latar.push({ namn: "🎹 " + l.namn, notar: l.notar });
+        }
+    });
+    if (delteLat) latar.push(delteLat);
+    latVal.innerHTML = "";
+    latar.forEach((l, i) => {
+        const o = document.createElement("option");
+        o.value = i;
+        o.textContent = l.namn;
+        latVal.appendChild(o);
+    });
+    visRekord();
+}
+
+// Les ei Piano 2-lenke (#lat=…), anten frå adressa til denne sida eller frå tekstfeltet
+function lesLat(tekst) {
+    const treff = String(tekst).match(/#lat=([^&\s]+)/);
+    if (!treff) return null;
+    try {
+        const data = JSON.parse(decodeURIComponent(escape(atob(treff[1]))));
+        const notar = data.d.map(([m, t, l]) => ({ m: m, t: t, l: l }));
+        if (!notar.length) return null;
+        return { namn: "🔗 " + (data.n || "Delt låt"), notar: notar };
+    } catch (e) {
+        return null;
+    }
+}
+
+document.getElementById("hentLenke").addEventListener("click", () => {
+    const lat = lesLat(document.getElementById("lenkeFelt").value);
+    const status = document.getElementById("hentStatus");
+    if (!lat) {
+        status.textContent = "Fann ingen gyldig låt i lenka.";
+        return;
+    }
+    delteLat = lat;
+    fyllListe();
+    latVal.value = latar.length - 1;
+    visRekord();
+    status.textContent = "Henta «" + lat.namn.slice(2) + "» med " + lat.notar.length + " notar. Trykk Start!";
+});
+
+// ---------- Rekordar ----------
+const REKORDAR = "piano3-rekordar";
+function rekordNokkel() {
+    const l = latar[latVal.value];
+    return (l ? l.namn : "") + "|" + document.getElementById("tempo").value;
+}
+function hentRekordar() {
+    try { return JSON.parse(localStorage.getItem(REKORDAR)) || {}; } catch (e) { return {}; }
+}
+function visRekord() {
+    const r = hentRekordar()[rekordNokkel()];
+    document.getElementById("rekordVis").textContent = r ? r : "–";
+}
+latVal.addEventListener("change", visRekord);
+document.getElementById("tempo").addEventListener("change", visRekord);
+
+// ---------- Spelet ----------
+const FALLTID = 2400;     // ms frå noten dukkar opp til han treffer streken
+const PERFEKT = 70;       // ms frå rett tid
+const BRA = 160;
+
+let spelar = false;
+let spelNotar = [];
+let startTid = 0;
+let sluttTid = 0;
+let poeng = 0, kombo = 0, maksKombo = 0;
+let antalPerfekt = 0, antalBra = 0, antalBom = 0, feiltrykk = 0;
+let melding = null;       // { tekst, farge, tid }
+let rammeId = null;
+
+const lerret = document.getElementById("lerret");
+const ctx = lerret.getContext("2d");
+
+function speltid() {
+    return performance.now() - startTid;
+}
+
+// Flytt notar inn i dei to oktavane pianoet viser, og vel oktav som passar låten
+function tilpassOktav(notar) {
+    const lagaste = Math.min(...notar.map(n => n.m));
+    startOktav = Math.min(6, Math.max(1, Math.floor(lagaste / 12) - 1));
+    const botn = 12 * (startOktav + 1), topp = botn + 24;
+    notar.forEach(n => {
+        while (n.m < botn) n.m += 12;
+        while (n.m > topp) n.m -= 12;
+    });
+    teiknPiano();
+}
+
+function startSpel() {
+    const lat = latar[latVal.value];
+    if (!lat) return;
+    startLyd();
+    sleppAlle();
+    const tempo = Number(document.getElementById("tempo").value);
+    const forste = Math.min(...lat.notar.map(n => n.t));
+    spelNotar = lat.notar
+        .map(n => ({
+            m: n.m,
+            t: (n.t - forste) / tempo,
+            l: Math.max(80, n.l / tempo),
+            resultat: null,
+            hjelp: false
+        }))
+        .sort((a, b) => a.t - b.t);
+    tilpassOktav(spelNotar);
+
+    poeng = kombo = maksKombo = 0;
+    antalPerfekt = antalBra = antalBom = feiltrykk = 0;
+    melding = null;
+    sluttTid = Math.max(...spelNotar.map(n => n.t + n.l)) + 800;
+    startTid = performance.now() + FALLTID + 1000;   // nedteljing før første note
+    spelar = true;
+    document.getElementById("resultat").style.display = "none";
+    oppdaterKnappar();
+    oppdaterTavle();
+    cancelAnimationFrame(rammeId);
+    rammeId = requestAnimationFrame(loop);
+}
+
+function avsluttSpel(ferdig) {
+    spelar = false;
+    cancelAnimationFrame(rammeId);
+    sleppAlle();
+    oppdaterKnappar();
+    if (ferdig) visResultat();
+    else spelNotar = [];
+    teikn();
+}
+
+function oppdaterKnappar() {
+    const knapp = document.getElementById("start");
+    knapp.textContent = spelar ? "⏹ Stopp" : "▶ Start";
+    knapp.classList.toggle("stopp", spelar);
+    latVal.disabled = spelar;
+    document.getElementById("tempo").disabled = spelar;
+}
+document.getElementById("start").addEventListener("click", () => spelar ? avsluttSpel(false) : startSpel());
+
+function multiplikator() {
+    return Math.min(4, 1 + Math.floor(kombo / 10));
+}
+
+function treffprosent() {
+    const vurderte = antalPerfekt + antalBra + antalBom;
+    if (!vurderte) return null;
+    return Math.round(100 * (antalPerfekt + 0.6 * antalBra) / vurderte);
+}
+
+function oppdaterTavle() {
+    document.getElementById("poeng").textContent = poeng;
+    document.getElementById("kombo").textContent = kombo + (multiplikator() > 1 ? " ×" + multiplikator() : "");
+    const p = treffprosent();
+    document.getElementById("treffVis").textContent = p === null ? "–" : p + " %";
+}
+
+function visMelding(tekst, farge) {
+    melding = { tekst: tekst, farge: farge, tid: performance.now() };
+}
+
+// Spelaren trykte ein tangent: finn næraste note med same tone
+function vurder(midi) {
+    const t = speltid();
+    let best = null, bestAvvik = Infinity;
+    spelNotar.forEach(n => {
+        if (n.resultat || n.m !== midi) return;
+        const avvik = Math.abs(n.t - t);
+        if (avvik <= BRA && avvik < bestAvvik) { best = n; bestAvvik = avvik; }
+    });
+    if (!best) {
+        // Bom-trykk telst berre når det er notar på veg, ikkje under nedteljinga
+        if (t > -FALLTID) {
+            feiltrykk++;
+            kombo = 0;
+            visMelding("Feil tone", "#f66");
+            oppdaterTavle();
+        }
+        return;
+    }
+    kombo++;
+    maksKombo = Math.max(maksKombo, kombo);
+    if (bestAvvik <= PERFEKT) {
+        best.resultat = "perfekt";
+        antalPerfekt++;
+        poeng += 300 * multiplikator();
+        visMelding("Perfekt!", "#6f6");
+    } else {
+        best.resultat = "bra";
+        antalBra++;
+        poeng += 100 * multiplikator();
+        visMelding(best.t > t ? "Bra (litt tidleg)" : "Bra (litt seint)", "#ff6");
+    }
+    best.treffTid = performance.now();
+    const el = tastElement(midi);
+    if (el) {
+        el.classList.add("treff");
+        setTimeout(() => el.classList.remove("treff"), 150);
+    }
+    oppdaterTavle();
+}
+
+function loop() {
+    const t = speltid();
+    const hjelp = document.getElementById("hjelp").checked;
+    spelNotar.forEach(n => {
+        // Notar som har passert streken utan treff
+        if (!n.resultat && t - n.t > BRA) {
+            n.resultat = "bom";
+            antalBom++;
+            kombo = 0;
+            visMelding("Bom", "#aaa");
+            oppdaterTavle();
+        }
+        // Hjelpestemma spelar melodien svakt
+        if (hjelp && !n.hjelp && t >= n.t) {
+            n.hjelp = true;
+            const stopp = spelTone(n.m, "sinus", hjelpevolum);
+            setTimeout(stopp, n.l);
+        }
+    });
+    teikn();
+    if (t > sluttTid) {
+        avsluttSpel(true);
+        return;
+    }
+    rammeId = requestAnimationFrame(loop);
+}
+
+// ---------- Teikning ----------
+function tilpassLerret() {
+    const dpr = window.devicePixelRatio || 1;
+    const b = lerret.clientWidth, h = lerret.clientHeight;
+    if (lerret.width !== Math.round(b * dpr) || lerret.height !== Math.round(h * dpr)) {
+        lerret.width = Math.round(b * dpr);
+        lerret.height = Math.round(h * dpr);
+    }
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return { b: b, h: h };
+}
+
+function rundRekt(x, y, b, h, r) {
+    r = Math.min(r, b / 2, h / 2);
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + b, y, x + b, y + h, r);
+    ctx.arcTo(x + b, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + b, y, r);
+    ctx.closePath();
+}
+
+function teikn() {
+    const { b, h } = tilpassLerret();
+    ctx.clearRect(0, 0, b, h);
+    const streken = h - 10;
+    const pxPerMs = streken / FALLTID;
+
+    // Plassering av kvar tangent, henta frå pianoet under
+    const posisjon = {};
+    piano.querySelectorAll(".kvit, .svart").forEach(el => {
+        posisjon[el.dataset.midi] = {
+            x: el.offsetLeft, b: el.offsetWidth, svart: el.classList.contains("svart")
+        };
+    });
+
+    // Svake skiljeliner for kvite tangentar
+    ctx.strokeStyle = "rgba(255,255,255,0.06)";
+    ctx.lineWidth = 1;
+    piano.querySelectorAll(".kvit").forEach(el => {
+        ctx.beginPath();
+        ctx.moveTo(el.offsetLeft + 0.5, 0);
+        ctx.lineTo(el.offsetLeft + 0.5, h);
+        ctx.stroke();
+    });
+
+    // Treffstreken
+    ctx.fillStyle = "rgba(255,255,255,0.15)";
+    ctx.fillRect(0, streken - BRA * pxPerMs, b, 2 * BRA * pxPerMs);
+    ctx.fillStyle = "#ff4";
+    ctx.fillRect(0, streken - 1, b, 3);
+
+    const t = spelar ? speltid() : 0;
+    const no = performance.now();
+
+    spelNotar.forEach(n => {
+        const p = posisjon[n.m];
+        if (!p) return;
+        const botn = streken - (n.t - t) * pxPerMs;
+        const hogd = Math.max(10, n.l * pxPerMs);
+        const topp = botn - hogd;
+        if (topp > h || botn < 0) return;
+        if (n.resultat === "perfekt" || n.resultat === "bra") {
+            // Treft note: blinkar grønt og forsvinn
+            const alder = no - n.treffTid;
+            if (alder > 300) return;
+            ctx.globalAlpha = 1 - alder / 300;
+            ctx.fillStyle = "#4f4";
+            rundRekt(p.x - 3, streken - 12, p.b + 6, 16, 6);
+            ctx.fill();
+            ctx.globalAlpha = 1;
+            return;
+        }
+        let farge = p.svart ? "#b07cff" : "#4fb3ff";
+        if (n.resultat === "bom") farge = "#555";
+        ctx.fillStyle = farge;
+        rundRekt(p.x + 2, topp, p.b - 4, hogd, 5);
+        ctx.fill();
+        if (!n.resultat) {
+            ctx.fillStyle = "rgba(255,255,255,0.5)";
+            rundRekt(p.x + 2, botn - 6, p.b - 4, 6, 3);
+            ctx.fill();
+        }
+    });
+
+    ctx.textAlign = "center";
+    if (spelar && t < 0) {
+        // Nedteljing
+        const igjen = Math.ceil(-t / 1000);
+        if (igjen <= 3) {
+            ctx.fillStyle = "white";
+            ctx.font = "bold 64px Arial, sans-serif";
+            ctx.fillText(igjen, b / 2, h / 2);
+        }
+    } else if (!spelar && !spelNotar.length) {
+        ctx.fillStyle = "#bbb";
+        ctx.font = "18px Arial, sans-serif";
+        ctx.fillText("Vel ein låt og trykk ▶ Start", b / 2, h / 2);
+    }
+
+    if (melding && no - melding.tid < 600) {
+        ctx.globalAlpha = 1 - (no - melding.tid) / 600;
+        ctx.fillStyle = melding.farge;
+        ctx.font = "bold 26px Arial, sans-serif";
+        ctx.fillText(melding.tekst, b / 2, 50);
+        ctx.globalAlpha = 1;
+    }
+    if (spelar && multiplikator() > 1) {
+        ctx.fillStyle = "#fc4";
+        ctx.font = "bold 18px Arial, sans-serif";
+        ctx.textAlign = "right";
+        ctx.fillText("×" + multiplikator(), b - 12, 28);
+    }
+}
+
+window.addEventListener("resize", teikn);
+
+// ---------- Resultat ----------
+function visResultat() {
+    const prosent = treffprosent() || 0;
+    let karakter = "D";
+    if (prosent >= 95) karakter = "S";
+    else if (prosent >= 85) karakter = "A";
+    else if (prosent >= 70) karakter = "B";
+    else if (prosent >= 50) karakter = "C";
+
+    const rekordar = hentRekordar();
+    const nokkel = rekordNokkel();
+    const ny = !rekordar[nokkel] || poeng > rekordar[nokkel];
+    if (ny && poeng > 0) {
+        rekordar[nokkel] = poeng;
+        try { localStorage.setItem(REKORDAR, JSON.stringify(rekordar)); } catch (e) {}
+    }
+    visRekord();
+
+    const kommentar = {
+        S: "Heilt rått! Prøv eit høgare tempo?",
+        A: "Kjempebra spelt!",
+        B: "Godt jobba – litt til, så sit han!",
+        C: "Du er på veg. Prøv med hjelpestemme eller lågare tempo.",
+        D: "Øving gjer meister – prøv 50 % tempo og hjelpestemme."
+    }[karakter];
+
+    const boks = document.getElementById("resultat");
+    boks.innerHTML =
+        '<span class="karakter">' + karakter + '</span>' +
+        '<h2>Ferdig: ' + latar[latVal.value].namn.replace(/</g, "&lt;") + '</h2>' +
+        '<p><b>' + poeng + '</b> poeng' + (ny && poeng > 0 ? ' <span class="nyrekord">– ny rekord! 🏆</span>' : '') + '</p>' +
+        '<p>Treff: ' + prosent + ' % · Perfekt: ' + antalPerfekt + ' · Bra: ' + antalBra +
+        ' · Bom: ' + antalBom + ' · Feil tone: ' + feiltrykk + '</p>' +
+        '<p>Lengste kombo: ' + maksKombo + '</p>' +
+        '<p>' + kommentar + '</p>';
+    boks.style.display = "block";
+}
+
+// ---------- Oppstart ----------
+const fraAdresse = lesLat(location.hash);
+if (fraAdresse) delteLat = fraAdresse;
+teiknPiano();
+fyllListe();
+if (fraAdresse) {
+    latVal.value = latar.length - 1;
+    visRekord();
+}
+</script>
+</body>
+</html>
