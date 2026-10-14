@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="nn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ROT-chiffer</title>
+<style>
+:root {
+    --bg: #eef2f6;
+    --panel: #ffffff;
+    --panel2: #f2f5f9;
+    --border: #d3dae3;
+    --text: #1b2230;
+    --muted: #5b6577;
+    --accent: #0f766e;
+    --accent-soft: #d5f0ec;
+    --ok: #15803d;
+    --okbg: #dcfce7;
+    --bad: #b91c1c;
+    --badbg: #fee2e2;
+    --warn: #a16207;
+    --warnbg: #fef3c7;
+    --c1: #2563eb;
+    --c2: #c2410c;
+    --c3: #7c3aed;
+    --hl: #fde68a;
+    color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #171c26;
+        --panel: #222936;
+        --panel2: #2a3242;
+        --border: #3a4356;
+        --text: #e5e8ee;
+        --muted: #9aa3b4;
+        --accent: #2dd4bf;
+        --accent-soft: #134e4a;
+        --ok: #4ade80;
+        --okbg: #14391f;
+        --bad: #f87171;
+        --badbg: #4a1d22;
+        --warn: #fbbf24;
+        --warnbg: #3d3012;
+        --c1: #60a5fa;
+        --c2: #fb923c;
+        --c3: #a78bfa;
+        --hl: #6b5a12;
+        color-scheme: dark;
+    }
+}
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    line-height: 1.5;
+    padding: 16px;
+}
+main { max-width: 780px; margin: 0 auto; }
+a { color: var(--accent); }
+nav.top {
+    display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center;
+    justify-content: space-between; font-size: 14px; margin-bottom: 10px;
+}
+nav.top .serie { display: flex; flex-wrap: wrap; gap: 6px; }
+nav.top .serie a {
+    text-decoration: none; padding: 3px 10px; border-radius: 999px;
+    border: 1px solid var(--border); background: var(--panel); color: var(--text);
+}
+nav.top .serie a.on { background: var(--accent); border-color: var(--accent); color: var(--panel); font-weight: 600; }
+h1 { margin: 4px 0 4px; font-size: 27px; }
+.lead { color: var(--muted); margin: 0 0 16px; font-size: 17px; }
+.card {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px; margin-bottom: 16px;
+}
+.card h2 { margin: 0 0 8px; font-size: 19px; }
+.card h3 { margin: 14px 0 6px; font-size: 16px; }
+.card p { margin: 0 0 10px; }
+.card > :last-child { margin-bottom: 0; }
+.small { font-size: 14px; color: var(--muted); }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+label { display: block; font-weight: 600; margin: 10px 0 4px; font-size: 15px; }
+textarea, input[type=text], input[type=password], input[type=number], select {
+    width: 100%; padding: 8px 10px; font: inherit;
+    border: 1px solid var(--border); border-radius: 8px;
+    background: var(--panel2); color: var(--text);
+}
+textarea { min-height: 70px; resize: vertical; }
+input[type=range] { width: 100%; accent-color: var(--accent); }
+.btn {
+    border: 1px solid var(--border); background: var(--panel2); color: var(--text);
+    padding: 8px 14px; border-radius: 8px; font: inherit; font-size: 15px; cursor: pointer;
+}
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--panel); font-weight: 600; }
+.btn.danger { border-color: var(--bad); color: var(--bad); }
+.btn:disabled { opacity: .5; cursor: default; }
+.seg { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.seg button {
+    border: 0; background: var(--panel2); color: var(--text);
+    padding: 8px 14px; font: inherit; font-size: 15px; cursor: pointer;
+    border-right: 1px solid var(--border);
+}
+.seg button:last-child { border-right: 0; }
+.seg button.on { background: var(--accent); color: var(--panel); font-weight: 600; }
+.mono, code { font-family: ui-monospace, Menlo, Consolas, monospace; }
+.out {
+    font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 15px;
+    background: var(--panel2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px; margin-top: 8px; word-break: break-all; white-space: pre-wrap; min-height: 42px;
+}
+.out.big { font-size: 18px; }
+.out.scroll { max-height: 140px; overflow: auto; }
+.msg { margin-top: 8px; padding: 8px 12px; border-radius: 8px; font-weight: 600; }
+.msg.ok { background: var(--okbg); color: var(--ok); }
+.msg.bad { background: var(--badbg); color: var(--bad); }
+.msg.info { background: var(--accent-soft); color: var(--text); font-weight: 400; }
+.badge { display: inline-block; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+.badge.ok { background: var(--okbg); color: var(--ok); }
+.badge.bad { background: var(--badbg); color: var(--bad); }
+.note {
+    background: var(--accent-soft); border-radius: 8px; padding: 10px 12px; margin: 10px 0;
+}
+.note b:first-child { display: block; margin-bottom: 2px; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; }
+td, th { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+th { font-size: 13px; color: var(--muted); font-weight: 600; }
+.flow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 8px 0; }
+.flow .box {
+    background: var(--panel2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 6px 10px; font-size: 14px; text-align: center;
+}
+.flow .box.key { background: var(--accent-soft); border-color: var(--accent); }
+.flow .arr { color: var(--muted); font-weight: 700; }
+details { background: var(--panel2); border-radius: 8px; padding: 8px 12px; margin: 6px 0; }
+details summary { cursor: pointer; font-weight: 600; }
+details p { margin: 6px 0 2px; }
+.who { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+footer { font-size: 13px; color: var(--muted); text-align: center; margin: 8px 0 20px; }
+@media (max-width: 480px) {
+    body { padding: 12px; }
+    h1 { font-size: 23px; }
+    .card { padding: 12px; }
+}
+.alfa-wrap { overflow-x: auto; padding-bottom: 4px; }
+.alfa {
+    display: grid; grid-template-columns: 64px repeat(26, minmax(22px, 1fr));
+    gap: 2px; min-width: 640px; font-family: ui-monospace, Menlo, Consolas, monospace;
+}
+.alfa div { text-align: center; padding: 4px 0; border-radius: 4px; background: var(--panel2); font-size: 15px; }
+.alfa div.lab { text-align: left; background: none; font-family: system-ui, sans-serif; font-size: 12px; color: var(--muted); font-weight: 600; padding-left: 0; }
+.alfa div.pil { background: none; color: var(--muted); font-size: 12px; padding: 0; }
+.alfa div.c { background: var(--accent-soft); font-weight: 700; }
+.alfa div.hl { background: var(--hl); }
+.shiftnum { font-size: 22px; font-weight: 700; color: var(--accent); }
+.alle td:first-child { white-space: nowrap; font-weight: 600; width: 70px; }
+.alle td.mono { word-break: break-word; }
+.alle tr.best td { background: var(--okbg); }
+.alle tr.best td:first-child::after { content: " ✓"; color: var(--ok); }
+.steg { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; align-items: baseline; }
+.steg b { font-size: 14px; color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+<nav class="top"><a href="index.html">← Frode</a><span class="serie"><a href="rot13.html" class="on">ROT</a><a href="hash.html">Hash</a><a href="symmetrisk.html">Symmetrisk</a><a href="asymmetrisk.html">Asymmetrisk</a></span></nav>
+<h1>ROT-chiffer</h1>
+<p class="lead">Eit av dei eldste krypteringstriksa: flytt kvar bokstav eit fast tal plassar fram i alfabetet. Julius Cæsar brukte ROT3. ROT13 er eit spesialtilfelle du snart skal sjå kvifor.</p>
+
+<section class="card">
+    <h2>1. Prøv sjølv</h2>
+    <label for="inn">Tekst</label>
+    <textarea id="inn">Hei! Møt meg ved skulen klokka tre.</textarea>
+
+    <label for="skift">Forskyving: <span class="shiftnum" id="skiftvis">ROT13</span></label>
+    <input type="range" id="skift" min="1" max="25" value="13">
+
+    <div class="row" style="margin-top:10px">
+        <div class="seg" id="modus">
+            <button class="on" data-m="1">Krypter</button>
+            <button data-m="-1">Dekrypter</button>
+        </div>
+        <button class="btn" id="bytt">Bruk resultatet som ny tekst</button>
+    </div>
+
+    <label>Resultat</label>
+    <div class="out big" id="ut"></div>
+    <p class="small" style="margin-top:8px">Æ, Ø, Å, tal og andre teikn blir ikkje endra. Klassisk ROT arbeider berre med dei 26 bokstavane A–Z.</p>
+</section>
+
+<section class="card">
+    <h2>2. Slik blir bokstavane flytta</h2>
+    <p>Øvste rad er klarteksten, nedste rad er det bokstaven blir til. Bokstavar som finst i teksten din er utheva.</p>
+    <div class="alfa-wrap"><div class="alfa" id="alfa"></div></div>
+    <p class="small" style="margin-top:8px">Legg merke til at alfabetet «går rundt»: etter Z kjem A igjen. Difor heiter det ROT, frå engelsk <i>rotate</i>.</p>
+</section>
+
+<section class="card">
+    <h2>3. Kvifor er 13 spesielt?</h2>
+    <p>Alfabetet har 26 bokstavar. Flyttar du 13 plassar to gonger, har du flytta 26 og er tilbake der du starta. Med ROT13 er altså <b>kryptering og dekryptering nøyaktig same operasjon</b>.</p>
+    <div class="steg" id="dobbel"></div>
+    <p class="small" style="margin-top:8px">Prøv å flytte glidebrytaren over til ROT5. Køyrer du ROT5 to gonger, får du ROT10, ikkje originalteksten.</p>
+</section>
+
+<section class="card">
+    <h2>4. Knekk koden</h2>
+    <p>Du har snappa opp ei hemmeleg melding. Du veit at ho er kryptert med ROT, men ikkje kor mange plassar. Kor vanskeleg kan det vere?</p>
+    <label for="hemmeleg">Hemmeleg melding</label>
+    <textarea id="hemmeleg"></textarea>
+    <div class="row" style="margin-top:10px">
+        <button class="btn primary" id="knekk">Prøv alle 25</button>
+        <span class="small" id="knekktid"></span>
+    </div>
+    <div id="allewrap" style="margin-top:10px; display:none">
+        <table class="alle"><tbody id="alle"></tbody></table>
+        <div class="note" style="margin-top:10px">
+            <b>Dette heiter «brute force»</b>
+            Ein prøver rett og slett alle moglege nøklar. ROT har berre 25 nøklar, så ei datamaskin klarer det på under eitt millisekund. Den grøne lina er den som liknar mest på norsk, rekna ut frå kor ofte kvar bokstav vanlegvis blir brukt.
+        </div>
+    </div>
+</section>
+
+<section class="card">
+    <h2>Til ettertanke</h2>
+    <details><summary>Kva er «nøkkelen» i eit ROT-chiffer?</summary>
+        <p>Talet på plassar ein flyttar. Både avsendar og mottakar må vite det, så ROT er eigentleg ei (svært svak) form for symmetrisk kryptering.</p></details>
+    <details><summary>Kvifor er ROT ikkje trygt?</summary>
+        <p>Det finst berre 25 nøklar, så alle kan prøvast på augneblinken. I tillegg blir same bokstav alltid til same bokstav, så mønster i språket (som at E er vanlegast i norsk) blir verande synlege.</p></details>
+    <details><summary>Kva blir brukt i staden i dag?</summary>
+        <p>Moderne algoritmar som AES har så mange moglege nøklar (2<sup>256</sup> for AES-256) at alle datamaskinene i verda ikkje ville klart å prøve alle før sola sluknar. Sjå sida om <a href="symmetrisk.html">symmetrisk kryptering</a>.</p></details>
+    <details><summary>Kvar blir ROT13 brukt i dag?</summary>
+        <p>Mest på moro: å skjule svaret på ei gåte eller ein «spoilar» i eit forum, slik at ein ikkje les det ved eit uhell.</p></details>
+</section>
+
+<footer>Frode · IM-Stord · All utrekning skjer i nettlesaren din. Ingenting du skriv blir sendt nokon stad.</footer>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+const A = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+let retning = 1;
+
+function rot(tekst, n) {
+    return tekst.replace(/[A-Za-z]/g, ch => {
+        const base = ch <= "Z" ? 65 : 97;
+        return String.fromCharCode((ch.charCodeAt(0) - base + n + 26 * 2) % 26 + base);
+    });
+}
+
+function oppdater() {
+    const n = +$("skift").value;
+    $("skiftvis").textContent = "ROT" + n;
+    const inn = $("inn").value;
+    const ut = rot(inn, n * retning);
+    $("ut").textContent = ut;
+
+    // Alfabetstripe
+    const klar = (retning === 1 ? inn : ut).toUpperCase();
+    let h = '<div class="lab">Klartekst</div>';
+    for (let i = 0; i < 26; i++) h += `<div class="${klar.includes(A[i]) ? "hl" : ""}">${A[i]}</div>`;
+    h += '<div class="lab"></div>';
+    for (let i = 0; i < 26; i++) h += '<div class="pil">↓</div>';
+    h += '<div class="lab">Chiffer</div>';
+    for (let i = 0; i < 26; i++) h += `<div class="c ${klar.includes(A[i]) ? "hl" : ""}">${A[(i + n) % 26]}</div>`;
+    $("alfa").innerHTML = h;
+
+    // ROT n to gonger
+    const ein = rot(inn, n), to = rot(ein, n);
+    $("dobbel").innerHTML =
+        `<b>Original</b><span class="mono">${esc(inn)}</span>` +
+        `<b>ROT${n} éin gong</b><span class="mono">${esc(ein)}</span>` +
+        `<b>ROT${n} to gonger</b><span class="mono">${esc(to)}</span>` +
+        `<b></b><span class="msg ${to === inn ? "ok" : "bad"}">${to === inn
+            ? "Tilbake til originalen!"
+            : "Ikkje originalen. Det tilsvarar ROT" + ((2 * n) % 26) + "."}</span>`;
+}
+
+function esc(s) {
+    return s.replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+}
+
+// Omtrentleg bokstavfrekvens i norsk (prosent)
+const FREK = { E:15.9,R:8.6,N:7.2,T:7.0,S:6.5,I:6.0,A:6.1,L:5.2,O:4.6,D:4.2,K:3.2,G:4.0,M:3.2,
+    V:2.4,F:1.9,U:1.8,P:1.8,H:1.7,B:1.5,J:0.6,Y:0.7,C:0.1,W:0.1,Z:0,X:0,Q:0 };
+function poeng(t) {
+    let s = 0;
+    for (const ch of t.toUpperCase()) if (FREK[ch] !== undefined) s += FREK[ch];
+    return s;
+}
+
+$("knekk").onclick = () => {
+    const t0 = performance.now();
+    const tekst = $("hemmeleg").value;
+    const rader = [];
+    for (let n = 1; n <= 25; n++) {
+        const forsok = rot(tekst, -n);
+        rader.push({ n, forsok, p: poeng(forsok) });
+    }
+    const best = rader.reduce((a, b) => (b.p > a.p ? b : a));
+    const ms = performance.now() - t0;
+    $("alle").innerHTML = rader.map(r =>
+        `<tr class="${r === best ? "best" : ""}"><td>ROT${r.n}</td><td class="mono">${esc(r.forsok)}</td></tr>`).join("");
+    $("allewrap").style.display = "block";
+    $("knekktid").textContent = `Prøvde 25 nøklar på ${ms < 1 ? "under 1" : ms.toFixed(1)} ms.`;
+};
+
+$("skift").oninput = oppdater;
+$("inn").oninput = oppdater;
+$("modus").onclick = e => {
+    const b = e.target.closest("button"); if (!b) return;
+    retning = +b.dataset.m;
+    $("modus").querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
+    oppdater();
+};
+$("bytt").onclick = () => { $("inn").value = $("ut").textContent; oppdater(); };
+
+$("hemmeleg").value = rot("Gratulerer, du knekte koden! Difor er ROT aldri trygt nok til ekte hemmelegheiter.", 7);
+oppdater();
+</script>
+</body>
+</html>

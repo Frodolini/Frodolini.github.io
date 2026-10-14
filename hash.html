@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="nn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hashfunksjonar</title>
+<style>
+:root {
+    --bg: #eef2f6;
+    --panel: #ffffff;
+    --panel2: #f2f5f9;
+    --border: #d3dae3;
+    --text: #1b2230;
+    --muted: #5b6577;
+    --accent: #0f766e;
+    --accent-soft: #d5f0ec;
+    --ok: #15803d;
+    --okbg: #dcfce7;
+    --bad: #b91c1c;
+    --badbg: #fee2e2;
+    --warn: #a16207;
+    --warnbg: #fef3c7;
+    --c1: #2563eb;
+    --c2: #c2410c;
+    --c3: #7c3aed;
+    --hl: #fde68a;
+    color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #171c26;
+        --panel: #222936;
+        --panel2: #2a3242;
+        --border: #3a4356;
+        --text: #e5e8ee;
+        --muted: #9aa3b4;
+        --accent: #2dd4bf;
+        --accent-soft: #134e4a;
+        --ok: #4ade80;
+        --okbg: #14391f;
+        --bad: #f87171;
+        --badbg: #4a1d22;
+        --warn: #fbbf24;
+        --warnbg: #3d3012;
+        --c1: #60a5fa;
+        --c2: #fb923c;
+        --c3: #a78bfa;
+        --hl: #6b5a12;
+        color-scheme: dark;
+    }
+}
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    line-height: 1.5;
+    padding: 16px;
+}
+main { max-width: 780px; margin: 0 auto; }
+a { color: var(--accent); }
+nav.top {
+    display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center;
+    justify-content: space-between; font-size: 14px; margin-bottom: 10px;
+}
+nav.top .serie { display: flex; flex-wrap: wrap; gap: 6px; }
+nav.top .serie a {
+    text-decoration: none; padding: 3px 10px; border-radius: 999px;
+    border: 1px solid var(--border); background: var(--panel); color: var(--text);
+}
+nav.top .serie a.on { background: var(--accent); border-color: var(--accent); color: var(--panel); font-weight: 600; }
+h1 { margin: 4px 0 4px; font-size: 27px; }
+.lead { color: var(--muted); margin: 0 0 16px; font-size: 17px; }
+.card {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px; margin-bottom: 16px;
+}
+.card h2 { margin: 0 0 8px; font-size: 19px; }
+.card h3 { margin: 14px 0 6px; font-size: 16px; }
+.card p { margin: 0 0 10px; }
+.card > :last-child { margin-bottom: 0; }
+.small { font-size: 14px; color: var(--muted); }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+label { display: block; font-weight: 600; margin: 10px 0 4px; font-size: 15px; }
+textarea, input[type=text], input[type=password], input[type=number], select {
+    width: 100%; padding: 8px 10px; font: inherit;
+    border: 1px solid var(--border); border-radius: 8px;
+    background: var(--panel2); color: var(--text);
+}
+textarea { min-height: 70px; resize: vertical; }
+input[type=range] { width: 100%; accent-color: var(--accent); }
+.btn {
+    border: 1px solid var(--border); background: var(--panel2); color: var(--text);
+    padding: 8px 14px; border-radius: 8px; font: inherit; font-size: 15px; cursor: pointer;
+}
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--panel); font-weight: 600; }
+.btn.danger { border-color: var(--bad); color: var(--bad); }
+.btn:disabled { opacity: .5; cursor: default; }
+.seg { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.seg button {
+    border: 0; background: var(--panel2); color: var(--text);
+    padding: 8px 14px; font: inherit; font-size: 15px; cursor: pointer;
+    border-right: 1px solid var(--border);
+}
+.seg button:last-child { border-right: 0; }
+.seg button.on { background: var(--accent); color: var(--panel); font-weight: 600; }
+.mono, code { font-family: ui-monospace, Menlo, Consolas, monospace; }
+.out {
+    font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 15px;
+    background: var(--panel2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px; margin-top: 8px; word-break: break-all; white-space: pre-wrap; min-height: 42px;
+}
+.out.big { font-size: 18px; }
+.out.scroll { max-height: 140px; overflow: auto; }
+.msg { margin-top: 8px; padding: 8px 12px; border-radius: 8px; font-weight: 600; }
+.msg.ok { background: var(--okbg); color: var(--ok); }
+.msg.bad { background: var(--badbg); color: var(--bad); }
+.msg.info { background: var(--accent-soft); color: var(--text); font-weight: 400; }
+.badge { display: inline-block; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+.badge.ok { background: var(--okbg); color: var(--ok); }
+.badge.bad { background: var(--badbg); color: var(--bad); }
+.note {
+    background: var(--accent-soft); border-radius: 8px; padding: 10px 12px; margin: 10px 0;
+}
+.note b:first-child { display: block; margin-bottom: 2px; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; }
+td, th { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+th { font-size: 13px; color: var(--muted); font-weight: 600; }
+.flow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 8px 0; }
+.flow .box {
+    background: var(--panel2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 6px 10px; font-size: 14px; text-align: center;
+}
+.flow .box.key { background: var(--accent-soft); border-color: var(--accent); }
+.flow .arr { color: var(--muted); font-weight: 700; }
+details { background: var(--panel2); border-radius: 8px; padding: 8px 12px; margin: 6px 0; }
+details summary { cursor: pointer; font-weight: 600; }
+details p { margin: 6px 0 2px; }
+.who { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+footer { font-size: 13px; color: var(--muted); text-align: center; margin: 8px 0 20px; }
+@media (max-width: 480px) {
+    body { padding: 12px; }
+    h1 { font-size: 23px; }
+    .card { padding: 12px; }
+}
+.hashtab td:first-child { font-weight: 700; white-space: nowrap; }
+.hashtab td.h { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 14px; word-break: break-all; }
+.hashtab td.b { white-space: nowrap; color: var(--muted); font-size: 14px; }
+.diff { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 14px; word-break: break-all; background: var(--panel2); border-radius: 8px; padding: 8px 10px; margin-top: 6px; }
+.diff .x { background: var(--hl); border-radius: 2px; }
+.bar { height: 12px; border-radius: 6px; background: var(--panel2); overflow: hidden; margin-top: 6px; border: 1px solid var(--border); }
+.bar i { display: block; height: 100%; background: var(--accent); }
+.big-num { font-size: 22px; font-weight: 700; color: var(--accent); }
+.users td { font-size: 14px; }
+.users td.h { font-family: ui-monospace, Menlo, Consolas, monospace; word-break: break-all; font-size: 13px; }
+.users .same { background: var(--badbg); }
+ol.eig { margin: 0; padding-left: 22px; }
+ol.eig li { margin-bottom: 4px; }
+</style>
+</head>
+<body>
+<main>
+<nav class="top"><a href="index.html">← Frode</a><span class="serie"><a href="rot13.html">ROT</a><a href="hash.html" class="on">Hash</a><a href="symmetrisk.html">Symmetrisk</a><a href="asymmetrisk.html">Asymmetrisk</a></span></nav>
+<h1>Hashfunksjonar</h1>
+<p class="lead">Ein hashfunksjon lagar eit digitalt fingeravtrykk av data. Same inndata gir alltid same hash, men det går ikkje an å rekne seg tilbake frå hashen til inndataen.</p>
+
+<section class="card">
+    <h2>1. Prøv sjølv</h2>
+    <label for="inn">Skriv noko (hashane blir rekna ut medan du skriv)</label>
+    <textarea id="inn">Hei</textarea>
+    <p class="small" id="lengd" style="margin-top:6px"></p>
+    <table class="hashtab">
+        <thead><tr><th>Algoritme</th><th>Hash (heksadesimal)</th><th>Lengd</th><th>Status</th></tr></thead>
+        <tbody id="tab"></tbody>
+    </table>
+    <div class="note">
+        <b>Legg merke til</b>
+        Hashen har alltid same lengd, anten du skriv eitt teikn eller ein heil roman. Prøv å lime inn ein lang tekst og sjå.
+    </div>
+</section>
+
+<section class="card">
+    <h2>2. Fem eigenskapar ein god hashfunksjon har</h2>
+    <ol class="eig">
+        <li><b>Deterministisk:</b> same inndata gir alltid nøyaktig same hash.</li>
+        <li><b>Fast lengd:</b> SHA-256 gir alltid 256 bit (64 heksadesimale teikn).</li>
+        <li><b>Einvegs:</b> du kan ikkje rekne deg tilbake frå hashen til teksten.</li>
+        <li><b>Skredeffekt:</b> ei lita endring gir ein heilt ny hash (sjå under).</li>
+        <li><b>Kollisjonsfri:</b> det skal vere praktisk umogleg å finne to ulike inndata med same hash. Det er her MD5 og SHA-1 har svikta.</li>
+    </ol>
+</section>
+
+<section class="card">
+    <h2>3. Skredeffekten</h2>
+    <p>Endre berre éin bokstav, og sjå kor mykje av SHA-256-hashen som endrar seg.</p>
+    <div class="grid2">
+        <div><label for="a">Tekst A</label><input type="text" id="a" value="Stord vgs"></div>
+        <div><label for="b">Tekst B</label><input type="text" id="b" value="Stord Vgs"></div>
+    </div>
+    <label>SHA-256 av A</label><div class="diff" id="ha"></div>
+    <label>SHA-256 av B (ulike teikn er utheva)</label><div class="diff" id="hb"></div>
+    <p style="margin-top:10px"><span class="big-num" id="bitdiff"></span> <span id="bittekst"></span></p>
+    <div class="bar"><i id="bitbar"></i></div>
+    <p class="small" style="margin-top:6px">Ein god hashfunksjon endrar om lag halvparten av bitane, sjølv om inndataen berre er litt ulik. Då er det umogleg å sjå at to tekstar liknar på kvarandre.</p>
+</section>
+
+<section class="card">
+    <h2>4. Passord og salt</h2>
+    <p>Nettstader skal aldri lagre passordet ditt, berre hashen av det. Når du loggar inn, blir det du skriv hasha og samanlikna med det som er lagra. Men kva skjer om to brukarar har same passord?</p>
+    <div class="grid2">
+        <div><label for="p1">Passordet til Kari</label><input type="text" id="p1" value="sommar2026"></div>
+        <div><label for="p2">Passordet til Ola</label><input type="text" id="p2" value="sommar2026"></div>
+    </div>
+    <h3>Utan salt</h3>
+    <table class="users"><tbody id="utansalt"></tbody></table>
+    <div class="msg" id="utanmsg"></div>
+    <h3>Med salt</h3>
+    <p class="small">Kvar brukar får eit tilfeldig salt som blir lagt til passordet før det blir hasha. Saltet blir lagra i databasen saman med hashen.</p>
+    <table class="users"><tbody id="medsalt"></tbody></table>
+    <div class="row" style="margin-top:8px"><button class="btn" id="nyttsalt">Lag nytt salt</button></div>
+    <div class="note">
+        <b>Kvifor salt?</b>
+        Utan salt kan ein angripar som stel databasen sjå kven som har same passord, og slå opp vanlege passord i ferdige tabellar med millionar av hashar. Med salt må kvart passord knekkast for seg.
+        I verkelegheita brukar ein i tillegg <i>langsame</i> hashfunksjonar laga for passord, som bcrypt eller Argon2, slik at kvar gjetting tek lang tid.
+    </div>
+</section>
+
+<section class="card">
+    <h2>5. Sjekk at ei fil ikkje er endra</h2>
+    <p>Når du lastar ned til dømes ein ISO-fil med Windows Server eller Linux, oppgjev nettstaden ofte ein SHA-256-hash. Er hashen av fila di lik, er fila heil og ikkje tukla med.</p>
+    <label for="fil">Vel ei fil (ho blir ikkje lasta opp nokon stad)</label>
+    <input type="file" id="fil">
+    <div class="out" id="filhash">Inga fil vald enno.</div>
+    <label for="forventa">Lim inn hashen frå nettstaden for å samanlikne</label>
+    <input type="text" id="forventa" placeholder="t.d. 3f2a…">
+    <div class="msg" id="filmsg" style="display:none"></div>
+</section>
+
+<section class="card">
+    <h2>Til ettertanke</h2>
+    <details><summary>Er hashing det same som kryptering?</summary>
+        <p>Nei. Kryptering kan reverserast med rett nøkkel. Hashing er einvegs og har ingen nøkkel. Ein hash er eit fingeravtrykk, ikkje ei låst melding.</p></details>
+    <details><summary>Kvifor er MD5 og SHA-1 «knekte»?</summary>
+        <p>Forskarar har klart å lage to ulike filer med same hash (ein kollisjon). For MD5 går det på sekund på ei vanleg datamaskin. Då kan ein angripar byte ut ei fil utan at hashen avslører det.</p></details>
+    <details><summary>Korleis kan ein «knekke» ein passordhash når han er einvegs?</summary>
+        <p>Ved å gjette: hash millionar av vanlege passord og sjå om nokon gir same hash. Difor er lange passord, salt og langsame hashfunksjonar så viktige.</p></details>
+    <details><summary>Kvar møter du hashar i IT-faget?</summary>
+        <p>Passordlagring i Active Directory og Linux, sjekk av nedlastingar, Git (kvar commit har ein SHA-1-hash), digitale signaturar og blokkjeder.</p></details>
+</section>
+
+<footer>Frode · IM-Stord · All utrekning skjer i nettlesaren din. Ingenting du skriv blir sendt nokon stad.</footer>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+const enc = new TextEncoder();
+
+/* MD5 finst ikkje i nettlesaren sitt Web Crypto, så han er skriven her (RFC 1321). */
+function md5(bytes) {
+    const K = new Uint32Array(64);
+    for (let i = 0; i < 64; i++) K[i] = Math.floor(Math.abs(Math.sin(i + 1)) * 4294967296);
+    const S = [7,12,17,22, 5,9,14,20, 4,11,16,23, 6,10,15,21];
+    const len = bytes.length;
+    const blokker = Math.ceil((len + 9) / 64);
+    const buf = new Uint8Array(blokker * 64);
+    buf.set(bytes);
+    buf[len] = 0x80;
+    const dv = new DataView(buf.buffer);
+    dv.setUint32(buf.length - 8, (len * 8) >>> 0, true);
+    dv.setUint32(buf.length - 4, Math.floor(len / 536870912), true);
+    let a0 = 0x67452301, b0 = 0xefcdab89, c0 = 0x98badcfe, d0 = 0x10325476;
+    const M = new Uint32Array(16);
+    for (let off = 0; off < buf.length; off += 64) {
+        for (let j = 0; j < 16; j++) M[j] = dv.getUint32(off + j * 4, true);
+        let A = a0, B = b0, C = c0, D = d0;
+        for (let i = 0; i < 64; i++) {
+            let F, g;
+            if (i < 16)      { F = (B & C) | (~B & D); g = i; }
+            else if (i < 32) { F = (D & B) | (~D & C); g = (5 * i + 1) % 16; }
+            else if (i < 48) { F = B ^ C ^ D;          g = (3 * i + 5) % 16; }
+            else             { F = C ^ (B | ~D);       g = (7 * i) % 16; }
+            F = (F + A + K[i] + M[g]) >>> 0;
+            A = D; D = C; C = B;
+            const s = S[(i >> 4) * 4 + (i % 4)];
+            B = (B + ((F << s) | (F >>> (32 - s)))) >>> 0;
+        }
+        a0 = (a0 + A) >>> 0; b0 = (b0 + B) >>> 0; c0 = (c0 + C) >>> 0; d0 = (d0 + D) >>> 0;
+    }
+    const out = new Uint8Array(16), ov = new DataView(out.buffer);
+    [a0, b0, c0, d0].forEach((v, i) => ov.setUint32(i * 4, v, true));
+    return out;
+}
+
+const hex = b => [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, "0")).join("");
+async function sha(alg, bytes) { return hex(await crypto.subtle.digest(alg, bytes)); }
+const sha256 = s => sha("SHA-256", enc.encode(s));
+
+const ALG = [
+    { namn: "MD5",     bit: 128, fn: b => Promise.resolve(hex(md5(b))), ok: false },
+    { namn: "SHA-1",   bit: 160, fn: b => sha("SHA-1", b),   ok: false },
+    { namn: "SHA-256", bit: 256, fn: b => sha("SHA-256", b), ok: true },
+    { namn: "SHA-512", bit: 512, fn: b => sha("SHA-512", b), ok: true },
+];
+
+let teljar = 0;
+async function oppdaterTabell() {
+    const mitt = ++teljar;
+    const bytes = enc.encode($("inn").value);
+    const hashar = await Promise.all(ALG.map(a => a.fn(bytes)));
+    if (mitt !== teljar) return;
+    $("lengd").textContent = `Inndata: ${bytes.length} byte (${bytes.length * 8} bit).`;
+    $("tab").innerHTML = ALG.map((a, i) => `<tr>
+        <td>${a.namn}</td><td class="h">${hashar[i]}</td><td class="b">${a.bit} bit</td>
+        <td>${a.ok ? '<span class="badge ok">Trygg</span>' : '<span class="badge bad">Knekt</span>'}</td></tr>`).join("");
+}
+
+function bitar(h) { return [...h].map(c => parseInt(c, 16).toString(2).padStart(4, "0")).join(""); }
+
+async function oppdaterSkred() {
+    const [ha, hb] = await Promise.all([sha256($("a").value), sha256($("b").value)]);
+    $("ha").textContent = ha;
+    $("hb").innerHTML = [...hb].map((c, i) => c !== ha[i] ? `<span class="x">${c}</span>` : c).join("");
+    const ba = bitar(ha), bb = bitar(hb);
+    let d = 0;
+    for (let i = 0; i < 256; i++) if (ba[i] !== bb[i]) d++;
+    const pst = (d / 256 * 100).toFixed(0);
+    $("bitdiff").textContent = `${d} av 256 bit`;
+    $("bittekst").textContent = d === 0 ? "er ulike. Tekstane er heilt like." : `er ulike (${pst} %).`;
+    $("bitbar").style.width = (d / 256 * 100) + "%";
+}
+
+function tilfeldigSalt() {
+    return hex(crypto.getRandomValues(new Uint8Array(8)));
+}
+let salt1 = tilfeldigSalt(), salt2 = tilfeldigSalt();
+
+async function oppdaterSalt() {
+    const p1 = $("p1").value, p2 = $("p2").value;
+    const [u1, u2, m1, m2] = await Promise.all([
+        sha256(p1), sha256(p2), sha256(salt1 + p1), sha256(salt2 + p2)]);
+    const lik = u1 === u2;
+    $("utansalt").innerHTML =
+        `<tr><th>Brukar</th><th>Lagra hash = SHA-256(passord)</th></tr>
+         <tr class="${lik ? "same" : ""}"><td>Kari</td><td class="h">${u1}</td></tr>
+         <tr class="${lik ? "same" : ""}"><td>Ola</td><td class="h">${u2}</td></tr>`;
+    $("utanmsg").className = "msg " + (lik ? "bad" : "ok");
+    $("utanmsg").textContent = lik
+        ? "Same hash! Ein angripar ser straks at Kari og Ola har same passord."
+        : "Ulike passord gir ulike hashar.";
+    $("medsalt").innerHTML =
+        `<tr><th>Brukar</th><th>Salt</th><th>Lagra hash = SHA-256(salt + passord)</th></tr>
+         <tr><td>Kari</td><td class="h">${salt1}</td><td class="h">${m1}</td></tr>
+         <tr><td>Ola</td><td class="h">${salt2}</td><td class="h">${m2}</td></tr>`;
+}
+
+let filHash = "";
+$("fil").onchange = async () => {
+    const f = $("fil").files[0];
+    if (!f) return;
+    $("filhash").textContent = "Reknar ut …";
+    const buf = await f.arrayBuffer();
+    filHash = await sha("SHA-256", buf);
+    $("filhash").textContent = `${f.name} (${(f.size / 1024).toFixed(1)} kB)\nSHA-256: ${filHash}`;
+    samanlikn();
+};
+function samanlikn() {
+    const v = $("forventa").value.trim().toLowerCase();
+    const m = $("filmsg");
+    if (!filHash || !v) { m.style.display = "none"; return; }
+    m.style.display = "block";
+    const ok = v === filHash;
+    m.className = "msg " + (ok ? "ok" : "bad");
+    m.textContent = ok ? "Hashane er like. Fila er heil og uendra." : "Hashane er ulike! Fila er endra, øydelagd, eller du har feil hash.";
+}
+$("forventa").oninput = samanlikn;
+
+$("inn").oninput = oppdaterTabell;
+$("a").oninput = $("b").oninput = oppdaterSkred;
+$("p1").oninput = $("p2").oninput = oppdaterSalt;
+$("nyttsalt").onclick = () => { salt1 = tilfeldigSalt(); salt2 = tilfeldigSalt(); oppdaterSalt(); };
+
+oppdaterTabell(); oppdaterSkred(); oppdaterSalt();
+</script>
+</body>
+</html>

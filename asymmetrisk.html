@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="nn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Asymmetrisk kryptering</title>
+<style>
+:root {
+    --bg: #eef2f6;
+    --panel: #ffffff;
+    --panel2: #f2f5f9;
+    --border: #d3dae3;
+    --text: #1b2230;
+    --muted: #5b6577;
+    --accent: #0f766e;
+    --accent-soft: #d5f0ec;
+    --ok: #15803d;
+    --okbg: #dcfce7;
+    --bad: #b91c1c;
+    --badbg: #fee2e2;
+    --warn: #a16207;
+    --warnbg: #fef3c7;
+    --c1: #2563eb;
+    --c2: #c2410c;
+    --c3: #7c3aed;
+    --hl: #fde68a;
+    color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #171c26;
+        --panel: #222936;
+        --panel2: #2a3242;
+        --border: #3a4356;
+        --text: #e5e8ee;
+        --muted: #9aa3b4;
+        --accent: #2dd4bf;
+        --accent-soft: #134e4a;
+        --ok: #4ade80;
+        --okbg: #14391f;
+        --bad: #f87171;
+        --badbg: #4a1d22;
+        --warn: #fbbf24;
+        --warnbg: #3d3012;
+        --c1: #60a5fa;
+        --c2: #fb923c;
+        --c3: #a78bfa;
+        --hl: #6b5a12;
+        color-scheme: dark;
+    }
+}
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    line-height: 1.5;
+    padding: 16px;
+}
+main { max-width: 780px; margin: 0 auto; }
+a { color: var(--accent); }
+nav.top {
+    display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center;
+    justify-content: space-between; font-size: 14px; margin-bottom: 10px;
+}
+nav.top .serie { display: flex; flex-wrap: wrap; gap: 6px; }
+nav.top .serie a {
+    text-decoration: none; padding: 3px 10px; border-radius: 999px;
+    border: 1px solid var(--border); background: var(--panel); color: var(--text);
+}
+nav.top .serie a.on { background: var(--accent); border-color: var(--accent); color: var(--panel); font-weight: 600; }
+h1 { margin: 4px 0 4px; font-size: 27px; }
+.lead { color: var(--muted); margin: 0 0 16px; font-size: 17px; }
+.card {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px; margin-bottom: 16px;
+}
+.card h2 { margin: 0 0 8px; font-size: 19px; }
+.card h3 { margin: 14px 0 6px; font-size: 16px; }
+.card p { margin: 0 0 10px; }
+.card > :last-child { margin-bottom: 0; }
+.small { font-size: 14px; color: var(--muted); }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+label { display: block; font-weight: 600; margin: 10px 0 4px; font-size: 15px; }
+textarea, input[type=text], input[type=password], input[type=number], select {
+    width: 100%; padding: 8px 10px; font: inherit;
+    border: 1px solid var(--border); border-radius: 8px;
+    background: var(--panel2); color: var(--text);
+}
+textarea { min-height: 70px; resize: vertical; }
+input[type=range] { width: 100%; accent-color: var(--accent); }
+.btn {
+    border: 1px solid var(--border); background: var(--panel2); color: var(--text);
+    padding: 8px 14px; border-radius: 8px; font: inherit; font-size: 15px; cursor: pointer;
+}
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--panel); font-weight: 600; }
+.btn.danger { border-color: var(--bad); color: var(--bad); }
+.btn:disabled { opacity: .5; cursor: default; }
+.seg { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.seg button {
+    border: 0; background: var(--panel2); color: var(--text);
+    padding: 8px 14px; font: inherit; font-size: 15px; cursor: pointer;
+    border-right: 1px solid var(--border);
+}
+.seg button:last-child { border-right: 0; }
+.seg button.on { background: var(--accent); color: var(--panel); font-weight: 600; }
+.mono, code { font-family: ui-monospace, Menlo, Consolas, monospace; }
+.out {
+    font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 15px;
+    background: var(--panel2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px; margin-top: 8px; word-break: break-all; white-space: pre-wrap; min-height: 42px;
+}
+.out.big { font-size: 18px; }
+.out.scroll { max-height: 140px; overflow: auto; }
+.msg { margin-top: 8px; padding: 8px 12px; border-radius: 8px; font-weight: 600; }
+.msg.ok { background: var(--okbg); color: var(--ok); }
+.msg.bad { background: var(--badbg); color: var(--bad); }
+.msg.info { background: var(--accent-soft); color: var(--text); font-weight: 400; }
+.badge { display: inline-block; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+.badge.ok { background: var(--okbg); color: var(--ok); }
+.badge.bad { background: var(--badbg); color: var(--bad); }
+.note {
+    background: var(--accent-soft); border-radius: 8px; padding: 10px 12px; margin: 10px 0;
+}
+.note b:first-child { display: block; margin-bottom: 2px; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; }
+td, th { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+th { font-size: 13px; color: var(--muted); font-weight: 600; }
+.flow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 8px 0; }
+.flow .box {
+    background: var(--panel2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 6px 10px; font-size: 14px; text-align: center;
+}
+.flow .box.key { background: var(--accent-soft); border-color: var(--accent); }
+.flow .arr { color: var(--muted); font-weight: 700; }
+details { background: var(--panel2); border-radius: 8px; padding: 8px 12px; margin: 6px 0; }
+details summary { cursor: pointer; font-weight: 600; }
+details p { margin: 6px 0 2px; }
+.who { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+footer { font-size: 13px; color: var(--muted); text-align: center; margin: 8px 0 20px; }
+@media (max-width: 480px) {
+    body { padding: 12px; }
+    h1 { font-size: 23px; }
+    .card { padding: 12px; }
+}
+.person { border-left: 4px solid var(--accent); padding-left: 12px; margin: 12px 0; }
+.person.bob { border-left-color: var(--c1); }
+.person.eve { border-left-color: var(--bad); }
+.nokkelpar { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; }
+.nokkel { border-radius: 8px; padding: 8px 10px; border: 1px solid var(--border); background: var(--panel2); }
+.nokkel h4 { margin: 0 0 4px; font-size: 14px; }
+.nokkel.off h4 { color: var(--ok); }
+.nokkel.priv h4 { color: var(--bad); }
+.nokkel pre { margin: 0; font-size: 11px; max-height: 110px; overflow: auto; white-space: pre-wrap; word-break: break-all; }
+.nokkel .skjult { font-size: 14px; color: var(--muted); }
+.rekning { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; font-size: 15px; align-items: baseline; }
+.rekning b { color: var(--muted); font-size: 14px; }
+.rekning .mono { font-size: 15px; }
+.rsa-tab td, .rsa-tab th { text-align: center; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 14px; }
+.rsa-tab th { font-family: system-ui, sans-serif; }
+.tal { font-size: 20px; font-weight: 700; color: var(--accent); font-family: ui-monospace, Menlo, Consolas, monospace; }
+.small-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
+ol.https { margin: 0; padding-left: 22px; }
+ol.https li { margin-bottom: 6px; }
+</style>
+</head>
+<body>
+<main>
+<nav class="top"><a href="index.html">← Frode</a><span class="serie"><a href="rot13.html">ROT</a><a href="hash.html">Hash</a><a href="symmetrisk.html">Symmetrisk</a><a href="asymmetrisk.html" class="on">Asymmetrisk</a></span></nav>
+<h1>Asymmetrisk kryptering</h1>
+<p class="lead">To nøklar som høyrer saman: ein <b>offentleg</b> som alle kan få, og ein <b>privat</b> som berre eigaren har. Det som er låst med den eine, kan berre låsast opp med den andre.</p>
+
+<section class="card">
+    <h2>Idéen: ei postkasse</h2>
+    <p>Bob har ei postkasse med ei sprekk. Alle kan putte brev inn (den <b style="color:var(--ok)">offentlege nøkkelen</b>), men berre Bob har nøkkelen som opnar postkassa (den <b style="color:var(--bad)">private nøkkelen</b>). Bob kan fritt dele den offentlege nøkkelen med heile verda. Då slepp Alice og Bob å møtast for å dele ein hemmeleg nøkkel, som var problemet med <a href="symmetrisk.html">symmetrisk kryptering</a>.</p>
+    <div class="flow">
+        <div class="box">Melding</div><div class="arr">→</div>
+        <div class="box key">Krypter med Bob sin <b>offentlege</b> nøkkel</div><div class="arr">→</div>
+        <div class="box">Chiffertekst</div><div class="arr">→</div>
+        <div class="box key">Dekrypter med Bob sin <b>private</b> nøkkel</div><div class="arr">→</div>
+        <div class="box">Melding</div>
+    </div>
+</section>
+
+<section class="card">
+    <h2>1. Send ei hemmeleg melding til Bob</h2>
+    <p class="small">Her blir ekte RSA med 2048-bits nøklar brukt, same som i mange nettsertifikat.</p>
+
+    <div class="person bob">
+        <div class="who">Bob</div>
+        <p><b>Steg 1:</b> Bob lagar eit nøkkelpar.</p>
+        <button class="btn primary" id="lagBob">Lag nøkkelpar til Bob</button>
+        <div class="nokkelpar" id="bobNokler" style="display:none; margin-top:10px">
+            <div class="nokkel off"><h4>Offentleg nøkkel (blir delt med alle)</h4><pre id="bobOff"></pre></div>
+            <div class="nokkel priv"><h4>Privat nøkkel (berre Bob har denne)</h4>
+                <div class="skjult" id="bobPrivSkjult">Bob viser aldri denne til nokon. <button class="btn" id="visPriv" style="padding:2px 8px;font-size:13px">Vis likevel</button></div>
+                <pre id="bobPriv" style="display:none"></pre></div>
+        </div>
+    </div>
+
+    <div class="person">
+        <div class="who">Alice</div>
+        <p><b>Steg 2:</b> Alice krypterer med Bob sin <b>offentlege</b> nøkkel.</p>
+        <label for="mld">Melding (maks 190 byte)</label>
+        <textarea id="mld" maxlength="190">Koden til serverrommet er 4711.</textarea>
+        <div class="row" style="margin-top:8px"><button class="btn primary" id="krypter" disabled>Krypter med Bob sin offentlege nøkkel</button></div>
+        <div class="out scroll" id="ct" style="display:none"></div>
+        <p class="small" id="aliceMerk" style="display:none; margin-top:6px">Kan Alice lese meldinga si att no? Nei! Ho har berre den offentlege nøkkelen, og han kan ikkje låse opp.</p>
+    </div>
+
+    <div class="person bob">
+        <div class="who">Bob</div>
+        <p><b>Steg 3:</b> Bob dekrypterer med sin <b>private</b> nøkkel.</p>
+        <button class="btn primary" id="dekBob" disabled>Dekrypter som Bob</button>
+        <div class="msg" id="resBob" style="display:none"></div>
+    </div>
+
+    <div class="person eve">
+        <div class="who">Eve (lyttar på nettet)</div>
+        <p>Eve har snappa opp chifferteksten og har sitt eige nøkkelpar. Ho har òg Bob sin offentlege nøkkel, sidan han er offentleg.</p>
+        <button class="btn danger" id="dekEve" disabled>Eve prøver å dekryptere</button>
+        <div class="msg" id="resEve" style="display:none"></div>
+    </div>
+</section>
+
+<section class="card">
+    <h2>2. Digital signatur: motsett veg</h2>
+    <p>Nøklane kan òg brukast andre vegen. Alice <b>signerer</b> med sin <b style="color:var(--bad)">private</b> nøkkel, og alle kan <b>kontrollere</b> signaturen med hennar <b style="color:var(--ok)">offentlege</b> nøkkel. Då veit Bob to ting: meldinga er frå Alice, og ingen har endra ho.</p>
+
+    <div class="person">
+        <div class="who">Alice</div>
+        <label for="smld">Melding</label>
+        <textarea id="smld">Overfør 100 kr til Bob. Helsing Alice</textarea>
+        <div class="row" style="margin-top:8px"><button class="btn primary" id="signer" disabled>Signer med Alice sin private nøkkel</button></div>
+        <label>Signatur</label>
+        <div class="out scroll" id="sig">Ingen signatur enno.</div>
+    </div>
+
+    <div class="person bob">
+        <div class="who">Bob mottek</div>
+        <label for="mottatt">Meldinga slik ho kom fram</label>
+        <textarea id="mottatt"></textarea>
+        <div class="row" style="margin-top:8px">
+            <button class="btn primary" id="verifiser" disabled>Kontroller med Alice sin offentlege nøkkel</button>
+            <button class="btn danger" id="eveEndrar" disabled>Eve endrar meldinga</button>
+        </div>
+        <div class="msg" id="resSig" style="display:none"></div>
+    </div>
+    <div class="note"><b>Dette brukar du kvar dag</b>Nettsertifikat, Windows-oppdateringar, appar på mobilen og e-ID er digitalt signerte. Maskina di kontrollerer signaturen før ho stoler på innhaldet.</div>
+</section>
+
+<section class="card">
+    <h2>3. Leike-RSA: rekn sjølv</h2>
+    <p>Ekte RSA brukar primtal med over 300 siffer. Her brukar vi små primtal, så du kan sjå (og rekne) kvart steg.</p>
+    <div class="small-grid">
+        <div><label for="p">Primtal p</label><select id="p"></select></div>
+        <div><label for="q">Primtal q</label><select id="q"></select></div>
+        <div><label for="e">Offentleg eksponent e</label><select id="e"></select></div>
+    </div>
+    <div class="rekning" style="margin-top:12px" id="rekning"></div>
+    <div class="nokkelpar" style="margin-top:10px">
+        <div class="nokkel off"><h4>Offentleg nøkkel</h4><div class="mono" id="toyOff"></div></div>
+        <div class="nokkel priv"><h4>Privat nøkkel</h4><div class="mono" id="toyPriv"></div></div>
+    </div>
+
+    <h3>Krypter eit tal</h3>
+    <div class="small-grid">
+        <div><label for="m">Tal m (mindre enn n)</label><input type="number" id="m" value="65" min="0"></div>
+    </div>
+    <div class="rekning" style="margin-top:10px" id="talrekning"></div>
+
+    <h3>Krypter eit ord, bokstav for bokstav</h3>
+    <input type="text" id="ord" value="Hei" maxlength="12">
+    <div style="overflow-x:auto; margin-top:8px"><table class="rsa-tab" id="ordtab"></table></div>
+    <p class="small" style="margin-top:6px">Kvar bokstav blir gjort om til eit tal (teiknkoden), kryptert, og dekryptert att. Ekte RSA krypterer aldri bokstav for bokstav, for då blir same bokstav alltid til same tal, akkurat som i ROT.</p>
+
+    <details><summary>Utfordring: kan du finne p og q når n = 3233?</summary>
+        <p>3233 = 61 × 53. Med små tal klarer du det med kalkulator. Med eit n på over 600 siffer finst det ingen kjend metode som klarer det innan rimeleg tid. Det er heile tryggleiken i RSA: det er lett å gange saman to primtal, men svært vanskeleg å finne dei att.</p></details>
+</section>
+
+<section class="card">
+    <h2>4. I praksis: HTTPS brukar begge delar</h2>
+    <p>Asymmetrisk kryptering er trygg, men tusenvis av gonger tregare enn symmetrisk. Difor kombinerer ein dei:</p>
+    <ol class="https">
+        <li>Nettlesaren får nettstaden sitt <b>sertifikat</b> med den offentlege nøkkelen, signert av ein tiltrudd utferdar.</li>
+        <li>Nettlesaren og tenaren blir einige om ein <b>felles hemmeleg nøkkel</b> ved hjelp av asymmetrisk kryptografi.</li>
+        <li>Resten av samtalen blir kryptert <b>symmetrisk</b> med AES, fordi det er raskt.</li>
+    </ol>
+    <p style="margin-top:10px">Same prinsipp finn du i SSH (når du loggar inn på ein server med nøkkel, til dømes <code>id_ed25519</code> og <code>id_ed25519.pub</code>), VPN og Wi-Fi med WPA3.</p>
+</section>
+
+<section class="card">
+    <h2>Til ettertanke</h2>
+    <details><summary>Kva skjer om Bob mistar den private nøkkelen?</summary>
+        <p>Då kan ingen dekryptere meldingar som er sende til han, heller ikkje Bob sjølv. Difor er det viktig med trygge sikkerheitskopiar av private nøklar.</p></details>
+    <details><summary>Kva skjer om Eve stel den private nøkkelen til Bob?</summary>
+        <p>Då kan ho lese alt som blir sendt til Bob, og ho kan signere meldingar som om ho var Bob. Nøkkelen må då trekkjast tilbake og bytast ut.</p></details>
+    <details><summary>Korleis veit Alice at den offentlege nøkkelen verkeleg er Bob sin?</summary>
+        <p>Det er ikkje sjølvsagt! Eve kunne gitt Alice sin eigen nøkkel og late som ho var Bob. Difor finst sertifikat: ein tiltrudd tredjepart signerer at «denne nøkkelen høyrer til Bob». Det er hengelåsen i adressefeltet til nettlesaren.</p></details>
+    <details><summary>Kvifor kan ein ikkje kryptere ein heil film med RSA?</summary>
+        <p>RSA kan berre kryptere små datamengder om gongen (her maks 190 byte) og er svært tregt. Ein krypterer heller ein tilfeldig AES-nøkkel med RSA, og filmen med AES.</p></details>
+</section>
+
+<footer>Frode · IM-Stord · All utrekning skjer i nettlesaren din. Ingenting du skriv blir sendt nokon stad.</footer>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+const enc = new TextEncoder(), dec = new TextDecoder();
+const tilB64 = b => btoa(String.fromCharCode(...new Uint8Array(b)));
+const fraB64 = s => Uint8Array.from(atob(s.trim()), c => c.charCodeAt(0));
+const vis = (id, kl, tekst) => { const el = $(id); el.style.display = "block"; el.className = "msg " + kl; el.textContent = tekst; };
+
+async function pem(key, type) {
+    const fmt = type === "PUBLIC" ? "spki" : "pkcs8";
+    const b64 = tilB64(await crypto.subtle.exportKey(fmt, key));
+    return `-----BEGIN ${type} KEY-----\n${b64.match(/.{1,64}/g).join("\n")}\n-----END ${type} KEY-----`;
+}
+
+const OAEP = { name: "RSA-OAEP", modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]), hash: "SHA-256" };
+const PSS  = { name: "RSA-PSS",  modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]), hash: "SHA-256" };
+
+/* ---------- 1. Kryptering ---------- */
+let bob = null, eve = null, chiffer = null;
+
+$("lagBob").onclick = async () => {
+    $("lagBob").disabled = true;
+    $("lagBob").textContent = "Lagar nøklar …";
+    [bob, eve] = await Promise.all([
+        crypto.subtle.generateKey(OAEP, true, ["encrypt", "decrypt"]),
+        crypto.subtle.generateKey(OAEP, true, ["encrypt", "decrypt"])]);
+    $("bobOff").textContent = await pem(bob.publicKey, "PUBLIC");
+    $("bobPriv").textContent = await pem(bob.privateKey, "PRIVATE");
+    $("bobNokler").style.display = "grid";
+    $("lagBob").textContent = "Lag nytt nøkkelpar";
+    $("lagBob").disabled = false;
+    $("krypter").disabled = false;
+    chiffer = null;
+    $("ct").style.display = "none"; $("aliceMerk").style.display = "none";
+    $("dekBob").disabled = $("dekEve").disabled = true;
+    $("resBob").style.display = $("resEve").style.display = "none";
+};
+$("visPriv").onclick = () => { $("bobPriv").style.display = "block"; $("bobPrivSkjult").style.display = "none"; };
+
+$("krypter").onclick = async () => {
+    const data = enc.encode($("mld").value);
+    if (data.length > 190) { $("ct").style.display = "block"; $("ct").textContent = `Meldinga er ${data.length} byte. RSA-2048 klarer maks 190 byte.`; return; }
+    chiffer = await crypto.subtle.encrypt({ name: "RSA-OAEP" }, bob.publicKey, data);
+    $("ct").style.display = "block";
+    $("ct").textContent = tilB64(chiffer);
+    $("aliceMerk").style.display = "block";
+    $("dekBob").disabled = $("dekEve").disabled = false;
+    $("resBob").style.display = $("resEve").style.display = "none";
+};
+
+$("dekBob").onclick = async () => {
+    try {
+        const pt = await crypto.subtle.decrypt({ name: "RSA-OAEP" }, bob.privateKey, chiffer);
+        vis("resBob", "ok", "Bob les: " + dec.decode(pt));
+    } catch { vis("resBob", "bad", "Noko gjekk gale."); }
+};
+$("dekEve").onclick = async () => {
+    try {
+        await crypto.subtle.decrypt({ name: "RSA-OAEP" }, eve.privateKey, chiffer);
+        vis("resEve", "ok", "Eve klarte det?! (Dette skal ikkje skje.)");
+    } catch {
+        vis("resEve", "bad", "Mislukka! Eve sin private nøkkel passar ikkje, og Bob sin offentlege nøkkel kan berre låse, ikkje låse opp.");
+    }
+};
+
+/* ---------- 2. Signatur ---------- */
+let alice = null, signatur = null;
+crypto.subtle.generateKey(PSS, true, ["sign", "verify"]).then(k => { alice = k; $("signer").disabled = false; });
+
+$("signer").onclick = async () => {
+    signatur = await crypto.subtle.sign({ name: "RSA-PSS", saltLength: 32 }, alice.privateKey, enc.encode($("smld").value));
+    $("sig").textContent = tilB64(signatur);
+    $("mottatt").value = $("smld").value;
+    $("verifiser").disabled = $("eveEndrar").disabled = false;
+    $("resSig").style.display = "none";
+};
+$("verifiser").onclick = async () => {
+    const ok = await crypto.subtle.verify({ name: "RSA-PSS", saltLength: 32 }, alice.publicKey, signatur, enc.encode($("mottatt").value));
+    if (ok) vis("resSig", "ok", "Gyldig signatur. Meldinga er frå Alice og er ikkje endra.");
+    else vis("resSig", "bad", "Ugyldig signatur! Meldinga er endra undervegs, eller ho er ikkje frå Alice.");
+};
+$("eveEndrar").onclick = () => {
+    let t = $("mottatt").value;
+    t = /\d+/.test(t) ? t.replace(/\d+/, "9000").replace("Bob", "Eve") : t + " Send pengane til Eve.";
+    $("mottatt").value = t;
+    vis("resSig", "info", "Eve har endra meldinga. Kontroller signaturen no.");
+};
+
+/* ---------- 3. Leike-RSA ---------- */
+const PRIM = [17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97];
+const gcd = (a, b) => b ? gcd(b, a % b) : a;
+function modinv(a, m) {
+    let [r0, r1, s0, s1] = [m, a, 0, 1];
+    while (r1) { const k = Math.floor(r0 / r1); [r0, r1] = [r1, r0 - k * r1]; [s0, s1] = [s1, s0 - k * s1]; }
+    return ((s0 % m) + m) % m;
+}
+function modpow(b, e, m) {
+    let r = 1n, x = BigInt(b) % BigInt(m), k = BigInt(e); const M = BigInt(m);
+    while (k > 0n) { if (k & 1n) r = r * x % M; x = x * x % M; k >>= 1n; }
+    return Number(r);
+}
+for (const id of ["p", "q"]) $(id).innerHTML = PRIM.map(x => `<option>${x}</option>`).join("");
+$("p").value = 61; $("q").value = 53;
+
+let toy = {};
+function oppdaterE() {
+    const p = +$("p").value, q = +$("q").value, phi = (p - 1) * (q - 1);
+    const gamal = +$("e").value || 17;
+    const val = [];
+    for (let e = 3; e < phi && val.length < 25; e += 2) if (gcd(e, phi) === 1) val.push(e);
+    $("e").innerHTML = val.map(x => `<option>${x}</option>`).join("");
+    $("e").value = val.includes(gamal) ? gamal : val[0];
+}
+function oppdaterToy() {
+    const p = +$("p").value, q = +$("q").value, e = +$("e").value;
+    const n = p * q, phi = (p - 1) * (q - 1), d = modinv(e, phi);
+    toy = { p, q, n, phi, e, d };
+    $("rekning").innerHTML = p === q
+        ? `<b></b><span class="msg bad">p og q må vere ulike primtal.</span>`
+        : `<b>n = p × q</b><span class="mono">${p} × ${q} = <span class="tal">${n}</span></span>
+           <b>φ(n) = (p−1)(q−1)</b><span class="mono">${p - 1} × ${q - 1} = ${phi}</span>
+           <b>e</b><span class="mono">${e} &nbsp;<span class="small">(må ikkje ha felles faktor med ${phi})</span></span>
+           <b>d</b><span class="mono">${d} &nbsp;<span class="small">(slik at ${e} × ${d} mod ${phi} = ${(e * d) % phi})</span></span>`;
+    $("toyOff").textContent = `(e, n) = (${e}, ${n})`;
+    $("toyPriv").textContent = `(d, n) = (${d}, ${n})`;
+    $("m").max = n - 1;
+    oppdaterTal(); oppdaterOrd();
+}
+function oppdaterTal() {
+    const { n, e, d } = toy;
+    let m = Math.floor(+$("m").value);
+    if (!(m >= 0 && m < n)) { $("talrekning").innerHTML = `<b></b><span class="msg bad">m må vere mellom 0 og ${n - 1}.</span>`; return; }
+    const c = modpow(m, e, n), m2 = modpow(c, d, n);
+    $("talrekning").innerHTML =
+        `<b>Krypter: c = m<sup>e</sup> mod n</b><span class="mono">${m}<sup>${e}</sup> mod ${n} = <span class="tal">${c}</span></span>
+         <b>Dekrypter: m = c<sup>d</sup> mod n</b><span class="mono">${c}<sup>${d}</sup> mod ${n} = <span class="tal">${m2}</span></span>`;
+}
+function oppdaterOrd() {
+    const { n, e, d } = toy;
+    const teikn = [...$("ord").value];
+    if (!teikn.length) { $("ordtab").innerHTML = ""; return; }
+    const rad = (lab, f) => `<tr><th>${lab}</th>${teikn.map(f).join("")}</tr>`;
+    const kode = ch => ch.codePointAt(0);
+    $("ordtab").innerHTML =
+        rad("Bokstav", ch => `<td>${ch === " " ? "␣" : ch.replace(/[&<>]/g, "")}</td>`) +
+        rad("Teiknkode m", ch => `<td>${kode(ch)}</td>`) +
+        rad("Kryptert c", ch => `<td style="color:var(--c3);font-weight:700">${kode(ch) < n ? modpow(kode(ch), e, n) : "for stor"}</td>`) +
+        rad("Dekryptert", ch => `<td>${kode(ch) < n ? String.fromCodePoint(modpow(modpow(kode(ch), e, n), d, n)) : "–"}</td>`);
+}
+$("p").onchange = $("q").onchange = () => { oppdaterE(); oppdaterToy(); };
+$("e").onchange = oppdaterToy;
+$("m").oninput = oppdaterTal;
+$("ord").oninput = oppdaterOrd;
+oppdaterE(); oppdaterToy();
+</script>
+</body>
+</html>
