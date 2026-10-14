@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="nn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Krypteringsknappen</title>
+<style>
+:root {
+    --bg: #eef2f6;
+    --panel: #ffffff;
+    --panel2: #f2f5f9;
+    --border: #d3dae3;
+    --text: #1b2230;
+    --muted: #5b6577;
+    --accent: #0f766e;
+    --accent-soft: #d5f0ec;
+    --ok: #15803d;
+    --okbg: #dcfce7;
+    --bad: #b91c1c;
+    --badbg: #fee2e2;
+    --warn: #a16207;
+    --warnbg: #fef3c7;
+    --c1: #2563eb;
+    --c2: #c2410c;
+    --c3: #7c3aed;
+    --hl: #fde68a;
+    color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #171c26;
+        --panel: #222936;
+        --panel2: #2a3242;
+        --border: #3a4356;
+        --text: #e5e8ee;
+        --muted: #9aa3b4;
+        --accent: #2dd4bf;
+        --accent-soft: #134e4a;
+        --ok: #4ade80;
+        --okbg: #14391f;
+        --bad: #f87171;
+        --badbg: #4a1d22;
+        --warn: #fbbf24;
+        --warnbg: #3d3012;
+        --c1: #60a5fa;
+        --c2: #fb923c;
+        --c3: #a78bfa;
+        --hl: #6b5a12;
+        color-scheme: dark;
+    }
+}
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    line-height: 1.5;
+    padding: 16px;
+}
+main { max-width: 780px; margin: 0 auto; }
+a { color: var(--accent); }
+nav.top {
+    display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center;
+    justify-content: space-between; font-size: 14px; margin-bottom: 10px;
+}
+nav.top .serie { display: flex; flex-wrap: wrap; gap: 6px; }
+nav.top .serie a {
+    text-decoration: none; padding: 3px 10px; border-radius: 999px;
+    border: 1px solid var(--border); background: var(--panel); color: var(--text);
+}
+nav.top .serie a.on { background: var(--accent); border-color: var(--accent); color: var(--panel); font-weight: 600; }
+h1 { margin: 4px 0 4px; font-size: 27px; }
+.lead { color: var(--muted); margin: 0 0 16px; font-size: 17px; }
+.card {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px; margin-bottom: 16px;
+}
+.card h2 { margin: 0 0 8px; font-size: 19px; }
+.card h3 { margin: 14px 0 6px; font-size: 16px; }
+.card p { margin: 0 0 10px; }
+.card > :last-child { margin-bottom: 0; }
+.small { font-size: 14px; color: var(--muted); }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+label { display: block; font-weight: 600; margin: 10px 0 4px; font-size: 15px; }
+textarea, input[type=text], input[type=password], input[type=number], select {
+    width: 100%; padding: 8px 10px; font: inherit;
+    border: 1px solid var(--border); border-radius: 8px;
+    background: var(--panel2); color: var(--text);
+}
+textarea { min-height: 70px; resize: vertical; }
+input[type=range] { width: 100%; accent-color: var(--accent); }
+.btn {
+    border: 1px solid var(--border); background: var(--panel2); color: var(--text);
+    padding: 8px 14px; border-radius: 8px; font: inherit; font-size: 15px; cursor: pointer;
+}
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--panel); font-weight: 600; }
+.btn.danger { border-color: var(--bad); color: var(--bad); }
+.btn:disabled { opacity: .5; cursor: default; }
+.seg { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.seg button {
+    border: 0; background: var(--panel2); color: var(--text);
+    padding: 8px 14px; font: inherit; font-size: 15px; cursor: pointer;
+    border-right: 1px solid var(--border);
+}
+.seg button:last-child { border-right: 0; }
+.seg button.on { background: var(--accent); color: var(--panel); font-weight: 600; }
+.mono, code { font-family: ui-monospace, Menlo, Consolas, monospace; }
+.out {
+    font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 15px;
+    background: var(--panel2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px; margin-top: 8px; word-break: break-all; white-space: pre-wrap; min-height: 42px;
+}
+.out.big { font-size: 18px; }
+.out.scroll { max-height: 140px; overflow: auto; }
+.msg { margin-top: 8px; padding: 8px 12px; border-radius: 8px; font-weight: 600; }
+.msg.ok { background: var(--okbg); color: var(--ok); }
+.msg.bad { background: var(--badbg); color: var(--bad); }
+.msg.info { background: var(--accent-soft); color: var(--text); font-weight: 400; }
+.badge { display: inline-block; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+.badge.ok { background: var(--okbg); color: var(--ok); }
+.badge.bad { background: var(--badbg); color: var(--bad); }
+.note {
+    background: var(--accent-soft); border-radius: 8px; padding: 10px 12px; margin: 10px 0;
+}
+.note b:first-child { display: block; margin-bottom: 2px; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; }
+td, th { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+th { font-size: 13px; color: var(--muted); font-weight: 600; }
+.flow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 8px 0; }
+.flow .box {
+    background: var(--panel2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 6px 10px; font-size: 14px; text-align: center;
+}
+.flow .box.key { background: var(--accent-soft); border-color: var(--accent); }
+.flow .arr { color: var(--muted); font-weight: 700; }
+details { background: var(--panel2); border-radius: 8px; padding: 8px 12px; margin: 6px 0; }
+details summary { cursor: pointer; font-weight: 600; }
+details p { margin: 6px 0 2px; }
+.who { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+footer { font-size: 13px; color: var(--muted); text-align: center; margin: 8px 0 20px; }
+@media (max-width: 480px) {
+    body { padding: 12px; }
+    h1 { font-size: 23px; }
+    .card { padding: 12px; }
+}
+.nivaa { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.nivaa button {
+    font: inherit; color: var(--text); text-align: center; cursor: pointer;
+    background: var(--panel2); border: 2px solid var(--border); border-radius: 12px; padding: 12px;
+}
+.nivaa button:hover, .nivaa button.on { border-color: var(--accent); }
+.nivaa button.on { background: var(--accent-soft); }
+.nivaa svg { width: 110px; height: 110px; display: block; margin: 0 auto 6px; }
+.nivaa b { display: block; font-size: 17px; }
+.nivaa .small { display: block; }
+.nivaa .tatt { color: var(--ok); font-weight: 700; font-size: 13px; }
+.framdrift { height: 8px; background: var(--panel2); border-radius: 4px; overflow: hidden; border: 1px solid var(--border); }
+.framdrift i { display: block; height: 100%; background: var(--accent); transition: width .2s; }
+.spm-topp { display: flex; justify-content: space-between; font-size: 14px; color: var(--muted); margin: 10px 0 4px; }
+.spm { font-size: 19px; font-weight: 600; margin: 4px 0 12px; }
+.alt { display: grid; gap: 8px; }
+.alt button {
+    font: inherit; text-align: left; color: var(--text); cursor: pointer;
+    background: var(--panel2); border: 2px solid var(--border); border-radius: 10px; padding: 10px 12px;
+}
+.alt button:hover { border-color: var(--accent); }
+.alt button.valt { border-color: var(--accent); background: var(--accent-soft); font-weight: 600; }
+.poeng { font-size: 44px; font-weight: 800; text-align: center; margin: 4px 0; }
+.poeng.ok { color: var(--ok); } .poeng.bad { color: var(--bad); }
+.knapp-stor { max-width: 320px; margin: 10px auto; }
+.knapp-stor svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 4px 10px rgba(0,0,0,.25)); }
+.feil { border-left: 4px solid var(--bad); padding: 6px 0 6px 12px; margin: 10px 0; }
+.feil p { margin: 2px 0; }
+.feil .ditt { color: var(--bad); }
+.feil .rett { color: var(--ok); font-weight: 600; }
+.center { text-align: center; }
+.mine { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+.mine svg { width: 90px; height: 90px; }
+</style>
+</head>
+<body>
+<main>
+<nav class="top"><a href="index.html">← Frode</a><span class="serie"><a href="rot13.html">ROT</a><a href="hash.html">Hash</a><a href="symmetrisk.html">Symmetrisk</a><a href="asymmetrisk.html">Asymmetrisk</a><a href="krypteringsknappen.html" class="on">Knappen</a></span></nav>
+<h1>Krypteringsknappen</h1>
+<p class="lead">Har du jobba deg gjennom dei fire sidene om kryptografi? Svar rett på minst 11 av 12 spørsmål, og du får Krypteringsknappen. Start med bronse og jobb deg opp til gull.</p>
+
+<!-- START -->
+<section id="start">
+    <section class="card">
+        <h2>1. Vel nivå</h2>
+        <div class="nivaa" id="nivaval"></div>
+    </section>
+    <section class="card">
+        <h2>2. Skriv fornamnet ditt</h2>
+        <input type="text" id="namn" maxlength="20" placeholder="Fornamn" autocomplete="given-name">
+        <p class="small" style="margin-top:6px">Namnet kjem på knappen din.</p>
+        <div class="row" style="margin-top:10px">
+            <button class="btn primary" id="startknapp">Start testen</button>
+            <span class="small" id="startmsg"></span>
+        </div>
+    </section>
+    <section class="card">
+        <h2>Reglar</h2>
+        <ul style="margin:0; padding-left:20px">
+            <li>12 spørsmål, tre frå kvar side: <a href="rot13.html">ROT</a>, <a href="hash.html">hash</a>, <a href="symmetrisk.html">symmetrisk</a> og <a href="asymmetrisk.html">asymmetrisk</a>.</li>
+            <li>Du må ha minst 11 rette (90 %) for å få knappen.</li>
+            <li>Du ser ikkje om svaret er rett før du har levert. Du kan gå tilbake og endre svar.</li>
+            <li>Prøver du på nytt, får du nye spørsmål.</li>
+        </ul>
+    </section>
+    <section class="card" id="mineKort" style="display:none">
+        <h2>Knappane dine</h2>
+        <div class="mine" id="mine"></div>
+        <p class="small center" style="margin-top:6px">Lagra i denne nettlesaren.</p>
+    </section>
+</section>
+
+<!-- QUIZ -->
+<section id="quiz" class="card" style="display:none">
+    <div class="framdrift"><i id="bar"></i></div>
+    <div class="spm-topp"><span id="nr"></span><span id="tema"></span></div>
+    <div class="spm" id="spm"></div>
+    <div class="alt" id="alt"></div>
+    <div class="row" style="margin-top:14px; justify-content:space-between">
+        <button class="btn" id="forrige">← Førre</button>
+        <button class="btn primary" id="neste">Neste →</button>
+    </div>
+</section>
+
+<!-- RESULTAT -->
+<section id="resultat" style="display:none">
+    <section class="card center">
+        <div class="poeng" id="poeng"></div>
+        <p id="resTekst" style="font-size:18px"></p>
+        <div class="knapp-stor" id="stor"></div>
+        <div class="row" style="justify-content:center" id="resKnappar"></div>
+    </section>
+    <section class="card" id="feilKort" style="display:none">
+        <h2>Det du svara feil på</h2>
+        <div id="feilliste"></div>
+    </section>
+</section>
+
+<footer>Frode · IM-Stord · All utrekning skjer i nettlesaren din. Ingenting du skriv blir sendt nokon stad.</footer>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+const SIDER = {
+    rot:  { namn: "ROT-chiffer", url: "rot13.html" },
+    hash: { namn: "Hashfunksjonar", url: "hash.html" },
+    sym:  { namn: "Symmetrisk kryptering", url: "symmetrisk.html" },
+    asym: { namn: "Asymmetrisk kryptering", url: "asymmetrisk.html" },
+};
+
+const NIVA = {
+    bronse: { namn: "Bronse", tekst: "Grunnleggjande omgrep", lys: "#f0b27a", mid: "#c07a3e", mork: "#7a4518", tekstfarge: "#3d2008" },
+    solv:   { namn: "Sølv",   tekst: "Forstå korleis det verkar", lys: "#f4f6f8", mid: "#b8c0c8", mork: "#6b7480", tekstfarge: "#2a3038" },
+    gull:   { namn: "Gull",   tekst: "Bruk og rekning", lys: "#fff1a8", mid: "#e2b53c", mork: "#9a6b0a", tekstfarge: "#4a3300" },
+};
+
+/* Spørsmålsbank: [spørsmål, rett svar, [feil svar], forklaring] */
+const BANK = {
+bronse: {
+    rot: [
+        ["Kva gjer eit ROT-chiffer?", "Flyttar kvar bokstav eit fast tal plassar i alfabetet", ["Byter ut kvart ord med eit hemmeleg ord", "Gjer teksten om til binære tal", "Stokkar rekkjefølgja på bokstavane"], "ROT står for «rotate»: kvar bokstav blir flytta like mange plassar."],
+        ["Kva blir «HEI» med ROT1?", "IFJ", ["GDH", "HEJ", "JGK"], "Kvar bokstav blir flytta éin plass fram: H→I, E→F, I→J."],
+        ["Kor mange ulike nøklar (forskyvingar) har eit ROT-chiffer med A–Z?", "25", ["26", "13", "Uendeleg mange"], "26 bokstavar, men å flytte 26 plassar gir same tekst. Då står vi att med 25 nyttige nøklar."],
+        ["Kva er nøkkelen i eit ROT-chiffer?", "Talet på plassar ein flyttar", ["Det første ordet i meldinga", "Passordet til datamaskina", "Talet på bokstavar i meldinga"], "Både avsendar og mottakar må vite kor mange plassar som er flytta."],
+        ["Kva skjer med Æ, Ø og Å i eit klassisk ROT-chiffer?", "Dei blir ikkje endra", ["Dei blir gjort om til A", "Dei blir fjerna", "Dei blir flytta som andre bokstavar"], "Klassisk ROT arbeider berre med dei 26 bokstavane A–Z."],
+    ],
+    hash: [
+        ["Kva er ein hash?", "Eit digitalt fingeravtrykk av data", ["Ei kryptert melding som kan låsast opp", "Eit sterkt passord", "Ein komprimert kopi av fila"], "Ein hash er eit kort fingeravtrykk som blir rekna ut frå dataen."],
+        ["Same tekst blir hasha to gonger med SHA-256. Kva skjer?", "Begge gongene blir hashen lik", ["Hashen blir ulik kvar gong", "Den andre hashen blir dobbelt så lang", "Du får ei feilmelding"], "Hashfunksjonar er deterministiske: same inndata gir alltid same hash."],
+        ["Kor lang er ein SHA-256-hash?", "Alltid 256 bit", ["Like lang som teksten", "256 bokstavar", "Det kjem an på fila"], "Hashen har fast lengd, uansett kor stor inndataen er."],
+        ["Kva for algoritme er rekna som knekt og bør ikkje brukast?", "MD5", ["SHA-256", "SHA-512", "AES"], "MD5 (og SHA-1) er knekte fordi ein kan lage kollisjonar."],
+        ["Kan ein rekne seg tilbake frå ein hash til teksten?", "Nei, hashing er einvegs", ["Ja, med rett nøkkel", "Ja, med ROT13", "Ja, om hashen er kort nok"], "Ein hash har ingen nøkkel og kan ikkje reverserast. Ein kan berre gjette og samanlikne."],
+    ],
+    sym: [
+        ["Kva kjenneteiknar symmetrisk kryptering?", "Same nøkkel blir brukt til å kryptere og dekryptere", ["Det er ein offentleg og ein privat nøkkel", "Ein treng ingen nøkkel", "Nøkkelen blir laga på nytt av mottakaren utan passord"], "Symmetrisk: same nøkkel begge vegar, som ei kiste der begge har kopi av same nøkkel."],
+        ["Kva heiter den mest brukte symmetriske algoritmen?", "AES", ["RSA", "SHA-256", "MD5"], "AES blir brukt i Wi-Fi, BitLocker, HTTPS, VPN og mykje meir."],
+        ["Kva skjer om Bob prøver å dekryptere med feil passord?", "Dekrypteringa feilar", ["Han får ein litt endra tekst", "Meldinga blir sletta hos Alice", "Han får meldinga likevel"], "Feil passord gir feil nøkkel, og AES-GCM oppdagar det."],
+        ["Kvar blir symmetrisk kryptering brukt?", "I Wi-Fi med WPA2 og WPA3", ["Når ein lagar eit nøkkelpar", "Til digitale signaturar", "I sertifikat for nettstader"], "WPA2 og WPA3 krypterer trafikken med AES."],
+        ["Kva er det største problemet med symmetrisk kryptering?", "Å dele nøkkelen trygt med mottakaren", ["At ho er svært treg", "At ho er lett å knekke", "At ho berre fungerer på engelsk tekst"], "Begge må ha same nøkkel, men korleis sender ein han trygt? Det løyser asymmetrisk kryptering."],
+    ],
+    asym: [
+        ["Kor mange nøklar har ein i asymmetrisk kryptering?", "To: ein offentleg og ein privat", ["Éin felles nøkkel", "Tre nøklar", "Ingen nøklar"], "Nøkkelparet består av ein offentleg og ein privat nøkkel som høyrer saman."],
+        ["Alice vil sende ei hemmeleg melding til Bob. Kva nøkkel krypterer ho med?", "Bob sin offentlege nøkkel", ["Bob sin private nøkkel", "Alice sin private nøkkel", "Alice sin offentlege nøkkel"], "Alice låser med Bob sin offentlege nøkkel, og berre Bob sin private kan låse opp."],
+        ["Kven kan få den offentlege nøkkelen?", "Alle", ["Berre eigaren", "Berre den som skal motta meldinga", "Ingen"], "Den offentlege nøkkelen kan delast fritt med heile verda."],
+        ["Kva er eit kjent døme på asymmetrisk kryptering?", "RSA", ["AES", "MD5", "ROT13"], "RSA er den mest kjende asymmetriske algoritmen."],
+        ["Kva for bilete passar best på asymmetrisk kryptering?", "Ei postkasse: alle kan putte brev inn, men berre eigaren kan opne", ["Ei kiste der alle har same nøkkel", "Ein open dør", "Ein kodelås der alle kjenner koden"], "Den offentlege nøkkelen er innkastet, den private nøkkelen opnar postkassa."],
+    ],
+},
+solv: {
+    rot: [
+        ["Kvifor kan ROT13 brukast både til å kryptere og dekryptere?", "13 + 13 = 26, så to gonger fører tilbake til start", ["ROT13 brukar eit spesielt passord", "ROT13 brukar to ulike alfabet", "Det kan det ikkje"], "Alfabetet har 26 bokstavar. To gonger 13 er ein heil runde."],
+        ["Du køyrer ROT5 to gonger på ein tekst. Kva tilsvarar det?", "ROT10", ["ROT5", "Originalteksten", "ROT25"], "5 + 5 = 10. Berre ROT13 kjem tilbake til start etter to gonger."],
+        ["Ei melding er kryptert med ROT3. Kva dekrypterer ho?", "ROT23, altså 3 plassar tilbake", ["ROT3 éin gong til", "ROT13", "ROT6"], "3 + 23 = 26, ein heil runde rundt alfabetet."],
+        ["Kvifor er ROT så lett å knekke?", "Det finst berre 25 nøklar å prøve", ["Passordet er for kort", "Det vart laga av Julius Cæsar", "Det byggjer på hashing"], "Med så få nøklar kan ei datamaskin prøve alle på under eitt millisekund."],
+        ["Kva kallar ein det å prøve alle moglege nøklar?", "Brute force", ["Phishing", "Salting", "Hashing"], "Brute force betyr «rå kraft»: prøv alt til noko passar."],
+        ["I ROT blir same bokstav alltid til same bokstav. Kvifor er det ein svakheit?", "Mønster i språket blir synlege, til dømes at E er vanlegast", ["Teksten blir lengre", "Det blir umogleg å dekryptere", "Alle bokstavane blir like"], "Frekvensanalyse: den vanlegaste bokstaven i chifferteksten er truleg E."],
+    ],
+    hash: [
+        ["«Stord vgs» og «Stord Vgs» blir hasha med SHA-256. Kva skjer?", "Om lag halvparten av bitane i dei to hashane er ulike", ["Hashane er nesten like", "Hashane er heilt like", "Berre eitt teikn i hashen er ulikt"], "Ei lita endring i inndata gir ein heilt ny hash."],
+        ["Kva heiter det at ei lita endring gir ein heilt ny hash?", "Skredeffekten", ["Kollisjon", "Salting", "Brute force"], "Endringa sprer seg som eit snøskred gjennom heile utrekninga."],
+        ["Kvifor lagrar nettstader hashen av passordet i staden for sjølve passordet?", "Om databasen lekk, ser ikkje angriparen passorda direkte", ["Det tek mindre plass", "Det gjer innlogginga raskare", "Hashen er lettare å hugse"], "Ved innlogging blir det du skriv hasha og samanlikna med den lagra hashen."],
+        ["Kva er føremålet med salt?", "At like passord gir ulike hashar", ["At hashen blir kortare", "At passordet kan dekrypterast att", "At innlogginga går raskare"], "Kvar brukar får sitt eige tilfeldige salt, så Kari og Ola får ulik hash sjølv med same passord."],
+        ["Kva er ein kollisjon?", "To ulike inndata gir same hash", ["Same inndata gir ulik hash", "Hashen blir for lang", "To filer har same filnamn"], "Kollisjonar skal vere praktisk umoglege å finne. For MD5 er dei lette å lage."],
+        ["Du lastar ned ein ISO-fil, og SHA-256-hashen er ulik den på nettstaden. Kva betyr det?", "Fila er endra eller øydelagd", ["Fila er kryptert", "Nettlesaren reknar feil", "Alt er i orden"], "Same fil gir alltid same hash. Ulik hash betyr ulik fil."],
+    ],
+    sym: [
+        ["Alice krypterer same melding med same passord to gonger. Kvifor blir chifferteksten ulik?", "Salt og IV er tilfeldige kvar gong", ["Det er ein feil i programmet", "AES endrar passordet kvar gong", "Klokkeslettet er med i meldinga"], "Tilfeldig salt og IV gjer at Eve ikkje kan sjå at same melding er sendt to gonger."],
+        ["Eve endrar eitt teikn i chifferteksten. Kva skjer når Bob dekrypterer med AES-GCM?", "Bob får feilmelding fordi kontrollsummen ikkje stemmer", ["Bob får meldinga med éin feil bokstav", "Bob får ei melding frå Eve", "Ingen merkar noko"], "GCM legg til ein kontrollsum som avslører alle endringar."],
+        ["Kvifor blir passordet køyrt gjennom PBKDF2 100 000 gonger?", "For at det skal ta lang tid å gjette passord", ["For å gjere meldinga kortare", "For å kryptere meldinga 100 000 gonger", "For å lage IV-en"], "Kvar gjetting kostar 100 000 utrekningar. Det gjer brute force mykje tregare."],
+        ["Kva er det svakaste leddet når AES blir brukt med passord?", "Passordet", ["AES-algoritmen", "IV-en", "Saltet"], "AES blir ikkje knekt, men eit dårleg passord kan gjettast."],
+        ["Kvifor brukar ein symmetrisk kryptering til store datamengder?", "Ho er svært rask", ["Ho treng ingen nøkkel", "Ho er einvegs", "Ho brukar offentlege nøklar"], "AES er rask, og moderne prosessorar har eigne instruksjonar for AES."],
+        ["Blir AES-nøkkelen sendt saman med chifferteksten?", "Nei, Bob reknar han ut sjølv frå passordet og saltet", ["Ja, gøymt i IV-en", "Ja, gøymt i saltet", "Ja, heilt sist i meldinga"], "Nøkkelen blir aldri sendt. Berre salt, IV og chiffertekst går over nettet."],
+    ],
+    asym: [
+        ["Alice har kryptert ei melding med Bob sin offentlege nøkkel. Kan ho lese ho att?", "Nei, berre Bob sin private nøkkel kan låse opp", ["Ja, med Bob sin offentlege nøkkel", "Ja, sidan ho skreiv ho", "Ja, med sin eigen offentlege nøkkel"], "Den offentlege nøkkelen kan berre låse, ikkje låse opp."],
+        ["Eve har chifferteksten og Bob sin offentlege nøkkel. Kan ho lese meldinga?", "Nei", ["Ja", "Ja, om ho har sitt eige nøkkelpar", "Ja, om meldinga er kort"], "Utan Bob sin private nøkkel kan ingen dekryptere."],
+        ["Kva nøkkel brukar Alice når ho signerer ei melding?", "Sin eigen private nøkkel", ["Sin eigen offentlege nøkkel", "Bob sin offentlege nøkkel", "Bob sin private nøkkel"], "Signering skjer med den private nøkkelen, kontroll med den offentlege."],
+        ["Kva viser ein gyldig digital signatur?", "At meldinga er frå avsendaren og ikkje er endra", ["At meldinga er kryptert", "At mottakaren har lese meldinga", "At meldinga er kortare enn 190 byte"], "Endrar Eve meldinga, blir signaturen ugyldig."],
+        ["Kvifor brukar HTTPS både asymmetrisk og symmetrisk kryptering?", "Asymmetrisk for å bli einige om ein nøkkel, symmetrisk fordi det er raskt", ["For dobbel tryggleik på alt", "Fordi RSA ikkje kan kryptere tekst", "Fordi AES krev eit sertifikat"], "Asymmetrisk løyser nøkkelutvekslinga, AES tek resten fordi det er raskt."],
+        ["Kva skjer om Eve stel Bob sin private nøkkel?", "Ho kan lese meldingar til Bob og signere som om ho var Bob", ["Ingenting, ho treng den offentlege nøkkelen òg", "Ho kan berre sende meldingar til Bob", "Nøkkelen sluttar å fungere"], "Den private nøkkelen må aldri komme på avvegar. Då må han trekkjast tilbake."],
+    ],
+},
+gull: {
+    rot: [
+        ["Kva blir «ZOO» med ROT13?", "MBB", ["NBB", "ZOO", "MCC"], "Z er bokstav 26. 13 plassar fram og rundt gir M. O + 13 = B."],
+        ["«Khl» er kryptert med ROT3. Kva stod det?", "Hei", ["Kei", "Jei", "Nko"], "Flytt kvar bokstav 3 tilbake: K→H, h→e, l→i."],
+        ["Eit ROT-chiffer brukar heile det norske alfabetet med 29 bokstavar. Kor mange nyttige nøklar har det?", "28", ["29", "26", "25"], "Med 29 bokstavar gir forskyving 29 same tekst, så det blir 28 nyttige nøklar."],
+        ["Kva forskyving dekrypterer ein tekst som er kryptert med ROT7?", "ROT19", ["ROT7", "ROT14", "ROT13"], "7 + 19 = 26, ein heil runde."],
+        ["Ei datamaskin prøver alle 25 ROT-nøklar på 1 ms. Kva viser det?", "At nøkkelrommet er altfor lite til å vere trygt", ["At ROT er raskt og difor trygt", "At datamaskina er for treg", "At ROT krev ei superdatamaskin"], "Tryggleik krev så mange nøklar at det er umogleg å prøve alle."],
+    ],
+    hash: [
+        ["Kor mange heksadesimale teikn har ein SHA-256-hash?", "64", ["256", "32", "128"], "Kvart heksadesimale teikn er 4 bit. 256 / 4 = 64."],
+        ["Kor mange heksadesimale teikn har ein MD5-hash?", "32", ["16", "64", "128"], "MD5 er 128 bit. 128 / 4 = 32."],
+        ["To brukarar har same passord og har fått same salt. Kva skjer?", "Dei får same hash, saltet hjelper ikkje", ["Dei får ulik hash", "Hashen blir ugyldig", "Passorda kan dekrypterast"], "Saltet må vere unikt for kvar brukar for å verke."],
+        ["Kvifor er bcrypt og Argon2 betre enn SHA-256 til passord?", "Dei er bevisst langsame, så gjetting tek lang tid", ["Dei gir lengre hashar", "Dei kan dekrypterast ved behov", "Dei treng ikkje salt"], "SHA-256 er laga for å vere rask. Til passord vil ein ha det motsette."],
+        ["Ein angripar har ein usalta MD5-hash av passordet «sommar2026». Kva er mest truleg?", "Han finn passordet raskt i ein ferdig tabell over vanlege passord", ["Han reknar seg baklengs frå hashen", "Han treng nøkkelen for å lese det", "Det er umogleg å finne passordet"], "Vanlege passord er alt hasha og samla i store tabellar."],
+        ["Kvar brukar Git hashar?", "Kvar commit blir identifisert med ein hash", ["Til å kryptere kjeldekoden", "Til å komprimere filer", "Git brukar ikkje hashar"], "Commit-ID-en du ser i Git er ein hash av innhaldet."],
+    ],
+    sym: [
+        ["Kor mange moglege nøklar har AES-256?", "2²⁵⁶", ["256", "256²", "25"], "2²⁵⁶ er eit tal med 78 siffer, langt utanfor det brute force kan klare."],
+        ["Kor mange byte er IV-en i AES-GCM på sida om symmetrisk kryptering?", "12", ["16", "32", "256"], "Salt er 16 byte og IV er 12 byte."],
+        ["Kvifor blir salt og IV sende ukryptert saman med meldinga?", "Dei er ikkje hemmelege, og Bob treng dei for å dekryptere", ["Det er ein tryggleiksfeil", "Dei er krypterte med RSA", "Base64 er ei form for kryptering"], "Utan passordet er salt og IV til ingen nytte for Eve."],
+        ["30 elevar skal sende krypterte meldingar parvis, med ein eigen symmetrisk nøkkel for kvart par. Kva blir problemet?", "Det trengst 435 nøklar som alle må delast trygt", ["AES klarer berre to personar", "Det tek for lang tid å kryptere", "Det blir ikkje noko problem"], "30 × 29 / 2 = 435 par. Nøkkeldelinga veks raskt, og asymmetrisk kryptering løyser det."],
+        ["Kvifor gir AES-256 med passordet «123456» dårleg tryggleik?", "Passordet kan gjettast, sjølv om AES ikkje kan knekkast", ["AES-256 er knekt", "Kort passord gir ein kort nøkkel", "Tal kan ikkje brukast i passord"], "PBKDF2 gir alltid ein 256-bit nøkkel, men «123456» er blant dei første ein angripar prøver."],
+        ["BitLocker krypterer disken med AES. Kva vernar det mot?", "At nokon les dataa om PC-en blir stolen", ["Virus", "Phishing-e-post", "At nokon les nettrafikken din"], "Utan nøkkelen er disken berre tilfeldige bit for ein tjuv."],
+    ],
+    asym: [
+        ["Leike-RSA med p = 5 og q = 11. Kva er n?", "55", ["16", "40", "50"], "n = p × q = 5 × 11 = 55."],
+        ["Leike-RSA med p = 5 og q = 11. Kva er φ(n)?", "40", ["55", "54", "16"], "φ(n) = (p − 1)(q − 1) = 4 × 10 = 40."],
+        ["Kva er formelen for å kryptere talet m med RSA?", "c = mᵉ mod n", ["c = m · e", "c = mᵈ mod n", "c = m + n"], "Kryptering brukar den offentlege eksponenten e. Dekryptering brukar d."],
+        ["Kva gjer RSA trygt?", "Det er svært vanskeleg å finne p og q frå n når tala er store", ["At e er hemmeleg", "At n er hemmeleg", "At nøklane blir bytte kvar dag"], "Å gange er lett, å faktorisere eit tal med over 600 siffer er praktisk umogleg."],
+        ["Korleis veit nettlesaren at den offentlege nøkkelen verkeleg høyrer til banken?", "Sertifikatet er signert av ein tiltrudd utferdar", ["Nøkkelen står i nettadressa", "Banken sender han på SMS", "Nøkkelen er kryptert med AES"], "Ein tiltrudd tredjepart signerer at nøkkelen høyrer til banken."],
+        ["Du set opp SSH-innlogging med nøkkel. Kva fil legg du på serveren?", "id_ed25519.pub", ["id_ed25519", "Begge filene", "Ingen av dei"], ".pub er den offentlege nøkkelen. Den private skal aldri forlate maskina di."],
+    ],
+},
+};
+
+/* ---------- Teikning av knappen ---------- */
+let svgTeljar = 0;
+function knappSVG(nivaa, namn, dato, liten) {
+    const N = NIVA[nivaa], u = "k" + (++svgTeljar);
+    // Takkar rundt kanten, som ein vevd svømmeknapp
+    let takk = "";
+    for (let i = 0; i < 72; i++) {
+        const a = i / 72 * 2 * Math.PI, r = i % 2 ? 196 : 188;
+        takk += (i ? "L" : "M") + (200 + r * Math.cos(a)).toFixed(1) + " " + (200 + r * Math.sin(a)).toFixed(1);
+    }
+    const tom = !namn;
+    return `<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Krypteringsknappen ${esc(N.namn)}${tom ? "" : " – " + esc(namn)}">
+  <defs>
+    <radialGradient id="${u}g" cx="38%" cy="32%" r="75%">
+      <stop offset="0" stop-color="${N.lys}"/><stop offset=".55" stop-color="${N.mid}"/><stop offset="1" stop-color="${N.mork}"/>
+    </radialGradient>
+    <path id="${u}top" d="M 70 200 A 130 130 0 0 1 330 200"/>
+    <path id="${u}bot" d="M 58 200 A 142 142 0 0 0 342 200"/>
+  </defs>
+  <path d="${takk}Z" fill="${N.mork}"/>
+  <circle cx="200" cy="200" r="182" fill="url(#${u}g)"/>
+  <circle cx="200" cy="200" r="170" fill="none" stroke="${N.tekstfarge}" stroke-width="3" stroke-dasharray="7 6" opacity=".55"/>
+  <circle cx="200" cy="200" r="110" fill="#ffffff" opacity=".22"/>
+  <text font-family="Arial, Helvetica, sans-serif" font-weight="bold" font-size="25" letter-spacing="3" fill="${N.tekstfarge}">
+    <textPath href="#${u}top" startOffset="50%" text-anchor="middle">KRYPTERINGSKNAPPEN</textPath></text>
+  <text font-family="Arial, Helvetica, sans-serif" font-weight="bold" font-size="19" letter-spacing="4" fill="${N.tekstfarge}">
+    <textPath href="#${u}bot" startOffset="50%" text-anchor="middle">STORD VGS</textPath></text>
+  <g fill="${N.tekstfarge}" transform="translate(200 ${tom ? 168 : 128})">
+    <path d="M -22 -6 L -22 -20 A 22 22 0 0 1 22 -20 L 22 -6 L 13 -6 L 13 -20 A 13 13 0 0 0 -13 -20 L -13 -6 Z"/>
+    <rect x="-30" y="-8" width="60" height="44" rx="7"/>
+    <circle cx="0" cy="11" r="7" fill="${N.mid}"/><rect x="-3" y="11" width="6" height="14" rx="2" fill="${N.mid}"/>
+  </g>
+  <text x="200" y="${tom ? 250 : 210}" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="bold" font-size="${tom ? 40 : 34}" fill="${N.tekstfarge}">${esc(N.namn.toUpperCase())}</text>
+  ${tom ? "" : `<text x="200" y="256" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="bold" font-size="${namn.length > 12 ? 26 : 34}" fill="${N.tekstfarge}">${esc(namn)}</text>
+  <text x="200" y="288" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="${N.tekstfarge}">${esc(dato)}</text>`}
+</svg>`;
+}
+
+/* ---------- Lagra knappar (berre i denne nettlesaren) ---------- */
+function hentMine() { try { return JSON.parse(localStorage.getItem("krypteringsknappen") || "{}"); } catch { return {}; } }
+function lagreMin(nivaa, namn, dato) {
+    try { const m = hentMine(); m[nivaa] = { namn, dato }; localStorage.setItem("krypteringsknappen", JSON.stringify(m)); } catch {}
+}
+
+/* ---------- Startskjerm ---------- */
+let valtNivaa = "bronse";
+function visStart() {
+    const mine = hentMine();
+    $("nivaval").innerHTML = Object.keys(NIVA).map(k => `<button data-n="${k}" class="${k === valtNivaa ? "on" : ""}">
+        ${knappSVG(k)}<b>${NIVA[k].namn}</b><span class="small">${NIVA[k].tekst}</span>
+        ${mine[k] ? `<span class="tatt">✓ Teken ${esc(mine[k].dato)}</span>` : ""}</button>`).join("");
+    const har = Object.keys(NIVA).filter(k => mine[k]);
+    $("mineKort").style.display = har.length ? "block" : "none";
+    $("mine").innerHTML = har.map(k => knappSVG(k, mine[k].namn, mine[k].dato)).join("");
+    $("start").style.display = "block"; $("quiz").style.display = "none"; $("resultat").style.display = "none";
+}
+$("nivaval").onclick = e => {
+    const b = e.target.closest("button"); if (!b) return;
+    valtNivaa = b.dataset.n; visStart();
+};
+
+/* ---------- Quiz ---------- */
+function stokk(a) { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
+let spm = [], svar = [], idx = 0, namn = "";
+$("startknapp").onclick = () => {
+    namn = $("namn").value.trim().replace(/\s+/g, " ");
+    if (!namn) { $("startmsg").textContent = "Skriv fornamnet ditt først."; $("namn").focus(); return; }
+    $("startmsg").textContent = "";
+    spm = [];
+    for (const side of Object.keys(SIDER)) {
+        for (const [q, rett, galne, forklaring] of stokk(BANK[valtNivaa][side]).slice(0, 3)) {
+            const alt = stokk([rett, ...galne]);
+            spm.push({ side, q, alt, rett: alt.indexOf(rett), forklaring });
+        }
+    }
+    svar = new Array(spm.length).fill(null);
+    idx = 0;
+    $("start").style.display = "none"; $("quiz").style.display = "block";
+    visSpm();
+    window.scrollTo(0, 0);
+};
+
+function visSpm() {
+    const s = spm[idx];
+    $("bar").style.width = (idx / spm.length * 100) + "%";
+    $("nr").textContent = `Spørsmål ${idx + 1} av ${spm.length} · ${NIVA[valtNivaa].namn}`;
+    $("tema").textContent = SIDER[s.side].namn;
+    $("spm").textContent = s.q;
+    $("alt").innerHTML = s.alt.map((a, i) => `<button data-i="${i}" class="${svar[idx] === i ? "valt" : ""}">${esc(a)}</button>`).join("");
+    $("forrige").disabled = idx === 0;
+    $("neste").textContent = idx === spm.length - 1 ? "Lever" : "Neste →";
+    $("neste").disabled = svar[idx] === null;
+}
+$("alt").onclick = e => {
+    const b = e.target.closest("button"); if (!b) return;
+    svar[idx] = +b.dataset.i; visSpm();
+};
+$("forrige").onclick = () => { if (idx > 0) { idx--; visSpm(); } };
+$("neste").onclick = () => {
+    if (svar[idx] === null) return;
+    if (idx < spm.length - 1) { idx++; visSpm(); } else visResultat();
+};
+
+/* ---------- Resultat ---------- */
+const KRAV = 11;
+function visResultat() {
+    const rette = spm.filter((s, i) => svar[i] === s.rett).length;
+    const ok = rette >= KRAV;
+    const N = NIVA[valtNivaa];
+    const dato = new Date().toLocaleDateString("nb-NO", { day: "2-digit", month: "2-digit", year: "numeric" });
+    $("quiz").style.display = "none"; $("resultat").style.display = "block";
+    $("poeng").textContent = `${rette} / ${spm.length}`;
+    $("poeng").className = "poeng " + (ok ? "ok" : "bad");
+
+    const nesteNivaa = { bronse: "solv", solv: "gull" }[valtNivaa];
+    let knappar = "";
+    if (ok) {
+        lagreMin(valtNivaa, namn, dato);
+        $("resTekst").innerHTML = `Gratulerer, ${esc(namn)}! Du har teke <b>Krypteringsknappen i ${N.namn.toLowerCase()}</b>.`;
+        $("stor").innerHTML = knappSVG(valtNivaa, namn, dato);
+        knappar += `<button class="btn primary" id="lastned">Last ned knappen</button>`;
+        if (nesteNivaa) knappar += `<button class="btn" id="neste-nivaa">Prøv ${NIVA[nesteNivaa].namn.toLowerCase()}</button>`;
+    } else {
+        $("resTekst").innerHTML = `Du treng ${KRAV} rette for å få knappen. Les gjennom det du svara feil på, og prøv igjen. Du får nye spørsmål.`;
+        $("stor").innerHTML = "";
+        knappar += `<button class="btn primary" id="igjen">Prøv igjen</button>`;
+    }
+    knappar += `<button class="btn" id="tilstart">Til start</button>`;
+    $("resKnappar").innerHTML = knappar;
+
+    const feil = spm.map((s, i) => ({ s, i })).filter(({ s, i }) => svar[i] !== s.rett);
+    $("feilKort").style.display = feil.length ? "block" : "none";
+    $("feilliste").innerHTML = feil.map(({ s, i }) => `<div class="feil">
+        <p><b>${esc(s.q)}</b></p>
+        <p class="ditt">Ditt svar: ${esc(s.alt[svar[i]])}</p>
+        <p class="rett">Rett svar: ${esc(s.alt[s.rett])}</p>
+        <p class="small">${esc(s.forklaring)} <a href="${SIDER[s.side].url}">Les meir: ${SIDER[s.side].namn}</a></p></div>`).join("");
+
+    if (ok) {
+        $("lastned").onclick = () => lastNed(valtNivaa, namn, dato);
+        if (nesteNivaa) $("neste-nivaa").onclick = () => { valtNivaa = nesteNivaa; visStart(); $("namn").value = namn; window.scrollTo(0, 0); };
+    } else {
+        $("igjen").onclick = () => { $("namn").value = namn; $("startknapp").click(); };
+    }
+    $("tilstart").onclick = () => { visStart(); window.scrollTo(0, 0); };
+    window.scrollTo(0, 0);
+}
+
+function lastNed(nivaa, namn, dato) {
+    const svg = knappSVG(nivaa, namn, dato);
+    const img = new Image();
+    img.onload = () => {
+        const c = document.createElement("canvas");
+        c.width = c.height = 800;
+        c.getContext("2d").drawImage(img, 0, 0, 800, 800);
+        const a = document.createElement("a");
+        a.download = `krypteringsknappen-${nivaa}-${namn.toLowerCase().replace(/[^a-zæøå0-9]+/g, "-")}.png`;
+        a.href = c.toDataURL("image/png");
+        a.click();
+    };
+    img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+}
+
+$("namn").onkeydown = e => { if (e.key === "Enter") $("startknapp").click(); };
+visStart();
+</script>
+</body>
+</html>
