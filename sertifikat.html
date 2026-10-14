@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="nn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sertifikat og HTTPS</title>
+<style>
+:root {
+    --bg: #eef2f6;
+    --panel: #ffffff;
+    --panel2: #f2f5f9;
+    --border: #d3dae3;
+    --text: #1b2230;
+    --muted: #5b6577;
+    --accent: #0f766e;
+    --accent-soft: #d5f0ec;
+    --ok: #15803d;
+    --okbg: #dcfce7;
+    --bad: #b91c1c;
+    --badbg: #fee2e2;
+    --warn: #a16207;
+    --warnbg: #fef3c7;
+    --c1: #2563eb;
+    --c2: #c2410c;
+    --c3: #7c3aed;
+    --hl: #fde68a;
+    color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #171c26;
+        --panel: #222936;
+        --panel2: #2a3242;
+        --border: #3a4356;
+        --text: #e5e8ee;
+        --muted: #9aa3b4;
+        --accent: #2dd4bf;
+        --accent-soft: #134e4a;
+        --ok: #4ade80;
+        --okbg: #14391f;
+        --bad: #f87171;
+        --badbg: #4a1d22;
+        --warn: #fbbf24;
+        --warnbg: #3d3012;
+        --c1: #60a5fa;
+        --c2: #fb923c;
+        --c3: #a78bfa;
+        --hl: #6b5a12;
+        color-scheme: dark;
+    }
+}
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    line-height: 1.5;
+    padding: 16px;
+}
+main { max-width: 780px; margin: 0 auto; }
+a { color: var(--accent); }
+nav.top {
+    display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center;
+    justify-content: space-between; font-size: 14px; margin-bottom: 10px;
+}
+nav.top .serie { display: flex; flex-wrap: wrap; gap: 6px; }
+nav.top .serie a {
+    text-decoration: none; padding: 3px 10px; border-radius: 999px;
+    border: 1px solid var(--border); background: var(--panel); color: var(--text);
+}
+nav.top .serie a.anna { border-style: dashed; color: var(--accent); }
+nav.top .serie a.on { background: var(--accent); border-color: var(--accent); color: var(--panel); font-weight: 600; }
+h1 { margin: 4px 0 4px; font-size: 27px; }
+.lead { color: var(--muted); margin: 0 0 16px; font-size: 17px; }
+.card {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px; margin-bottom: 16px;
+}
+.card h2 { margin: 0 0 8px; font-size: 19px; }
+.card h3 { margin: 14px 0 6px; font-size: 16px; }
+.card p { margin: 0 0 10px; }
+.card > :last-child { margin-bottom: 0; }
+.small { font-size: 14px; color: var(--muted); }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+label { display: block; font-weight: 600; margin: 10px 0 4px; font-size: 15px; }
+textarea, input[type=text], input[type=password], input[type=number], select {
+    width: 100%; padding: 8px 10px; font: inherit;
+    border: 1px solid var(--border); border-radius: 8px;
+    background: var(--panel2); color: var(--text);
+}
+textarea { min-height: 70px; resize: vertical; }
+input[type=range] { width: 100%; accent-color: var(--accent); }
+.btn {
+    border: 1px solid var(--border); background: var(--panel2); color: var(--text);
+    padding: 8px 14px; border-radius: 8px; font: inherit; font-size: 15px; cursor: pointer;
+}
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--panel); font-weight: 600; }
+.btn.danger { border-color: var(--bad); color: var(--bad); }
+.btn:disabled { opacity: .5; cursor: default; }
+.seg { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.seg button {
+    border: 0; background: var(--panel2); color: var(--text);
+    padding: 8px 14px; font: inherit; font-size: 15px; cursor: pointer;
+    border-right: 1px solid var(--border);
+}
+.seg button:last-child { border-right: 0; }
+.seg button.on { background: var(--accent); color: var(--panel); font-weight: 600; }
+.mono, code { font-family: ui-monospace, Menlo, Consolas, monospace; }
+.out {
+    font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 15px;
+    background: var(--panel2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px; margin-top: 8px; word-break: break-all; white-space: pre-wrap; min-height: 42px;
+}
+.out.big { font-size: 18px; }
+.out.scroll { max-height: 140px; overflow: auto; }
+.msg { margin-top: 8px; padding: 8px 12px; border-radius: 8px; font-weight: 600; }
+.msg.ok { background: var(--okbg); color: var(--ok); }
+.msg.bad { background: var(--badbg); color: var(--bad); }
+.msg.info { background: var(--accent-soft); color: var(--text); font-weight: 400; }
+.badge { display: inline-block; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+.badge.ok { background: var(--okbg); color: var(--ok); }
+.badge.bad { background: var(--badbg); color: var(--bad); }
+.note {
+    background: var(--accent-soft); border-radius: 8px; padding: 10px 12px; margin: 10px 0;
+}
+.note b:first-child { display: block; margin-bottom: 2px; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; }
+td, th { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+th { font-size: 13px; color: var(--muted); font-weight: 600; }
+.flow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 8px 0; }
+.flow .box {
+    background: var(--panel2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 6px 10px; font-size: 14px; text-align: center;
+}
+.flow .box.key { background: var(--accent-soft); border-color: var(--accent); }
+.flow .arr { color: var(--muted); font-weight: 700; }
+details { background: var(--panel2); border-radius: 8px; padding: 8px 12px; margin: 6px 0; }
+details summary { cursor: pointer; font-weight: 600; }
+details p { margin: 6px 0 2px; }
+.who { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+footer { font-size: 13px; color: var(--muted); text-align: center; margin: 8px 0 20px; }
+@media (max-width: 480px) {
+    body { padding: 12px; }
+    h1 { font-size: 23px; }
+    .card { padding: 12px; }
+}
+.val { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 4px 16px; }
+.val label.cb { display: flex; gap: 8px; align-items: flex-start; font-weight: 400; cursor: pointer; margin: 6px 0; }
+.val label.cb input { margin-top: 4px; }
+.nettlesar { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin-top: 14px; background: var(--panel); }
+.nettlesar .linje { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: var(--panel2); border-bottom: 1px solid var(--border); font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 14px; }
+.nettlesar .linje .ikon { font-size: 16px; }
+.nettlesar .linje .url { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nettlesar .linje.feil .url { color: var(--bad); text-decoration: line-through; }
+.nettlesar .innhald { padding: 18px; }
+.nettlesar .innhald.feil { background: #c62828; color: #fff; }
+.nettlesar .innhald.feil h3 { color: #fff; margin: 0 0 8px; font-size: 20px; }
+.nettlesar .innhald.feil code { background: rgba(0,0,0,.25); padding: 2px 6px; border-radius: 4px; }
+.nettlesar .innhald.ok h3 { margin: 0 0 6px; }
+.kjede { display: grid; gap: 10px; margin-top: 14px; }
+.sert { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; background: var(--panel2); position: relative; }
+.sert h3 { margin: 0 0 6px; font-size: 15px; }
+.sert .type { font-size: 12px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+.sert dl { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; margin: 0; font-size: 13px; }
+.sert dt { color: var(--muted); }
+.sert dd { margin: 0; word-break: break-all; }
+.sert dd.mono { font-size: 12px; }
+.sert dd.raud { color: var(--bad); font-weight: 700; }
+.pil { text-align: center; color: var(--muted); font-size: 13px; margin: -4px 0; }
+.sjekk { list-style: none; margin: 12px 0 0; padding: 0; }
+.sjekk li { padding: 6px 0 6px 30px; position: relative; border-bottom: 1px solid var(--border); font-size: 15px; }
+.sjekk li::before { position: absolute; left: 4px; top: 5px; font-weight: 800; }
+.sjekk li.ok::before { content: "✓"; color: var(--ok); }
+.sjekk li.bad::before { content: "✗"; color: var(--bad); }
+.sjekk li.skip::before { content: "–"; color: var(--muted); }
+.sjekk li.bad { color: var(--bad); }
+ol.tls { margin: 0; padding-left: 22px; } ol.tls li { margin-bottom: 6px; }
+</style>
+</head>
+<body>
+<main>
+<nav class="top"><a href="index.html">← Frode</a><span class="serie"><a href="passord.html">Passord</a><a href="totp.html">Tofaktor</a><a href="passkeys.html">Passkeys</a><a href="tpm.html">TPM</a><a href="diffie-hellman.html">Diffie-Hellman</a><a href="sertifikat.html" class="on">Sertifikat</a><a href="innloggingsknappen.html">Knappen</a><a class="anna" href="rot13.html">Kryptografi →</a></span></nav>
+<h1>Sertifikat og HTTPS</h1>
+<p class="lead">Hengelåsen i adressefeltet betyr at nettlesaren har kontrollert eit sertifikat: eit digitalt ID-kort som bind ei nettadresse til ein offentleg nøkkel. Men kven har skrive ut ID-kortet, og kvifor skal vi stole på det?</p>
+
+<section class="card">
+    <h2>Tillitskjeda</h2>
+    <p>Eit sertifikat inneheld mellom anna domenet, ein offentleg nøkkel og kor lenge det er gyldig. Det er <a href="asymmetrisk.html">signert</a> av ein sertifikatutferdar (CA). Den er igjen signert av ein rot-CA, som er innebygd i Windows, macOS, Android eller nettlesaren. Nettlesaren stoler på nettstaden fordi han stoler på rota.</p>
+    <div class="flow">
+        <div class="box key">Rot-CA<br><span class="small">i rotlageret ditt</span></div><div class="arr">→ signerer →</div>
+        <div class="box key">Mellom-CA</div><div class="arr">→ signerer →</div>
+        <div class="box">Sertifikatet til nettstaden</div>
+    </div>
+</section>
+
+<section class="card">
+    <h2>Prøv sjølv: kva ser nettlesaren?</h2>
+    <p class="small">Alle sertifikat og signaturar under er laga med ekte kryptografi (ECDSA) i nettlesaren din. Namna er oppdikta.</p>
+    <label for="adr">Adresse</label>
+    <select id="adr">
+        <option value="skulen.no">https://skulen.no (den ekte skulesida)</option>
+        <option value="www.skulen.no">https://www.skulen.no</option>
+        <option value="skulen-login.no">https://skulen-login.no (phishing-side laga av Eve)</option>
+    </select>
+    <h3>Ting som kan gå gale</h3>
+    <div class="val">
+        <label class="cb"><input type="checkbox" id="utgatt"> Sertifikatet har gått ut på dato</label>
+        <label class="cb"><input type="checkbox" id="sjolv"> Nettstaden har signert sertifikatet sitt sjølv</label>
+        <label class="cb"><input type="checkbox" id="rot"> Rot-CA-en manglar i rotlageret på PC-en</label>
+        <label class="cb"><input type="checkbox" id="tukle"> Eve byter den offentlege nøkkelen i sertifikatet med sin eigen</label>
+        <label class="cb"><input type="checkbox" id="feildomene"> Eve viser det ekte skulen.no-sertifikatet på phishing-sida si</label>
+    </div>
+
+    <div class="nettlesar">
+        <div class="linje" id="linje"><span class="ikon" id="ikon">🔒</span><span class="url" id="url"></span></div>
+        <div class="innhald" id="innhald"></div>
+    </div>
+
+    <h3>Det nettlesaren sjekkar</h3>
+    <ul class="sjekk" id="sjekk"></ul>
+
+    <h3>Sertifikatkjeda nettstaden sende</h3>
+    <div class="kjede" id="kjede"></div>
+</section>
+
+<section class="card">
+    <h2>Hengelås betyr ikkje «trygg side»</h2>
+    <p>Vel phishing-sida over utan å krysse av noko. Eve har eit heilt gyldig sertifikat for <code>skulen-login.no</code>, fordi ho eig det domenet. Hengelåsen viser berre at tilkoplinga er kryptert og at du snakkar med eigaren av <i>adressa</i>. Han seier ingenting om eigaren er ærleg.</p>
+    <div class="note"><b>Les adressa</b>Det er adressa, ikkje hengelåsen eller logoen, som fortel deg kvar du er. Eller bruk <a href="passkeys.html">passkeys</a>, som sjekkar adressa for deg.</div>
+</section>
+
+<section class="card">
+    <h2>Alt saman: slik startar ei HTTPS-tilkopling</h2>
+    <ol class="tls">
+        <li><b>Hei:</b> nettlesaren seier kva for krypteringsmetodar han kan.</li>
+        <li><b>Sertifikat:</b> nettstaden sender sertifikatkjeda si.</li>
+        <li><b>Kontroll:</b> nettlesaren sjekkar domene, dato og signaturar heilt opp til ei rot han stolar på (det du såg over).</li>
+        <li><b>Nøkkelutveksling:</b> dei gjer ei <a href="diffie-hellman.html">Diffie-Hellman</a>-utveksling. Nettstaden <a href="asymmetrisk.html">signerer</a> sin del med den private nøkkelen som høyrer til sertifikatet, så Eve ikkje kan stå i midten.</li>
+        <li><b>Kryptert samtale:</b> resten går med <a href="symmetrisk.html">AES</a> og den felles nøkkelen.</li>
+    </ol>
+    <p style="margin-top:10px">Alt dette skjer på nokre millisekund, kvar gong du opnar ei side.</p>
+</section>
+
+<section class="card">
+    <h2>Praktisk</h2>
+    <ul style="margin:0; padding-left:20px">
+        <li><b>Sjå sertifikatet:</b> klikk på ikonet til venstre for adressa, deretter «Tilkoplinga er sikker» og «Sertifikatet er gyldig».</li>
+        <li><b>Let's Encrypt</b> gir gratis sertifikat som blir fornya automatisk. Bransjen kortar ned levetida til sertifikat steg for steg, ned til 47 dagar innan 2029. Difor må fornying vere automatisk.</li>
+        <li><b>Nettverksutstyr</b> som switchar, ruterar og UniFi-kontrollarar brukar ofte sjølvsignerte sertifikat. Difor får du åtvaring når du konfigurerer dei. Det er vanleg på lokalt utstyr, men aldri greitt på ein nettbank.</li>
+        <li><b>Rotlageret i Windows:</b> køyr <code>certlm.msc</code> for maskina eller <code>certmgr.msc</code> for brukaren.</li>
+        <li><b>Eigen CA:</b> skular og bedrifter brukar ofte Active Directory Certificate Services (AD CS) til interne sertifikat, og legg rota si ut på alle PC-ane med gruppepolicy.</li>
+    </ul>
+</section>
+
+<section class="card">
+    <h2>Til ettertanke</h2>
+    <details><summary>Kvifor er det farleg å trykkje «Gå vidare likevel» på ei åtvaring?</summary>
+        <p>Då godtek du eit sertifikat nettlesaren ikkje kunne stole på. Står Eve i midten, krypterer du alt rett til henne.</p></details>
+    <details><summary>Kva skjer om nokon får lagt inn si eiga rot i rotlageret ditt?</summary>
+        <p>Då kan dei lage gyldige sertifikat for kva nettstad som helst, og nettlesaren din stoler på dei. Difor er rotlageret noko av det viktigaste å verne på ein PC.</p></details>
+    <details><summary>Kvifor kan ikkje Eve berre endre domenet i det ekte sertifikatet?</summary>
+        <p>Då passar ikkje signaturen lenger, akkurat som når ho endra den offentlege nøkkelen. Ho har ikkje den private nøkkelen til CA-en og kan ikkje signere på nytt.</p></details>
+    <details><summary>Kvifor treng sertifikatet ein offentleg nøkkel?</summary>
+        <p>Nettstaden må bevise at han eig sertifikatet ved å signere med den tilhøyrande private nøkkelen. Utan det kunne kven som helst kopiert sertifikatet, som jo er offentleg.</p></details>
+</section>
+
+<footer>Frode · IM-Stord · All utrekning skjer i nettlesaren din. Ingenting du skriv blir sendt nokon stad.</footer>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+const enc = new TextEncoder();
+const tilB64 = b => btoa(String.fromCharCode(...new Uint8Array(b)));
+const fraB64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+const hex = b => [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, "0")).join("");
+const ECDSA = { name: "ECDSA", namedCurve: "P-256" }, SIGN = { name: "ECDSA", hash: "SHA-256" };
+const nyttPar = () => crypto.subtle.generateKey(ECDSA, true, ["sign", "verify"]);
+const spki = async k => tilB64(await crypto.subtle.exportKey("spki", k));
+const dag = 86400000;
+const dato = t => new Date(t).toLocaleDateString("nb-NO");
+
+const FELT = ["emne", "utferdar", "domene", "gyldigFra", "gyldigTil", "nokkel"];
+const kropp = s => JSON.stringify(FELT.map(f => s[f]));
+async function lagSert(felt, signerMed) {
+    const s = { ...felt };
+    s.sig = tilB64(await crypto.subtle.sign(SIGN, signerMed, enc.encode(kropp(s))));
+    return s;
+}
+async function signaturOk(s, utferdarNokkelB64) {
+    try {
+        const k = await crypto.subtle.importKey("spki", fraB64(utferdarNokkelB64), ECDSA, false, ["verify"]);
+        return await crypto.subtle.verify(SIGN, k, fraB64(s.sig), enc.encode(kropp(s)));
+    } catch { return false; }
+}
+async function fingeravtrykk(b64) { return hex(await crypto.subtle.digest("SHA-256", fraB64(b64))).slice(0, 16).match(/../g).join(":"); }
+
+let S = null;
+async function oppsett() {
+    const [rot, mellom, skule, eve] = await Promise.all([nyttPar(), nyttPar(), nyttPar(), nyttPar()]);
+    const no = Date.now();
+    const k = { rot: await spki(rot.publicKey), mellom: await spki(mellom.publicKey), skule: await spki(skule.publicKey), eve: await spki(eve.publicKey) };
+    const rotSert = await lagSert({ emne: "Tillit Rot CA", utferdar: "Tillit Rot CA", domene: [], gyldigFra: no - 3000 * dag, gyldigTil: no + 6000 * dag, nokkel: k.rot }, rot.privateKey);
+    const mellomSert = await lagSert({ emne: "Tillit TLS CA 1", utferdar: "Tillit Rot CA", domene: [], gyldigFra: no - 900 * dag, gyldigTil: no + 1800 * dag, nokkel: k.mellom }, rot.privateKey);
+    const skuleFelt = { emne: "skulen.no", utferdar: "Tillit TLS CA 1", domene: ["skulen.no", "www.skulen.no"], gyldigFra: no - 30 * dag, gyldigTil: no + 60 * dag, nokkel: k.skule };
+    S = {
+        k, rotSert, mellomSert,
+        skule: await lagSert(skuleFelt, mellom.privateKey),
+        skuleUtgatt: await lagSert({ ...skuleFelt, gyldigFra: no - 120 * dag, gyldigTil: no - 3 * dag }, mellom.privateKey),
+        skuleSjolv: await lagSert({ ...skuleFelt, utferdar: "skulen.no" }, skule.privateKey),
+        eve: await lagSert({ emne: "skulen-login.no", utferdar: "Tillit TLS CA 1", domene: ["skulen-login.no"], gyldigFra: no - 2 * dag, gyldigTil: no + 88 * dag, nokkel: k.eve }, mellom.privateKey),
+        eveSjolv: await lagSert({ emne: "skulen-login.no", utferdar: "skulen-login.no", domene: ["skulen-login.no"], gyldigFra: no - 2 * dag, gyldigTil: no + 88 * dag, nokkel: k.eve }, eve.privateKey),
+        eveUtgatt: await lagSert({ emne: "skulen-login.no", utferdar: "Tillit TLS CA 1", domene: ["skulen-login.no"], gyldigFra: no - 120 * dag, gyldigTil: no - 3 * dag, nokkel: k.eve }, mellom.privateKey),
+    };
+}
+
+async function oppdater() {
+    if (!S) return;
+    const adr = $("adr").value, phish = adr === "skulen-login.no";
+    const utgatt = $("utgatt").checked, sjolv = $("sjolv").checked, rotManglar = $("rot").checked;
+    const tukle = $("tukle").checked, feildomene = $("feildomene").checked && phish;
+
+    // Kva sertifikat sender serveren?
+    let nett;
+    if (phish && !feildomene) nett = sjolv ? S.eveSjolv : utgatt ? S.eveUtgatt : S.eve;
+    else nett = sjolv ? S.skuleSjolv : utgatt ? S.skuleUtgatt : S.skule;
+    nett = { ...nett };
+    const tukla = tukle && !(phish && !feildomene);
+    if (tukla) nett.nokkel = S.k.eve;
+
+    const kjede = sjolv ? [nett] : [nett, S.mellomSert];
+    const no = Date.now();
+    const sjekk = [];
+    const domeneOk = nett.domene.includes(adr);
+    sjekk.push([domeneOk ? "ok" : "bad", `Domenet i sertifikatet (${nett.domene.join(", ")}) passar med adressa ${adr}`]);
+    const datoOk = no >= nett.gyldigFra && no <= nett.gyldigTil;
+    sjekk.push([datoOk ? "ok" : "bad", `Sertifikatet er gyldig i dag (${dato(nett.gyldigFra)}–${dato(nett.gyldigTil)})`]);
+    const utferdarNokkel = sjolv ? (phish && !feildomene ? S.k.eve : S.k.skule) : S.k.mellom;
+    const sig1 = await signaturOk(nett, utferdarNokkel);
+    sjekk.push([sig1 ? "ok" : "bad", `Signaturen på sertifikatet stemmer (signert av ${nett.utferdar})`]);
+    let sig2 = true;
+    if (!sjolv) { sig2 = await signaturOk(S.mellomSert, S.k.rot); sjekk.push([sig2 ? "ok" : "bad", "Signaturen på Tillit TLS CA 1 stemmer (signert av Tillit Rot CA)"]); }
+    else sjekk.push(["skip", "Ingen mellom-CA: sertifikatet er sjølvsignert"]);
+    const toppen = sjolv ? nett.utferdar : "Tillit Rot CA";
+    const rotOk = !sjolv && !rotManglar;
+    sjekk.push([rotOk ? "ok" : "bad", `Rota (${toppen}) finst i rotlageret på PC-en`]);
+
+    let feil = null;
+    if (!sig1 || !sig2) feil = ["NET::ERR_CERT_INVALID", "Signaturen på sertifikatet stemmer ikkje. Nokon kan ha endra det."];
+    else if (!rotOk) feil = ["NET::ERR_CERT_AUTHORITY_INVALID", "Sertifikatet er ikkje utferda av nokon PC-en stoler på."];
+    else if (!domeneOk) feil = ["NET::ERR_CERT_COMMON_NAME_INVALID", `Sertifikatet høyrer til ${nett.domene.join(", ")}, ikkje ${adr}.`];
+    else if (!datoOk) feil = ["NET::ERR_CERT_DATE_INVALID", "Sertifikatet har gått ut på dato (eller klokka på PC-en går feil)."];
+
+    $("url").textContent = "https://" + adr;
+    $("linje").classList.toggle("feil", !!feil);
+    $("ikon").textContent = feil ? "⚠️" : "🔒";
+    const inn = $("innhald");
+    if (feil) {
+        inn.className = "innhald feil";
+        inn.innerHTML = `<h3>Tilkoplinga di er ikkje privat</h3><p>Angriparar kan prøve å stele informasjon frå <b>${adr}</b>, til dømes passord eller meldingar.</p><p>${feil[1]}</p><p><code>${feil[0]}</code></p>`;
+    } else if (phish) {
+        inn.className = "innhald ok";
+        inn.innerHTML = `<h3>Logg inn på Skulen</h3><p>Hengelåsen er heilt gyldig, men dette er Eve si phishing-side. Les adressa!</p>`;
+    } else {
+        inn.className = "innhald ok";
+        inn.innerHTML = `<h3>Velkommen til skulen.no</h3><p>Alt stemmer. Tilkoplinga er kryptert, og du snakkar med den som eig ${adr}.</p>`;
+    }
+    $("sjekk").innerHTML = sjekk.map(([k, t]) => `<li class="${k}">${t}</li>`).join("");
+
+    const kort = async (s, type, merk) => `<div class="sert"><div class="type">${type}</div><h3>${s.emne}</h3><dl>
+        <dt>Utferda av</dt><dd>${s.utferdar}</dd>
+        ${s.domene.length ? `<dt>Domene</dt><dd class="${!domeneOk && type === "Nettstad" ? "raud" : ""}">${s.domene.join(", ")}</dd>` : ""}
+        <dt>Gyldig</dt><dd class="${type === "Nettstad" && !datoOk ? "raud" : ""}">${dato(s.gyldigFra)} – ${dato(s.gyldigTil)}</dd>
+        <dt>Offentleg nøkkel</dt><dd class="mono ${merk ? "raud" : ""}">${await fingeravtrykk(s.nokkel)}…${merk ? " (bytt av Eve)" : ""}</dd>
+        <dt>Signatur</dt><dd class="mono">${s.sig.slice(0, 32)}…</dd></dl></div>`;
+    const deler = [await kort(nett, "Nettstad", tukla)];
+    if (!sjolv) deler.push(`<div class="pil">↑ signert av</div>` + await kort(S.mellomSert, "Mellom-CA"));
+    deler.push(`<div class="pil">↑ signert av</div>` + (sjolv
+        ? `<div class="sert"><div class="type">Rot</div><h3>${nett.utferdar} (seg sjølv)</h3><p class="small" style="margin:0">Ingen andre har gått god for dette sertifikatet.</p></div>`
+        : (await kort(S.rotSert, "Rot-CA")).replace('<div class="sert">', `<div class="sert" style="border-color:${rotManglar ? "var(--bad)" : "var(--ok)"}">`)
+          .replace("</h3>", rotManglar ? " <span class=\"badge bad\">ikkje i rotlageret</span></h3>" : " <span class=\"badge ok\">i rotlageret</span></h3>")));
+    $("kjede").innerHTML = deler.join("");
+}
+
+["adr", "utgatt", "sjolv", "rot", "tukle", "feildomene"].forEach(id => $(id).onchange = oppdater);
+oppsett().then(oppdater);
+</script>
+</body>
+</html>

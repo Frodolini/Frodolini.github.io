@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="nn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Innloggingsknappen</title>
+<style>
+:root {
+    --bg: #eef2f6;
+    --panel: #ffffff;
+    --panel2: #f2f5f9;
+    --border: #d3dae3;
+    --text: #1b2230;
+    --muted: #5b6577;
+    --accent: #0f766e;
+    --accent-soft: #d5f0ec;
+    --ok: #15803d;
+    --okbg: #dcfce7;
+    --bad: #b91c1c;
+    --badbg: #fee2e2;
+    --warn: #a16207;
+    --warnbg: #fef3c7;
+    --c1: #2563eb;
+    --c2: #c2410c;
+    --c3: #7c3aed;
+    --hl: #fde68a;
+    color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #171c26;
+        --panel: #222936;
+        --panel2: #2a3242;
+        --border: #3a4356;
+        --text: #e5e8ee;
+        --muted: #9aa3b4;
+        --accent: #2dd4bf;
+        --accent-soft: #134e4a;
+        --ok: #4ade80;
+        --okbg: #14391f;
+        --bad: #f87171;
+        --badbg: #4a1d22;
+        --warn: #fbbf24;
+        --warnbg: #3d3012;
+        --c1: #60a5fa;
+        --c2: #fb923c;
+        --c3: #a78bfa;
+        --hl: #6b5a12;
+        color-scheme: dark;
+    }
+}
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    line-height: 1.5;
+    padding: 16px;
+}
+main { max-width: 780px; margin: 0 auto; }
+a { color: var(--accent); }
+nav.top {
+    display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center;
+    justify-content: space-between; font-size: 14px; margin-bottom: 10px;
+}
+nav.top .serie { display: flex; flex-wrap: wrap; gap: 6px; }
+nav.top .serie a {
+    text-decoration: none; padding: 3px 10px; border-radius: 999px;
+    border: 1px solid var(--border); background: var(--panel); color: var(--text);
+}
+nav.top .serie a.anna { border-style: dashed; color: var(--accent); }
+nav.top .serie a.on { background: var(--accent); border-color: var(--accent); color: var(--panel); font-weight: 600; }
+h1 { margin: 4px 0 4px; font-size: 27px; }
+.lead { color: var(--muted); margin: 0 0 16px; font-size: 17px; }
+.card {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px; margin-bottom: 16px;
+}
+.card h2 { margin: 0 0 8px; font-size: 19px; }
+.card h3 { margin: 14px 0 6px; font-size: 16px; }
+.card p { margin: 0 0 10px; }
+.card > :last-child { margin-bottom: 0; }
+.small { font-size: 14px; color: var(--muted); }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+label { display: block; font-weight: 600; margin: 10px 0 4px; font-size: 15px; }
+textarea, input[type=text], input[type=password], input[type=number], select {
+    width: 100%; padding: 8px 10px; font: inherit;
+    border: 1px solid var(--border); border-radius: 8px;
+    background: var(--panel2); color: var(--text);
+}
+textarea { min-height: 70px; resize: vertical; }
+input[type=range] { width: 100%; accent-color: var(--accent); }
+.btn {
+    border: 1px solid var(--border); background: var(--panel2); color: var(--text);
+    padding: 8px 14px; border-radius: 8px; font: inherit; font-size: 15px; cursor: pointer;
+}
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--panel); font-weight: 600; }
+.btn.danger { border-color: var(--bad); color: var(--bad); }
+.btn:disabled { opacity: .5; cursor: default; }
+.seg { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.seg button {
+    border: 0; background: var(--panel2); color: var(--text);
+    padding: 8px 14px; font: inherit; font-size: 15px; cursor: pointer;
+    border-right: 1px solid var(--border);
+}
+.seg button:last-child { border-right: 0; }
+.seg button.on { background: var(--accent); color: var(--panel); font-weight: 600; }
+.mono, code { font-family: ui-monospace, Menlo, Consolas, monospace; }
+.out {
+    font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 15px;
+    background: var(--panel2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px; margin-top: 8px; word-break: break-all; white-space: pre-wrap; min-height: 42px;
+}
+.out.big { font-size: 18px; }
+.out.scroll { max-height: 140px; overflow: auto; }
+.msg { margin-top: 8px; padding: 8px 12px; border-radius: 8px; font-weight: 600; }
+.msg.ok { background: var(--okbg); color: var(--ok); }
+.msg.bad { background: var(--badbg); color: var(--bad); }
+.msg.info { background: var(--accent-soft); color: var(--text); font-weight: 400; }
+.badge { display: inline-block; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+.badge.ok { background: var(--okbg); color: var(--ok); }
+.badge.bad { background: var(--badbg); color: var(--bad); }
+.note {
+    background: var(--accent-soft); border-radius: 8px; padding: 10px 12px; margin: 10px 0;
+}
+.note b:first-child { display: block; margin-bottom: 2px; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; }
+td, th { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+th { font-size: 13px; color: var(--muted); font-weight: 600; }
+.flow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 8px 0; }
+.flow .box {
+    background: var(--panel2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 6px 10px; font-size: 14px; text-align: center;
+}
+.flow .box.key { background: var(--accent-soft); border-color: var(--accent); }
+.flow .arr { color: var(--muted); font-weight: 700; }
+details { background: var(--panel2); border-radius: 8px; padding: 8px 12px; margin: 6px 0; }
+details summary { cursor: pointer; font-weight: 600; }
+details p { margin: 6px 0 2px; }
+.who { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+footer { font-size: 13px; color: var(--muted); text-align: center; margin: 8px 0 20px; }
+@media (max-width: 480px) {
+    body { padding: 12px; }
+    h1 { font-size: 23px; }
+    .card { padding: 12px; }
+}
+.nivaa { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.nivaa button {
+    font: inherit; color: var(--text); text-align: center; cursor: pointer;
+    background: var(--panel2); border: 2px solid var(--border); border-radius: 12px; padding: 12px;
+}
+.nivaa button:hover, .nivaa button.on { border-color: var(--accent); }
+.nivaa button.on { background: var(--accent-soft); }
+.nivaa svg { width: 110px; height: 110px; display: block; margin: 0 auto 6px; }
+.nivaa b { display: block; font-size: 17px; }
+.nivaa .small { display: block; }
+.nivaa .tatt { color: var(--ok); font-weight: 700; font-size: 13px; }
+.framdrift { height: 8px; background: var(--panel2); border-radius: 4px; overflow: hidden; border: 1px solid var(--border); }
+.framdrift i { display: block; height: 100%; background: var(--accent); transition: width .2s; }
+.spm-topp { display: flex; justify-content: space-between; font-size: 14px; color: var(--muted); margin: 10px 0 4px; }
+.spm { font-size: 19px; font-weight: 600; margin: 4px 0 12px; }
+.alt { display: grid; gap: 8px; }
+.alt button {
+    font: inherit; text-align: left; color: var(--text); cursor: pointer;
+    background: var(--panel2); border: 2px solid var(--border); border-radius: 10px; padding: 10px 12px;
+}
+.alt button:hover { border-color: var(--accent); }
+.alt button.valt { border-color: var(--accent); background: var(--accent-soft); font-weight: 600; }
+.poeng { font-size: 44px; font-weight: 800; text-align: center; margin: 4px 0; }
+.poeng.ok { color: var(--ok); } .poeng.bad { color: var(--bad); }
+.knapp-stor { max-width: 320px; margin: 10px auto; }
+.knapp-stor svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 4px 10px rgba(0,0,0,.25)); }
+.feil { border-left: 4px solid var(--bad); padding: 6px 0 6px 12px; margin: 10px 0; }
+.feil p { margin: 2px 0; }
+.feil .ditt { color: var(--bad); }
+.feil .rett { color: var(--ok); font-weight: 600; }
+.center { text-align: center; }
+.mine { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+.mine svg { width: 90px; height: 90px; }
+</style>
+</head>
+<body>
+<main>
+<nav class="top"><a href="index.html">← Frode</a><span class="serie"><a href="passord.html">Passord</a><a href="totp.html">Tofaktor</a><a href="passkeys.html">Passkeys</a><a href="tpm.html">TPM</a><a href="diffie-hellman.html">Diffie-Hellman</a><a href="sertifikat.html">Sertifikat</a><a href="innloggingsknappen.html" class="on">Knappen</a><a class="anna" href="rot13.html">Kryptografi →</a></span></nav>
+<h1>Innloggingsknappen</h1>
+<p class="lead">Har du jobba deg gjennom dei seks sidene om innlogging og tillit? Svar rett på minst 11 av 12 spørsmål, og du får Innloggingsknappen. Start med bronse og jobb deg opp til gull.</p>
+
+<!-- START -->
+<section id="start">
+    <section class="card">
+        <h2>1. Vel nivå</h2>
+        <div class="nivaa" id="nivaval"></div>
+    </section>
+    <section class="card">
+        <h2>2. Skriv fornamnet ditt</h2>
+        <input type="text" id="namn" maxlength="20" placeholder="Fornamn" autocomplete="given-name">
+        <p class="small" style="margin-top:6px">Namnet kjem på knappen din.</p>
+        <div class="row" style="margin-top:10px">
+            <button class="btn primary" id="startknapp">Start testen</button>
+            <span class="small" id="startmsg"></span>
+        </div>
+    </section>
+    <section class="card">
+        <h2>Reglar</h2>
+        <ul style="margin:0; padding-left:20px">
+            <li>12 spørsmål, to frå kvar side: <a href="passord.html">Passord</a>, <a href="totp.html">Tofaktor</a>, <a href="passkeys.html">Passkeys</a>, <a href="tpm.html">TPM</a>, <a href="diffie-hellman.html">Diffie-Hellman</a> og <a href="sertifikat.html">Sertifikat</a>.</li>
+            <li>Du må ha minst 11 rette (90 %) for å få knappen.</li>
+            <li>Du ser ikkje om svaret er rett før du har levert. Du kan gå tilbake og endre svar.</li>
+            <li>Prøver du på nytt, får du nye spørsmål.</li>
+        </ul>
+    </section>
+    <section class="card" id="mineKort" style="display:none">
+        <h2>Knappane dine</h2>
+        <div class="mine" id="mine"></div>
+        <p class="small center" style="margin-top:6px">Lagra i denne nettlesaren.</p>
+    </section>
+</section>
+
+<!-- QUIZ -->
+<section id="quiz" class="card" style="display:none">
+    <div class="framdrift"><i id="bar"></i></div>
+    <div class="spm-topp"><span id="nr"></span><span id="tema"></span></div>
+    <div class="spm" id="spm"></div>
+    <div class="alt" id="alt"></div>
+    <div class="row" style="margin-top:14px; justify-content:space-between">
+        <button class="btn" id="forrige">← Førre</button>
+        <button class="btn primary" id="neste">Neste →</button>
+    </div>
+</section>
+
+<!-- RESULTAT -->
+<section id="resultat" style="display:none">
+    <section class="card center">
+        <div class="poeng" id="poeng"></div>
+        <p id="resTekst" style="font-size:18px"></p>
+        <div class="knapp-stor" id="stor"></div>
+        <div class="row" style="justify-content:center" id="resKnappar"></div>
+    </section>
+    <section class="card" id="feilKort" style="display:none">
+        <h2>Det du svara feil på</h2>
+        <div id="feilliste"></div>
+    </section>
+</section>
+
+<footer>Frode · IM-Stord · All utrekning skjer i nettlesaren din. Ingenting du skriv blir sendt nokon stad.</footer>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+const K_NAMN = "Innloggingsknappen";
+const K_SVGTEKST = "INNLOGGINGSKNAPPEN";
+const K_IKON = "nokkel";
+const K_LAGER = "innloggingsknappen";
+
+const SIDER = {
+    passord: { namn: "Passord", url: "passord.html" },
+    totp:    { namn: "Tofaktor (TOTP)", url: "totp.html" },
+    passkey: { namn: "Passkeys", url: "passkeys.html" },
+    tpm:     { namn: "TPM", url: "tpm.html" },
+    dh:      { namn: "Diffie-Hellman", url: "diffie-hellman.html" },
+    sert:    { namn: "Sertifikat og HTTPS", url: "sertifikat.html" },
+};
+
+/* Spørsmålsbank: [spørsmål, rett svar, [feil svar], forklaring] */
+const BANK = {
+bronse: {
+    passord: [
+        ["Kva gjer ein angripar oftast for å knekke mange passord?", "Stel databasen med passordhashar og gjettar på si eiga maskin", ["Prøver passord på innloggingssida til det lukkast", "Ringjer brukarane og spør", "Les passorda rett frå databasen i klartekst"], "I ein stolen database finst inga sperre, og eit grafikkort kan gjette milliardar av gonger i sekundet."],
+        ["Kva gjer eit passord sterkast?", "At det er langt", ["At det har eitt spesialteikn", "At det har stor forbokstav", "At det sluttar på eit årstal"], "Kvar ekstra teikn gangar talet på kombinasjonar. Lengd slår kompleksitet."],
+        ["Kva er ei passordfrase?", "Fleire tilfeldige ord sette saman", ["Eit passord med berre tal", "Ei kjend setning frå ein song", "Eit passord som blir bytt kvar dag"], "Fire–fem tilfeldige ord er lange, lette å hugse og vanskelege å knekke."],
+        ["Kvifor bør du ha ulikt passord på kvar teneste?", "Lek eitt, prøver angriparar det same passordet andre stader", ["Det er lettare å hugse", "Det er påbode ved lov", "Passord går ut på dato"], "Det heiter credential stuffing: lekne passord blir prøvde automatisk på mange tenester."],
+    ],
+    totp: [
+        ["Kva er dei tre typane faktorar?", "Noko du veit, noko du har og noko du er", ["Passord, PIN og tryggleiksspørsmål", "Brukarnamn, passord og e-post", "Mobil, PC og nettbrett"], "Tofaktor betyr to ulike typar, til dømes passord (veit) og mobil (har)."],
+        ["Kor ofte byter koden i ein kodeapp seg vanlegvis?", "Kvart 30. sekund", ["Kvar time", "Kvar gong du opnar appen", "Éin gong i døgnet"], "TOTP brukar tidsteg på 30 sekund."],
+        ["Kva er tofaktor?", "To ulike typar bevis på at det er deg", ["To passord", "Same passord skrive to gonger", "Å logge inn frå to einingar samtidig"], "Passord og tryggleiksspørsmål er to ting du veit, så det er ikkje tofaktor."],
+        ["Kva er tryggast av desse som ekstra faktor?", "Kodeapp", ["SMS-kode", "Tryggleiksspørsmål", "Eit ekstra passord"], "SMS kan omdirigerast, og tryggleiksspørsmål er berre eit nytt «noko du veit»."],
+    ],
+    passkey: [
+        ["Kva er ein passkey?", "Eit nøkkelpar som erstattar passordet", ["Eit svært langt passord", "Ein fysisk nøkkel til datarommet", "Ein kode på SMS"], "Eininga di lagar eit offentleg og privat nøkkelpar for kvar nettstad."],
+        ["Kva får nettstaden lagra når du lagar ein passkey?", "Den offentlege nøkkelen", ["Den private nøkkelen", "Fingeravtrykket ditt", "Passordet ditt"], "Den private nøkkelen forlèt aldri eininga di."],
+        ["Kva skjer med fingeravtrykket når du loggar inn med passkey?", "Det blir kontrollert berre på eininga di", ["Det blir sendt til nettstaden", "Det blir lagra i skya", "Det blir hasha og sendt til nettstaden"], "Fingeravtrykket låser berre opp den private nøkkelen lokalt."],
+        ["Kvar kan passkeys lagrast?", "På mobilen, PC-en eller ein tryggleiksnøkkel", ["Berre hos nettstaden", "I eit Word-dokument", "I nettlesarhistorikken"], "Til dømes iCloud-nøkkelringen, Google Passordhandsamar, Windows Hello eller ein YubiKey."],
+    ],
+    tpm: [
+        ["Kva er TPM?", "Ei tryggleiksbrikke som lagar og gøymer nøklar", ["Ein type harddisk", "Eit antivirusprogram", "Ein brannmur"], "TPM står for Trusted Platform Module."],
+        ["Kva Windows-funksjon brukar TPM til å låse opp disken automatisk?", "BitLocker", ["Windows Update", "Microsoft Defender", "Oppgåvehandsamaren"], "BitLocker-nøkkelen er forsegla i TPM-brikka."],
+        ["Kva versjon av TPM krev Windows 11?", "2.0", ["1.2", "3.0", "Windows 11 krev ikkje TPM"], "Windows 11 krev TPM 2.0."],
+        ["Kva gjeld for ein privat nøkkel som ligg i TPM?", "Han kan brukast, men ikkje kopierast ut", ["Han kan kopierast til ein minnepinne", "Han blir sendt til Microsoft", "Han blir sletta ved kvar omstart"], "Som eit kassaskap med eigen vakt: du kan be om å bruke nøkkelen, men aldri få han ut."],
+    ],
+    dh: [
+        ["Kva problem løyser Diffie-Hellman?", "Å bli einige om ein hemmeleg nøkkel over eit ope nett", ["Å lagre passord trygt", "Å komprimere data", "Å finne store primtal"], "To partar kan lage ein felles hemmelegheit sjølv om nokon lyttar."],
+        ["Blir den felles hemmelege nøkkelen sendt over nettet?", "Nei, begge reknar han ut sjølv", ["Ja, kryptert", "Ja, i klartekst", "Berre første gongen"], "Berre dei offentlege «blandingane» blir sende."],
+        ["I fargedømet: kva er det Eve ikkje har?", "Dei hemmelege fargane", ["Den offentlege fargen", "Blandingane som vart sende", "Nokon av fargane"], "Eve ser den offentlege fargen og begge blandingane, men ikkje dei hemmelege fargane."],
+        ["Kvar blir Diffie-Hellman brukt?", "I HTTPS", ["I MD5", "I ROT13", "I BitLocker"], "Kvar HTTPS-tilkopling startar med ei Diffie-Hellman-utveksling."],
+    ],
+    sert: [
+        ["Kva er eit sertifikat?", "Eit digitalt ID-kort som bind ei nettadresse til ein offentleg nøkkel", ["Eit passord for nettstaden", "Ein kvittering for betaling", "Ei liste over brukarane til nettstaden"], "Sertifikatet inneheld mellom anna domenet, ein offentleg nøkkel og kor lenge det er gyldig."],
+        ["Kven signerer sertifikatet til ein nettstad?", "Ein sertifikatutferdar (CA)", ["Nettlesaren", "Brukaren", "Internettleverandøren"], "CA-en går god for at den offentlege nøkkelen høyrer til domenet."],
+        ["Kva betyr hengelåsen i adressefeltet?", "At tilkoplinga er kryptert og sertifikatet passar til adressa", ["At sida er trygg og ærleg", "At sida har antivirus", "At sida er godkjend av skulen"], "Hengelåsen seier ingenting om eigaren av sida er ærleg."],
+        ["Nettbanken din viser «Tilkoplinga di er ikkje privat». Kva gjer du?", "Går ikkje vidare", ["Trykkjer «Gå vidare likevel»", "Skriv inn passordet fort", "Slår av antivirus"], "Ei åtvaring på ein nettbank kan bety at nokon står i midten."],
+    ],
+},
+solv: {
+    passord: [
+        ["Kvifor er «Sommar2026!» eit svakt passord?", "Det følgjer eit vanleg mønster: ord + årstal + teikn", ["Det er for langt", "Det manglar tal", "Det har stor forbokstav"], "Angriparar prøver slike mønster lenge før dei går over til rein brute force."],
+        ["Kvifor kan PIN-koden på bankkortet ha berre 4 siffer?", "Kortet blir sperra etter nokre få feil forsøk", ["Banken brukar MD5", "4 siffer er nok til alt", "PIN-koden er kryptert med RSA"], "Utan sperre, som i ein stolen database, blir 4 siffer knekt på augneblinken."],
+        ["Kva er sterkast mot brute force?", "16 tilfeldige små bokstavar", ["8 tilfeldige teikn av alle slag", "P@ssw0rd!", "6 teikn med spesialteikn"], "26¹⁶ er om lag 4 × 10²², medan 95⁸ er om lag 7 × 10¹⁵. Lengd vinn."],
+        ["Kva er «credential stuffing»?", "Lekne passord blir prøvde automatisk på mange andre tenester", ["Å fylle databasen med falske brukarar", "Å lagre passord i ei fil", "Å bytte passord ofte"], "Difor skal kvar teneste ha sitt eige passord."],
+        ["Kvifor går angriparar heller etter databasen enn innloggingssida?", "I databasen er det ingen sperre mot gjetting", ["Innloggingssida er kryptert", "Databasen har passorda i klartekst", "Innloggingssida krev passkey"], "Med hashane på eiga maskin kan angriparen gjette så fort maskinvara klarer."],
+    ],
+    totp: [
+        ["Korleis kan kodeappen lage rett kode utan internett?", "Han brukar ei delt hemmelegheit og klokka", ["Han lastar ned kodar på førehand", "Han får SMS i bakgrunnen", "Han reknar koden ut frå passordet ditt"], "Både appen og tenaren har same hemmelegheit og same klokke."],
+        ["Kva inneheld QR-koden du skannar for å setje opp kodeappen?", "Den hemmelege nøkkelen appen og tenesta deler", ["Passordet ditt", "Berre ei lenkje til nettstaden", "Telefonnummeret ditt"], "Difor må du aldri dele QR-koden."],
+        ["Kva skjer om klokka på mobilen går fleire minutt feil?", "Koden blir feil og blir avvist", ["Ingenting, klokka er ikkje med i utrekninga", "Appen rettar det med passordet", "Koden blir lengre"], "Tidsteget er ein del av utrekninga, så klokkene må stemme."],
+        ["Kvifor stoppar ikkje TOTP phishing?", "Ei falsk side kan be om koden og bruke han med ein gong", ["Koden er for kort", "Koden kan reknast ut frå passordet", "Appen sender koden til alle sider"], "Koden varer i 30 sekund, og det er nok for ein angripar som er klar."],
+        ["Kvifor er SMS-kodar svakare enn ein kodeapp?", "Ein svindlar kan få flytta nummeret ditt til sitt SIM-kort", ["SMS kjem alltid for seint", "SMS-kodar er kortare", "SMS-kodar blir aldri bytte"], "Det heiter SIM-swap."],
+    ],
+    passkey: [
+        ["Kvifor kan ikkje ei phishing-side lure til seg ein passkey?", "Eininga har berre passkey for den ekte adressa", ["Passkeyen er for lang til å skrive", "Phishing-sida har ikkje internett", "Fingeravtrykket avslører sida"], "Det er nettlesaren som sjekkar adressa, og han blir ikkje lurt av ein logo."],
+        ["Kva skjer om databasen til nettstaden blir stolen?", "Angriparen får berre offentlege nøklar som ikkje kan brukast til å logge inn", ["Angriparen kan logge inn som alle", "Angriparen får fingeravtrykka", "Angriparen kan knekke passorda"], "Det finst ingen passord å knekke, og offentlege nøklar kan ikkje signere."],
+        ["Kvifor kan ikkje Eve sende ein gammal signatur på nytt?", "Kvar innlogging har ei ny tilfeldig utfordring", ["Signaturen går ut etter 30 sekund", "Nettstaden hugsar alle signaturar", "Signaturen er kryptert med AES"], "Ein gammal signatur passar berre til ei gammal utfordring."],
+        ["Kva skjer med den private nøkkelen når du loggar inn?", "Han blir brukt til å signere, men forlèt aldri eininga", ["Han blir sendt kryptert til nettstaden", "Han blir hasha og sendt", "Han blir sletta etterpå"], "Berre signaturen blir sendt."],
+    ],
+    tpm: [
+        ["Kva betyr det at BitLocker-nøkkelen er «forsegla» i TPM?", "TPM gir han berre ut når målinga av oppstarten stemmer", ["Nøkkelen er skriven fast på disken", "Nøkkelen står på eit klistremerke", "Nøkkelen ligg berre i Microsoft-kontoen"], "Endrar oppstarten seg, nektar TPM å gi ut nøkkelen."],
+        ["Ein elev får BitLocker-gjenopprettingsskjerm rett etter ei BIOS-oppdatering. Kvifor?", "Ny fastvare gav ei ny måling i TPM", ["Disken er øydelagd", "Passordet har gått ut", "Eit virus har kryptert disken"], "Ny fastvare gir ny hash, og då stemmer ikkje målinga lenger."],
+        ["Kvifor kan ikkje ein tjuv lese disken ved å flytte han til ein annan PC?", "Nøkkelen ligg i TPM-brikka i den opphavlege PC-en", ["Disken blir sletta automatisk", "Den andre PC-en manglar Windows", "BitLocker krev internett"], "Den nye PC-en har ei anna brikke som aldri har sett nøkkelen."],
+        ["Kvifor er ein kort Windows Hello-PIN tryggare enn eit langt passord?", "PIN-en fungerer berre saman med TPM-brikka i akkurat den PC-en", ["PIN-en blir sendt kryptert", "PIN-en går ut kvar dag", "PIN-en blir lagra i skya"], "Ein som får vite PIN-en din, kan ikkje bruke han frå ein annan PC."],
+    ],
+    dh: [
+        ["Kva er svakheita med Diffie-Hellman åleine?", "Det fortel ikkje kven du snakkar med (mannen i midten)", ["Det er for treigt", "Nøkkelen blir sendt i klartekst", "Det fungerer berre med to fargar"], "Eve kan gjere éi utveksling med kvar side og sitje i midten."],
+        ["Kva rekneoperasjonar brukar Diffie-Hellman med tal?", "Potens og modulo", ["Pluss og minus", "Berre gonging", "ROT13"], "Det er lett å rekne gᵃ mod p, men svært vanskeleg å finne a att."],
+        ["Kva blir den felles hemmelegheita brukt til?", "Som nøkkel til symmetrisk kryptering (AES)", ["Som passord til nettstaden", "Som sertifikat", "Som hash av meldinga"], "Dermed er nøkkeldelingsproblemet frå symmetrisk kryptering løyst."],
+        ["Kvifor klarte Eve å finne a når p = 23?", "Det er så få moglegheiter at ho kan prøve alle", ["Alice sende a", "g var for stort", "Eve hadde sertifikatet"], "Ekte p har over 600 siffer, og då nyttar ikkje brute force."],
+    ],
+    sert: [
+        ["Kvifor stoler nettlesaren på eit sertifikat?", "Det er signert i ei kjede opp til ei rot-CA i rotlageret", ["Nettstaden seier at det er ekte", "Det har ein hengelås", "Det er kryptert med AES"], "Nettlesaren stoler på nettstaden fordi han stoler på rota."],
+        ["Eve har fått eit gyldig sertifikat for skulen-login.no. Kva viser nettlesaren?", "Ein vanleg hengelås", ["Ei raud åtvaring", "Ei feilmelding om domenet", "Ei melding om at sida er falsk"], "Eve eig domenet, så sertifikatet er gyldig. Les adressa!"],
+        ["Kvifor får du ofte åtvaring når du konfigurerer ein switch eller UniFi-kontrollar i nettlesaren?", "Utstyret brukar eit sjølvsignert sertifikat", ["Utstyret har virus", "Utstyret manglar IP-adresse", "Nettlesaren er for gammal"], "Ingen kjend CA har gått god for sertifikatet."],
+        ["Kva betyr feilkoden NET::ERR_CERT_DATE_INVALID?", "Sertifikatet har gått ut, eller klokka på PC-en går feil", ["Domenet passar ikkje", "Signaturen er feil", "Rota er ukjend"], "Sjekk klokka på PC-en først. Det er ein vanleg feil i brukarstøtte."],
+        ["Kva skjer om Eve endrar domenet i eit ekte sertifikat?", "Signaturen passar ikkje lenger", ["Ingen merkar det", "Sertifikatet blir gyldig for begge domena", "Nettlesaren oppdaterer det automatisk"], "Eve har ikkje den private nøkkelen til CA-en og kan ikkje signere på nytt."],
+    ],
+},
+gull: {
+    passord: [
+        ["Eit passord har 8 teikn og berre små bokstavar a–z. Kor mange kombinasjonar finst?", "26⁸", ["8²⁶", "26 × 8", "8⁸"], "26 val for kvar av dei 8 plassane: 26 × 26 × … = 26⁸, om lag 209 milliardar."],
+        ["Kva skjer når du legg til eitt teikn i eit passord med berre små bokstavar?", "Talet på kombinasjonar blir gonga med 26", ["Det kjem 26 nye kombinasjonar", "Talet på kombinasjonar blir dobla", "Ingenting"], "Difor veks tida for brute force så raskt med lengda."],
+        ["Ein angripar klarer 100 milliardar forsøk i sekundet. Kor lang tid tek det å prøve alle 4-sifra PIN-kodar?", "Mindre enn eitt millisekund", ["Om lag eitt sekund", "Om lag ein time", "Om lag eitt år"], "10 000 kodar ÷ 100 milliardar i sekundet er 0,0000001 sekund."],
+        ["Ein nettstad byter frå SHA-256 til bcrypt for passorda. Kva skjer med brute force mot ein stolen database?", "Det går mykje treigare", ["Det går raskare", "Det blir umogleg å logge inn", "Ingen forskjell"], "Bcrypt er laga for å vere treg, slik at kvar gjetting kostar mykje."],
+    ],
+    totp: [
+        ["Kva brukar TOTP til å kombinere hemmelegheita og tidsteget?", "HMAC (vanlegvis med SHA-1)", ["AES", "RSA", "ROT13"], "HMAC er ein hash av nøkkel og melding saman."],
+        ["Unix-tida er 1 800 000 030 sekund. Kva er tidsteget T (tid ÷ 30, runda ned)?", "60 000 001", ["1 800 000 030", "60 000 000", "30"], "1 800 000 030 ÷ 30 = 60 000 001."],
+        ["Kvifor godtek tenarar ofte koden frå perioden før og etter?", "For å tole litt skilnad i klokka og tida det tek å skrive", ["For å gjere koden tryggare", "Fordi koden blir laga to gonger", "Fordi SHA-1 er knekt"], "Éin periode før og etter gir rom for 30 sekund avvik."],
+        ["Ein angripar har teke skjermbilete av QR-koden din. Kva kan han gjere?", "Lage dei same kodane som deg heilt til du lagar ny hemmelegheit", ["Ingenting, QR-koden er kryptert", "Berre sjå den førre koden", "Lese SMS-ane dine"], "QR-koden inneheld sjølve hemmelegheita."],
+        ["Kva står TOTP for?", "Time-based One-Time Password", ["Total One-Time Protection", "Two Of Two Passwords", "Trusted Online Token Protocol"], "Eit eingongspassord basert på tid."],
+    ],
+    passkey: [
+        ["Kva slags kryptografi byggjer passkeys på?", "Asymmetrisk, med offentleg og privat nøkkel", ["Symmetrisk, med same nøkkel", "Berre hashing", "ROT"], "Innlogginga er ein digital signatur."],
+        ["Kva signerer eininga når du loggar inn med passkey?", "Utfordringa frå nettstaden saman med adressa", ["Passordet ditt", "Fingeravtrykket ditt", "Den offentlege nøkkelen"], "Adressa er med i det som blir signert, så signaturen kan ikkje brukast på ei anna side."],
+        ["Eve vidaresender ei ekte utfordring frå skulen.no til phishing-sida si. Kvifor fungerer det ikkje?", "Nettlesaren tek med den verkelege adressa, og eininga har ingen passkey for Eve si adresse", ["Utfordringa er kryptert", "Phishing-sida manglar sertifikat", "skulen.no blokkerer IP-adressa til Eve"], "Passkeyen er knytt til domenet han vart laga for."],
+        ["Kvifor kan ikkje same passkey brukast på to nettstader?", "Eininga lagar eit eige nøkkelpar for kvar nettstad", ["Passkeys går ut etter éin bruk", "Nettstadene deler ikkje database", "Det kan han"], "Difor kan ikkje ein lekkasje éin stad brukast ein annan stad."],
+    ],
+    tpm: [
+        ["Korleis blir eit PCR-register i TPM oppdatert?", "PCR_ny = SHA-256(PCR_gamal + hash av leddet)", ["PCR blir sett til hashen av siste ledd", "PCR blir nullstilt for kvart ledd", "PCR blir summen av alle hashane"], "Kvart ledd blir bygt inn i registeret, slik at sluttverdien avheng av heile kjeda."],
+        ["Kvifor kan ikkje skadevare som alt har starta, setje PCR tilbake til «rett» verdi?", "Registeret kan berre utvidast, ikkje setjast tilbake før omstart", ["Registeret er kryptert med AES", "Skadevaren manglar passordet", "Det kan han"], "Når ein falsk hash først er med, er han med."],
+        ["Kva PowerShell-kommando set BitLocker på pause til neste omstart?", "Suspend-BitLocker -MountPoint \"C:\" -RebootCount 1", ["manage-bde -off C:", "Get-Tpm", "tpm.msc"], "Brukast før til dømes ei BIOS-oppdatering. manage-bde -off dekrypterer heile disken."],
+        ["Kor mange siffer har ein BitLocker-gjenopprettingsnøkkel?", "48", ["6", "16", "256"], "Åtte grupper med seks siffer."],
+        ["Kva er forskjellen på Secure Boot og målt oppstart?", "Secure Boot stoppar usignert kode, målt oppstart registrerer kva som køyrde", ["Dei er det same", "Secure Boot krypterer disken", "Målt oppstart stoppar virus"], "Målinga gjer at TPM kan nekte å gi ut nøklar etterpå."],
+    ],
+    dh: [
+        ["p = 23, g = 5 og Alice har a = 2. Kva sender ho (A = gᵃ mod p)?", "2", ["10", "25", "7"], "5² = 25, og 25 mod 23 = 2."],
+        ["Alice har a = 2 og får B = 10 frå Bob (p = 23). Kva er s = Bᵃ mod p?", "8", ["20", "100", "4"], "10² = 100, og 100 mod 23 = 8 (100 − 4 × 23)."],
+        ["Kva er «forward secrecy»?", "Nye hemmelege tal for kvar tilkopling, så stolne nøklar ikkje kan dekryptere gammal trafikk", ["At nøkkelen blir sendt på førehand", "At trafikken blir lagra kryptert for alltid", "At sertifikatet blir fornya automatisk"], "Kvar tilkopling har sin eigen nøkkel som blir kasta etterpå."],
+        ["Korleis stoppar HTTPS mannen i midten under Diffie-Hellman?", "Nettstaden signerer sin del, og nettlesaren kontrollerer med sertifikatet", ["Ved å bruke større primtal", "Ved å sende nøkkelen to gonger", "Ved å bruke ROT13 i tillegg"], "Eve har ikkje den private nøkkelen til nettstaden og kan ikkje signere."],
+    ],
+    sert: [
+        ["Kva feilkode får du når sertifikatet er utferda av ein CA PC-en ikkje stoler på?", "NET::ERR_CERT_AUTHORITY_INVALID", ["NET::ERR_CERT_DATE_INVALID", "NET::ERR_CERT_COMMON_NAME_INVALID", "404 Not Found"], "Gjeld både sjølvsignerte sertifikat og ukjende rot-CA-ar."],
+        ["Kva opnar rotlageret for maskina i Windows?", "certlm.msc", ["tpm.msc", "gpedit.msc", "services.msc"], "certmgr.msc viser lageret for brukaren."],
+        ["Kva gjer ein skule som vil ha eigne interne sertifikat på alle PC-ane?", "Set opp AD CS og legg rota ut med gruppepolicy", ["Kjøper eitt sertifikat og kopierer det", "Slår av sertifikatkontrollen", "Brukar berre HTTP"], "Då stoler alle PC-ane i domenet på skulen si eiga rot."],
+        ["Kvifor må fornying av sertifikat vere automatisk framover?", "Levetida blir korta ned mot 47 dagar", ["Sertifikat blir mykje dyrare", "Rot-CA-ar blir fasa ut", "HTTPS blir erstatta av HTTP"], "Med så kort levetid går det ikkje å fornye for hand."],
+        ["Kva brukar nettstaden den private nøkkelen til sertifikatet til under handtrykket?", "Til å signere sin del av nøkkelutvekslinga", ["Til å kryptere heile nettsida", "Til å lage sertifikatet", "Til å sende han til nettlesaren"], "Signaturen beviser at det er den ekte nettstaden du gjer Diffie-Hellman med."],
+    ],
+},
+};
+
+const NIVA = {
+    bronse: { namn: "Bronse", tekst: "Grunnleggjande omgrep", lys: "#f0b27a", mid: "#c07a3e", mork: "#7a4518", tekstfarge: "#3d2008" },
+    solv:   { namn: "Sølv",   tekst: "Forstå korleis det verkar", lys: "#f4f6f8", mid: "#b8c0c8", mork: "#6b7480", tekstfarge: "#2a3038" },
+    gull:   { namn: "Gull",   tekst: "Bruk og rekning", lys: "#fff1a8", mid: "#e2b53c", mork: "#9a6b0a", tekstfarge: "#4a3300" },
+};
+
+/* ---------- Teikning av knappen ---------- */
+let svgTeljar = 0;
+function knappSVG(nivaa, namn, dato, liten) {
+    const N = NIVA[nivaa], u = "k" + (++svgTeljar);
+    // Takkar rundt kanten, som ein vevd svømmeknapp
+    let takk = "";
+    for (let i = 0; i < 72; i++) {
+        const a = i / 72 * 2 * Math.PI, r = i % 2 ? 196 : 188;
+        takk += (i ? "L" : "M") + (200 + r * Math.cos(a)).toFixed(1) + " " + (200 + r * Math.sin(a)).toFixed(1);
+    }
+    const tom = !namn;
+    return `<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${K_NAMN} ${esc(N.namn)}${tom ? "" : " – " + esc(namn)}">
+  <defs>
+    <radialGradient id="${u}g" cx="38%" cy="32%" r="75%">
+      <stop offset="0" stop-color="${N.lys}"/><stop offset=".55" stop-color="${N.mid}"/><stop offset="1" stop-color="${N.mork}"/>
+    </radialGradient>
+    <path id="${u}top" d="M 70 200 A 130 130 0 0 1 330 200"/>
+    <path id="${u}bot" d="M 58 200 A 142 142 0 0 0 342 200"/>
+  </defs>
+  <path d="${takk}Z" fill="${N.mork}"/>
+  <circle cx="200" cy="200" r="182" fill="url(#${u}g)"/>
+  <circle cx="200" cy="200" r="170" fill="none" stroke="${N.tekstfarge}" stroke-width="3" stroke-dasharray="7 6" opacity=".55"/>
+  <circle cx="200" cy="200" r="110" fill="#ffffff" opacity=".22"/>
+  <text font-family="Arial, Helvetica, sans-serif" font-weight="bold" font-size="25" letter-spacing="3" fill="${N.tekstfarge}">
+    <textPath href="#${u}top" startOffset="50%" text-anchor="middle">${K_SVGTEKST}</textPath></text>
+  <text font-family="Arial, Helvetica, sans-serif" font-weight="bold" font-size="19" letter-spacing="4" fill="${N.tekstfarge}">
+    <textPath href="#${u}bot" startOffset="50%" text-anchor="middle">STORD VGS</textPath></text>
+  <g fill="${N.tekstfarge}" transform="translate(200 ${tom ? 168 : 128})">
+    ${K_IKON === "nokkel"
+      ? `<circle cx="-22" cy="8" r="20"/><circle cx="-22" cy="8" r="8" fill="${N.mid}"/>
+         <rect x="-6" y="2" width="44" height="12" rx="3"/><rect x="22" y="12" width="8" height="14" rx="2"/><rect x="32" y="12" width="6" height="10" rx="2"/>`
+      : `<path d="M -22 -6 L -22 -20 A 22 22 0 0 1 22 -20 L 22 -6 L 13 -6 L 13 -20 A 13 13 0 0 0 -13 -20 L -13 -6 Z"/>
+         <rect x="-30" y="-8" width="60" height="44" rx="7"/>
+         <circle cx="0" cy="11" r="7" fill="${N.mid}"/><rect x="-3" y="11" width="6" height="14" rx="2" fill="${N.mid}"/>`}
+  </g>
+  <text x="200" y="${tom ? 250 : 210}" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="bold" font-size="${tom ? 40 : 34}" fill="${N.tekstfarge}">${esc(N.namn.toUpperCase())}</text>
+  ${tom ? "" : `<text x="200" y="256" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="bold" font-size="${namn.length > 12 ? 26 : 34}" fill="${N.tekstfarge}">${esc(namn)}</text>
+  <text x="200" y="288" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="${N.tekstfarge}">${esc(dato)}</text>`}
+</svg>`;
+}
+
+/* ---------- Lagra knappar (berre i denne nettlesaren) ---------- */
+function hentMine() { try { return JSON.parse(localStorage.getItem(K_LAGER) || "{}"); } catch { return {}; } }
+function lagreMin(nivaa, namn, dato) {
+    try { const m = hentMine(); m[nivaa] = { namn, dato }; localStorage.setItem(K_LAGER, JSON.stringify(m)); } catch {}
+}
+
+/* ---------- Startskjerm ---------- */
+let valtNivaa = "bronse";
+function visStart() {
+    const mine = hentMine();
+    $("nivaval").innerHTML = Object.keys(NIVA).map(k => `<button data-n="${k}" class="${k === valtNivaa ? "on" : ""}">
+        ${knappSVG(k)}<b>${NIVA[k].namn}</b><span class="small">${NIVA[k].tekst}</span>
+        ${mine[k] ? `<span class="tatt">✓ Teken ${esc(mine[k].dato)}</span>` : ""}</button>`).join("");
+    const har = Object.keys(NIVA).filter(k => mine[k]);
+    $("mineKort").style.display = har.length ? "block" : "none";
+    $("mine").innerHTML = har.map(k => knappSVG(k, mine[k].namn, mine[k].dato)).join("");
+    $("start").style.display = "block"; $("quiz").style.display = "none"; $("resultat").style.display = "none";
+}
+$("nivaval").onclick = e => {
+    const b = e.target.closest("button"); if (!b) return;
+    valtNivaa = b.dataset.n; visStart();
+};
+
+/* ---------- Quiz ---------- */
+function stokk(a) { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
+let spm = [], svar = [], idx = 0, namn = "";
+$("startknapp").onclick = () => {
+    namn = $("namn").value.trim().replace(/\s+/g, " ");
+    if (!namn) { $("startmsg").textContent = "Skriv fornamnet ditt først."; $("namn").focus(); return; }
+    $("startmsg").textContent = "";
+    spm = [];
+    for (const side of Object.keys(SIDER)) {
+        for (const [q, rett, galne, forklaring] of stokk(BANK[valtNivaa][side]).slice(0, 12 / Object.keys(SIDER).length)) {
+            const alt = stokk([rett, ...galne]);
+            spm.push({ side, q, alt, rett: alt.indexOf(rett), forklaring });
+        }
+    }
+    svar = new Array(spm.length).fill(null);
+    idx = 0;
+    $("start").style.display = "none"; $("quiz").style.display = "block";
+    visSpm();
+    window.scrollTo(0, 0);
+};
+
+function visSpm() {
+    const s = spm[idx];
+    $("bar").style.width = (idx / spm.length * 100) + "%";
+    $("nr").textContent = `Spørsmål ${idx + 1} av ${spm.length} · ${NIVA[valtNivaa].namn}`;
+    $("tema").textContent = SIDER[s.side].namn;
+    $("spm").textContent = s.q;
+    $("alt").innerHTML = s.alt.map((a, i) => `<button data-i="${i}" class="${svar[idx] === i ? "valt" : ""}">${esc(a)}</button>`).join("");
+    $("forrige").disabled = idx === 0;
+    $("neste").textContent = idx === spm.length - 1 ? "Lever" : "Neste →";
+    $("neste").disabled = svar[idx] === null;
+}
+$("alt").onclick = e => {
+    const b = e.target.closest("button"); if (!b) return;
+    svar[idx] = +b.dataset.i; visSpm();
+};
+$("forrige").onclick = () => { if (idx > 0) { idx--; visSpm(); } };
+$("neste").onclick = () => {
+    if (svar[idx] === null) return;
+    if (idx < spm.length - 1) { idx++; visSpm(); } else visResultat();
+};
+
+/* ---------- Resultat ---------- */
+const KRAV = 11;
+function visResultat() {
+    const rette = spm.filter((s, i) => svar[i] === s.rett).length;
+    const ok = rette >= KRAV;
+    const N = NIVA[valtNivaa];
+    const dato = new Date().toLocaleDateString("nb-NO", { day: "2-digit", month: "2-digit", year: "numeric" });
+    $("quiz").style.display = "none"; $("resultat").style.display = "block";
+    $("poeng").textContent = `${rette} / ${spm.length}`;
+    $("poeng").className = "poeng " + (ok ? "ok" : "bad");
+
+    const nesteNivaa = { bronse: "solv", solv: "gull" }[valtNivaa];
+    let knappar = "";
+    if (ok) {
+        lagreMin(valtNivaa, namn, dato);
+        $("resTekst").innerHTML = `Gratulerer, ${esc(namn)}! Du har teke <b>${K_NAMN} i ${N.namn.toLowerCase()}</b>.`;
+        $("stor").innerHTML = knappSVG(valtNivaa, namn, dato);
+        knappar += `<button class="btn primary" id="lastned">Last ned knappen</button>`;
+        if (nesteNivaa) knappar += `<button class="btn" id="neste-nivaa">Prøv ${NIVA[nesteNivaa].namn.toLowerCase()}</button>`;
+    } else {
+        $("resTekst").innerHTML = `Du treng ${KRAV} rette for å få knappen. Les gjennom det du svara feil på, og prøv igjen. Du får nye spørsmål.`;
+        $("stor").innerHTML = "";
+        knappar += `<button class="btn primary" id="igjen">Prøv igjen</button>`;
+    }
+    knappar += `<button class="btn" id="tilstart">Til start</button>`;
+    $("resKnappar").innerHTML = knappar;
+
+    const feil = spm.map((s, i) => ({ s, i })).filter(({ s, i }) => svar[i] !== s.rett);
+    $("feilKort").style.display = feil.length ? "block" : "none";
+    $("feilliste").innerHTML = feil.map(({ s, i }) => `<div class="feil">
+        <p><b>${esc(s.q)}</b></p>
+        <p class="ditt">Ditt svar: ${esc(s.alt[svar[i]])}</p>
+        <p class="rett">Rett svar: ${esc(s.alt[s.rett])}</p>
+        <p class="small">${esc(s.forklaring)} <a href="${SIDER[s.side].url}">Les meir: ${SIDER[s.side].namn}</a></p></div>`).join("");
+
+    if (ok) {
+        $("lastned").onclick = () => lastNed(valtNivaa, namn, dato);
+        if (nesteNivaa) $("neste-nivaa").onclick = () => { valtNivaa = nesteNivaa; visStart(); $("namn").value = namn; window.scrollTo(0, 0); };
+    } else {
+        $("igjen").onclick = () => { $("namn").value = namn; $("startknapp").click(); };
+    }
+    $("tilstart").onclick = () => { visStart(); window.scrollTo(0, 0); };
+    window.scrollTo(0, 0);
+}
+
+function lastNed(nivaa, namn, dato) {
+    const svg = knappSVG(nivaa, namn, dato);
+    const img = new Image();
+    img.onload = () => {
+        const c = document.createElement("canvas");
+        c.width = c.height = 800;
+        c.getContext("2d").drawImage(img, 0, 0, 800, 800);
+        const a = document.createElement("a");
+        a.download = `${K_LAGER}-${nivaa}-${namn.toLowerCase().replace(/[^a-zæøå0-9]+/g, "-")}.png`;
+        a.href = c.toDataURL("image/png");
+        a.click();
+    };
+    img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+}
+
+$("namn").onkeydown = e => { if (e.key === "Enter") $("startknapp").click(); };
+visStart();
+</script>
+</body>
+</html>

@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="nn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Diffie-Hellman</title>
+<style>
+:root {
+    --bg: #eef2f6;
+    --panel: #ffffff;
+    --panel2: #f2f5f9;
+    --border: #d3dae3;
+    --text: #1b2230;
+    --muted: #5b6577;
+    --accent: #0f766e;
+    --accent-soft: #d5f0ec;
+    --ok: #15803d;
+    --okbg: #dcfce7;
+    --bad: #b91c1c;
+    --badbg: #fee2e2;
+    --warn: #a16207;
+    --warnbg: #fef3c7;
+    --c1: #2563eb;
+    --c2: #c2410c;
+    --c3: #7c3aed;
+    --hl: #fde68a;
+    color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #171c26;
+        --panel: #222936;
+        --panel2: #2a3242;
+        --border: #3a4356;
+        --text: #e5e8ee;
+        --muted: #9aa3b4;
+        --accent: #2dd4bf;
+        --accent-soft: #134e4a;
+        --ok: #4ade80;
+        --okbg: #14391f;
+        --bad: #f87171;
+        --badbg: #4a1d22;
+        --warn: #fbbf24;
+        --warnbg: #3d3012;
+        --c1: #60a5fa;
+        --c2: #fb923c;
+        --c3: #a78bfa;
+        --hl: #6b5a12;
+        color-scheme: dark;
+    }
+}
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    line-height: 1.5;
+    padding: 16px;
+}
+main { max-width: 780px; margin: 0 auto; }
+a { color: var(--accent); }
+nav.top {
+    display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center;
+    justify-content: space-between; font-size: 14px; margin-bottom: 10px;
+}
+nav.top .serie { display: flex; flex-wrap: wrap; gap: 6px; }
+nav.top .serie a {
+    text-decoration: none; padding: 3px 10px; border-radius: 999px;
+    border: 1px solid var(--border); background: var(--panel); color: var(--text);
+}
+nav.top .serie a.anna { border-style: dashed; color: var(--accent); }
+nav.top .serie a.on { background: var(--accent); border-color: var(--accent); color: var(--panel); font-weight: 600; }
+h1 { margin: 4px 0 4px; font-size: 27px; }
+.lead { color: var(--muted); margin: 0 0 16px; font-size: 17px; }
+.card {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px; margin-bottom: 16px;
+}
+.card h2 { margin: 0 0 8px; font-size: 19px; }
+.card h3 { margin: 14px 0 6px; font-size: 16px; }
+.card p { margin: 0 0 10px; }
+.card > :last-child { margin-bottom: 0; }
+.small { font-size: 14px; color: var(--muted); }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+label { display: block; font-weight: 600; margin: 10px 0 4px; font-size: 15px; }
+textarea, input[type=text], input[type=password], input[type=number], select {
+    width: 100%; padding: 8px 10px; font: inherit;
+    border: 1px solid var(--border); border-radius: 8px;
+    background: var(--panel2); color: var(--text);
+}
+textarea { min-height: 70px; resize: vertical; }
+input[type=range] { width: 100%; accent-color: var(--accent); }
+.btn {
+    border: 1px solid var(--border); background: var(--panel2); color: var(--text);
+    padding: 8px 14px; border-radius: 8px; font: inherit; font-size: 15px; cursor: pointer;
+}
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--panel); font-weight: 600; }
+.btn.danger { border-color: var(--bad); color: var(--bad); }
+.btn:disabled { opacity: .5; cursor: default; }
+.seg { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.seg button {
+    border: 0; background: var(--panel2); color: var(--text);
+    padding: 8px 14px; font: inherit; font-size: 15px; cursor: pointer;
+    border-right: 1px solid var(--border);
+}
+.seg button:last-child { border-right: 0; }
+.seg button.on { background: var(--accent); color: var(--panel); font-weight: 600; }
+.mono, code { font-family: ui-monospace, Menlo, Consolas, monospace; }
+.out {
+    font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 15px;
+    background: var(--panel2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px; margin-top: 8px; word-break: break-all; white-space: pre-wrap; min-height: 42px;
+}
+.out.big { font-size: 18px; }
+.out.scroll { max-height: 140px; overflow: auto; }
+.msg { margin-top: 8px; padding: 8px 12px; border-radius: 8px; font-weight: 600; }
+.msg.ok { background: var(--okbg); color: var(--ok); }
+.msg.bad { background: var(--badbg); color: var(--bad); }
+.msg.info { background: var(--accent-soft); color: var(--text); font-weight: 400; }
+.badge { display: inline-block; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+.badge.ok { background: var(--okbg); color: var(--ok); }
+.badge.bad { background: var(--badbg); color: var(--bad); }
+.note {
+    background: var(--accent-soft); border-radius: 8px; padding: 10px 12px; margin: 10px 0;
+}
+.note b:first-child { display: block; margin-bottom: 2px; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; }
+td, th { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+th { font-size: 13px; color: var(--muted); font-weight: 600; }
+.flow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 8px 0; }
+.flow .box {
+    background: var(--panel2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 6px 10px; font-size: 14px; text-align: center;
+}
+.flow .box.key { background: var(--accent-soft); border-color: var(--accent); }
+.flow .arr { color: var(--muted); font-weight: 700; }
+details { background: var(--panel2); border-radius: 8px; padding: 8px 12px; margin: 6px 0; }
+details summary { cursor: pointer; font-weight: 600; }
+details p { margin: 6px 0 2px; }
+.who { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+footer { font-size: 13px; color: var(--muted); text-align: center; margin: 8px 0 20px; }
+@media (max-width: 480px) {
+    body { padding: 12px; }
+    h1 { font-size: 23px; }
+    .card { padding: 12px; }
+}
+.palett { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.palett button { width: 38px; height: 38px; border-radius: 50%; border: 3px solid var(--panel); outline: 1px solid var(--border); cursor: pointer; }
+.palett button.on { outline: 3px solid var(--accent); }
+.dh { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 12px; }
+.dh .kol { background: var(--panel2); border-radius: 10px; padding: 8px; text-align: center; }
+.dh .kol h3 { margin: 0 0 6px; font-size: 15px; }
+.dh .kol.eve h3 { color: var(--bad); }
+.steg-rad { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; align-items: center; margin-top: 8px; }
+.steg-rad .tekst { grid-column: 1 / -1; font-size: 14px; font-weight: 600; margin-top: 6px; }
+.flekk { width: 56px; height: 56px; border-radius: 50%; margin: 0 auto; border: 2px solid rgba(0,0,0,.15); }
+.flekk.tom { background: none !important; border: 2px dashed var(--border); }
+.cel { text-align: center; font-size: 12px; color: var(--muted); }
+.lik { font-weight: 700; color: var(--ok); }
+.rekn { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; }
+.rekn > div { background: var(--panel2); border-radius: 10px; padding: 10px 12px; }
+.rekn h3 { margin: 0 0 6px; font-size: 15px; }
+.rekn .mono { font-size: 15px; }
+.rekn .eve h3 { color: var(--bad); }
+.tal { font-size: 22px; font-weight: 800; color: var(--accent); font-family: ui-monospace, Menlo, Consolas, monospace; }
+.smaa { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px; }
+.evetab { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 13px; max-height: 180px; overflow: auto; background: var(--panel2); border-radius: 8px; padding: 6px 10px; margin-top: 8px; }
+.evetab .treff { color: var(--ok); font-weight: 700; }
+.center { text-align: center; }
+@media (max-width: 480px) { .flekk { width: 44px; height: 44px; } }
+</style>
+</head>
+<body>
+<main>
+<nav class="top"><a href="index.html">← Frode</a><span class="serie"><a href="passord.html">Passord</a><a href="totp.html">Tofaktor</a><a href="passkeys.html">Passkeys</a><a href="tpm.html">TPM</a><a href="diffie-hellman.html" class="on">Diffie-Hellman</a><a href="sertifikat.html">Sertifikat</a><a href="innloggingsknappen.html">Knappen</a><a class="anna" href="rot13.html">Kryptografi →</a></span></nav>
+<h1>Diffie-Hellman</h1>
+<p class="lead">Korleis kan Alice og Bob bli einige om ein hemmeleg nøkkel når alt dei seier går over eit nett der Eve høyrer på? Det verkar umogleg, men det er dette som skjer kvar gong du opnar ei HTTPS-side.</p>
+
+<section class="card">
+    <h2>1. Med fargar</h2>
+    <p>Å blande fargar er lett. Å skilje ein blanding tilbake til fargane han kom frå, er vanskeleg. Det er heile trikset.</p>
+    <div class="grid2">
+        <div><label>Den hemmelege fargen til Alice</label><div class="palett" id="palA"></div></div>
+        <div><label>Den hemmelege fargen til Bob</label><div class="palett" id="palB"></div></div>
+    </div>
+    <div class="dh" id="hovud">
+        <div class="kol"><h3>Alice</h3></div>
+        <div class="kol eve"><h3>Ope nett (Eve ser)</h3></div>
+        <div class="kol"><h3>Bob</h3></div>
+    </div>
+    <div id="steg"></div>
+    <div class="note" style="margin-top:12px"><b>Kvifor får Eve ikkje same farge?</b>Ho har den offentlege fargen og begge blandingane, men ingen av dei hemmelege fargane. Blandar ho blandingane, får ho for mykje gult og feil farge.</div>
+    <p class="small">Ærleg talt: med ekte fargar på ein skjerm kunne Eve rekne seg tilbake. Fargane er berre eit bilete. Ekte Diffie-Hellman brukar matematikk som verkeleg er einvegs, sjå under.</p>
+</section>
+
+<section class="card">
+    <h2>2. Med tal</h2>
+    <p>I staden for å blande fargar reknar ein med <b>potens og modulo</b> (resten etter divisjon). Det er lett å rekne framover, men svært vanskeleg å rekne baklengs når tala er store.</p>
+    <div class="rekn">
+        <div><h3>Offentleg (alle ser)</h3>
+            <span class="mono">Primtal p = 23<br>Grunntal g = 5</span></div>
+    </div>
+    <div class="smaa" style="margin-top:10px">
+        <div><label for="a">Alice sitt hemmelege tal a</label><input type="number" id="a" min="2" max="21" value="6"></div>
+        <div><label for="b">Bob sitt hemmelege tal b</label><input type="number" id="b" min="2" max="21" value="15"></div>
+    </div>
+    <div class="rekn" style="margin-top:12px">
+        <div><h3>Alice</h3><div class="mono" id="r-alice"></div></div>
+        <div><h3>Bob</h3><div class="mono" id="r-bob"></div></div>
+        <div class="eve"><h3>Eve ser</h3><div class="mono" id="r-eve"></div></div>
+    </div>
+    <div class="msg ok" id="r-lik"></div>
+    <div class="row" style="margin-top:12px">
+        <button class="btn danger" id="eveprov">Eve prøver alle moglege a</button>
+    </div>
+    <div class="evetab" id="evetab" style="display:none"></div>
+    <div class="msg" id="evemsg" style="display:none"></div>
+    <p style="margin-top:10px">Med p = 23 finn Eve svaret på augneblinken. I ekte HTTPS er p eit tal med over 600 siffer, eller ein brukar elliptiske kurver (X25519). Då finst det ingen kjend måte å finne a på innan rimeleg tid.</p>
+</section>
+
+<section class="card">
+    <h2>3. Svakheita: mannen i midten</h2>
+    <p>Diffie-Hellman seier ingenting om <i>kven</i> du snakkar med. Eve kan setje seg i midten, gjere éin utveksling med Alice og ein annan med Bob, og vidaresende alt. Både Alice og Bob trur dei snakkar trygt med kvarandre.</p>
+    <div class="flow">
+        <div class="box">Alice</div><div class="arr">⇄</div>
+        <div class="box key" style="border-color:var(--bad)">Eve (nøkkel 1 og nøkkel 2)</div><div class="arr">⇄</div>
+        <div class="box">Bob</div>
+    </div>
+    <div class="note"><b>Løysinga</b>Nettstaden <a href="asymmetrisk.html">signerer</a> sin del av utvekslinga med den private nøkkelen sin, og nettlesaren kontrollerer det med <a href="sertifikat.html">sertifikatet</a>. Då kan ikkje Eve late som ho er nettstaden.</div>
+</section>
+
+<section class="card">
+    <h2>Kvar blir det brukt?</h2>
+    <ul style="margin:0; padding-left:20px">
+        <li><b>HTTPS (TLS 1.3):</b> kvar tilkopling startar med ein Diffie-Hellman-utveksling (ECDHE).</li>
+        <li><b>SSH</b> når du koplar til ein server eller ein Cisco-switch.</li>
+        <li><b>VPN</b> som WireGuard og IPsec.</li>
+        <li><b>Wi-Fi med WPA3</b> brukar ein variant (SAE), slik at sjølv eit kjent Wi-Fi-passord ikkje gir tilgang til andre sin trafikk.</li>
+        <li><b>Signal og WhatsApp</b> for ende-til-ende-kryptering.</li>
+    </ul>
+    <p style="margin-top:10px">Den felles hemmelegheita blir brukt som nøkkel til <a href="symmetrisk.html">symmetrisk kryptering</a> med AES. Dermed er nøkkeldelingsproblemet løyst.</p>
+</section>
+
+<section class="card">
+    <h2>Til ettertanke</h2>
+    <details><summary>Blir den hemmelege nøkkelen sendt over nettet?</summary>
+        <p>Nei, aldri. Alice og Bob reknar han ut kvar for seg. Berre dei offentlege «blandingane» blir sende.</p></details>
+    <details><summary>Kva er forskjellen på Diffie-Hellman og RSA-kryptering?</summary>
+        <p>Med RSA-kryptering lagar éin part nøkkelen og krypterer han til den andre. Med Diffie-Hellman bidreg begge, og nøkkelen blir aldri sendt i det heile.</p></details>
+    <details><summary>Kvifor lagar ein nye hemmelege tal for kvar tilkopling?</summary>
+        <p>Då kan ikkje nokon som stel nøklane til nettstaden seinare dekryptere gammal trafikk dei har teke opp. Det heiter «forward secrecy».</p></details>
+    <details><summary>Kvifor er det heilt nødvendig med sertifikat i tillegg?</summary>
+        <p>For å stoppe mannen i midten. Diffie-Hellman gir ein hemmeleg nøkkel, men berre sertifikatet fortel deg kven du deler han med.</p></details>
+</section>
+
+<footer>Frode · IM-Stord · All utrekning skjer i nettlesaren din. Ingenting du skriv blir sendt nokon stad.</footer>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+
+/* ----- Fargar: blanda som pigment (vekta geometrisk snitt), så gult + blått blir grønt ----- */
+const OFFENTLEG = [0.98, 0.86, 0.18];
+const FARGAR = {
+    raud: [0.86, 0.12, 0.12], blaa: [0.10, 0.30, 0.90], lilla: [0.55, 0.20, 0.75],
+    grøn: [0.15, 0.65, 0.25], rosa: [0.95, 0.45, 0.70], turkis: [0.10, 0.70, 0.75], brun: [0.55, 0.30, 0.12],
+};
+const bland = (...par) => [0, 1, 2].map(k => Math.exp(par.reduce((s, [f, w]) => s + w * Math.log(Math.max(f[k], 0.04)), 0)));
+const css = f => `rgb(${f.map(x => Math.round(Math.min(1, x) * 255)).join(",")})`;
+let A = "raud", B = "blaa";
+
+function palett(id, val, sett) {
+    $(id).innerHTML = Object.entries(FARGAR).map(([n, f]) =>
+        `<button style="background:${css(f)}" class="${n === val ? "on" : ""}" data-f="${n}" aria-label="${n}"></button>`).join("");
+    $(id).onclick = e => { const b = e.target.closest("button"); if (b) { sett(b.dataset.f); teikn(); } };
+}
+const flekk = (f, tekst) => `<div><div class="flekk${f ? "" : " tom"}" style="${f ? "background:" + css(f) : ""}"></div><div class="cel">${tekst || ""}</div></div>`;
+const tom = () => "<div></div>";
+
+function teikn() {
+    palett("palA", A, v => A = v);
+    palett("palB", B, v => B = v);
+    const fa = FARGAR[A], fb = FARGAR[B];
+    const mA = bland([OFFENTLEG, .5], [fa, .5]), mB = bland([OFFENTLEG, .5], [fb, .5]);
+    const sA = bland([mB, 2 / 3], [fa, 1 / 3]), sB = bland([mA, 2 / 3], [fb, 1 / 3]);
+    const eve = bland([mA, .5], [mB, .5]);
+    const rad = (tekst, a, m, b) => `<div class="steg-rad"><div class="tekst">${tekst}</div>${a}${m}${b}</div>`;
+    $("steg").innerHTML =
+        rad("1. Dei blir einige om ein offentleg farge", flekk(OFFENTLEG, "gul"), flekk(OFFENTLEG, "gul"), flekk(OFFENTLEG, "gul")) +
+        rad("2. Kvar vel sin hemmelege farge", flekk(fa, "hemmeleg"), tom(), flekk(fb, "hemmeleg")) +
+        rad("3. Kvar blandar gul med sin hemmelege og sender blandinga", flekk(mA, "sender"), `<div style="display:flex;gap:6px;justify-content:center">${flekk(mA, "")}${flekk(mB, "")}</div>`, flekk(mB, "sender")) +
+        rad("4. Kvar blandar den mottekne blandinga med sin hemmelege", flekk(sA, "felles hemmelegheit"), flekk(eve, "Eve sitt beste forsøk"), flekk(sB, "felles hemmelegheit")) +
+        `<p class="center lik" style="margin-top:10px">Alice og Bob har fått nøyaktig same farge, utan å sende han!</p>`;
+}
+
+/* ----- Tal ----- */
+const P = 23, G = 5;
+const modpow = (b, e, m) => { let r = 1; b %= m; while (e > 0) { if (e & 1) r = r * b % m; b = b * b % m; e >>= 1; } return r; };
+let pub = {};
+function rekn() {
+    const a = Math.min(21, Math.max(2, Math.floor(+$("a").value || 2))), b = Math.min(21, Math.max(2, Math.floor(+$("b").value || 2)));
+    const Av = modpow(G, a, P), Bv = modpow(G, b, P);
+    const sa = modpow(Bv, a, P), sb = modpow(Av, b, P);
+    pub = { a, Av };
+    $("r-alice").innerHTML = `A = g<sup>a</sup> mod p<br>= 5<sup>${a}</sup> mod 23 = <span class="tal">${Av}</span><br>Sender A til Bob.<br><br>Får B = ${Bv}<br>s = B<sup>a</sup> mod p<br>= ${Bv}<sup>${a}</sup> mod 23 = <span class="tal">${sa}</span>`;
+    $("r-bob").innerHTML = `B = g<sup>b</sup> mod p<br>= 5<sup>${b}</sup> mod 23 = <span class="tal">${Bv}</span><br>Sender B til Alice.<br><br>Får A = ${Av}<br>s = A<sup>b</sup> mod p<br>= ${Av}<sup>${b}</sup> mod 23 = <span class="tal">${sb}</span>`;
+    $("r-eve").innerHTML = `p = 23, g = 5<br>A = ${Av}<br>B = ${Bv}<br><br>Men ikkje a, b eller s.`;
+    $("r-lik").textContent = `Begge har fått den felles hemmelegheita s = ${sa}, utan at ho nokon gong vart sendt.`;
+    $("evetab").style.display = "none"; $("evemsg").style.display = "none";
+}
+$("a").oninput = $("b").oninput = rekn;
+$("eveprov").onclick = () => {
+    const { Av } = pub;
+    const linjer = [];
+    let funne = null;
+    for (let x = 1; x <= P - 2; x++) {
+        const v = modpow(G, x, P);
+        const treff = v === Av;
+        linjer.push(`<div class="${treff ? "treff" : ""}">5^${x} mod 23 = ${v}${treff ? "  ← lik A!" : ""}</div>`);
+        if (treff) { funne = x; break; }
+    }
+    $("evetab").innerHTML = linjer.join(""); $("evetab").style.display = "block";
+    const m = $("evemsg"); m.style.display = "block"; m.className = "msg bad";
+    m.textContent = `Eve fann a = ${funne} etter ${funne} forsøk og kan rekne ut s sjølv. Med eit p på 600 siffer måtte ho prøvd fleire gonger enn det finst atom i universet.`;
+};
+
+teikn(); rekn();
+</script>
+</body>
+</html>

@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="nn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TPM-brikka</title>
+<style>
+:root {
+    --bg: #eef2f6;
+    --panel: #ffffff;
+    --panel2: #f2f5f9;
+    --border: #d3dae3;
+    --text: #1b2230;
+    --muted: #5b6577;
+    --accent: #0f766e;
+    --accent-soft: #d5f0ec;
+    --ok: #15803d;
+    --okbg: #dcfce7;
+    --bad: #b91c1c;
+    --badbg: #fee2e2;
+    --warn: #a16207;
+    --warnbg: #fef3c7;
+    --c1: #2563eb;
+    --c2: #c2410c;
+    --c3: #7c3aed;
+    --hl: #fde68a;
+    color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #171c26;
+        --panel: #222936;
+        --panel2: #2a3242;
+        --border: #3a4356;
+        --text: #e5e8ee;
+        --muted: #9aa3b4;
+        --accent: #2dd4bf;
+        --accent-soft: #134e4a;
+        --ok: #4ade80;
+        --okbg: #14391f;
+        --bad: #f87171;
+        --badbg: #4a1d22;
+        --warn: #fbbf24;
+        --warnbg: #3d3012;
+        --c1: #60a5fa;
+        --c2: #fb923c;
+        --c3: #a78bfa;
+        --hl: #6b5a12;
+        color-scheme: dark;
+    }
+}
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    line-height: 1.5;
+    padding: 16px;
+}
+main { max-width: 780px; margin: 0 auto; }
+a { color: var(--accent); }
+nav.top {
+    display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center;
+    justify-content: space-between; font-size: 14px; margin-bottom: 10px;
+}
+nav.top .serie { display: flex; flex-wrap: wrap; gap: 6px; }
+nav.top .serie a {
+    text-decoration: none; padding: 3px 10px; border-radius: 999px;
+    border: 1px solid var(--border); background: var(--panel); color: var(--text);
+}
+nav.top .serie a.anna { border-style: dashed; color: var(--accent); }
+nav.top .serie a.on { background: var(--accent); border-color: var(--accent); color: var(--panel); font-weight: 600; }
+h1 { margin: 4px 0 4px; font-size: 27px; }
+.lead { color: var(--muted); margin: 0 0 16px; font-size: 17px; }
+.card {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px; margin-bottom: 16px;
+}
+.card h2 { margin: 0 0 8px; font-size: 19px; }
+.card h3 { margin: 14px 0 6px; font-size: 16px; }
+.card p { margin: 0 0 10px; }
+.card > :last-child { margin-bottom: 0; }
+.small { font-size: 14px; color: var(--muted); }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+label { display: block; font-weight: 600; margin: 10px 0 4px; font-size: 15px; }
+textarea, input[type=text], input[type=password], input[type=number], select {
+    width: 100%; padding: 8px 10px; font: inherit;
+    border: 1px solid var(--border); border-radius: 8px;
+    background: var(--panel2); color: var(--text);
+}
+textarea { min-height: 70px; resize: vertical; }
+input[type=range] { width: 100%; accent-color: var(--accent); }
+.btn {
+    border: 1px solid var(--border); background: var(--panel2); color: var(--text);
+    padding: 8px 14px; border-radius: 8px; font: inherit; font-size: 15px; cursor: pointer;
+}
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--panel); font-weight: 600; }
+.btn.danger { border-color: var(--bad); color: var(--bad); }
+.btn:disabled { opacity: .5; cursor: default; }
+.seg { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.seg button {
+    border: 0; background: var(--panel2); color: var(--text);
+    padding: 8px 14px; font: inherit; font-size: 15px; cursor: pointer;
+    border-right: 1px solid var(--border);
+}
+.seg button:last-child { border-right: 0; }
+.seg button.on { background: var(--accent); color: var(--panel); font-weight: 600; }
+.mono, code { font-family: ui-monospace, Menlo, Consolas, monospace; }
+.out {
+    font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 15px;
+    background: var(--panel2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px; margin-top: 8px; word-break: break-all; white-space: pre-wrap; min-height: 42px;
+}
+.out.big { font-size: 18px; }
+.out.scroll { max-height: 140px; overflow: auto; }
+.msg { margin-top: 8px; padding: 8px 12px; border-radius: 8px; font-weight: 600; }
+.msg.ok { background: var(--okbg); color: var(--ok); }
+.msg.bad { background: var(--badbg); color: var(--bad); }
+.msg.info { background: var(--accent-soft); color: var(--text); font-weight: 400; }
+.badge { display: inline-block; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+.badge.ok { background: var(--okbg); color: var(--ok); }
+.badge.bad { background: var(--badbg); color: var(--bad); }
+.note {
+    background: var(--accent-soft); border-radius: 8px; padding: 10px 12px; margin: 10px 0;
+}
+.note b:first-child { display: block; margin-bottom: 2px; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; }
+td, th { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+th { font-size: 13px; color: var(--muted); font-weight: 600; }
+.flow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 8px 0; }
+.flow .box {
+    background: var(--panel2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 6px 10px; font-size: 14px; text-align: center;
+}
+.flow .box.key { background: var(--accent-soft); border-color: var(--accent); }
+.flow .arr { color: var(--muted); font-weight: 700; }
+details { background: var(--panel2); border-radius: 8px; padding: 8px 12px; margin: 6px 0; }
+details summary { cursor: pointer; font-weight: 600; }
+details p { margin: 6px 0 2px; }
+.who { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+footer { font-size: 13px; color: var(--muted); text-align: center; margin: 8px 0 20px; }
+@media (max-width: 480px) {
+    body { padding: 12px; }
+    h1 { font-size: 23px; }
+    .card { padding: 12px; }
+}
+.oppgaver { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+.oppgaver div { background: var(--panel2); border-radius: 8px; padding: 10px 12px; }
+.oppgaver b { display: block; }
+.oppsett { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 4px 12px; }
+.kjede { display: grid; gap: 6px; margin-top: 10px; }
+.ledd { display: grid; grid-template-columns: 26px 1fr; gap: 4px 10px; align-items: start; background: var(--panel2); border-radius: 8px; padding: 8px 10px; opacity: .35; transition: opacity .25s; }
+.ledd.vist { opacity: 1; }
+.ledd .nr { width: 26px; height: 26px; border-radius: 50%; background: var(--accent); color: var(--panel); font-weight: 700; display: grid; place-items: center; font-size: 14px; }
+.ledd .h { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12px; color: var(--muted); word-break: break-all; }
+.ledd.endra { outline: 2px solid var(--bad); }
+.pcr { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 14px; word-break: break-all; }
+.pcr .ulik { color: var(--bad); font-weight: 700; }
+.pcrboks { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; background: var(--panel2); border-radius: 8px; padding: 10px 12px; margin-top: 10px; align-items: baseline; }
+.pcrboks b { font-size: 13px; color: var(--muted); }
+.windows { background: #0b5ed7; color: #fff; border-radius: 10px; padding: 18px; margin-top: 12px; }
+.windows h3 { margin: 0 0 8px; font-size: 22px; font-weight: 400; color: #fff; }
+.windows p { margin: 0 0 8px; }
+.windows input { background: #fff; color: #000; font-family: ui-monospace, Menlo, Consolas, monospace; letter-spacing: .03em; }
+.windows .btn { background: #fff; color: #0b5ed7; border-color: #fff; font-weight: 600; }
+.windows a { color: #fff; }
+.velkomen { background: linear-gradient(135deg, #0d2a5c, #1e6bd6); color: #fff; border-radius: 10px; padding: 24px 18px; margin-top: 12px; text-align: center; }
+.velkomen b { font-size: 22px; display: block; }
+.kontoboks { background: var(--panel2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; margin-top: 10px; font-size: 14px; }
+.kontoboks .mono { font-size: 14px; word-break: break-all; }
+pre.kmd { background: var(--panel2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; font-size: 14px; overflow-x: auto; margin: 6px 0 10px; }
+</style>
+</head>
+<body>
+<main>
+<nav class="top"><a href="index.html">← Frode</a><span class="serie"><a href="passord.html">Passord</a><a href="totp.html">Tofaktor</a><a href="passkeys.html">Passkeys</a><a href="tpm.html" class="on">TPM</a><a href="diffie-hellman.html">Diffie-Hellman</a><a href="sertifikat.html">Sertifikat</a><a href="innloggingsknappen.html">Knappen</a><a class="anna" href="rot13.html">Kryptografi →</a></span></nav>
+<h1>TPM-brikka</h1>
+<p class="lead">TPM (Trusted Platform Module) er ein liten tryggleiksbrikke i PC-en. Ho lagar og gøymer nøklar, og ho passar på at ingen har tukla med oppstarten før ho låser opp disken. Windows 11 krev TPM 2.0.</p>
+
+<section class="card">
+    <h2>Eit kassaskap med eigen vakt</h2>
+    <p>Tenk på TPM som eit kassaskap der vakta aldri gir frå seg innhaldet. Du kan be vakta <i>bruke</i> ein nøkkel, til dømes signere noko eller låse opp disken, men nøkkelen sjølv kjem aldri ut av skapet. Sjølv om PC-en får virus, kan ikkje viruset kopiere nøklane.</p>
+    <div class="oppgaver">
+        <div><b>Gøymer nøklar</b>Private nøklar blir laga inne i brikka og kan ikkje hentast ut.</div>
+        <div><b>Måler oppstarten</b>Kvart steg i oppstarten blir hasha og registrert før det får køyre.</div>
+        <div><b>Stoppar gjetting</b>Feil PIN for mange gonger, og brikka låser seg ei stund.</div>
+        <div><b>Tilfeldige tal</b>Ekte tilfeldige tal til å lage nøklar.</div>
+    </div>
+    <p class="small" style="margin-top:10px">TPM kan vere ei eiga brikke på hovudkortet, eller vere bygd inn i prosessoren (AMD fTPM, Intel PTT). Det siste må av og til slåast på i BIOS.</p>
+</section>
+
+<section class="card">
+    <h2>Målt oppstart og BitLocker</h2>
+    <p>Når PC-en startar, blir kvart ledd <a href="hash.html">hasha</a> og «lagt til» i eit register i TPM-brikka (eit PCR). Det nye registeret blir rekna ut slik:</p>
+    <p class="mono" style="text-align:center">PCR<sub>ny</sub> = SHA-256( PCR<sub>gamal</sub> + hash av leddet )</p>
+    <p>Registeret kan berre leggjast til, aldri setjast tilbake. Til slutt står det eit fingeravtrykk av heile oppstarten. BitLocker-nøkkelen er <b>forsegla</b> til denne verdien: TPM gir han berre ut om fingeravtrykket er nøyaktig likt.</p>
+
+    <h3>Endre oppsettet og start PC-en</h3>
+    <div class="oppsett">
+        <div><label for="o-fw">Fastvare (UEFI/BIOS)</label>
+            <select id="o-fw"><option value="UEFI v1.12">UEFI v1.12</option><option value="UEFI v1.13">UEFI v1.13 (etter BIOS-oppdatering)</option></select></div>
+        <div><label for="o-sb">Secure Boot</label>
+            <select id="o-sb"><option value="Secure Boot: på">På</option><option value="Secure Boot: av">Av</option></select></div>
+        <div><label for="o-bl">Oppstartslastar</label>
+            <select id="o-bl"><option value="Windows Boot Manager">Windows Boot Manager (ekte)</option><option value="Bootkit">Bootkit (skadevare frå angripar)</option></select></div>
+        <div><label for="o-pc">Disken sit i</label>
+            <select id="o-pc"><option value="same">Same PC som før</option><option value="annan">Ein annan PC (disken er stolen)</option></select></div>
+    </div>
+    <div class="row" style="margin-top:12px">
+        <button class="btn primary" id="start">Start PC-en</button>
+        <button class="btn" id="forsegl">Forsegl på nytt med dette oppsettet</button>
+    </div>
+
+    <div class="kjede" id="kjede"></div>
+    <div class="pcrboks" id="pcrboks" style="display:none">
+        <b>PCR no</b><span class="pcr" id="pcrNo"></span>
+        <b>Forsegla til</b><span class="pcr" id="pcrForv"></span>
+    </div>
+    <div id="utfall"></div>
+    <div class="kontoboks">
+        <b>Kari si Microsoft-konto</b> (aka.ms/myrecoverykey)<br>
+        Gjenopprettingsnøkkel for disken: <span class="mono" id="gjenNokkel"></span>
+    </div>
+</section>
+
+<section class="card">
+    <h2>Kvifor dukkar BitLocker-skjermen opp?</h2>
+    <p>Dette er ei av dei vanlegaste sakene i brukarstøtte. Prøv dei same tilfella i simuleringa over:</p>
+    <ul style="margin:0; padding-left:20px">
+        <li><b>BIOS-oppdatering:</b> ny fastvare gir ny hash. Den ekte løysinga er å setje BitLocker på pause før oppdateringa, slik at nøkkelen blir forsegla på nytt etterpå.</li>
+        <li><b>Endra BIOS-innstillingar</b> som Secure Boot.</li>
+        <li><b>Hovudkortet er bytt</b>, og med det TPM-brikka.</li>
+        <li><b>Nokon har tukla med oppstarten.</b> Då er det nettopp dette som skal skje.</li>
+    </ul>
+    <p style="margin-top:10px">Gjenopprettingsnøkkelen er 48 siffer. For private PC-ar ligg han som regel i Microsoft-kontoen (aka.ms/myrecoverykey). På skule- og jobb-PC-ar ligg han i Entra ID, Intune eller Active Directory, der IT-avdelinga kan finne han.</p>
+</section>
+
+<section class="card">
+    <h2>Kva anna brukar Windows TPM til?</h2>
+    <ul style="margin:0; padding-left:20px">
+        <li><b>Windows Hello-PIN:</b> PIN-koden låser opp ein nøkkel i TPM-brikka på akkurat denne PC-en. Ein som får vite PIN-en din, kan ikkje bruke han frå ein annan PC. Difor er ein kort Hello-PIN tryggare enn eit langt passord.</li>
+        <li><b><a href="passkeys.html">Passkeys</a></b> på Windows blir verna av TPM.</li>
+        <li><b>Attestering:</b> PC-en kan bevise overfor til dømes Intune at han starta på ein trygg måte.</li>
+        <li><b>Sertifikat og VPN:</b> private nøklar til <a href="sertifikat.html">sertifikat</a> kan lagrast i brikka.</li>
+    </ul>
+</section>
+
+<section class="card">
+    <h2>Praktisk: sjekk TPM og BitLocker</h2>
+    <p>Opne TPM-administrasjon:</p>
+    <pre class="kmd">tpm.msc</pre>
+    <p>I PowerShell som administrator:</p>
+    <pre class="kmd">Get-Tpm
+manage-bde -status
+manage-bde -protectors -get C:
+Suspend-BitLocker -MountPoint "C:" -RebootCount 1</pre>
+    <p class="small">Den siste set BitLocker på pause fram til neste omstart, til dømes før ei BIOS-oppdatering.</p>
+</section>
+
+<section class="card">
+    <h2>Til ettertanke</h2>
+    <details><summary>Kvifor kan ikkje ein tjuv berre flytte disken til sin eigen PC?</summary>
+        <p>Nøkkelen ligg i TPM-brikka i den opphavlege PC-en, ikkje på disken. Ein annan PC har ei anna brikke som ikkje har nøkkelen.</p></details>
+    <details><summary>Kvifor kan ikkje skadevaren endre PCR-verdien tilbake?</summary>
+        <p>Eit PCR kan berre «leggjast til» (extend). Når bootkit-hashen først er med, finst det ingen måte å fjerne han på før neste omstart.</p></details>
+    <details><summary>Kva er forskjellen på Secure Boot og målt oppstart?</summary>
+        <p>Secure Boot <i>stoppar</i> oppstartsprogram som ikkje er signerte. Målt oppstart <i>registrerer</i> kva som faktisk køyrde, slik at TPM kan nekte å gi ut nøklar etterpå.</p></details>
+    <details><summary>Kvifor treng ein gjenopprettingsnøkkel i det heile?</summary>
+        <p>Fordi ei heilt lovleg endring, som ny BIOS eller nytt hovudkort, også endrar målinga. Utan gjenopprettingsnøkkel ville dataa vore tapte for alltid.</p></details>
+</section>
+
+<footer>Frode · IM-Stord · All utrekning skjer i nettlesaren din. Ingenting du skriv blir sendt nokon stad.</footer>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+const enc = new TextEncoder();
+const hex = b => [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, "0")).join("");
+const sha = async bytes => new Uint8Array(await crypto.subtle.digest("SHA-256", bytes));
+const kort = h => h.slice(0, 24) + "…";
+
+function ledd() {
+    return [
+        { namn: "Fastvare", verdi: $("o-fw").value },
+        { namn: "Secure Boot-innstilling", verdi: $("o-sb").value },
+        { namn: "Oppstartslastar", verdi: $("o-bl").value },
+        { namn: "Windows-kjerne", verdi: "Windows 11 kjerne" },
+    ];
+}
+async function mal(liste) {
+    let pcr = new Uint8Array(32);
+    const steg = [];
+    for (const l of liste) {
+        const m = await sha(enc.encode(l.verdi));
+        const ny = new Uint8Array(64); ny.set(pcr); ny.set(m, 32);
+        pcr = await sha(ny);
+        steg.push({ ...l, m: hex(m), pcr: hex(pcr) });
+    }
+    return steg;
+}
+
+// Gjenopprettingsnøkkel: 8 grupper à 6 siffer, kvar delbar med 11 (slik som ekte BitLocker-nøklar)
+const gjen = Array.from(crypto.getRandomValues(new Uint32Array(8)), x => String((x % 65536) * 11).padStart(6, "0")).join("-");
+$("gjenNokkel").textContent = gjen;
+
+let forsegla = null, forseglaLedd = null;
+async function forsegl() {
+    const s = await mal(ledd());
+    forsegla = s[s.length - 1].pcr;
+    forseglaLedd = s.map(x => x.verdi);
+    $("utfall").innerHTML = `<div class="msg info">BitLocker-nøkkelen er forsegla til den noverande oppstarten: ${kort(forsegla)}</div>`;
+    $("kjede").innerHTML = ""; $("pcrboks").style.display = "none";
+}
+
+let køyrer = false;
+$("start").onclick = async () => {
+    if (køyrer) return; køyrer = true; $("start").disabled = true;
+    const steg = await mal(ledd());
+    $("utfall").innerHTML = "";
+    $("kjede").innerHTML = steg.map((s, i) => `<div class="ledd${s.verdi !== forseglaLedd[i] ? " endra" : ""}" id="l${i}">
+        <div class="nr">${i + 1}</div><div><b>${s.namn}:</b> ${s.verdi}
+        <div class="h">hash: ${kort(s.m)}<br>PCR etter: ${kort(s.pcr)}</div></div></div>`).join("");
+    $("pcrboks").style.display = "none";
+    for (let i = 0; i < steg.length; i++) {
+        await new Promise(r => setTimeout(r, 450));
+        $("l" + i).classList.add("vist");
+    }
+    await new Promise(r => setTimeout(r, 350));
+    const pcr = steg[steg.length - 1].pcr;
+    const annanPC = $("o-pc").value === "annan";
+    $("pcrboks").style.display = "grid";
+    $("pcrNo").innerHTML = [...pcr.slice(0, 32)].map((c, i) => c !== forsegla[i] ? `<span class="ulik">${c}</span>` : c).join("") + "…";
+    $("pcrForv").textContent = annanPC ? "(denne TPM-brikka har ingen nøkkel for disken)" : forsegla.slice(0, 32) + "…";
+
+    if (!annanPC && pcr === forsegla) {
+        $("utfall").innerHTML = `<div class="velkomen"><b>Velkommen, Kari</b>Målinga stemmer. TPM gav ut BitLocker-nøkkelen, og disken vart låst opp automatisk.</div>`;
+    } else {
+        const kvifor = annanPC
+            ? "Disken sit i ein annan PC. Den nye TPM-brikka har aldri sett nøkkelen."
+            : "Målinga stemmer ikkje med det nøkkelen er forsegla til, så TPM nektar å gi han ut.";
+        $("utfall").innerHTML = `<div class="msg bad" style="margin-top:12px">${kvifor}</div>
+        <div class="windows">
+            <h3>BitLocker-gjenoppretting</h3>
+            <p>Skriv inn gjenopprettingsnøkkelen for denne stasjonen.</p>
+            <p class="small" style="color:#dbe8ff">Du finn han på aka.ms/myrecoverykey. Nøkkel-ID: ${forsegla.slice(0, 8).toUpperCase()}</p>
+            <input type="text" id="gjenInn" placeholder="000000-000000-000000-000000-000000-000000-000000-000000">
+            <div class="row" style="margin-top:8px"><button class="btn" id="gjenOk">Hald fram</button></div>
+            <p id="gjenMsg" style="margin-top:8px; display:none"></p>
+        </div>`;
+        $("gjenOk").onclick = () => {
+            const v = $("gjenInn").value.replace(/\D/g, ""), fasit = gjen.replace(/\D/g, "");
+            const m = $("gjenMsg"); m.style.display = "block";
+            m.textContent = v === fasit
+                ? "✓ Rett gjenopprettingsnøkkel. Disken er låst opp. " + (annanPC ? "(Ein tjuv har ikkje denne nøkkelen.)" : "Neste gong bør BitLocker forseglast på nytt.")
+                : "✗ Feil nøkkel. Sjekk «Kari si Microsoft-konto» under.";
+        };
+    }
+    køyrer = false; $("start").disabled = false;
+};
+$("forsegl").onclick = forsegl;
+forsegl();
+</script>
+</body>
+</html>

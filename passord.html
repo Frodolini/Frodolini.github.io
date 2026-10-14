@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="nn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Passordknekking</title>
+<style>
+:root {
+    --bg: #eef2f6;
+    --panel: #ffffff;
+    --panel2: #f2f5f9;
+    --border: #d3dae3;
+    --text: #1b2230;
+    --muted: #5b6577;
+    --accent: #0f766e;
+    --accent-soft: #d5f0ec;
+    --ok: #15803d;
+    --okbg: #dcfce7;
+    --bad: #b91c1c;
+    --badbg: #fee2e2;
+    --warn: #a16207;
+    --warnbg: #fef3c7;
+    --c1: #2563eb;
+    --c2: #c2410c;
+    --c3: #7c3aed;
+    --hl: #fde68a;
+    color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #171c26;
+        --panel: #222936;
+        --panel2: #2a3242;
+        --border: #3a4356;
+        --text: #e5e8ee;
+        --muted: #9aa3b4;
+        --accent: #2dd4bf;
+        --accent-soft: #134e4a;
+        --ok: #4ade80;
+        --okbg: #14391f;
+        --bad: #f87171;
+        --badbg: #4a1d22;
+        --warn: #fbbf24;
+        --warnbg: #3d3012;
+        --c1: #60a5fa;
+        --c2: #fb923c;
+        --c3: #a78bfa;
+        --hl: #6b5a12;
+        color-scheme: dark;
+    }
+}
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    line-height: 1.5;
+    padding: 16px;
+}
+main { max-width: 780px; margin: 0 auto; }
+a { color: var(--accent); }
+nav.top {
+    display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center;
+    justify-content: space-between; font-size: 14px; margin-bottom: 10px;
+}
+nav.top .serie { display: flex; flex-wrap: wrap; gap: 6px; }
+nav.top .serie a {
+    text-decoration: none; padding: 3px 10px; border-radius: 999px;
+    border: 1px solid var(--border); background: var(--panel); color: var(--text);
+}
+nav.top .serie a.anna { border-style: dashed; color: var(--accent); }
+nav.top .serie a.on { background: var(--accent); border-color: var(--accent); color: var(--panel); font-weight: 600; }
+h1 { margin: 4px 0 4px; font-size: 27px; }
+.lead { color: var(--muted); margin: 0 0 16px; font-size: 17px; }
+.card {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px; margin-bottom: 16px;
+}
+.card h2 { margin: 0 0 8px; font-size: 19px; }
+.card h3 { margin: 14px 0 6px; font-size: 16px; }
+.card p { margin: 0 0 10px; }
+.card > :last-child { margin-bottom: 0; }
+.small { font-size: 14px; color: var(--muted); }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+label { display: block; font-weight: 600; margin: 10px 0 4px; font-size: 15px; }
+textarea, input[type=text], input[type=password], input[type=number], select {
+    width: 100%; padding: 8px 10px; font: inherit;
+    border: 1px solid var(--border); border-radius: 8px;
+    background: var(--panel2); color: var(--text);
+}
+textarea { min-height: 70px; resize: vertical; }
+input[type=range] { width: 100%; accent-color: var(--accent); }
+.btn {
+    border: 1px solid var(--border); background: var(--panel2); color: var(--text);
+    padding: 8px 14px; border-radius: 8px; font: inherit; font-size: 15px; cursor: pointer;
+}
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--panel); font-weight: 600; }
+.btn.danger { border-color: var(--bad); color: var(--bad); }
+.btn:disabled { opacity: .5; cursor: default; }
+.seg { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.seg button {
+    border: 0; background: var(--panel2); color: var(--text);
+    padding: 8px 14px; font: inherit; font-size: 15px; cursor: pointer;
+    border-right: 1px solid var(--border);
+}
+.seg button:last-child { border-right: 0; }
+.seg button.on { background: var(--accent); color: var(--panel); font-weight: 600; }
+.mono, code { font-family: ui-monospace, Menlo, Consolas, monospace; }
+.out {
+    font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 15px;
+    background: var(--panel2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px; margin-top: 8px; word-break: break-all; white-space: pre-wrap; min-height: 42px;
+}
+.out.big { font-size: 18px; }
+.out.scroll { max-height: 140px; overflow: auto; }
+.msg { margin-top: 8px; padding: 8px 12px; border-radius: 8px; font-weight: 600; }
+.msg.ok { background: var(--okbg); color: var(--ok); }
+.msg.bad { background: var(--badbg); color: var(--bad); }
+.msg.info { background: var(--accent-soft); color: var(--text); font-weight: 400; }
+.badge { display: inline-block; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+.badge.ok { background: var(--okbg); color: var(--ok); }
+.badge.bad { background: var(--badbg); color: var(--bad); }
+.note {
+    background: var(--accent-soft); border-radius: 8px; padding: 10px 12px; margin: 10px 0;
+}
+.note b:first-child { display: block; margin-bottom: 2px; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; }
+td, th { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+th { font-size: 13px; color: var(--muted); font-weight: 600; }
+.flow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 8px 0; }
+.flow .box {
+    background: var(--panel2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 6px 10px; font-size: 14px; text-align: center;
+}
+.flow .box.key { background: var(--accent-soft); border-color: var(--accent); }
+.flow .arr { color: var(--muted); font-weight: 700; }
+details { background: var(--panel2); border-radius: 8px; padding: 8px 12px; margin: 6px 0; }
+details summary { cursor: pointer; font-weight: 600; }
+details p { margin: 6px 0 2px; }
+.who { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+footer { font-size: 13px; color: var(--muted); text-align: center; margin: 8px 0 20px; }
+@media (max-width: 480px) {
+    body { padding: 12px; }
+    h1 { font-size: 23px; }
+    .card { padding: 12px; }
+}
+.pw-row { display: flex; gap: 8px; }
+.pw-row input { flex: 1; min-width: 0; font-size: 18px; }
+.fakta { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; margin-top: 12px; }
+.fakta div { background: var(--panel2); border-radius: 8px; padding: 8px 10px; }
+.fakta b { display: block; font-size: 12px; color: var(--muted); font-weight: 600; }
+.fakta span { font-size: 17px; font-weight: 700; }
+.tid td:last-child { font-weight: 700; text-align: right; width: 42%; }
+.raud { color: var(--bad); } .gul { color: var(--warn); } .gron { color: var(--ok); }
+.matrise { overflow-x: auto; }
+.matrise table { min-width: 520px; }
+.matrise td, .matrise th { text-align: center; font-size: 13px; padding: 6px 4px; }
+.matrise td.r { background: var(--badbg); color: var(--bad); }
+.matrise td.g { background: var(--warnbg); color: var(--warn); }
+.matrise td.o { background: var(--okbg); color: var(--ok); }
+.matrise th:first-child, .matrise td:first-child { text-align: left; font-weight: 700; }
+.teljar { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 26px; font-weight: 700; color: var(--accent); }
+.prog { height: 10px; background: var(--panel2); border: 1px solid var(--border); border-radius: 5px; overflow: hidden; margin-top: 6px; }
+.prog i { display: block; height: 100%; width: 0; background: var(--accent); }
+ul.rad { margin: 0; padding-left: 20px; } ul.rad li { margin-bottom: 4px; }
+</style>
+</head>
+<body>
+<main>
+<nav class="top"><a href="index.html">← Frode</a><span class="serie"><a href="passord.html" class="on">Passord</a><a href="totp.html">Tofaktor</a><a href="passkeys.html">Passkeys</a><a href="tpm.html">TPM</a><a href="diffie-hellman.html">Diffie-Hellman</a><a href="sertifikat.html">Sertifikat</a><a href="innloggingsknappen.html">Knappen</a><a class="anna" href="rot13.html">Kryptografi →</a></span></nav>
+<h1>Passord og passordknekking</h1>
+<p class="lead">Ein angripar gjettar ikkje passordet ditt på innloggingssida. Han stel heile databasen med <a href="hash.html">passordhashar</a> og lèt eit grafikkort gjette milliardar av gonger i sekundet. Kor lenge held passordet ditt?</p>
+
+<section class="card">
+    <h2>1. Test eit passord</h2>
+    <p class="small">Ikkje skriv inn eit passord du faktisk brukar. Alt blir rekna ut i nettlesaren, men det er ein god vane å aldri skrive ekte passord på ukjende sider.</p>
+    <label for="pw">Passord</label>
+    <div class="pw-row">
+        <input type="password" id="pw" value="Sommar2026!" autocomplete="off" spellcheck="false">
+        <button class="btn" id="vis">Vis</button>
+    </div>
+    <div class="fakta">
+        <div><b>Lengd</b><span id="f-lengd"></span></div>
+        <div><b>Teikn å velje mellom</b><span id="f-sett"></span></div>
+        <div><b>Moglege kombinasjonar</b><span id="f-komb"></span></div>
+    </div>
+    <p class="small" id="f-typar" style="margin-top:6px"></p>
+    <div class="msg" id="ordbok" style="display:none"></div>
+    <h3>Tid for å prøve alle kombinasjonar (brute force)</h3>
+    <table class="tid"><tbody id="tider"></tbody></table>
+    <p class="small" style="margin-top:6px">Tidene er gjennomsnitt: i snitt finn angriparen passordet når halvparten er prøvd.</p>
+</section>
+
+<section class="card">
+    <h2>2. Prøv eit ekte brute force-angrep</h2>
+    <p>Sida hashar passordet ditt med SHA-256 og prøver deretter alle kombinasjonar til ho finn ein hash som er lik. Akkurat slik ein angripar gjer med ein stolen database.</p>
+    <div class="grid2">
+        <div>
+            <label for="bf-type">Type passord</label>
+            <select id="bf-type">
+                <option value="pin">PIN-kode med 4 siffer (10 000 moglege)</option>
+                <option value="ord">4 små bokstavar a–z (456 976 moglege)</option>
+            </select>
+        </div>
+        <div>
+            <label for="bf-mal">Det hemmelege passordet</label>
+            <input type="text" id="bf-mal" value="4711" maxlength="4" autocomplete="off">
+        </div>
+    </div>
+    <div class="row" style="margin-top:10px">
+        <button class="btn primary" id="bf-start">Start angrepet</button>
+        <span class="small" id="bf-feil"></span>
+    </div>
+    <div id="bf-res" style="display:none; margin-top:10px">
+        <div class="teljar" id="bf-forsok">0</div>
+        <div class="prog"><i id="bf-bar"></i></div>
+        <div class="msg" id="bf-msg" style="display:none"></div>
+        <p class="small" id="bf-meir" style="margin-top:6px"></p>
+    </div>
+</section>
+
+<section class="card">
+    <h2>3. Lengd slår kompleksitet</h2>
+    <p>Tid for å knekke eit tilfeldig passord frå ein stolen database med rask hash, med eitt kraftig grafikkort (om lag 100 milliardar forsøk i sekundet):</p>
+    <div class="matrise"><table id="matrise"></table></div>
+    <p style="margin-top:10px">Kvar ekstra bokstav gangar tida med talet på teikn ein kan velje mellom. Difor er eit langt passord med berre små bokstavar ofte sterkare enn eit kort med alle slags teikn.</p>
+    <div class="note"><b>Men: menneske vel ikkje tilfeldig</b>
+        Tabellen gjeld berre tilfeldige passord. «Sommar2026!» ser ut til å ha 11 teikn med store, små, tal og spesialteikn, men det følgjer eit mønster (ord + årstal + utropsteikn) som angriparar prøver aller først.</div>
+</section>
+
+<section class="card">
+    <h2>4. Slik jobbar ein angripar</h2>
+    <ol>
+        <li><b>Lekne passord:</b> lister med milliardar av ekte passord frå tidlegare datainnbrot blir prøvde først.</li>
+        <li><b>Ordbok og mønster:</b> vanlege ord med stor forbokstav, årstal og «!» på slutten. «Sommar2026!» fell her.</li>
+        <li><b>Brute force:</b> først når det ikkje gir treff, blir alle kombinasjonar prøvde, kortaste først.</li>
+    </ol>
+    <p>På nettet stoppar dei fleste tenester etter nokre få feil forsøk. Difor går angriparar heller etter databasar, der ingen sperre finst.</p>
+</section>
+
+<section class="card">
+    <h2>5. Gode råd</h2>
+    <ul class="rad">
+        <li><b>Langt framfor komplisert:</b> ei passordfrase med fire–fem tilfeldige ord er lett å hugse og vanskeleg å knekke.</li>
+        <li><b>Eitt passord per teneste:</b> lek eitt, prøver angriparen det same passordet overalt.</li>
+        <li><b>Bruk ein passordhandsamar</b> som lagar og hugsar lange, tilfeldige passord for deg.</li>
+        <li><b>Slå på tofaktor</b> eller bruk <a href="passkeys.html">passkeys</a> der det går. Då hjelper ikkje eit stole passord åleine.</li>
+        <li>Sjekk om e-postadressa di er med i kjende lekkasjar på <a href="https://haveibeenpwned.com">haveibeenpwned.com</a>.</li>
+    </ul>
+</section>
+
+<section class="card">
+    <h2>Til ettertanke</h2>
+    <details><summary>Kvifor er 4 siffer nok for PIN-koden på bankkortet?</summary>
+        <p>Fordi kortet blir sperra etter tre feil forsøk. Ingen får prøve 10 000 gonger. Utan sperre, som i ein stolen database, ville PIN-koden blitt knekt på augneblinken.</p></details>
+    <details><summary>Kva er dårlegast: «P@ssw0rd» eller «gulbilkaffikanel»?</summary>
+        <p>«P@ssw0rd». Det er eit kjent ord med vanlege bytte (a→@, o→0) som står på alle lister. Fire tilfeldige ord er mykje lengre og ikkje på lista.</p></details>
+    <details><summary>Kvifor hjelper bcrypt mot brute force?</summary>
+        <p>Bcrypt er laga for å vere treg. Når kvar gjetting tek tusenvis av gonger lenger tid enn med MD5, tek heile angrepet tusenvis av gonger lenger tid.</p></details>
+    <details><summary>Kvifor skal ein ikkje bruke same passord fleire stader?</summary>
+        <p>Angriparar prøver lekne e-postar og passord automatisk på hundrevis av andre tenester. Det heiter «credential stuffing».</p></details>
+</section>
+
+<footer>Frode · IM-Stord · All utrekning skjer i nettlesaren din. Ingenting du skriv blir sendt nokon stad.</footer>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+
+// Eit lite utval av dei vanlegaste passorda og orda angriparar prøver først
+const VANLEGE = new Set(("123456 123456789 12345678 1234567 12345 1234 1234567890 111111 000000 123123 654321 666666 121212 112233 " +
+    "password passord passwort qwerty qwertyuiop asdfgh asdfghjkl zxcvbn 1qaz2wsx qazwsx abc123 iloveyou letmein welcome velkommen " +
+    "admin administrator root login monkey dragon master shadow sunshine princess football fotball baseball superman batman " +
+    "hemmelig hemmeleg sommer sommar vinter haust høst vaar vår norge noreg bergen oslo stord trondheim rosenborg brann vålerenga " +
+    "elsker kjæreste kjaereste katt hund kaffe kaffi pizza bilen hesten jente gutt mamma pappa familie hallo hei heisann skole skule " +
+    "test test123 guest gjest changeme starwars pokemon minecraft fortnite liverpool arsenal chelsea manutd barcelona juventus")
+    .split(" "));
+
+const FART = [
+    { namn: "Gjetting rett på innloggingssida", fart: 10 },
+    { namn: "Stolen database, langsam hash (bcrypt)", fart: 1e4 },
+    { namn: "Stolen database, rask hash (MD5/NTLM) med grafikkort", fart: 1e11 },
+];
+
+function tidTekst(sek) {
+    if (sek < 1) return "med ein gong";
+    const ar = sek / 31557600;
+    if (sek < 60) return Math.round(sek) + " sekund";
+    if (sek < 3600) return Math.round(sek / 60) + " minutt";
+    if (sek < 86400) return Math.round(sek / 3600) + " timar";
+    if (ar < 1) return Math.round(sek / 86400) + " dagar";
+    if (ar < 1000) return Math.round(ar) + " år";
+    if (ar < 1e6) return Math.round(ar / 1000) + " tusen år";
+    if (ar < 1e9) return Math.round(ar / 1e6) + " millionar år";
+    if (ar < 1.4e10) return Math.round(ar / 1e9) + " milliardar år";
+    return "lenger enn universet har eksistert";
+}
+function fargeFor(sek) { return sek < 86400 ? "raud" : sek < 3155760000 ? "gul" : "gron"; }
+function storTal(x) {
+    if (x < 1e6) return Math.round(x).toLocaleString("nb-NO");
+    const e = Math.floor(Math.log10(x));
+    return (x / 10 ** e).toFixed(1).replace(".", ",") + " × 10" + String(e).split("").map(c => "⁰¹²³⁴⁵⁶⁷⁸⁹"[c]).join("");
+}
+
+function analyser(pw) {
+    const typar = [];
+    let sett = 0;
+    if (/[a-z]/.test(pw)) { sett += 26; typar.push("små bokstavar"); }
+    if (/[A-Z]/.test(pw)) { sett += 26; typar.push("store bokstavar"); }
+    if (/[æøåÆØÅ]/.test(pw)) { sett += 6; typar.push("æøå"); }
+    if (/[0-9]/.test(pw)) { sett += 10; typar.push("tal"); }
+    if (/[^a-zA-Z0-9æøåÆØÅ]/.test(pw)) { sett += 33; typar.push("spesialteikn"); }
+    const lengd = [...pw].length;
+    return { lengd, sett, typar, komb: Math.pow(sett || 1, lengd) };
+}
+
+function ordbokSjekk(pw) {
+    const l = pw.toLowerCase();
+    if (VANLEGE.has(l)) return "Dette passordet står på lista over dei vanlegaste passorda. Tidene under gjeld for ei ordliste, ikkje for alle kombinasjonar.";
+    const kjerne = l.replace(/^[^a-zæøå]+/, "").replace(/[^a-zæøå]+$/, "")
+        .replace(/@/g, "a").replace(/0/g, "o").replace(/3/g, "e").replace(/1/g, "i").replace(/\$/g, "s");
+    if (kjerne && VANLEGE.has(kjerne) && kjerne !== l)
+        return `Passordet er eit vanleg ord («${kjerne}») med litt pynt rundt. Slike mønster prøver angriparar først, så tidene under gjeld for ei ordliste, ikkje for alle kombinasjonar.`;
+    if (/^(.)\1+$/.test(pw)) return "Same teikn gjentatt. Slike passord står på alle ordlister.";
+    return "";
+}
+
+function oppdater() {
+    const pw = $("pw").value;
+    const a = analyser(pw);
+    $("f-lengd").textContent = a.lengd + " teikn";
+    $("f-sett").textContent = a.sett;
+    $("f-komb").textContent = pw ? storTal(a.komb) : "–";
+    $("f-typar").textContent = a.typar.length ? "Inneheld: " + a.typar.join(", ") + "." : "";
+    const ob = ordbokSjekk(pw);
+    $("ordbok").style.display = ob ? "block" : "none";
+    $("ordbok").className = "msg bad";
+    $("ordbok").textContent = ob;
+    $("tider").innerHTML = FART.map(f => {
+        // Ved ordbok-treff: rekn som om passordet er blant dei 10 000 første gjettingane
+        const sek = (ob ? 1e4 : a.komb) / 2 / f.fart;
+        return `<tr><td>${f.namn}<br><span class="small">${storTal(f.fart)} forsøk i sekundet</span></td>
+            <td class="${fargeFor(sek)}">${pw ? tidTekst(sek) : "–"}</td></tr>`;
+    }).join("");
+}
+$("pw").oninput = oppdater;
+$("vis").onclick = () => {
+    const p = $("pw"); p.type = p.type === "password" ? "text" : "password";
+    $("vis").textContent = p.type === "password" ? "Vis" : "Skjul";
+};
+
+/* Lengd mot kompleksitet */
+(function lagMatrise() {
+    const sett = [["Berre tal", 10], ["Små bokstavar", 26], ["Små + store", 52], ["Bokstavar + tal", 62], ["Alle teikn", 95]];
+    const lengder = [6, 8, 10, 12, 14, 16, 20];
+    let h = "<tr><th>Lengd</th>" + sett.map(s => `<th>${s[0]}</th>`).join("") + "</tr>";
+    for (const l of lengder) {
+        h += `<tr><td>${l} teikn</td>` + sett.map(([, n]) => {
+            const sek = Math.pow(n, l) / 2 / 1e11;
+            return `<td class="${{ raud: "r", gul: "g", gron: "o" }[fargeFor(sek)]}">${tidTekst(sek)}</td>`;
+        }).join("") + "</tr>";
+    }
+    $("matrise").innerHTML = h;
+})();
+
+/* Brute force-demo */
+const enc = new TextEncoder();
+const hex = b => [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, "0")).join("");
+$("bf-type").onchange = () => {
+    $("bf-mal").value = $("bf-type").value === "pin" ? "4711" : "katt";
+    $("bf-feil").textContent = "";
+};
+let pagar = false;
+$("bf-start").onclick = async () => {
+    if (pagar) return;
+    const type = $("bf-type").value, mal = $("bf-mal").value;
+    const ok = type === "pin" ? /^[0-9]{4}$/.test(mal) : /^[a-z]{4}$/.test(mal);
+    if (!ok) { $("bf-feil").textContent = type === "pin" ? "Skriv nøyaktig 4 siffer." : "Skriv nøyaktig 4 små bokstavar a–z."; return; }
+    $("bf-feil").textContent = "";
+    pagar = true; $("bf-start").disabled = true;
+    const malHash = hex(await crypto.subtle.digest("SHA-256", enc.encode(mal)));
+    const teikn = type === "pin" ? "0123456789" : "abcdefghijklmnopqrstuvwxyz";
+    const n = teikn.length, total = n ** 4;
+    const kandidat = i => teikn[Math.floor(i / n ** 3) % n] + teikn[Math.floor(i / n ** 2) % n] + teikn[Math.floor(i / n) % n] + teikn[i % n];
+    $("bf-res").style.display = "block"; $("bf-msg").style.display = "none"; $("bf-meir").textContent = "";
+    const t0 = performance.now();
+    let funne = null, i = 0;
+    const BOLK = 2000;
+    while (i < total && !funne) {
+        const slutt = Math.min(i + BOLK, total);
+        const ord = [];
+        for (let j = i; j < slutt; j++) ord.push(kandidat(j));
+        const hashar = await Promise.all(ord.map(o => crypto.subtle.digest("SHA-256", enc.encode(o))));
+        for (let k = 0; k < hashar.length; k++) if (hex(hashar[k]) === malHash) { funne = ord[k]; i += k + 1; break; }
+        if (!funne) i = slutt;
+        $("bf-forsok").textContent = i.toLocaleString("nb-NO") + " forsøk";
+        $("bf-bar").style.width = (i / total * 100) + "%";
+        await new Promise(r => setTimeout(r, 0));
+    }
+    const sek = (performance.now() - t0) / 1000;
+    const fart = i / Math.max(sek, 0.001);
+    $("bf-msg").style.display = "block";
+    $("bf-msg").className = "msg bad";
+    $("bf-msg").textContent = `Knekt! Passordet er «${funne}». Det tok ${sek.toFixed(2).replace(".", ",")} sekund og ${i.toLocaleString("nb-NO")} forsøk.`;
+    $("bf-meir").textContent = `Nettlesaren din klarte om lag ${Math.round(fart).toLocaleString("nb-NO")} forsøk i sekundet. ` +
+        `Eit grafikkort laga for passordknekking klarer meir enn ein million gonger så mange.`;
+    pagar = false; $("bf-start").disabled = false;
+};
+
+oppdater();
+</script>
+</body>
+</html>

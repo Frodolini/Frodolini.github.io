@@ -69,6 +69,7 @@ nav.top .serie a {
     text-decoration: none; padding: 3px 10px; border-radius: 999px;
     border: 1px solid var(--border); background: var(--panel); color: var(--text);
 }
+nav.top .serie a.anna { border-style: dashed; color: var(--accent); }
 nav.top .serie a.on { background: var(--accent); border-color: var(--accent); color: var(--panel); font-weight: 600; }
 h1 { margin: 4px 0 4px; font-size: 27px; }
 .lead { color: var(--muted); margin: 0 0 16px; font-size: 17px; }
@@ -183,7 +184,7 @@ footer { font-size: 13px; color: var(--muted); text-align: center; margin: 8px 0
 </head>
 <body>
 <main>
-<nav class="top"><a href="index.html">← Frode</a><span class="serie"><a href="rot13.html">ROT</a><a href="hash.html">Hash</a><a href="symmetrisk.html">Symmetrisk</a><a href="asymmetrisk.html">Asymmetrisk</a><a href="krypteringsknappen.html" class="on">Knappen</a></span></nav>
+<nav class="top"><a href="index.html">← Frode</a><span class="serie"><a href="rot13.html">ROT</a><a href="hash.html">Hash</a><a href="symmetrisk.html">Symmetrisk</a><a href="asymmetrisk.html">Asymmetrisk</a><a href="krypteringsknappen.html" class="on">Knappen</a><a class="anna" href="passord.html">Innlogging og tillit →</a></span></nav>
 <h1>Krypteringsknappen</h1>
 <p class="lead">Har du jobba deg gjennom dei fire sidene om kryptografi? Svar rett på minst 11 av 12 spørsmål, og du får Krypteringsknappen. Start med bronse og jobb deg opp til gull.</p>
 
@@ -205,7 +206,7 @@ footer { font-size: 13px; color: var(--muted); text-align: center; margin: 8px 0
     <section class="card">
         <h2>Reglar</h2>
         <ul style="margin:0; padding-left:20px">
-            <li>12 spørsmål, tre frå kvar side: <a href="rot13.html">ROT</a>, <a href="hash.html">hash</a>, <a href="symmetrisk.html">symmetrisk</a> og <a href="asymmetrisk.html">asymmetrisk</a>.</li>
+            <li>12 spørsmål, tre frå kvar side: <a href="rot13.html">ROT</a>, <a href="hash.html">Hash</a>, <a href="symmetrisk.html">Symmetrisk</a> og <a href="asymmetrisk.html">Asymmetrisk</a>.</li>
             <li>Du må ha minst 11 rette (90 %) for å få knappen.</li>
             <li>Du ser ikkje om svaret er rett før du har levert. Du kan gå tilbake og endre svar.</li>
             <li>Prøver du på nytt, får du nye spørsmål.</li>
@@ -251,17 +252,16 @@ footer { font-size: 13px; color: var(--muted); text-align: center; margin: 8px 0
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
+const K_NAMN = "Krypteringsknappen";
+const K_SVGTEKST = "KRYPTERINGSKNAPPEN";
+const K_IKON = "laas";
+const K_LAGER = "krypteringsknappen";
+
 const SIDER = {
     rot:  { namn: "ROT-chiffer", url: "rot13.html" },
     hash: { namn: "Hashfunksjonar", url: "hash.html" },
     sym:  { namn: "Symmetrisk kryptering", url: "symmetrisk.html" },
     asym: { namn: "Asymmetrisk kryptering", url: "asymmetrisk.html" },
-};
-
-const NIVA = {
-    bronse: { namn: "Bronse", tekst: "Grunnleggjande omgrep", lys: "#f0b27a", mid: "#c07a3e", mork: "#7a4518", tekstfarge: "#3d2008" },
-    solv:   { namn: "Sølv",   tekst: "Forstå korleis det verkar", lys: "#f4f6f8", mid: "#b8c0c8", mork: "#6b7480", tekstfarge: "#2a3038" },
-    gull:   { namn: "Gull",   tekst: "Bruk og rekning", lys: "#fff1a8", mid: "#e2b53c", mork: "#9a6b0a", tekstfarge: "#4a3300" },
 };
 
 /* Spørsmålsbank: [spørsmål, rett svar, [feil svar], forklaring] */
@@ -365,6 +365,12 @@ gull: {
 },
 };
 
+const NIVA = {
+    bronse: { namn: "Bronse", tekst: "Grunnleggjande omgrep", lys: "#f0b27a", mid: "#c07a3e", mork: "#7a4518", tekstfarge: "#3d2008" },
+    solv:   { namn: "Sølv",   tekst: "Forstå korleis det verkar", lys: "#f4f6f8", mid: "#b8c0c8", mork: "#6b7480", tekstfarge: "#2a3038" },
+    gull:   { namn: "Gull",   tekst: "Bruk og rekning", lys: "#fff1a8", mid: "#e2b53c", mork: "#9a6b0a", tekstfarge: "#4a3300" },
+};
+
 /* ---------- Teikning av knappen ---------- */
 let svgTeljar = 0;
 function knappSVG(nivaa, namn, dato, liten) {
@@ -376,7 +382,7 @@ function knappSVG(nivaa, namn, dato, liten) {
         takk += (i ? "L" : "M") + (200 + r * Math.cos(a)).toFixed(1) + " " + (200 + r * Math.sin(a)).toFixed(1);
     }
     const tom = !namn;
-    return `<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Krypteringsknappen ${esc(N.namn)}${tom ? "" : " – " + esc(namn)}">
+    return `<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${K_NAMN} ${esc(N.namn)}${tom ? "" : " – " + esc(namn)}">
   <defs>
     <radialGradient id="${u}g" cx="38%" cy="32%" r="75%">
       <stop offset="0" stop-color="${N.lys}"/><stop offset=".55" stop-color="${N.mid}"/><stop offset="1" stop-color="${N.mork}"/>
@@ -389,13 +395,16 @@ function knappSVG(nivaa, namn, dato, liten) {
   <circle cx="200" cy="200" r="170" fill="none" stroke="${N.tekstfarge}" stroke-width="3" stroke-dasharray="7 6" opacity=".55"/>
   <circle cx="200" cy="200" r="110" fill="#ffffff" opacity=".22"/>
   <text font-family="Arial, Helvetica, sans-serif" font-weight="bold" font-size="25" letter-spacing="3" fill="${N.tekstfarge}">
-    <textPath href="#${u}top" startOffset="50%" text-anchor="middle">KRYPTERINGSKNAPPEN</textPath></text>
+    <textPath href="#${u}top" startOffset="50%" text-anchor="middle">${K_SVGTEKST}</textPath></text>
   <text font-family="Arial, Helvetica, sans-serif" font-weight="bold" font-size="19" letter-spacing="4" fill="${N.tekstfarge}">
     <textPath href="#${u}bot" startOffset="50%" text-anchor="middle">STORD VGS</textPath></text>
   <g fill="${N.tekstfarge}" transform="translate(200 ${tom ? 168 : 128})">
-    <path d="M -22 -6 L -22 -20 A 22 22 0 0 1 22 -20 L 22 -6 L 13 -6 L 13 -20 A 13 13 0 0 0 -13 -20 L -13 -6 Z"/>
-    <rect x="-30" y="-8" width="60" height="44" rx="7"/>
-    <circle cx="0" cy="11" r="7" fill="${N.mid}"/><rect x="-3" y="11" width="6" height="14" rx="2" fill="${N.mid}"/>
+    ${K_IKON === "nokkel"
+      ? `<circle cx="-22" cy="8" r="20"/><circle cx="-22" cy="8" r="8" fill="${N.mid}"/>
+         <rect x="-6" y="2" width="44" height="12" rx="3"/><rect x="22" y="12" width="8" height="14" rx="2"/><rect x="32" y="12" width="6" height="10" rx="2"/>`
+      : `<path d="M -22 -6 L -22 -20 A 22 22 0 0 1 22 -20 L 22 -6 L 13 -6 L 13 -20 A 13 13 0 0 0 -13 -20 L -13 -6 Z"/>
+         <rect x="-30" y="-8" width="60" height="44" rx="7"/>
+         <circle cx="0" cy="11" r="7" fill="${N.mid}"/><rect x="-3" y="11" width="6" height="14" rx="2" fill="${N.mid}"/>`}
   </g>
   <text x="200" y="${tom ? 250 : 210}" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="bold" font-size="${tom ? 40 : 34}" fill="${N.tekstfarge}">${esc(N.namn.toUpperCase())}</text>
   ${tom ? "" : `<text x="200" y="256" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="bold" font-size="${namn.length > 12 ? 26 : 34}" fill="${N.tekstfarge}">${esc(namn)}</text>
@@ -404,9 +413,9 @@ function knappSVG(nivaa, namn, dato, liten) {
 }
 
 /* ---------- Lagra knappar (berre i denne nettlesaren) ---------- */
-function hentMine() { try { return JSON.parse(localStorage.getItem("krypteringsknappen") || "{}"); } catch { return {}; } }
+function hentMine() { try { return JSON.parse(localStorage.getItem(K_LAGER) || "{}"); } catch { return {}; } }
 function lagreMin(nivaa, namn, dato) {
-    try { const m = hentMine(); m[nivaa] = { namn, dato }; localStorage.setItem("krypteringsknappen", JSON.stringify(m)); } catch {}
+    try { const m = hentMine(); m[nivaa] = { namn, dato }; localStorage.setItem(K_LAGER, JSON.stringify(m)); } catch {}
 }
 
 /* ---------- Startskjerm ---------- */
@@ -436,7 +445,7 @@ $("startknapp").onclick = () => {
     $("startmsg").textContent = "";
     spm = [];
     for (const side of Object.keys(SIDER)) {
-        for (const [q, rett, galne, forklaring] of stokk(BANK[valtNivaa][side]).slice(0, 3)) {
+        for (const [q, rett, galne, forklaring] of stokk(BANK[valtNivaa][side]).slice(0, 12 / Object.keys(SIDER).length)) {
             const alt = stokk([rett, ...galne]);
             spm.push({ side, q, alt, rett: alt.indexOf(rett), forklaring });
         }
@@ -484,7 +493,7 @@ function visResultat() {
     let knappar = "";
     if (ok) {
         lagreMin(valtNivaa, namn, dato);
-        $("resTekst").innerHTML = `Gratulerer, ${esc(namn)}! Du har teke <b>Krypteringsknappen i ${N.namn.toLowerCase()}</b>.`;
+        $("resTekst").innerHTML = `Gratulerer, ${esc(namn)}! Du har teke <b>${K_NAMN} i ${N.namn.toLowerCase()}</b>.`;
         $("stor").innerHTML = knappSVG(valtNivaa, namn, dato);
         knappar += `<button class="btn primary" id="lastned">Last ned knappen</button>`;
         if (nesteNivaa) knappar += `<button class="btn" id="neste-nivaa">Prøv ${NIVA[nesteNivaa].namn.toLowerCase()}</button>`;
@@ -522,7 +531,7 @@ function lastNed(nivaa, namn, dato) {
         c.width = c.height = 800;
         c.getContext("2d").drawImage(img, 0, 0, 800, 800);
         const a = document.createElement("a");
-        a.download = `krypteringsknappen-${nivaa}-${namn.toLowerCase().replace(/[^a-zæøå0-9]+/g, "-")}.png`;
+        a.download = `${K_LAGER}-${nivaa}-${namn.toLowerCase().replace(/[^a-zæøå0-9]+/g, "-")}.png`;
         a.href = c.toDataURL("image/png");
         a.click();
     };

@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="nn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Passkeys</title>
+<style>
+:root {
+    --bg: #eef2f6;
+    --panel: #ffffff;
+    --panel2: #f2f5f9;
+    --border: #d3dae3;
+    --text: #1b2230;
+    --muted: #5b6577;
+    --accent: #0f766e;
+    --accent-soft: #d5f0ec;
+    --ok: #15803d;
+    --okbg: #dcfce7;
+    --bad: #b91c1c;
+    --badbg: #fee2e2;
+    --warn: #a16207;
+    --warnbg: #fef3c7;
+    --c1: #2563eb;
+    --c2: #c2410c;
+    --c3: #7c3aed;
+    --hl: #fde68a;
+    color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #171c26;
+        --panel: #222936;
+        --panel2: #2a3242;
+        --border: #3a4356;
+        --text: #e5e8ee;
+        --muted: #9aa3b4;
+        --accent: #2dd4bf;
+        --accent-soft: #134e4a;
+        --ok: #4ade80;
+        --okbg: #14391f;
+        --bad: #f87171;
+        --badbg: #4a1d22;
+        --warn: #fbbf24;
+        --warnbg: #3d3012;
+        --c1: #60a5fa;
+        --c2: #fb923c;
+        --c3: #a78bfa;
+        --hl: #6b5a12;
+        color-scheme: dark;
+    }
+}
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    line-height: 1.5;
+    padding: 16px;
+}
+main { max-width: 780px; margin: 0 auto; }
+a { color: var(--accent); }
+nav.top {
+    display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center;
+    justify-content: space-between; font-size: 14px; margin-bottom: 10px;
+}
+nav.top .serie { display: flex; flex-wrap: wrap; gap: 6px; }
+nav.top .serie a {
+    text-decoration: none; padding: 3px 10px; border-radius: 999px;
+    border: 1px solid var(--border); background: var(--panel); color: var(--text);
+}
+nav.top .serie a.anna { border-style: dashed; color: var(--accent); }
+nav.top .serie a.on { background: var(--accent); border-color: var(--accent); color: var(--panel); font-weight: 600; }
+h1 { margin: 4px 0 4px; font-size: 27px; }
+.lead { color: var(--muted); margin: 0 0 16px; font-size: 17px; }
+.card {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px; margin-bottom: 16px;
+}
+.card h2 { margin: 0 0 8px; font-size: 19px; }
+.card h3 { margin: 14px 0 6px; font-size: 16px; }
+.card p { margin: 0 0 10px; }
+.card > :last-child { margin-bottom: 0; }
+.small { font-size: 14px; color: var(--muted); }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+label { display: block; font-weight: 600; margin: 10px 0 4px; font-size: 15px; }
+textarea, input[type=text], input[type=password], input[type=number], select {
+    width: 100%; padding: 8px 10px; font: inherit;
+    border: 1px solid var(--border); border-radius: 8px;
+    background: var(--panel2); color: var(--text);
+}
+textarea { min-height: 70px; resize: vertical; }
+input[type=range] { width: 100%; accent-color: var(--accent); }
+.btn {
+    border: 1px solid var(--border); background: var(--panel2); color: var(--text);
+    padding: 8px 14px; border-radius: 8px; font: inherit; font-size: 15px; cursor: pointer;
+}
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--panel); font-weight: 600; }
+.btn.danger { border-color: var(--bad); color: var(--bad); }
+.btn:disabled { opacity: .5; cursor: default; }
+.seg { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.seg button {
+    border: 0; background: var(--panel2); color: var(--text);
+    padding: 8px 14px; font: inherit; font-size: 15px; cursor: pointer;
+    border-right: 1px solid var(--border);
+}
+.seg button:last-child { border-right: 0; }
+.seg button.on { background: var(--accent); color: var(--panel); font-weight: 600; }
+.mono, code { font-family: ui-monospace, Menlo, Consolas, monospace; }
+.out {
+    font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 15px;
+    background: var(--panel2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px; margin-top: 8px; word-break: break-all; white-space: pre-wrap; min-height: 42px;
+}
+.out.big { font-size: 18px; }
+.out.scroll { max-height: 140px; overflow: auto; }
+.msg { margin-top: 8px; padding: 8px 12px; border-radius: 8px; font-weight: 600; }
+.msg.ok { background: var(--okbg); color: var(--ok); }
+.msg.bad { background: var(--badbg); color: var(--bad); }
+.msg.info { background: var(--accent-soft); color: var(--text); font-weight: 400; }
+.badge { display: inline-block; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+.badge.ok { background: var(--okbg); color: var(--ok); }
+.badge.bad { background: var(--badbg); color: var(--bad); }
+.note {
+    background: var(--accent-soft); border-radius: 8px; padding: 10px 12px; margin: 10px 0;
+}
+.note b:first-child { display: block; margin-bottom: 2px; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; }
+td, th { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+th { font-size: 13px; color: var(--muted); font-weight: 600; }
+.flow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 8px 0; }
+.flow .box {
+    background: var(--panel2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 6px 10px; font-size: 14px; text-align: center;
+}
+.flow .box.key { background: var(--accent-soft); border-color: var(--accent); }
+.flow .arr { color: var(--muted); font-weight: 700; }
+details { background: var(--panel2); border-radius: 8px; padding: 8px 12px; margin: 6px 0; }
+details summary { cursor: pointer; font-weight: 600; }
+details p { margin: 6px 0 2px; }
+.who { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+footer { font-size: 13px; color: var(--muted); text-align: center; margin: 8px 0 20px; }
+@media (max-width: 480px) {
+    body { padding: 12px; }
+    h1 { font-size: 23px; }
+    .card { padding: 12px; }
+}
+.aktorar { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.aktor { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; background: var(--panel2); }
+.aktor h3 { margin: 0 0 6px; font-size: 15px; }
+.aktor.mobil { border-top: 4px solid var(--accent); }
+.aktor.ekte { border-top: 4px solid var(--c1); }
+.aktor.falsk { border-top: 4px solid var(--bad); }
+.lager { font-size: 13px; font-family: ui-monospace, Menlo, Consolas, monospace; word-break: break-all; min-height: 20px; }
+.lager .tom { font-family: system-ui, sans-serif; color: var(--muted); }
+.adresse { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 13px; background: var(--panel); border: 1px solid var(--border); border-radius: 999px; padding: 2px 10px; display: inline-block; margin-bottom: 6px; }
+.adresse.falsk { color: var(--bad); }
+.finger {
+    display: none; margin-top: 8px; padding: 10px; border-radius: 10px; text-align: center;
+    background: var(--panel); border: 2px dashed var(--accent);
+}
+.finger p { margin: 0 0 8px; font-size: 14px; }
+.finger button { font-size: 30px; line-height: 1; padding: 8px 18px; border-radius: 50%; }
+.logg { margin-top: 12px; display: grid; gap: 6px; }
+.logg div { font-size: 14px; padding: 6px 10px; border-radius: 8px; background: var(--panel2); border-left: 4px solid var(--border); }
+.logg .ok { border-left-color: var(--ok); }
+.logg .bad { border-left-color: var(--bad); }
+.logg .data { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12px; word-break: break-all; color: var(--muted); display: block; margin-top: 2px; }
+.samanlikn td, .samanlikn th { text-align: center; }
+.samanlikn td:first-child, .samanlikn th:first-child { text-align: left; }
+.ja { color: var(--bad); font-weight: 700; } .nei { color: var(--ok); font-weight: 700; } .delvis { color: var(--warn); font-weight: 700; }
+</style>
+</head>
+<body>
+<main>
+<nav class="top"><a href="index.html">← Frode</a><span class="serie"><a href="passord.html">Passord</a><a href="totp.html">Tofaktor</a><a href="passkeys.html" class="on">Passkeys</a><a href="tpm.html">TPM</a><a href="diffie-hellman.html">Diffie-Hellman</a><a href="sertifikat.html">Sertifikat</a><a href="innloggingsknappen.html">Knappen</a><a class="anna" href="rot13.html">Kryptografi →</a></span></nav>
+<h1>Passkeys</h1>
+<p class="lead">Innlogging utan passord. Mobilen eller PC-en lagar eit <a href="asymmetrisk.html">nøkkelpar</a> for kvar nettstad. Nettstaden får berre den offentlege nøkkelen. Den private forlèt aldri eininga di.</p>
+
+<section class="card">
+    <h2>Idéen</h2>
+    <div class="flow">
+        <div class="box">Nettstaden sender ei tilfeldig utfordring</div><div class="arr">→</div>
+        <div class="box key">Du låser opp med fingeravtrykk eller PIN</div><div class="arr">→</div>
+        <div class="box key">Eininga signerer med den <b>private</b> nøkkelen</div><div class="arr">→</div>
+        <div class="box">Nettstaden kontrollerer med den <b>offentlege</b> nøkkelen</div>
+    </div>
+    <p>Det er akkurat den <a href="asymmetrisk.html">digitale signaturen</a> du har sett før. Fingeravtrykket blir aldri sendt nokon stad. Det låser berre opp nøkkelen på mobilen din.</p>
+</section>
+
+<section class="card">
+    <h2>Prøv sjølv</h2>
+    <p class="small">Simuleringa brukar ekte kryptografi (ECDSA P-256, same som ekte passkeys), men skulen.no og skulen-login.no er oppdikta.</p>
+    <div class="aktorar">
+        <div class="aktor mobil">
+            <h3>Mobilen til Kari</h3>
+            <div class="small">Passkeys lagra her:</div>
+            <div class="lager" id="mobilLager"><span class="tom">Ingen enno</span></div>
+            <div class="finger" id="finger">
+                <p id="fingerTekst"></p>
+                <button class="btn" id="fingerOk" aria-label="Bekreft med fingeravtrykk">👆</button>
+                <div class="small" style="margin-top:6px">Trykk for å bekrefte med fingeravtrykk</div>
+            </div>
+        </div>
+        <div class="aktor ekte">
+            <span class="adresse">🔒 https://skulen.no</span>
+            <h3>Den ekte skulesida</h3>
+            <div class="small">Lagra i databasen:</div>
+            <div class="lager" id="nettLager"><span class="tom">Ingen brukarar</span></div>
+        </div>
+        <div class="aktor falsk">
+            <span class="adresse falsk">🔒 https://skulen-login.no</span>
+            <h3>Falsk side laga av Eve</h3>
+            <div class="small">Ser heilt lik ut som den ekte. Adressa er det einaste som skil.</div>
+        </div>
+    </div>
+
+    <h3>1. Registrering</h3>
+    <div class="row"><button class="btn primary" id="reg">Lag passkey på skulen.no</button></div>
+    <h3>2. Innlogging</h3>
+    <div class="row"><button class="btn primary" id="logg" disabled>Logg inn på skulen.no</button></div>
+    <h3>3. Angrep</h3>
+    <div class="row">
+        <button class="btn danger" id="phish" disabled>Kari går inn på den falske sida</button>
+        <button class="btn danger" id="lekk" disabled>Eve stel databasen til skulen.no</button>
+        <button class="btn danger" id="replay" disabled>Eve sender ein gammal signatur på nytt</button>
+    </div>
+    <div class="logg" id="logglist"></div>
+</section>
+
+<section class="card">
+    <h2>Kvifor er passkeys tryggare?</h2>
+    <table class="samanlikn">
+        <tr><th></th><th>Passord</th><th>Passord + kodeapp</th><th>Passkey</th></tr>
+        <tr><td>Kan lurast ut på ei falsk side</td><td class="ja">Ja</td><td class="ja">Ja</td><td class="nei">Nei</td></tr>
+        <tr><td>Lekkasje frå nettstaden gir tilgang</td><td class="ja">Ja</td><td class="delvis">Delvis</td><td class="nei">Nei</td></tr>
+        <tr><td>Må hugsast</td><td class="ja">Ja</td><td class="ja">Ja</td><td class="nei">Nei</td></tr>
+        <tr><td>Kan gjenbrukast på andre tenester</td><td class="ja">Ja</td><td class="ja">Ja</td><td class="nei">Nei</td></tr>
+    </table>
+    <div class="note"><b>Kvifor hjelper ikkje phishing?</b>Mobilen lagrar kvar passkey saman med adressa til nettstaden. På skulen-login.no finst det ingen passkey å bruke, sjølv om sida ser lik ut. Det er nettlesaren, ikkje mennesket, som sjekkar adressa, og nettlesaren blir ikkje lurt av ein logo.</div>
+</section>
+
+<section class="card">
+    <h2>Kvar blir passkeys lagra?</h2>
+    <ul style="margin:0; padding-left:20px">
+        <li><b>iPhone og Mac:</b> iCloud-nøkkelringen, synkronisert mellom einingane dine.</li>
+        <li><b>Android og Chrome:</b> Google Passordhandsamar.</li>
+        <li><b>Windows:</b> Windows Hello, verna av <a href="tpm.html">TPM-brikka</a>.</li>
+        <li><b>Passordhandsamarar</b> som 1Password og Bitwarden.</li>
+        <li><b>Tryggleiksnøklar</b> som YubiKey, der nøkkelen aldri kan kopierast ut av brikka.</li>
+    </ul>
+    <p style="margin-top:10px">Google, Microsoft, Apple, GitHub og mange andre støttar passkeys alt. Leit etter «Passkeys» eller «Tilgangsnøklar» i kontoinnstillingane.</p>
+</section>
+
+<section class="card">
+    <h2>Til ettertanke</h2>
+    <details><summary>Blir fingeravtrykket mitt sendt til nettstaden?</summary>
+        <p>Nei. Fingeravtrykket blir kontrollert lokalt på mobilen og låser berre opp den private nøkkelen der.</p></details>
+    <details><summary>Kva skjer om skulen.no blir hacka?</summary>
+        <p>Angriparen får berre offentlege nøklar. Dei kan ikkje brukast til å logge inn, og det finst ingen passord å knekke.</p></details>
+    <details><summary>Kvifor kan ikkje Eve bruke ein signatur ho har snappa opp?</summary>
+        <p>Kvar innlogging har ei ny, tilfeldig utfordring. Ein gammal signatur passar berre til ei gammal utfordring.</p></details>
+    <details><summary>Kva skjer om eg mistar mobilen?</summary>
+        <p>Er passkeyen synkronisert (iCloud, Google), finst han på dei andre einingane dine. Ein tryggleiksnøkkel bør ein ha to av, og elles treng ein ein annan måte å logge inn på for å lage ny passkey.</p></details>
+</section>
+
+<footer>Frode · IM-Stord · All utrekning skjer i nettlesaren din. Ingenting du skriv blir sendt nokon stad.</footer>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+const enc = new TextEncoder();
+const tilB64 = b => btoa(String.fromCharCode(...new Uint8Array(b)));
+const hex = b => [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, "0")).join("");
+const ECDSA = { name: "ECDSA", namedCurve: "P-256" };
+const SIGN = { name: "ECDSA", hash: "SHA-256" };
+
+const mobil = {};       // nettstad -> privat nøkkel
+const database = {};    // brukar -> offentleg nøkkel (skulen.no)
+let sistUtfordring = null, gamalSignert = null;
+
+function logg(tekst, kl = "", data = "") {
+    const d = document.createElement("div");
+    if (kl) d.className = kl;
+    d.textContent = tekst;
+    if (data) { const s = document.createElement("span"); s.className = "data"; s.textContent = data; d.appendChild(s); }
+    $("logglist").appendChild(d);
+}
+const tomLogg = () => { $("logglist").innerHTML = ""; };
+
+function fingeravtrykk(tekst) {
+    $("fingerTekst").textContent = tekst;
+    $("finger").style.display = "block";
+    $("finger").scrollIntoView({ behavior: "smooth", block: "center" });
+    return new Promise(r => { $("fingerOk").onclick = () => { $("finger").style.display = "none"; r(); }; });
+}
+const knappar = on => ["reg", "logg", "phish", "lekk", "replay"].forEach(id => $(id).disabled = !on);
+
+function visLager() {
+    const m = Object.keys(mobil);
+    $("mobilLager").innerHTML = m.length ? m.map(n => `🔑 ${n} (privat nøkkel)`).join("<br>") : '<span class="tom">Ingen enno</span>';
+}
+async function visDatabase() {
+    const b = Object.keys(database);
+    if (!b.length) { $("nettLager").innerHTML = '<span class="tom">Ingen brukarar</span>'; return; }
+    const rader = await Promise.all(b.map(async u => `kari: offentleg nøkkel ${tilB64(await crypto.subtle.exportKey("spki", database[u])).slice(36, 60)}…`));
+    $("nettLager").textContent = rader.join("\n");
+}
+
+/* Det mobilen signerer: utfordringa og adressa nettlesaren faktisk er på */
+async function signer(nettstad, utfordring) {
+    const klient = JSON.stringify({ type: "webauthn.get", challenge: utfordring, origin: "https://" + nettstad });
+    const sig = await crypto.subtle.sign(SIGN, mobil[nettstad], enc.encode(klient));
+    return { klient, sig };
+}
+async function skulenKontrollerer({ klient, sig }, venta) {
+    const d = JSON.parse(klient);
+    if (d.origin !== "https://skulen.no") return "Feil adresse i signaturen: " + d.origin;
+    if (d.challenge !== venta) return "Utfordringa er ikkje den skulen.no nettopp sende.";
+    const ok = await crypto.subtle.verify(SIGN, database.kari, sig, enc.encode(klient));
+    return ok ? "" : "Signaturen passar ikkje med den lagra offentlege nøkkelen.";
+}
+const nyUtfordring = () => hex(crypto.getRandomValues(new Uint8Array(16)));
+
+$("reg").onclick = async () => {
+    knappar(false); tomLogg();
+    logg("skulen.no: «Vil du lage ein passkey for kari?»");
+    await fingeravtrykk("skulen.no vil lagre ein passkey for kari.");
+    const par = await crypto.subtle.generateKey(ECDSA, true, ["sign", "verify"]);
+    mobil["skulen.no"] = par.privateKey;
+    database.kari = par.publicKey;
+    logg("Mobilen lagar eit nytt nøkkelpar berre for skulen.no og held på den private nøkkelen.", "ok");
+    logg("Mobilen sender den offentlege nøkkelen til skulen.no, som lagrar han.", "ok",
+        tilB64(await crypto.subtle.exportKey("spki", par.publicKey)));
+    logg("Ingen passord vart laga, og ingenting hemmeleg vart sendt.", "ok");
+    visLager(); await visDatabase();
+    knappar(true);
+};
+
+$("logg").onclick = async () => {
+    knappar(false); tomLogg();
+    sistUtfordring = nyUtfordring();
+    logg("skulen.no sender ei tilfeldig utfordring:", "", sistUtfordring);
+    await fingeravtrykk("Logge inn på skulen.no som kari?");
+    const svar = await signer("skulen.no", sistUtfordring);
+    gamalSignert = { svar, utfordring: sistUtfordring };
+    logg("Mobilen signerer utfordringa og adressa med den private nøkkelen:", "", svar.klient);
+    logg("Signatur:", "", tilB64(svar.sig));
+    const feil = await skulenKontrollerer(svar, sistUtfordring);
+    logg(feil ? "skulen.no avviser: " + feil : "skulen.no kontrollerer signaturen med den offentlege nøkkelen. Kari er logga inn!", feil ? "bad" : "ok");
+    knappar(true);
+};
+
+$("phish").onclick = async () => {
+    knappar(false); tomLogg();
+    logg("Kari fekk ein e-post med lenkje til skulen-login.no. Sida ser ut som skulen.no.");
+    const u = nyUtfordring();
+    logg("Eve hentar ei ekte utfordring frå skulen.no og viser fram innloggingsknappen.", "", u);
+    logg("Nettlesaren spør mobilen om ein passkey for skulen-login.no …");
+    if (!mobil["skulen-login.no"]) {
+        logg("Mobilen har ingen passkey for skulen-login.no. Det kjem ikkje eingong opp eit spørsmål om fingeravtrykk.", "ok");
+        logg("Eve får ingenting. Med passord og kodeapp kunne Kari ha skrive inn begge på den falske sida.", "ok");
+    }
+    knappar(true);
+};
+
+$("lekk").onclick = async () => {
+    knappar(false); tomLogg();
+    logg("Eve har stole databasen til skulen.no. Ho får:", "bad",
+        "kari: " + tilB64(await crypto.subtle.exportKey("spki", database.kari)));
+    const u = nyUtfordring();
+    logg("Eve prøver å logge inn som kari. skulen.no sender ei utfordring:", "", u);
+    const eve = await crypto.subtle.generateKey(ECDSA, false, ["sign", "verify"]);
+    const klient = JSON.stringify({ type: "webauthn.get", challenge: u, origin: "https://skulen.no" });
+    const sig = await crypto.subtle.sign(SIGN, eve.privateKey, enc.encode(klient));
+    logg("Ho har ingen privat nøkkel for kari, så ho signerer med ein ho lagar sjølv.");
+    const feil = await skulenKontrollerer({ klient, sig }, u);
+    logg("skulen.no avviser: " + feil + " Ein offentleg nøkkel kan ikkje brukast til å logge inn.", "ok");
+    knappar(true);
+};
+
+$("replay").onclick = async () => {
+    knappar(false); tomLogg();
+    if (!gamalSignert) { logg("Logg inn på skulen.no først, så Eve har ein signatur å snappe opp."); knappar(true); return; }
+    logg("Eve snappa opp signaturen frå førre innlogging og sender han på nytt.", "", gamalSignert.svar.klient);
+    const u = nyUtfordring();
+    logg("Men skulen.no har sendt ei ny utfordring:", "", u);
+    const feil = await skulenKontrollerer(gamalSignert.svar, u);
+    logg("skulen.no avviser: " + feil, "ok");
+    knappar(true);
+};
+
+knappar(false); $("reg").disabled = false;
+</script>
+</body>
+</html>
