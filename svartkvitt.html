@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="nn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Svart-kvitt</title>
+<style>
+:root {
+    --bg: #eef2f6;
+    --panel: #ffffff;
+    --panel2: #f2f5f9;
+    --border: #d3dae3;
+    --text: #1b2230;
+    --muted: #5b6577;
+    --accent: #0f766e;
+    --accent-soft: #d5f0ec;
+    --r: #dc2626;
+    --g: #16a34a;
+    --b: #2563eb;
+    color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #171c26;
+        --panel: #222936;
+        --panel2: #2a3242;
+        --border: #3a4356;
+        --text: #e5e8ee;
+        --muted: #9aa3b4;
+        --accent: #2dd4bf;
+        --accent-soft: #134e4a;
+        --r: #f87171;
+        --g: #4ade80;
+        --b: #60a5fa;
+        color-scheme: dark;
+    }
+}
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    line-height: 1.5;
+    padding: 16px;
+}
+main { max-width: 980px; margin: 0 auto; }
+a { color: var(--accent); }
+nav.top { font-size: 14px; margin-bottom: 10px; }
+h1 { margin: 4px 0 4px; font-size: 27px; }
+.lead { color: var(--muted); margin: 0 0 16px; font-size: 17px; }
+.card {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px; margin-bottom: 16px;
+}
+.card h2 { margin: 0 0 8px; font-size: 19px; }
+.card p { margin: 0 0 10px; }
+.card > :last-child { margin-bottom: 0; }
+.small { font-size: 14px; color: var(--muted); }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+label { display: block; font-weight: 600; margin: 12px 0 4px; font-size: 15px; }
+input[type=range] { width: 100%; accent-color: var(--accent); }
+.btn {
+    border: 1px solid var(--border); background: var(--panel2); color: var(--text);
+    padding: 8px 14px; border-radius: 8px; font: inherit; font-size: 15px; cursor: pointer;
+}
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--panel); font-weight: 600; }
+.btn:disabled { opacity: .5; cursor: default; }
+.seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.seg button {
+    border: 0; background: var(--panel2); color: var(--text);
+    padding: 8px 14px; font: inherit; font-size: 15px; cursor: pointer;
+    border-right: 1px solid var(--border);
+}
+.seg button:last-child { border-right: 0; }
+.seg button.on { background: var(--accent); color: var(--panel); font-weight: 600; }
+.mono, code { font-family: ui-monospace, Menlo, Consolas, monospace; }
+
+.drop {
+    border: 2px dashed var(--border); border-radius: 10px; padding: 18px;
+    text-align: center; background: var(--panel2); transition: border-color .15s, background .15s;
+}
+.drop.over { border-color: var(--accent); background: var(--accent-soft); }
+.drop p { margin: 0 0 10px; }
+input[type=file] { display: none; }
+
+.bilete { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
+.bilete figure { margin: 0; }
+.bilete figcaption { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin-bottom: 6px; }
+.bilete canvas {
+    display: block; width: 100%; height: auto; border-radius: 8px;
+    border: 1px solid var(--border); cursor: crosshair;
+    background: repeating-conic-gradient(var(--panel2) 0 25%, var(--panel) 0 50%) 0 0 / 16px 16px;
+}
+.info { font-size: 14px; color: var(--muted); margin-top: 8px; }
+
+.piksel { display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: center; }
+.swatches { display: flex; gap: 8px; }
+.sw { width: 64px; height: 64px; border-radius: 8px; border: 1px solid var(--border); }
+.sw-lab { font-size: 12px; color: var(--muted); text-align: center; margin-top: 2px; }
+.reknestykke { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 15px; background: var(--panel2); border: 1px solid var(--border); border-radius: 8px; padding: 10px; overflow-x: auto; white-space: pre; }
+.cr { color: var(--r); font-weight: 700; }
+.cg { color: var(--g); font-weight: 700; }
+.cb { color: var(--b); font-weight: 700; }
+.res { color: var(--accent); font-weight: 700; }
+
+details { background: var(--panel2); border-radius: 8px; padding: 8px 12px; margin: 6px 0; }
+details summary { cursor: pointer; font-weight: 600; }
+details p { margin: 6px 0 2px; }
+footer { font-size: 13px; color: var(--muted); text-align: center; margin: 8px 0 20px; }
+@media (max-width: 520px) {
+    body { padding: 12px; }
+    h1 { font-size: 23px; }
+    .card { padding: 12px; }
+    .piksel { grid-template-columns: 1fr; }
+    .seg { display: grid; grid-template-columns: 1fr 1fr; width: 100%; }
+    .seg button { padding: 8px 10px; border-bottom: 1px solid var(--border); }
+    .seg button:nth-child(2n) { border-right: 0; }
+    .seg button:nth-last-child(-n+2) { border-bottom: 0; }
+}
+</style>
+</head>
+<body>
+<main>
+<nav class="top"><a href="index.html">← Frode</a></nav>
+<h1>Svart-kvitt</h1>
+<p class="lead">Gjer om eit fargebilete til gråtonar eller reint svart og kvitt. Eit bilete er berre ein lang tabell med tal, og her ser du korleis tala blir rekna om.</p>
+
+<section class="card">
+    <h2>1. Vel bilete</h2>
+    <div class="drop" id="drop">
+        <p>Dra eit bilete hit, lim inn med <b>Ctrl+V</b>, eller</p>
+        <div class="row" style="justify-content:center">
+            <label for="fil" class="btn primary" style="display:inline-block;margin:0;font-weight:600">Vel bilete …</label>
+            <button class="btn" id="eksempel">Bruk testbilete</button>
+        </div>
+        <input type="file" id="fil" accept="image/*">
+    </div>
+    <p class="small" style="margin-top:8px">Biletet blir aldri lasta opp. Alt skjer i nettlesaren din.</p>
+</section>
+
+<section class="card">
+    <h2>2. Vel metode</h2>
+    <div class="seg" id="metode">
+        <button class="on" data-m="luminans">Gråtonar</button>
+        <button data-m="snitt">Gjennomsnitt</button>
+        <button data-m="terskel">Terskel</button>
+        <button data-m="dither">Dithering</button>
+    </div>
+    <p class="small" id="metodetekst" style="margin-top:8px"></p>
+
+    <div id="terskelboks" hidden>
+        <label for="terskel">Terskel: <span class="mono" id="terskelvis">128</span></label>
+        <input type="range" id="terskel" min="0" max="255" value="128">
+        <p class="small">Pikslar lysare enn terskelen blir kvite, resten blir svarte.</p>
+    </div>
+
+    <label><input type="checkbox" id="negativ"> Snu om (negativ)</label>
+</section>
+
+<section class="card">
+    <h2>3. Før og etter</h2>
+    <div class="bilete">
+        <figure>
+            <figcaption>Original</figcaption>
+            <canvas id="orig"></canvas>
+        </figure>
+        <figure>
+            <figcaption>Resultat</figcaption>
+            <canvas id="ut"></canvas>
+        </figure>
+    </div>
+    <div class="info" id="info"></div>
+    <div class="row" style="margin-top:12px">
+        <button class="btn primary" id="last">Last ned resultatet (PNG)</button>
+    </div>
+</section>
+
+<section class="card">
+    <h2>4. Sjå på éin piksel</h2>
+    <p>Klikk på eit av bileta over for å sjå korleis akkurat den pikselen blir rekna om.</p>
+    <div class="piksel">
+        <div class="swatches">
+            <div><div class="sw" id="swFør"></div><div class="sw-lab">Før</div></div>
+            <div><div class="sw" id="swEtter"></div><div class="sw-lab">Etter</div></div>
+        </div>
+        <div class="reknestykke" id="rekn">Klikk på biletet …</div>
+    </div>
+</section>
+
+<section class="card">
+    <h2>Slik verkar det</h2>
+    <p>Kvar piksel har tre tal mellom 0 og 255: kor mykje <span class="cr">raudt</span>, <span class="cg">grønt</span> og <span class="cb">blått</span> lys han har. Ein grå piksel har same tal i alle tre. For å lage gråtonar reknar vi derfor ut <b>eitt</b> tal for kor lys pikselen er, og set R, G og B lik dette talet.</p>
+    <details>
+        <summary>Kvifor ikkje berre ta gjennomsnittet?</summary>
+        <p>Auga våre er mykje meir følsame for grønt lys enn for blått. Reint grønt (0, 255, 0) ser mykje lysare ut enn reint blått (0, 0, 255), sjølv om begge har «like mykje» lys. Gjennomsnittet gjev begge verdien 85. Luminansformelen vektar fargane slik auga gjer, og gjev 150 for grønt og 29 for blått.</p>
+        <p>Prøv testbiletet og byt mellom <b>Gråtonar</b> og <b>Gjennomsnitt</b>: dei tre fargefelta øvst blir like grå med gjennomsnitt, men ulike med luminans.</p>
+    </details>
+    <details>
+        <summary>Terskel: berre svart og kvitt</summary>
+        <p>Først blir gråverdien rekna ut. Så blir alt over terskelen kvitt (255) og alt under svart (0). Då har biletet berre to fargar, men mykje av detaljane forsvinn.</p>
+    </details>
+    <details>
+        <summary>Dithering: illusjonen av grått</summary>
+        <p>Dithering brukar òg berre svart og kvitt, men lurer auga. Når ein piksel blir runda av til svart eller kvitt, blir feilen sendt vidare til naboane. Mellomgrå blir då eit mønster av svarte og kvite prikkar som ser grått ut på avstand. Metoden her heiter Floyd–Steinberg (1976) og vart brukt på gamle skjermar, skrivarar og faksmaskiner.</p>
+    </details>
+    <details>
+        <summary>Koden i kortversjon</summary>
+        <p><code>getImageData</code> gjev ein tabell der kvar piksel tek fire plassar: R, G, B og A (gjennomsiktigheit).</p>
+<pre class="reknestykke">for (let i = 0; i &lt; px.length; i += 4) {
+  const grå = 0.299*px[i] + 0.587*px[i+1] + 0.114*px[i+2];
+  px[i] = px[i+1] = px[i+2] = grå;
+}</pre>
+    </details>
+</section>
+
+<footer>Frode · IM-Stord · All utrekning skjer i nettlesaren din. Ingenting blir lasta opp.</footer>
+</main>
+
+<script>
+(function () {
+    const MAKS = 2400; // største side i pikslar, for at det skal gå raskt
+    const orig = document.getElementById('orig');
+    const ut = document.getElementById('ut');
+    const octx = orig.getContext('2d', { willReadFrequently: true });
+    const uctx = ut.getContext('2d', { willReadFrequently: true });
+    const info = document.getElementById('info');
+    const terskel = document.getElementById('terskel');
+    const terskelvis = document.getElementById('terskelvis');
+    const terskelboks = document.getElementById('terskelboks');
+    const negativ = document.getElementById('negativ');
+    const metodetekst = document.getElementById('metodetekst');
+
+    let metode = 'luminans';
+    let kjelde = null;   // ImageData for originalen
+    let resultat = null; // ImageData for resultatet
+    let filnamn = 'bilete';
+    let valt = null;     // {x, y} sist klikka piksel
+
+    const tekstar = {
+        luminans: 'Grå = 0,299·R + 0,587·G + 0,114·B. Vektar fargane slik auga ser dei.',
+        snitt: 'Grå = (R + G + B) / 3. Enkelt, men grønt og blått blir like lyse.',
+        terskel: 'Gråverdien blir samanlikna med terskelen: over blir kvitt, under blir svart.',
+        dither: 'Berre svart og kvitt, men feilen blir spreidd til naboane så det ser grått ut.'
+    };
+
+    const lum = (r, g, b) => 0.299 * r + 0.587 * g + 0.114 * b;
+    const snitt = (r, g, b) => (r + g + b) / 3;
+    const k = n => n.toFixed(1).replace('.', ',');
+
+    function prosesser() {
+        if (!kjelde) return;
+        const w = kjelde.width, h = kjelde.height;
+        const s = kjelde.data;
+        const ny = new ImageData(w, h);
+        const d = ny.data;
+        const t = +terskel.value;
+        const neg = negativ.checked;
+
+        if (metode === 'dither') {
+            const grå = new Float32Array(w * h);
+            for (let i = 0, p = 0; p < grå.length; i += 4, p++) grå[p] = lum(s[i], s[i + 1], s[i + 2]);
+            for (let y = 0; y < h; y++) {
+                for (let x = 0; x < w; x++) {
+                    const p = y * w + x;
+                    const gammal = grå[p];
+                    const verdi = gammal < 128 ? 0 : 255;
+                    const feil = gammal - verdi;
+                    grå[p] = verdi;
+                    if (x + 1 < w) grå[p + 1] += feil * 7 / 16;
+                    if (y + 1 < h) {
+                        if (x > 0) grå[p + w - 1] += feil * 3 / 16;
+                        grå[p + w] += feil * 5 / 16;
+                        if (x + 1 < w) grå[p + w + 1] += feil * 1 / 16;
+                    }
+                }
+            }
+            for (let i = 0, p = 0; p < grå.length; i += 4, p++) {
+                const v = neg ? 255 - grå[p] : grå[p];
+                d[i] = d[i + 1] = d[i + 2] = v;
+                d[i + 3] = s[i + 3];
+            }
+        } else {
+            for (let i = 0; i < s.length; i += 4) {
+                let v = metode === 'snitt' ? snitt(s[i], s[i + 1], s[i + 2]) : lum(s[i], s[i + 1], s[i + 2]);
+                if (metode === 'terskel') v = v > t ? 255 : 0;
+                if (neg) v = 255 - v;
+                d[i] = d[i + 1] = d[i + 2] = v;
+                d[i + 3] = s[i + 3];
+            }
+        }
+        resultat = ny;
+        ut.width = w; ut.height = h;
+        uctx.putImageData(ny, 0, 0);
+        if (valt) visPiksel(valt.x, valt.y);
+    }
+
+    function lastBilete(img, namn) {
+        let w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
+        const skala = Math.min(1, MAKS / Math.max(w, h));
+        const nedskalert = skala < 1;
+        w = Math.round(w * skala); h = Math.round(h * skala);
+        orig.width = w; orig.height = h;
+        octx.clearRect(0, 0, w, h);
+        octx.drawImage(img, 0, 0, w, h);
+        kjelde = octx.getImageData(0, 0, w, h);
+        filnamn = namn;
+        valt = null;
+        document.getElementById('rekn').textContent = 'Klikk på biletet …';
+        document.getElementById('swFør').style.background = '';
+        document.getElementById('swEtter').style.background = '';
+        info.textContent = w + ' × ' + h + ' pikslar = ' + (w * h).toLocaleString('nn-NO') +
+            ' pikslar, eller ' + (w * h * 4).toLocaleString('nn-NO') + ' tal i tabellen.' +
+            (nedskalert ? ' (Skalert ned for fart.)' : '');
+        prosesser();
+    }
+
+    function lesFil(fil) {
+        if (!fil || !fil.type.startsWith('image/')) {
+            info.textContent = 'Det ser ikkje ut som ei biletfil.';
+            return;
+        }
+        const url = URL.createObjectURL(fil);
+        const img = new Image();
+        img.onload = () => {
+            lastBilete(img, fil.name.replace(/\.[^.]+$/, '') || 'bilete');
+            URL.revokeObjectURL(url);
+        };
+        img.onerror = () => { info.textContent = 'Klarte ikkje å opne biletet.'; URL.revokeObjectURL(url); };
+        img.src = url;
+    }
+
+    function testbilete() {
+        const c = document.createElement('canvas');
+        const w = 720, h = 480;
+        c.width = w; c.height = h;
+        const x = c.getContext('2d');
+        // Regnboge-gradient
+        for (let i = 0; i < w; i++) {
+            const g = x.createLinearGradient(0, 160, 0, h);
+            const hue = i / w * 360;
+            g.addColorStop(0, 'hsl(' + hue + ',100%,85%)');
+            g.addColorStop(0.5, 'hsl(' + hue + ',100%,50%)');
+            g.addColorStop(1, 'hsl(' + hue + ',100%,12%)');
+            x.fillStyle = g;
+            x.fillRect(i, 160, 1, h - 160);
+        }
+        // Reine R, G, B og ein grå skala øvst
+        const felt = [['#ff0000', 'R'], ['#00ff00', 'G'], ['#0000ff', 'B']];
+        felt.forEach((f, i) => {
+            x.fillStyle = f[0];
+            x.fillRect(i * 160, 0, 160, 160);
+            x.fillStyle = '#fff';
+            x.font = 'bold 48px system-ui, sans-serif';
+            x.textAlign = 'center'; x.textBaseline = 'middle';
+            x.strokeStyle = '#000'; x.lineWidth = 4;
+            x.strokeText(f[1], i * 160 + 80, 80);
+            x.fillText(f[1], i * 160 + 80, 80);
+        });
+        const gg = x.createLinearGradient(480, 0, 720, 0);
+        gg.addColorStop(0, '#000'); gg.addColorStop(1, '#fff');
+        x.fillStyle = gg;
+        x.fillRect(480, 0, 240, 160);
+        lastBilete(c, 'testbilete');
+    }
+
+    function visPiksel(px, py) {
+        if (!kjelde || !resultat) return;
+        valt = { x: px, y: py };
+        const i = (py * kjelde.width + px) * 4;
+        const r = kjelde.data[i], g = kjelde.data[i + 1], b = kjelde.data[i + 2];
+        const v = resultat.data[i];
+        document.getElementById('swFør').style.background = 'rgb(' + r + ',' + g + ',' + b + ')';
+        document.getElementById('swEtter').style.background = 'rgb(' + v + ',' + v + ',' + v + ')';
+
+        const R = '<span class="cr">' + r + '</span>';
+        const G = '<span class="cg">' + g + '</span>';
+        const B = '<span class="cb">' + b + '</span>';
+        const neg = negativ.checked;
+        let linjer = ['Piksel (' + px + ', ' + py + '):  R=' + R + '  G=' + G + '  B=' + B, ''];
+
+        if (metode === 'snitt') {
+            const s = snitt(r, g, b);
+            linjer.push('grå = (' + R + ' + ' + G + ' + ' + B + ') / 3 = <span class="res">' + Math.round(s) + '</span>');
+        } else {
+            const l = lum(r, g, b);
+            linjer.push('grå = 0,299·' + R + ' + 0,587·' + G + ' + 0,114·' + B);
+            linjer.push('    = ' + k(0.299 * r) + ' + ' + k(0.587 * g) + ' + ' + k(0.114 * b) + ' = <span class="res">' + Math.round(l) + '</span>');
+            if (metode === 'terskel') {
+                const t = +terskel.value;
+                linjer.push('');
+                linjer.push(Math.round(l) + (l > t ? ' > ' : ' ≤ ') + t + '  →  ' + (l > t ? 'kvitt (255)' : 'svart (0)'));
+            } else if (metode === 'dither') {
+                linjer.push('');
+                linjer.push('Pluss feil frå naboane  →  ' + ((neg ? 255 - v : v) ? 'kvitt (255)' : 'svart (0)'));
+            }
+        }
+        if (neg) {
+            linjer.push('');
+            linjer.push('Negativ: 255 − ' + (255 - v) + ' = <span class="res">' + v + '</span>');
+        }
+        linjer.push('');
+        linjer.push('Ny piksel: R=G=B=<span class="res">' + v + '</span>');
+        document.getElementById('rekn').innerHTML = linjer.join('\n');
+    }
+
+    function klikk(e) {
+        if (!kjelde) return;
+        const c = e.currentTarget;
+        const rect = c.getBoundingClientRect();
+        const x = Math.floor((e.clientX - rect.left) / rect.width * c.width);
+        const y = Math.floor((e.clientY - rect.top) / rect.height * c.height);
+        if (x < 0 || y < 0 || x >= c.width || y >= c.height) return;
+        visPiksel(x, y);
+    }
+    orig.addEventListener('click', klikk);
+    ut.addEventListener('click', klikk);
+
+    document.querySelectorAll('#metode button').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('#metode button').forEach(b => b.classList.remove('on'));
+            btn.classList.add('on');
+            metode = btn.dataset.m;
+            terskelboks.hidden = metode !== 'terskel';
+            metodetekst.textContent = tekstar[metode];
+            prosesser();
+        });
+    });
+    metodetekst.textContent = tekstar[metode];
+
+    terskel.addEventListener('input', () => {
+        terskelvis.textContent = terskel.value;
+        prosesser();
+    });
+    negativ.addEventListener('change', prosesser);
+
+    document.getElementById('fil').addEventListener('change', e => lesFil(e.target.files[0]));
+    document.getElementById('eksempel').addEventListener('click', testbilete);
+
+    const drop = document.getElementById('drop');
+    ['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
+    ['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
+    drop.addEventListener('drop', e => lesFil(e.dataTransfer.files[0]));
+    window.addEventListener('dragover', e => e.preventDefault());
+    window.addEventListener('drop', e => { e.preventDefault(); if (e.dataTransfer.files[0]) lesFil(e.dataTransfer.files[0]); });
+
+    window.addEventListener('paste', e => {
+        const item = [...(e.clipboardData || {}).items || []].find(it => it.type.startsWith('image/'));
+        if (item) lesFil(item.getAsFile());
+    });
+
+    document.getElementById('last').addEventListener('click', () => {
+        if (!resultat) return;
+        ut.toBlob(blob => {
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = filnamn + '-' + metode + '.png';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+        }, 'image/png');
+    });
+
+    testbilete();
+})();
+</script>
+</body>
+</html>
