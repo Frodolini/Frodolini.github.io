@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="nn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Indieradio – Frode si radioside</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@600;800&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: radioskala om natta – søk øvst, stasjonsliste, fast spelar nedst */
+:root{
+  --bg:#12100d; --panel:#1c1915; --line:#2e2a24; --fg:#efe7da; --muted:#9a9082;
+  --amber:#f2a33a; --amber-dim:#7a5420; --live:#e5534b;
+  --display:"Syne",system-ui,sans-serif; --body:"IBM Plex Sans",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--fg);font:15px/1.5 var(--body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-bottom:calc(110px + env(safe-area-inset-bottom,0px))}
+.wrap{max-width:760px;margin:0 auto}
+.top{padding-top:16px;font-size:14px}
+.top a{color:var(--muted);text-decoration:none}
+.top a:hover{color:var(--amber);text-decoration:underline}
+header{padding-block:16px 12px}
+.owner{font:500 12px var(--mono);text-transform:uppercase;letter-spacing:.14em;color:var(--amber);margin:0 0 8px}
+h1{font:800 clamp(2.2rem,8vw,3.4rem)/1 var(--display);margin:0;letter-spacing:-.02em}
+h1 span{color:var(--amber)}
+.sub{color:var(--muted);margin:.4rem 0 0;max-width:60ch}
+/* Skala */
+.dial{position:relative;height:34px;margin:18px 0 6px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  background:repeating-linear-gradient(90deg,var(--line) 0 1px,transparent 1px 12px);overflow:hidden}
+.dial::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,var(--amber-dim) 0 1px,transparent 1px 60px);opacity:.8}
+.needle{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--amber);box-shadow:0 0 12px var(--amber);left:10%;transition:left .6s cubic-bezier(.2,.8,.2,1);z-index:1}
+.scale{display:flex;justify-content:space-between;font:11px var(--mono);color:var(--muted);letter-spacing:.06em}
+/* Kontrollar */
+.controls{display:grid;gap:12px;margin-top:20px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.label{font:500 11px var(--mono);text-transform:uppercase;letter-spacing:.12em;color:var(--muted);width:100%}
+.chip{font:500 14px var(--body);background:transparent;color:var(--fg);border:1px solid var(--line);border-radius:999px;padding:6px 14px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--amber);color:#1a1206;border-color:var(--amber)}
+.chip:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+select{font:15px var(--body);background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;flex:1;min-width:0}
+.btn{font:600 14px var(--body);background:var(--panel);color:var(--amber);border:1px solid var(--amber-dim);border-radius:8px;padding:8px 14px;cursor:pointer}
+.status{font:13px var(--mono);color:var(--muted);margin:18px 0 8px}
+/* Liste */
+ul{list-style:none;margin:0;padding:0;border-top:1px solid var(--line)}
+li{border-bottom:1px solid var(--line)}
+.st{display:grid;grid-template-columns:44px 1fr auto;gap:12px;align-items:center;width:100%;padding:12px 4px;background:none;border:0;color:inherit;text-align:left;cursor:pointer;font:inherit}
+.st:hover{background:var(--panel)}
+.st.on .name{color:var(--amber)}
+.logo{width:44px;height:44px;border-radius:6px;background:var(--panel);object-fit:cover;display:grid;place-items:center;font:800 18px var(--display);color:var(--amber-dim);overflow:hidden}
+.meta{min-width:0}
+.name{font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.info{font:12px var(--mono);color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kbps{font:12px var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
+/* Spelar */
+.player{position:fixed;left:0;right:0;bottom:0;background:var(--panel);border-top:1px solid var(--line);
+  padding:12px max(16px,env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.pin{max-width:760px;margin:0 auto;display:flex;gap:14px;align-items:center}
+.play{width:52px;height:52px;flex:none;border-radius:50%;border:0;background:var(--amber);color:#1a1206;font-size:20px;cursor:pointer}
+.play:disabled{background:var(--line);color:var(--muted);cursor:default}
+.now{min-width:0;flex:1}
+.now .name{font-size:16px}
+.live{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--muted);margin-right:6px;vertical-align:middle}
+.playing .live{background:var(--live);animation:pulse 1.4s infinite}
+@keyframes pulse{50%{opacity:.3}}
+input[type=range]{width:90px;accent-color:var(--amber)}
+@media (max-width:420px){input[type=range]{display:none}}
+@media (prefers-reduced-motion:reduce){.needle{transition:none}.playing .live{animation:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="top"><a href="index.html">← Frode sin Sandkasse</a></nav>
+  <header>
+    <p class="owner">Frode si radioside</p>
+    <h1>Indie<span>radio</span></h1>
+    <p class="sub">Små og sjølvstendige radiostasjonar frå heile verda. Vel sjanger og land, og trykk på ein stasjon for å lytta.</p>
+    <div class="dial" aria-hidden="true"><div class="needle" id="needle"></div></div>
+    <div class="scale" aria-hidden="true"><span>88</span><span>92</span><span>96</span><span>100</span><span>104</span><span>108 MHz</span></div>
+  </header>
+
+  <section class="controls">
+    <div class="row" id="tags"><span class="label">Sjanger</span></div>
+    <div class="row">
+      <span class="label">Land</span>
+      <select id="country" aria-label="Land"></select>
+      <button class="btn" id="random">Overrask meg</button>
+    </div>
+  </section>
+
+  <p class="status" id="status">Hentar stasjonar …</p>
+  <ul id="list"></ul>
+</div>
+
+<div class="player" id="player">
+  <div class="pin">
+    <button class="play" id="play" disabled aria-label="Spel">▶</button>
+    <div class="now">
+      <div class="name" id="nowName">Ingen stasjon valt</div>
+      <div class="info"><span class="live"></span><span id="nowInfo">Vel ein stasjon frå lista</span></div>
+    </div>
+    <input type="range" id="vol" min="0" max="1" step="0.05" value="0.8" aria-label="Volum">
+  </div>
+</div>
+<audio id="audio" preload="none"></audio>
+
+<script>
+const SERVERS = ["https://de1.api.radio-browser.info","https://de2.api.radio-browser.info","https://fi1.api.radio-browser.info"];
+const TAGS = ["indie","alternative","community","college","lo-fi","jazz","folk","electronic"];
+const COUNTRIES = [["","Heile verda"],["NO","Noreg"],["SE","Sverige"],["DK","Danmark"],["IS","Island"],["FI","Finland"],["GB","Storbritannia"],["IE","Irland"],["DE","Tyskland"],["NL","Nederland"],["FR","Frankrike"],["ES","Spania"],["PT","Portugal"],["IT","Italia"],["PL","Polen"],["US","USA"],["CA","Canada"],["MX","Mexico"],["BR","Brasil"],["AR","Argentina"],["JP","Japan"],["KR","Sør-Korea"],["AU","Australia"],["NZ","New Zealand"],["ZA","Sør-Afrika"],["NG","Nigeria"]];
+
+const $ = id => document.getElementById(id);
+const audio = $("audio"), list = $("list"), statusEl = $("status");
+let tag = "indie", stations = [], current = null, reqId = 0;
+
+// Kontrollar
+TAGS.forEach(t => {
+  const b = document.createElement("button");
+  b.className = "chip"; b.textContent = t; b.setAttribute("aria-pressed", t === tag);
+  b.onclick = () => { tag = t; document.querySelectorAll(".chip").forEach(c => c.setAttribute("aria-pressed", c === b)); load(); };
+  $("tags").appendChild(b);
+});
+COUNTRIES.forEach(([c, n]) => { const o = document.createElement("option"); o.value = c; o.textContent = n; $("country").appendChild(o); });
+$("country").onchange = load;
+$("random").onclick = () => { if (stations.length) play(stations[Math.floor(Math.random() * stations.length)]); };
+$("vol").oninput = e => audio.volume = e.target.value;
+audio.volume = 0.8;
+
+async function api(path) {
+  for (const s of SERVERS) {
+    try { const r = await fetch(s + path); if (r.ok) return await r.json(); } catch (e) {}
+  }
+  throw new Error("Fekk ikkje kontakt med Radio Browser");
+}
+
+async function load() {
+  const id = ++reqId, cc = $("country").value;
+  statusEl.textContent = "Hentar stasjonar …"; list.innerHTML = "";
+  const q = new URLSearchParams({ tag, hidebroken: "true", order: "clickcount", reverse: "true", limit: "120" });
+  if (cc) q.set("countrycode", cc);
+  try {
+    const data = await api("/json/stations/search?" + q);
+    if (id !== reqId) return;
+    // Berre https-straumar og ikkje HLS, så dei spelar i vanlege nettlesarar
+    const seen = new Set();
+    stations = data.filter(s => s.url_resolved && s.url_resolved.startsWith("https://") && !s.hls && !seen.has(s.name.trim().toLowerCase()) && seen.add(s.name.trim().toLowerCase())).slice(0, 60);
+    statusEl.textContent = stations.length ? `${stations.length} stasjonar · ${tag}${cc ? " · " + $("country").selectedOptions[0].textContent : ""}` : "Ingen stasjonar her. Prøv ein annan sjanger eller eit anna land.";
+    render();
+  } catch (e) { if (id === reqId) statusEl.textContent = e.message + ". Prøv igjen om litt."; }
+}
+
+function render() {
+  list.innerHTML = "";
+  stations.forEach(s => {
+    const li = document.createElement("li"), b = document.createElement("button");
+    b.className = "st" + (current && current.stationuuid === s.stationuuid ? " on" : "");
+    const logo = document.createElement(s.favicon ? "img" : "div");
+    logo.className = "logo";
+    if (s.favicon) { logo.src = s.favicon; logo.alt = ""; logo.loading = "lazy"; logo.onerror = () => { const d = document.createElement("div"); d.className = "logo"; d.textContent = s.name.trim()[0] || "?"; logo.replaceWith(d); }; }
+    else logo.textContent = s.name.trim()[0] || "?";
+    const meta = document.createElement("div"); meta.className = "meta";
+    const n = document.createElement("div"); n.className = "name"; n.textContent = s.name.trim();
+    const i = document.createElement("div"); i.className = "info";
+    i.textContent = [s.country, s.tags.split(",").slice(0, 3).join(", ")].filter(Boolean).join(" · ");
+    meta.append(n, i);
+    const k = document.createElement("span"); k.className = "kbps"; k.textContent = s.bitrate ? s.bitrate + " kb/s" : "";
+    b.append(logo, meta, k); b.onclick = () => play(s);
+    li.appendChild(b); list.appendChild(li);
+  });
+}
+
+function play(s) {
+  current = s;
+  audio.src = s.url_resolved;
+  $("nowName").textContent = s.name.trim();
+  $("nowInfo").textContent = "Koplar til …";
+  $("play").disabled = false;
+  $("needle").style.left = (5 + Math.random() * 88) + "%";
+  audio.play().catch(() => { $("nowInfo").textContent = "Straumen svarar ikkje. Prøv ein annan stasjon."; setPlaying(false); });
+  fetch(SERVERS[0] + "/json/url/" + s.stationuuid).catch(() => {}); // tel klikk, slik API-et ber om
+  render();
+}
+
+function setPlaying(on) {
+  $("player").classList.toggle("playing", on);
+  $("play").textContent = on ? "■" : "▶";
+  $("play").setAttribute("aria-label", on ? "Stopp" : "Spel");
+}
+audio.onplaying = () => { setPlaying(true); $("nowInfo").textContent = [current.country, current.codec, current.bitrate ? current.bitrate + " kb/s" : ""].filter(Boolean).join(" · "); };
+audio.onpause = () => setPlaying(false);
+audio.onerror = () => { if (current) { $("nowInfo").textContent = "Straumen svarar ikkje. Prøv ein annan stasjon."; setPlaying(false); } };
+$("play").onclick = () => { if (!current) return; if (audio.paused) { audio.src = current.url_resolved; audio.play().catch(() => {}); } else { audio.pause(); audio.removeAttribute("src"); audio.load(); } };
+
+load();
+</script>
+</body>
+</html>
