@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="nn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Stord i arkivet – Frode si arkivside</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;800&family=Source+Sans+3:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: arkivkort – hendingar øvst, så filter, så rutenett med funn frå Nasjonalbiblioteket */
+:root{
+  --bg:#eef0f2; --paper:#ffffff; --ink:#1d232b; --muted:#5c6672; --line:#d3d8de;
+  --stamp:#b0332a; --stamp-soft:#f6e3e1; --ok:#2f7a4a; --warn:#9a6a12;
+  --display:"Archivo",system-ui,sans-serif; --body:"Source Sans 3",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#14181d; --paper:#1d232a; --ink:#e6e9ed; --muted:#9aa4b0; --line:#2f3740;
+  --stamp:#e2695f; --stamp-soft:#3a2423; --ok:#6cc08a; --warn:#e0b25a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#14181d; --paper:#1d232a; --ink:#e6e9ed; --muted:#9aa4b0; --line:#2f3740;
+  --stamp:#e2695f; --stamp-soft:#3a2423; --ok:#6cc08a; --warn:#e0b25a; color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.5 var(--body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 48px}
+.wrap{max-width:980px;margin:0 auto}
+.top{padding-top:16px;font-size:14px}
+.top a{color:var(--muted);text-decoration:none}
+.top a:hover{color:var(--stamp);text-decoration:underline}
+header{padding-block:16px 8px}
+.owner{font:500 12px var(--mono);text-transform:uppercase;letter-spacing:.14em;color:var(--stamp);margin:0 0 8px}
+h1{font:800 clamp(2.1rem,7vw,3.2rem)/1.02 var(--display);margin:0;letter-spacing:-.015em;text-wrap:balance}
+.sub{color:var(--muted);margin:.5rem 0 0;max-width:62ch}
+h2{font:500 12px var(--mono);text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin:28px 0 10px}
+/* Hendingar */
+.events{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.ev{text-align:left;background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:12px 14px;cursor:pointer;color:inherit;font:inherit;display:flex;flex-direction:column;gap:2px}
+.ev:hover{border-color:var(--stamp)}
+.ev .yr{font:500 13px var(--mono);color:var(--stamp)}
+.ev .t{font:600 16px/1.25 var(--body)}
+.ev .d{font-size:13px;color:var(--muted)}
+.ev[aria-pressed="true"]{border-color:var(--stamp);box-shadow:inset 0 0 0 1px var(--stamp);background:var(--stamp-soft)}
+/* Fritt søk */
+form{display:flex;flex-wrap:wrap;gap:8px;align-items:end}
+label{display:flex;flex-direction:column;gap:2px;font-size:13px;color:var(--muted)}
+input{font:16px var(--body);color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:8px 10px}
+#q{width:min(320px,100%)}
+input[type=number]{width:96px}
+.go{font:600 15px var(--body);background:var(--stamp);color:#fff;border:0;border-radius:6px;padding:10px 16px;cursor:pointer}
+/* Medietypar */
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.chip{font:500 14px var(--body);background:var(--paper);color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:5px 12px;cursor:pointer}
+.chip span{font:12px var(--mono);color:var(--muted);margin-left:4px}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chip[aria-pressed="true"] span{color:var(--bg);opacity:.7}
+button:focus-visible,input:focus-visible{outline:2px solid var(--stamp);outline-offset:2px}
+.status{font:13px var(--mono);color:var(--muted);margin:16px 0 10px}
+/* Funn */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:6px;overflow:hidden;display:flex;flex-direction:column;text-decoration:none;color:inherit;min-width:0}
+.card:hover{border-color:var(--stamp)}
+.thumb{aspect-ratio:4/3;max-width:100%;background:var(--line);display:grid;place-items:center;overflow:hidden}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.thumb .ph{font:800 28px var(--display);color:var(--muted)}
+.cb{padding:10px 12px 12px;display:flex;flex-direction:column;gap:4px;flex:1}
+.date{font:500 12px var(--mono);color:var(--stamp);font-variant-numeric:tabular-nums}
+.ct{font-size:14px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.foot{margin-top:auto;display:flex;justify-content:space-between;gap:6px;align-items:center;padding-top:6px}
+.type{font:11px var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.acc{font:11px var(--mono);padding:1px 6px;border-radius:3px;border:1px solid currentColor;white-space:nowrap}
+.acc.open{color:var(--ok)}.acc.no{color:var(--warn)}.acc.nb{color:var(--muted)}
+.more{display:block;margin:20px auto 0;font:600 15px var(--body);background:var(--paper);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:10px 20px;cursor:pointer}
+footer{margin-top:36px;font-size:13px;color:var(--muted);max-width:70ch}
+footer a{color:inherit}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="top"><a href="index.html">← Frode sin Sandkasse</a></nav>
+  <header>
+    <p class="owner">Frode si arkivside</p>
+    <h1>Stord i arkivet</h1>
+    <p class="sub">Bilete, avissider, bøker og radioklipp frå Nasjonalbiblioteket om store hendingar på Stord og i Sunnhordland. Vel ei hending, eller søk sjølv.</p>
+  </header>
+
+  <h2>Hendingar</h2>
+  <div class="events" id="events"></div>
+
+  <h2>Søk sjølv</h2>
+  <form id="search">
+    <label>Søkjeord<input id="q" value="Stord" autocomplete="off"></label>
+    <label>Frå år<input id="from" type="number" min="1700" max="2026" placeholder="t.d. 1960"></label>
+    <label>Til år<input id="to" type="number" min="1700" max="2026" placeholder="t.d. 1980"></label>
+    <button class="go" type="submit">Søk</button>
+  </form>
+
+  <h2>Medietype</h2>
+  <div class="chips" id="chips"></div>
+
+  <p class="status" id="status">Hentar …</p>
+  <div class="grid" id="grid"></div>
+  <button class="more" id="more" hidden>Vis fleire</button>
+
+  <footer>Alt innhald kjem frå <a href="https://www.nb.no">Nasjonalbiblioteket</a> og blir henta direkte når du søkjer. Merket på kvart funn viser kven som kan opna det: «Ope» for alle, «Noreg» berre frå norske nettverk, «NB» berre på biblioteket eller med Feide.</footer>
+</div>
+
+<script>
+const API = "https://api.nb.no/catalog/v1/items";
+const EVENTS = [
+  { yr: "1940–45", t: "Krigsåra", d: "Okkupasjon og frigjering", q: "Stord", from: "19400409", to: "19450630" },
+  { yr: "1960–90", t: "Stord Verft", d: "Skipsbygging og plattformer", q: "\"Stord Verft\"", from: "19600101", to: "19901231" },
+  { yr: "2001", t: "Trekantsambandet opnar", d: "Stordabrua og Bømlafjordtunnelen", q: "Trekantsambandet", from: "20001201", to: "20010630" },
+  { yr: "2006", t: "Flyulukka på Sørstokken", d: "Stord lufthamn, oktober 2006", q: "Sørstokken", from: "20061001", to: "20061231" },
+  { yr: "NRK", t: "Radio frå Stord", d: "Klipp frå NRK-arkivet", q: "Stord", media: "radio" },
+  { yr: "Foto", t: "Gamle bilete", d: "Fotosamlingane til NB", q: "Stord", media: "bilder" },
+];
+const TYPES = [["", "Alle"], ["bilder", "Bilete"], ["aviser", "Aviser"], ["radio", "Radio"], ["bøker", "Bøker"], ["tidsskrift", "Tidsskrift"]];
+const NAMES = { bilder: "Bilete", aviser: "Avis", radio: "Radio", "bøker": "Bok", tidsskrift: "Tidsskrift", kart: "Kart", film: "Film", musikk: "Musikk" };
+
+const $ = id => document.getElementById(id);
+let state = { q: "Stord", from: "", to: "", media: "bilder", page: 0 };
+let counts = {}, reqId = 0;
+
+EVENTS.forEach((e, i) => {
+  const b = document.createElement("button");
+  b.className = "ev"; b.setAttribute("aria-pressed", "false"); b.dataset.i = i;
+  b.innerHTML = `<span class="yr"></span><span class="t"></span><span class="d"></span>`;
+  b.querySelector(".yr").textContent = e.yr; b.querySelector(".t").textContent = e.t; b.querySelector(".d").textContent = e.d;
+  b.onclick = () => {
+    markEvent(b);
+    state = { q: e.q, from: e.from || "", to: e.to || "", media: e.media || "", page: 0 };
+    $("q").value = e.q; $("from").value = e.from ? e.from.slice(0, 4) : ""; $("to").value = e.to ? e.to.slice(0, 4) : "";
+    run();
+  };
+  $("events").appendChild(b);
+});
+function markEvent(b) { document.querySelectorAll(".ev").forEach(x => x.setAttribute("aria-pressed", x === b)); }
+
+$("search").onsubmit = ev => {
+  ev.preventDefault(); markEvent(null);
+  const f = $("from").value.trim(), t = $("to").value.trim();
+  state = { q: $("q").value.trim() || "Stord", from: f ? f + "0101" : "", to: t ? t + "1231" : "", media: state.media, page: 0 };
+  run();
+};
+$("more").onclick = () => { state.page++; fetchItems(true); };
+
+function params(withMedia) {
+  const p = new URLSearchParams({ q: state.q, size: "24", page: String(state.page), digitalAccessibleOnly: "true" });
+  if (state.from || state.to) p.append("filter", `date:[${state.from || "16000101"} TO ${state.to || "20991231"}]`);
+  if (withMedia && state.media) p.append("filter", "mediatype:" + state.media);
+  return p;
+}
+
+async function run() {
+  state.page = 0;
+  const id = ++reqId;
+  $("grid").innerHTML = ""; $("more").hidden = true; $("status").textContent = "Hentar …";
+  try {
+    const p = params(false); p.set("size", "1"); p.set("aggs", "mediatype");
+    const r = await fetch(API + "?" + p); const d = await r.json();
+    if (id !== reqId) return;
+    counts = {}; (d._embedded?.aggregations?.[0]?.buckets || []).forEach(b => counts[b.key] = b.count);
+    counts[""] = d.page?.totalElements || 0;
+    drawChips();
+    await fetchItems(false, id);
+  } catch (e) { if (id === reqId) $("status").textContent = "Fekk ikkje kontakt med Nasjonalbiblioteket. Prøv igjen om litt."; }
+}
+
+function drawChips() {
+  const box = $("chips"); box.innerHTML = "";
+  TYPES.forEach(([k, n]) => {
+    if (k && !counts[k]) return;
+    const b = document.createElement("button");
+    b.className = "chip"; b.setAttribute("aria-pressed", state.media === k);
+    b.textContent = n; const s = document.createElement("span"); s.textContent = (counts[k] || 0).toLocaleString("nn-NO"); b.appendChild(s);
+    b.onclick = () => { state.media = k; state.page = 0; drawChips(); $("grid").innerHTML = ""; fetchItems(false); };
+    box.appendChild(b);
+  });
+}
+
+async function fetchItems(append, id = ++reqId) {
+  if (!append) { $("status").textContent = "Hentar …"; $("more").hidden = true; }
+  try {
+    const r = await fetch(API + "?" + params(true) + "&sort=date,asc");
+    const d = await r.json();
+    if (id !== reqId && !append) return;
+    const items = d._embedded?.items || [], total = d.page?.totalElements || 0;
+    items.forEach(it => $("grid").appendChild(card(it)));
+    const shown = $("grid").children.length;
+    $("status").textContent = total ? `${shown} av ${total.toLocaleString("nn-NO")} funn · eldste først` : "Ingen funn. Prøv eit anna søkjeord eller ein vidare periode.";
+    $("more").hidden = shown >= total;
+  } catch (e) { $("status").textContent = "Fekk ikkje kontakt med Nasjonalbiblioteket. Prøv igjen om litt."; }
+}
+
+function fmtDate(s) {
+  if (!s) return "Ukjend dato";
+  if (/^\d{8}$/.test(s)) return `${s.slice(6)}.${s.slice(4, 6)}.${s.slice(0, 4)}`;
+  return s.slice(0, 4);
+}
+
+function card(it) {
+  const m = it.metadata || {}, a = it.accessInfo || {}, type = (m.mediaTypes || [])[0] || "";
+  const el = document.createElement("a");
+  el.className = "card"; el.href = "https://www.nb.no/items/" + it.id; el.target = "_blank"; el.rel = "noopener";
+  const th = document.createElement("div"); th.className = "thumb";
+  const tpl = it._links?.thumbnail_custom?.href;
+  if (tpl) {
+    const img = document.createElement("img"); img.loading = "lazy"; img.alt = "";
+    img.src = tpl.replace("{width},{height}", "400,");
+    img.onerror = () => { th.innerHTML = `<span class="ph">${type === "radio" ? "♪" : "–"}</span>`; };
+    th.appendChild(img);
+  } else th.innerHTML = `<span class="ph">${type === "radio" ? "♪" : "–"}</span>`;
+  const cb = document.createElement("div"); cb.className = "cb";
+  const dt = document.createElement("span"); dt.className = "date"; dt.textContent = fmtDate(m.dateCreated || m.originInfo?.issued);
+  const t = document.createElement("span"); t.className = "ct"; t.textContent = m.title || (m.series || [])[0] || "Utan tittel";
+  const ft = document.createElement("div"); ft.className = "foot";
+  const ty = document.createElement("span"); ty.className = "type"; ty.textContent = NAMES[type] || type;
+  const ac = document.createElement("span"); ac.className = "acc";
+  if (a.viewability === "ALL" && a.accessAllowedFrom === "EVERYWHERE") { ac.classList.add("open"); ac.textContent = "Ope"; }
+  else if (a.accessAllowedFrom === "NORWAY") { ac.classList.add("no"); ac.textContent = "Noreg"; }
+  else { ac.classList.add("nb"); ac.textContent = "NB"; }
+  ft.append(ty, ac); cb.append(dt, t, ft); el.append(th, cb);
+  return el;
+}
+
+run();
+</script>
+</body>
+</html>
