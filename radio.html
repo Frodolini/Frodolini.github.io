@@ -44,11 +44,25 @@ h1 span{color:var(--amber)}
 select{font:15px var(--body);background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;flex:1;min-width:0}
 .btn{font:600 14px var(--body);background:var(--panel);color:var(--amber);border:1px solid var(--amber-dim);border-radius:8px;padding:8px 14px;cursor:pointer}
 .status{font:13px var(--mono);color:var(--muted);margin:18px 0 8px}
+[hidden]{display:none!important}
+/* Faner: Utforsk / Favorittar */
+.tabs{display:flex;flex-wrap:wrap;align-items:center;gap:4px 20px;margin-top:22px;border-bottom:1px solid var(--line)}
+.tab{font:600 15px var(--body);background:none;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;color:var(--muted);padding:10px 0;cursor:pointer}
+.tab:hover{color:var(--fg)}
+.tab[aria-pressed="true"]{color:var(--fg);border-bottom-color:var(--amber)}
+.count{font:500 12px var(--mono);color:var(--amber);margin-left:4px}
+.tabs .btn{margin-left:auto;padding:6px 12px}
 /* Liste */
 ul{list-style:none;margin:0;padding:0;border-top:1px solid var(--line)}
-li{border-bottom:1px solid var(--line)}
-.st{display:grid;grid-template-columns:44px 1fr auto;gap:12px;align-items:center;width:100%;padding:12px 4px;background:none;border:0;color:inherit;text-align:left;cursor:pointer;font:inherit}
-.st:hover{background:var(--panel)}
+li{border-bottom:1px solid var(--line);display:flex;align-items:center}
+li:hover{background:var(--panel)}
+.st{flex:1;min-width:0;display:grid;grid-template-columns:44px 1fr auto;gap:12px;align-items:center;padding:12px 4px;background:none;border:0;color:inherit;text-align:left;cursor:pointer;font:inherit}
+/* Stjerne */
+.star{flex:none;width:44px;height:44px;display:grid;place-items:center;border:0;border-radius:50%;background:none;color:var(--muted);font-size:22px;line-height:1;cursor:pointer}
+.star:hover{color:var(--amber)}
+.star[aria-pressed="true"]{color:var(--amber)}
+.star.pop{animation:pop .3s ease-out}
+@keyframes pop{40%{transform:scale(1.35)}}
 .st.on .name{color:var(--amber)}
 .logo{width:44px;height:44px;border-radius:6px;background:var(--panel);object-fit:cover;display:grid;place-items:center;font:800 18px var(--display);color:var(--amber-dim);overflow:hidden}
 .meta{min-width:0}
@@ -68,7 +82,7 @@ li{border-bottom:1px solid var(--line)}
 @keyframes pulse{50%{opacity:.3}}
 input[type=range]{width:90px;accent-color:var(--amber)}
 @media (max-width:420px){input[type=range]{display:none}}
-@media (prefers-reduced-motion:reduce){.needle{transition:none}.playing .live{animation:none}}
+@media (prefers-reduced-motion:reduce){.needle{transition:none}.playing .live{animation:none}.star.pop{animation:none}}
 </style>
 </head>
 <body>
@@ -77,17 +91,22 @@ input[type=range]{width:90px;accent-color:var(--amber)}
   <header>
     <p class="owner">Frode si radioside</p>
     <h1>Indie<span>radio</span></h1>
-    <p class="sub">Små og sjølvstendige radiostasjonar frå heile verda. Vel sjanger og land, og trykk på ein stasjon for å lytta.</p>
+    <p class="sub">Små og sjølvstendige radiostasjonar frå heile verda. Vel sjanger og land, trykk på ein stasjon for å lytta, og på ☆ for å lagra han som favoritt.</p>
     <div class="dial" aria-hidden="true"><div class="needle" id="needle"></div></div>
     <div class="scale" aria-hidden="true"><span>88</span><span>92</span><span>96</span><span>100</span><span>104</span><span>108 MHz</span></div>
   </header>
 
-  <section class="controls">
+  <div class="tabs" role="group" aria-label="Visning">
+    <button class="tab" id="tabExplore" aria-pressed="true">Utforsk</button>
+    <button class="tab" id="tabFavs" aria-pressed="false">★ Favorittar<span class="count" id="favCount"></span></button>
+    <button class="btn" id="random">Overrask meg</button>
+  </div>
+
+  <section class="controls" id="controls">
     <div class="row" id="tags"><span class="label">Sjanger</span></div>
     <div class="row">
       <span class="label">Land</span>
       <select id="country" aria-label="Land"></select>
-      <button class="btn" id="random">Overrask meg</button>
     </div>
   </section>
 
@@ -102,6 +121,7 @@ input[type=range]{width:90px;accent-color:var(--amber)}
       <div class="name" id="nowName">Ingen stasjon valt</div>
       <div class="info"><span class="live"></span><span id="nowInfo">Vel ein stasjon frå lista</span></div>
     </div>
+    <button class="star" id="nowStar" hidden aria-pressed="false" aria-label="Legg til i favorittar">☆</button>
     <input type="range" id="vol" min="0" max="1" step="0.05" value="0.8" aria-label="Volum">
   </div>
 </div>
@@ -114,7 +134,45 @@ const COUNTRIES = [["","Heile verda"],["NO","Noreg"],["SE","Sverige"],["DK","Dan
 
 const $ = id => document.getElementById(id);
 const audio = $("audio"), list = $("list"), statusEl = $("status");
-let tag = "indie", stations = [], current = null, reqId = 0;
+let tag = "indie", stations = [], current = null, reqId = 0, cache = null;
+
+// Favorittar – lagra i nettlesaren (localStorage) på denne eininga
+const FAV_KEY = "indieradio.favorittar", VIEW_KEY = "indieradio.visning";
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+};
+const pick = s => ({ stationuuid: s.stationuuid, name: s.name, url_resolved: s.url_resolved, favicon: s.favicon || "", country: s.country || "", tags: s.tags || "", bitrate: s.bitrate || 0, codec: s.codec || "" });
+let favs = store.get(FAV_KEY, []);
+if (!Array.isArray(favs)) favs = [];
+let view = store.get(VIEW_KEY, "utforsk") === "favorittar" && favs.length ? "favorittar" : "utforsk";
+const isFav = s => !!s && favs.some(f => f.stationuuid === s.stationuuid);
+
+function setStar(b, on) {
+  b.setAttribute("aria-pressed", on);
+  b.textContent = on ? "★" : "☆";
+  b.title = on ? "Fjern frå favorittar" : "Legg til i favorittar";
+  b.setAttribute("aria-label", b.title);
+}
+function pop(b) { b.classList.remove("pop"); void b.offsetWidth; b.classList.add("pop"); }
+
+function toggleFav(s) {
+  favs = isFav(s) ? favs.filter(f => f.stationuuid !== s.stationuuid) : [...favs, pick(s)];
+  store.set(FAV_KEY, favs);
+  updateFavUI();
+}
+function updateFavUI() {
+  $("favCount").textContent = favs.length ? " " + favs.length : "";
+  document.querySelectorAll(".star[data-id]").forEach(b => setStar(b, favs.some(f => f.stationuuid === b.dataset.id)));
+  if (current) setStar($("nowStar"), isFav(current));
+  if (view === "favorittar") favStatus();
+}
+function favStatus() {
+  const n = favs.length;
+  statusEl.textContent = n ? `${n} ${n === 1 ? "favoritt" : "favorittar"}`
+    : stations.length ? "Ingen favorittar lagra no."
+    : "Du har ingen favorittar enno. Trykk på ☆ ved ein stasjon under «Utforsk» for å ta vare på han her.";
+}
 
 // Kontrollar
 TAGS.forEach(t => {
@@ -125,7 +183,13 @@ TAGS.forEach(t => {
 });
 COUNTRIES.forEach(([c, n]) => { const o = document.createElement("option"); o.value = c; o.textContent = n; $("country").appendChild(o); });
 $("country").onchange = load;
-$("random").onclick = () => { if (stations.length) play(stations[Math.floor(Math.random() * stations.length)]); };
+$("random").onclick = () => {
+  const pool = view === "favorittar" ? stations.filter(isFav) : stations;
+  if (pool.length) play(pool[Math.floor(Math.random() * pool.length)]);
+};
+$("tabExplore").onclick = () => setView("utforsk");
+$("tabFavs").onclick = () => setView("favorittar");
+$("nowStar").onclick = () => { if (current) { toggleFav(current); pop($("nowStar")); } };
 $("vol").oninput = e => audio.volume = e.target.value;
 audio.volume = 0.8;
 
@@ -134,6 +198,48 @@ async function api(path) {
     try { const r = await fetch(s + path); if (r.ok) return await r.json(); } catch (e) {}
   }
   throw new Error("Fekk ikkje kontakt med Radio Browser");
+}
+
+function setView(v) {
+  view = v; store.set(VIEW_KEY, v);
+  $("tabExplore").setAttribute("aria-pressed", v === "utforsk");
+  $("tabFavs").setAttribute("aria-pressed", v === "favorittar");
+  $("controls").hidden = v === "favorittar";
+  if (v === "favorittar") showFavs(); else showExplore();
+}
+
+function showFavs() {
+  const id = ++reqId;
+  stations = favs.slice(); // fjerna stjerner blir ståande til du byter fane, så du kan angra
+  favStatus(); render();
+  refreshFavs(id);
+}
+
+// Hentar ferske straumadresser for favorittane i bakgrunnen, i tilfelle ein stasjon har flytta
+async function refreshFavs(id) {
+  if (!favs.length) return;
+  try {
+    const data = await api("/json/stations/byuuid?uuids=" + favs.map(f => f.stationuuid).join(","));
+    if (!Array.isArray(data)) return;
+    let changed = false;
+    data.forEach(d => {
+      const i = favs.findIndex(f => f.stationuuid === d.stationuuid);
+      if (i > -1 && d.url_resolved && d.url_resolved.startsWith("https://") && !d.hls) { favs[i] = pick(d); changed = true; }
+    });
+    if (!changed) return;
+    store.set(FAV_KEY, favs);
+    if (id === reqId && view === "favorittar") { stations = stations.map(s => favs.find(f => f.stationuuid === s.stationuuid) || s); render(); }
+  } catch (e) {}
+}
+
+function exploreStatus() {
+  const cc = $("country").value;
+  statusEl.textContent = stations.length ? `${stations.length} stasjonar · ${tag}${cc ? " · " + $("country").selectedOptions[0].textContent : ""}` : "Ingen stasjonar her. Prøv ein annan sjanger eller eit anna land.";
+}
+
+function showExplore() {
+  if (cache && cache.key === tag + "|" + $("country").value) { ++reqId; stations = cache.stations; exploreStatus(); render(); }
+  else load();
 }
 
 async function load() {
@@ -147,7 +253,8 @@ async function load() {
     // Berre https-straumar og ikkje HLS, så dei spelar i vanlege nettlesarar
     const seen = new Set();
     stations = data.filter(s => s.url_resolved && s.url_resolved.startsWith("https://") && !s.hls && !seen.has(s.name.trim().toLowerCase()) && seen.add(s.name.trim().toLowerCase())).slice(0, 60);
-    statusEl.textContent = stations.length ? `${stations.length} stasjonar · ${tag}${cc ? " · " + $("country").selectedOptions[0].textContent : ""}` : "Ingen stasjonar her. Prøv ein annan sjanger eller eit anna land.";
+    cache = { key: tag + "|" + cc, stations };
+    exploreStatus();
     render();
   } catch (e) { if (id === reqId) statusEl.textContent = e.message + ". Prøv igjen om litt."; }
 }
@@ -168,7 +275,10 @@ function render() {
     meta.append(n, i);
     const k = document.createElement("span"); k.className = "kbps"; k.textContent = s.bitrate ? s.bitrate + " kb/s" : "";
     b.append(logo, meta, k); b.onclick = () => play(s);
-    li.appendChild(b); list.appendChild(li);
+    const star = document.createElement("button");
+    star.className = "star"; star.dataset.id = s.stationuuid; setStar(star, isFav(s));
+    star.onclick = () => { toggleFav(s); pop(star); };
+    li.append(b, star); list.appendChild(li);
   });
 }
 
@@ -178,6 +288,7 @@ function play(s) {
   $("nowName").textContent = s.name.trim();
   $("nowInfo").textContent = "Koplar til …";
   $("play").disabled = false;
+  $("nowStar").hidden = false; setStar($("nowStar"), isFav(s));
   $("needle").style.left = (5 + Math.random() * 88) + "%";
   audio.play().catch(() => { $("nowInfo").textContent = "Straumen svarar ikkje. Prøv ein annan stasjon."; setPlaying(false); });
   fetch(SERVERS[0] + "/json/url/" + s.stationuuid).catch(() => {}); // tel klikk, slik API-et ber om
@@ -194,7 +305,8 @@ audio.onpause = () => setPlaying(false);
 audio.onerror = () => { if (current) { $("nowInfo").textContent = "Straumen svarar ikkje. Prøv ein annan stasjon."; setPlaying(false); } };
 $("play").onclick = () => { if (!current) return; if (audio.paused) { audio.src = current.url_resolved; audio.play().catch(() => {}); } else { audio.pause(); audio.removeAttribute("src"); audio.load(); } };
 
-load();
+updateFavUI();
+setView(view);
 </script>
 </body>
 </html>
