@@ -91,7 +91,7 @@ input[type=range]{width:90px;accent-color:var(--amber)}
   <header>
     <p class="owner">Frode si radioside</p>
     <h1>Indie<span>radio</span></h1>
-    <p class="sub">Små og sjølvstendige radiostasjonar frå heile verda. Vel sjanger og land, trykk på ein stasjon for å lytta, og på ☆ for å lagra han som favoritt.</p>
+    <p class="sub">Små og sjølvstendige radiostasjonar frå heile verda. Vel sjanger – frå indie og jazz til klassisk, opera og barokk – og land, trykk på ein stasjon for å lytta, og på ☆ for å lagra han som favoritt.</p>
     <div class="dial" aria-hidden="true"><div class="needle" id="needle"></div></div>
     <div class="scale" aria-hidden="true"><span>88</span><span>92</span><span>96</span><span>100</span><span>104</span><span>108 MHz</span></div>
   </header>
@@ -129,12 +129,15 @@ input[type=range]{width:90px;accent-color:var(--amber)}
 
 <script>
 const SERVERS = ["https://de1.api.radio-browser.info","https://de2.api.radio-browser.info","https://fi1.api.radio-browser.info"];
-const TAGS = ["indie","alternative","community","college","lo-fi","jazz","folk","electronic"];
+// [Radio Browser-tag, namn på knappen]
+const TAGS = [["indie","indie"],["alternative","alternative"],["community","community"],["college","college"],["lo-fi","lo-fi"],["jazz","jazz"],["folk","folk"],["electronic","electronic"],["classical","klassisk"],["opera","opera"],["baroque","barokk"],["piano","piano"]];
+const label = t => (TAGS.find(x => x[0] === t) || [t, t])[1];
 const COUNTRIES = [["","Heile verda"],["NO","Noreg"],["SE","Sverige"],["DK","Danmark"],["IS","Island"],["FI","Finland"],["GB","Storbritannia"],["IE","Irland"],["DE","Tyskland"],["NL","Nederland"],["FR","Frankrike"],["ES","Spania"],["PT","Portugal"],["IT","Italia"],["PL","Polen"],["US","USA"],["CA","Canada"],["MX","Mexico"],["BR","Brasil"],["AR","Argentina"],["JP","Japan"],["KR","Sør-Korea"],["AU","Australia"],["NZ","New Zealand"],["ZA","Sør-Afrika"],["NG","Nigeria"]];
 
 const $ = id => document.getElementById(id);
 const audio = $("audio"), list = $("list"), statusEl = $("status");
-let tag = "indie", stations = [], current = null, reqId = 0, cache = null;
+const urlTag = new URLSearchParams(location.search).get("sjanger");
+let tag = TAGS.some(x => x[0] === urlTag) ? urlTag : "indie", stations = [], current = null, reqId = 0, cache = null;
 
 // Favorittar – lagra i nettlesaren (localStorage) på denne eininga
 const FAV_KEY = "indieradio.favorittar", VIEW_KEY = "indieradio.visning";
@@ -175,9 +178,9 @@ function favStatus() {
 }
 
 // Kontrollar
-TAGS.forEach(t => {
+TAGS.forEach(([t, lbl]) => {
   const b = document.createElement("button");
-  b.className = "chip"; b.textContent = t; b.setAttribute("aria-pressed", t === tag);
+  b.className = "chip"; b.textContent = lbl; b.setAttribute("aria-pressed", t === tag);
   b.onclick = () => { tag = t; document.querySelectorAll(".chip").forEach(c => c.setAttribute("aria-pressed", c === b)); load(); };
   $("tags").appendChild(b);
 });
@@ -234,7 +237,7 @@ async function refreshFavs(id) {
 
 function exploreStatus() {
   const cc = $("country").value;
-  statusEl.textContent = stations.length ? `${stations.length} stasjonar · ${tag}${cc ? " · " + $("country").selectedOptions[0].textContent : ""}` : "Ingen stasjonar her. Prøv ein annan sjanger eller eit anna land.";
+  statusEl.textContent = stations.length ? `${stations.length} stasjonar · ${label(tag)}${cc ? " · " + $("country").selectedOptions[0].textContent : ""}` : "Ingen stasjonar her. Prøv ein annan sjanger eller eit anna land.";
 }
 
 function showExplore() {
