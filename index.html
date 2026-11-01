@@ -5,143 +5,299 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Frode sin Sandkasse</title>
     <style>
+        :root {
+            --gron: #2e7d32;
+            --gron-mork: #1b5e20;
+            --lenke: #0066cc;
+            --grå: #666;
+            --linje: #e3e3e3;
+        }
+        * { box-sizing: border-box; }
         body {
             background-color: powderblue;
             font-family: Arial, sans-serif;
             color: #333;
             margin: 0;
+        }
+
+        /* Grøn tittellinje */
+        header {
+            background: var(--gron);
+            color: white;
+            padding: 18px 16px 14px;
+        }
+        .innhald { max-width: 1000px; margin: 0 auto; }
+        header h1 { margin: 0; font-size: 26px; }
+        header p { margin: 4px 0 12px; opacity: .9; font-size: 15px; }
+        #sok {
+            width: 100%;
+            max-width: 420px;
+            padding: 9px 12px;
+            font-size: 15px;
+            border: none;
+            border-radius: 6px;
+        }
+        nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 12px;
+        }
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-size: 13px;
+            padding: 4px 10px;
+            border: 1px solid rgba(255,255,255,.5);
+            border-radius: 14px;
+        }
+        nav a:hover { background: var(--gron-mork); }
+
+        main {
             padding: 20px 16px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 16px;
+            align-items: start;
         }
-        .container {
-            max-width: 640px;
-            margin: 0 auto;
-            background-color: white;
-            padding: 20px 24px;
+        section {
+            background: white;
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        h1 {
-            margin: 0 0 4px;
-        }
-        .intro {
-            color: #666;
-            margin: 0 0 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,.1);
+            padding: 14px 18px 8px;
         }
         h2 {
-            font-size: 18px;
-            margin: 20px 0 8px;
-            padding-bottom: 4px;
-            border-bottom: 1px solid #ddd;
+            font-size: 17px;
+            margin: 0 0 6px;
+            padding-bottom: 6px;
+            border-bottom: 2px solid var(--gron);
         }
-        ul {
-            list-style: none;
-            margin: 0;
-            padding: 0;
-        }
-        li {
-            margin: 0;
-        }
-        li a {
-            display: block;
-            padding: 8px 0;
-            color: #0066cc;
+        ul { list-style: none; margin: 0; padding: 0; }
+        li { padding: 7px 0; border-bottom: 1px solid var(--linje); }
+        li:last-child { border-bottom: none; }
+        li > a, .tittel {
+            color: var(--lenke);
             text-decoration: none;
+            font-weight: bold;
+            font-size: 15px;
         }
-        li a:hover {
-            text-decoration: underline;
-        }
-        li span {
-            color: #666;
-            font-size: 14px;
-        }
-        footer {
-            margin-top: 24px;
+        .tittel { color: #333; }
+        li > a:hover { text-decoration: underline; }
+        .forklaring {
+            display: block;
+            color: var(--grå);
             font-size: 13px;
-            color: #888;
+            margin-top: 2px;
+            line-height: 1.35;
         }
+        .utgaver { display: inline-flex; gap: 4px; margin-left: 6px; vertical-align: middle; }
+        .utgaver a {
+            font-size: 12px;
+            font-weight: bold;
+            color: var(--gron-mork);
+            text-decoration: none;
+            border: 1px solid var(--gron);
+            border-radius: 4px;
+            padding: 1px 7px;
+        }
+        .utgaver a:hover { background: var(--gron); color: white; }
+        .merke {
+            font-size: 11px;
+            background: #fff3c4;
+            color: #7a5b00;
+            border-radius: 4px;
+            padding: 1px 5px;
+            margin-left: 4px;
+            vertical-align: middle;
+        }
+        h3 {
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            color: var(--grå);
+            margin: 10px 0 2px;
+        }
+        #ingen { display: none; grid-column: 1 / -1; text-align: center; color: #333; }
+        footer {
+            text-align: center;
+            font-size: 13px;
+            color: #446;
+            padding: 0 16px 24px;
+        }
+        .skjult { display: none !important; }
     </style>
 </head>
 <body>
-<div class="container">
-    <h1>Frode sin Sandkasse</h1>
-    <p class="intro">IT, programmering og litt leik. Her samlar eg ting eg lagar – ofte til undervisninga på Stord vgs.</p>
 
-    <h2>Spel</h2>
-    <ul>
-        <li><a href="https://claude.ai/public/artifacts/727a28f1-d76a-4e1f-bcc2-cfef1f28949e">MineSweeper Stord <span>– Oppdrag frå 1940, sveip miner rundt Stord</span></a></li>
-        <li><a href="snake3d.html">IM-Stord 3D Snake <span>– slangen kryp gjennom fem kjellarrom fram til alle edderkoppars mor</span></a></li>
-        <li><a href="fagdactle.html">FAGDACTLE <span>– gjett den sladda IT-artikkelen frå norsk Wikipedia</span></a></li>
-        <li><a href="plimko.html">Plinko <span>– klassisk, vel innsats sjølv</span></a></li>
-        <li><a href="plimko2.html">Plinko 2 <span>– kor lenge held pengane?</span></a></li>
-        <li><a href="plimko3.html">Plinko 3 <span>– pass deg for tjuven! (pausekonk for 2ITKA)</span></a></li>
-        <li><a href="piano.html">Piano <span>– spel med mus, fingrar eller tastatur</span></a></li>
-        <li><a href="piano2.html">Piano 2 <span>– spel inn, lagre og del låtar</span></a></li>
-        <li><a href="piano3.html">Piano 3 <span>– fallande notar: treff tonane i rett tid og jakt rekord</span></a></li>
-        <li><a href="piano4.html">Piano 4 <span>– fallande notar med felles toppliste for klassen</span></a></li>
-    </ul>
+<header>
+    <div class="innhald">
+        <h1>Frode sin Sandkasse</h1>
+        <p>IT, programmering og litt leik. Her samlar eg ting eg lagar – ofte til undervisninga på Stord vgs.</p>
+        <input id="sok" type="search" placeholder="Søk, t.d. «passord» eller «piano» …" aria-label="Søk på sida">
+        <nav>
+            <a href="#spel">Spel</a>
+            <a href="#laering">Læring</a>
+            <a href="#krypto">Kryptografi</a>
+            <a href="#innlogging">Innlogging og tillit</a>
+            <a href="#verktoy">Verktøy</a>
+            <a href="#anna">Programvare og lyd</a>
+        </nav>
+    </div>
+</header>
 
-    <h2>Læring</h2>
-    <ul>
-        <li><a href="mek.htm">Mekaniske prinsipp <span>– vektstang og talje, interaktivt med utrekningar</span></a></li>
-        <li><a href="oppstart.html">Oppstart på skulenettet <span>– kva skjer når ei BYOD-maskin med Windows blir slått på, med animasjon</span></a></li>
-        <li><a href="qam.html">QAM-labben <span>– korleis Wi-Fi brukar imaginære tal til å sende bit, med støy</span></a></li>
-        <li><a href="ping.html">Ping til verda <span>– ekte ping og traceroute til andre sida av jorda, med kart, DNS og AS-nummer</span></a></li>
-        <li><a href="imstord/">VM i prompting <span>– seks elevgrupper lagar nettsider med KI om IP, 2FA, DNS og PowerShell</span></a></li>
-        <li><a href="https://learningcontent.cisco.com/games/binary/index.html">Cisco Binary Game <span>– øv på å rekne mellom binært og desimalt (Cisco)</span></a></li>
-    </ul>
+<main class="innhald">
 
-    <h2>Kryptografi</h2>
-    <ul>
-        <li><a href="rot13.html">ROT-chiffer <span>– flytt bokstavar, sjå kvifor ROT13 er spesielt, og knekk koden</span></a></li>
-        <li><a href="hash.html">Hashfunksjonar <span>– MD5, SHA-1, SHA-256 og SHA-512, skredeffekt, salt og filsjekk</span></a></li>
-        <li><a href="symmetrisk.html">Symmetrisk kryptering <span>– AES med passord: same nøkkel låser og låser opp</span></a></li>
-        <li><a href="asymmetrisk.html">Asymmetrisk kryptering <span>– RSA med offentleg og privat nøkkel, signatur og leike-RSA</span></a></li>
-        <li><a href="krypteringsknappen.html">Krypteringsknappen <span>– test deg sjølv og ta knappen i bronse, sølv og gull</span></a></li>
-    </ul>
+    <section id="spel">
+        <h2>Spel</h2>
+        <ul>
+            <li><a href="https://claude.ai/public/artifacts/727a28f1-d76a-4e1f-bcc2-cfef1f28949e">MineSweeper Stord</a>
+                <span class="forklaring">Oppdrag frå 1940 – sveip miner rundt Stord</span></li>
+            <li><a href="snake3d.html">IM-Stord 3D Snake</a>
+                <span class="forklaring">Slangen kryp gjennom fem kjellarrom fram til alle edderkoppars mor</span></li>
+            <li><a href="fagdactle.html">FAGDACTLE</a>
+                <span class="forklaring">Gjett den sladda IT-artikkelen frå norsk Wikipedia</span></li>
+            <li><span class="tittel">Plinko</span>
+                <span class="utgaver">
+                    <a href="plimko.html" title="Klassisk, vel innsats sjølv">1</a>
+                    <a href="plimko2.html" title="Kor lenge held pengane?">2</a>
+                    <a href="plimko3.html" title="Pass deg for tjuven!">3</a>
+                </span>
+                <span class="forklaring">1: klassisk · 2: kor lenge held pengane? · 3: pass deg for tjuven! (pausekonk for 2ITKA)</span></li>
+            <li><span class="tittel">Piano</span>
+                <span class="utgaver">
+                    <a href="piano.html" title="Spel med mus, fingrar eller tastatur">1</a>
+                    <a href="piano2.html" title="Spel inn, lagre og del låtar">2</a>
+                    <a href="piano3.html" title="Fallande notar">3</a>
+                    <a href="piano4.html" title="Fallande notar med toppliste">4</a>
+                </span>
+                <span class="forklaring">1: spel fritt · 2: spel inn og del låtar · 3: fallande notar · 4: fallande notar med felles toppliste for klassen</span></li>
+        </ul>
+    </section>
 
-    <h2>Innlogging og tillit</h2>
-    <ul>
-        <li><a href="passord.html">Passord og passordknekking <span>– kor lenge held passordet ditt, og eit ekte brute force-angrep</span></a></li>
-        <li><a href="totp.html">Tofaktor med kodeapp <span>– skann QR-koden med mobilen og sjå korleis koden blir rekna ut</span></a></li>
-        <li><a href="passkeys.html">Passkeys <span>– innlogging utan passord, og kvifor phishing ikkje verkar</span></a></li>
-        <li><a href="tpm.html">TPM-brikka <span>– målt oppstart, BitLocker og gjenopprettingsskjermen</span></a></li>
-        <li><a href="diffie-hellman.html">Diffie-Hellman <span>– bli einige om ein hemmeleg nøkkel med fargeblanding og tal</span></a></li>
-        <li><a href="sertifikat.html">Sertifikat og HTTPS <span>– tillitskjeda, hengelåsen og feilmeldingane i nettlesaren</span></a></li>
-        <li><a href="innloggingsknappen.html">Innloggingsknappen <span>– test deg sjølv og ta knappen i bronse, sølv og gull</span></a></li>
-    </ul>
+    <section id="laering">
+        <h2>Læring</h2>
+        <ul>
+            <li><a href="oppstart.html">Oppstart på skulenettet</a>
+                <span class="forklaring">Kva skjer når ei BYOD-maskin med Windows blir slått på – med animasjon</span></li>
+            <li><a href="ping.html">Ping til verda</a>
+                <span class="forklaring">Ekte ping og traceroute til andre sida av jorda, med kart, DNS og AS-nummer</span></li>
+            <li><a href="qam.html">QAM-labben</a>
+                <span class="forklaring">Korleis Wi-Fi brukar imaginære tal til å sende bit, med støy</span></li>
+            <li><a href="mek.htm">Mekaniske prinsipp</a>
+                <span class="forklaring">Vektstang og talje, interaktivt med utrekningar</span></li>
+            <li><a href="imstord/">VM i prompting</a>
+                <span class="forklaring">Seks elevgrupper lagar nettsider med KI om IP, 2FA, DNS og PowerShell</span></li>
+            <li><a href="https://learningcontent.cisco.com/games/binary/index.html">Cisco Binary Game</a>
+                <span class="forklaring">Øv på å rekne mellom binært og desimalt (ekstern, Cisco)</span></li>
+        </ul>
+    </section>
 
-    <h2>Verktøy</h2>
-    <ul>
-        <li><a href="enkelbod.html">Enkelbod <span>– teikn utebod eller utedo, få PDF og materialliste</span></a></li>
-        <li><a href="svartkvitt.html">Svart-kvitt <span>– gjer fargebilete om til gråtonar, terskel eller dithering, og sjå utrekninga per piksel</span></a></li>
-        <li><a href="radio.html">Indieradio <span>– lytt på små og sjølvstendige radiostasjonar frå heile verda, no òg klassisk</span></a></li>
-        <li><a href="arkiv.html">Stord i arkivet <span>– bilete, aviser og radioklipp frå Nasjonalbiblioteket om lokale hendingar</span></a></li>
-    </ul>
+    <section id="krypto">
+        <h2>Kryptografi</h2>
+        <ul>
+            <li><a href="rot13.html">ROT-chiffer</a>
+                <span class="forklaring">Flytt bokstavar, sjå kvifor ROT13 er spesielt, og knekk koden</span></li>
+            <li><a href="hash.html">Hashfunksjonar</a>
+                <span class="forklaring">MD5, SHA-1, SHA-256 og SHA-512, skredeffekt, salt og filsjekk</span></li>
+            <li><a href="symmetrisk.html">Symmetrisk kryptering</a>
+                <span class="forklaring">AES med passord: same nøkkel låser og låser opp</span></li>
+            <li><a href="asymmetrisk.html">Asymmetrisk kryptering</a>
+                <span class="forklaring">RSA med offentleg og privat nøkkel, signatur og leike-RSA</span></li>
+            <li><a href="krypteringsknappen.html">Krypteringsknappen</a><span class="merke">Test</span>
+                <span class="forklaring">Test deg sjølv og ta knappen i bronse, sølv og gull</span></li>
+        </ul>
+    </section>
 
-    <h2>Programvare</h2>
-    <ul>
-        <li><a href="https://github.com/Frodolini/Froditor">Froditor <span>– enkel tekstredigerar i Notepad-stil for Linux (GitHub)</span></a></li>
-        <li><a href="https://github.com/Frodolini/Froditor-Android">Froditor Android <span>– notatapp for Android (GitHub)</span></a></li>
-    </ul>
+    <section id="innlogging">
+        <h2>Innlogging og tillit</h2>
+        <ul>
+            <li><a href="passord.html">Passord og passordknekking</a>
+                <span class="forklaring">Kor lenge held passordet ditt, og eit ekte brute force-angrep</span></li>
+            <li><a href="totp.html">Tofaktor med kodeapp</a>
+                <span class="forklaring">Skann QR-koden med mobilen og sjå korleis koden blir rekna ut</span></li>
+            <li><a href="passkeys.html">Passkeys</a>
+                <span class="forklaring">Innlogging utan passord, og kvifor phishing ikkje verkar</span></li>
+            <li><a href="diffie-hellman.html">Diffie-Hellman</a>
+                <span class="forklaring">Bli einige om ein hemmeleg nøkkel med fargeblanding og tal</span></li>
+            <li><a href="sertifikat.html">Sertifikat og HTTPS</a>
+                <span class="forklaring">Tillitskjeda, hengelåsen og feilmeldingane i nettlesaren</span></li>
+            <li><a href="tpm.html">TPM-brikka</a>
+                <span class="forklaring">Målt oppstart, BitLocker og gjenopprettingsskjermen</span></li>
+            <li><a href="innloggingsknappen.html">Innloggingsknappen</a><span class="merke">Test</span>
+                <span class="forklaring">Test deg sjølv og ta knappen i bronse, sølv og gull</span></li>
+        </ul>
+    </section>
 
-    <h2>Podcast</h2>
-    <ul>
-        <li><a href="pod1.html">Rente på tvers <span>– amerikanske 10- og 30-års statsobligasjonar (3 min)</span></a></li>
-        <li><a href="pod2.html">Skulepraten <span>– om Stord vidaregåande skule (2 min)</span></a></li>
-    </ul>
+    <section id="verktoy">
+        <h2>Verktøy</h2>
+        <ul>
+            <li><a href="radio.html">Indieradio</a>
+                <span class="forklaring">Små og sjølvstendige radiostasjonar frå heile verda, no òg klassisk</span></li>
+            <li><a href="arkiv.html">Stord i arkivet</a>
+                <span class="forklaring">Bilete, aviser og radioklipp frå Nasjonalbiblioteket om lokale hendingar</span></li>
+            <li><a href="svartkvitt.html">Svart-kvitt</a>
+                <span class="forklaring">Gjer fargebilete om til gråtonar, terskel eller dithering – sjå utrekninga per piksel</span></li>
+            <li><a href="enkelbod.html">Enkelbod</a>
+                <span class="forklaring">Teikn utebod eller utedo, få PDF og materialliste</span></li>
+        </ul>
+    </section>
 
-    <h2>Musikk</h2>
-    <ul>
-        <li><a href="musikk/fjordlys.pdf">Fjordlys – notar <span>– nokturne for flygel, D-moll med dorisk farge (PDF)</span></a></li>
-        <li><a href="musikk/fjordlys.mp3">Fjordlys – lydskisse <span>– høyr korleis stykket går (1 min, MP3)</span></a></li>
-    </ul>
+    <section id="anna">
+        <h2>Programvare og lyd</h2>
+        <h3>Programvare (GitHub)</h3>
+        <ul>
+            <li><a href="https://github.com/Frodolini/Froditor">Froditor</a>
+                <span class="forklaring">Enkel tekstredigerar i Notepad-stil for Linux</span></li>
+            <li><a href="https://github.com/Frodolini/Froditor-Android">Froditor Android</a>
+                <span class="forklaring">Notatapp for Android</span></li>
+        </ul>
+        <h3>Podcast</h3>
+        <ul>
+            <li><a href="pod1.html">Rente på tvers</a>
+                <span class="forklaring">Amerikanske 10- og 30-års statsobligasjonar (3 min)</span></li>
+            <li><a href="pod2.html">Skulepraten</a>
+                <span class="forklaring">Om Stord vidaregåande skule (2 min)</span></li>
+        </ul>
+        <h3>Musikk</h3>
+        <ul>
+            <li><span class="tittel">Fjordlys</span>
+                <span class="utgaver">
+                    <a href="musikk/fjordlys.pdf">Notar</a>
+                    <a href="musikk/fjordlys.mp3">Lyd</a>
+                </span>
+                <span class="forklaring">Nokturne for flygel, D-moll med dorisk farge (PDF og 1 min MP3)</span></li>
+        </ul>
+    </section>
 
-    <h2>Lenker</h2>
-    <ul>
-        <li><a href="https://www.stord.vgs.no">Stord vidaregåande skule</a></li>
-    </ul>
+    <p id="ingen">Fann ingenting som passa søket.</p>
+</main>
 
-    <footer>Sist oppdatert: 01.11.2026</footer>
-</div>
+<footer>
+    <a href="https://www.stord.vgs.no">Stord vidaregåande skule</a> · Sist oppdatert: 01.11.2026
+</footer>
+
+<script>
+    const sok = document.getElementById('sok');
+    sok.addEventListener('input', () => {
+        const ord = sok.value.trim().toLowerCase();
+        let treff = 0;
+        document.querySelectorAll('main section').forEach(seksjon => {
+            let synlege = 0;
+            seksjon.querySelectorAll('li').forEach(li => {
+                const passar = !ord || li.textContent.toLowerCase().includes(ord)
+                    || seksjon.querySelector('h2').textContent.toLowerCase().includes(ord);
+                li.classList.toggle('skjult', !passar);
+                if (passar) synlege++;
+            });
+            seksjon.querySelectorAll('h3').forEach(h3 => {
+                const liste = h3.nextElementSibling;
+                h3.classList.toggle('skjult', !liste.querySelector('li:not(.skjult)'));
+            });
+            seksjon.classList.toggle('skjult', synlege === 0);
+            treff += synlege;
+        });
+        document.getElementById('ingen').style.display = treff ? 'none' : 'block';
+    });
+</script>
 </body>
 </html>
