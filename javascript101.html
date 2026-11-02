@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="nn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JavaScript 101</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-darker.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
+<!-- Kode 101 – JavaScript. Bygd på felles mal for Kode 101-sidene. -->
+<style>
+:root {
+    --gron: #2e7d32;
+    --gron-mork: #1b5e20;
+    --gron-lys: #e8f5e9;
+    --bg: #eef3ef;
+    --kort: #ffffff;
+    --tekst: #24302a;
+    --grå: #5f6b64;
+    --linje: #dfe6e1;
+    --lenke: #0066cc;
+    --gul: #fff6d6;
+    --gul-kant: #e8c547;
+    --kode-bg: #f4f6f5;
+    --font: system-ui, "Segoe UI", Arial, sans-serif;
+    --mono: Consolas, "Cascadia Mono", "Cascadia Code", Menlo, monospace;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body { margin: 0; background: var(--bg); color: var(--tekst); font-family: var(--font); font-size: 15px; display: flex; flex-direction: column; }
+
+/* ---------- Grøn tittellinje ---------- */
+header.topp { background: var(--gron); color: #fff; padding: 10px 16px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; border-bottom: 3px solid var(--gron-mork); }
+header.topp .tilbake { color: #fff; text-decoration: none; font-size: 14px; padding: 4px 10px; border: 1px solid rgba(255,255,255,.5); border-radius: 14px; white-space: nowrap; }
+header.topp .tilbake:hover { background: var(--gron-mork); }
+header.topp .titlar { flex: 1 1 260px; min-width: 0; }
+header.topp h1 { margin: 0; font-size: 21px; line-height: 1.2; }
+header.topp .under { margin: 2px 0 0; font-size: 13px; opacity: .9; }
+header.topp .hogre { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.framdrift { font-size: 13px; min-width: 130px; }
+.framdrift .linje { height: 6px; background: rgba(255,255,255,.3); border-radius: 3px; margin-top: 4px; overflow: hidden; }
+.framdrift .linje div { height: 100%; width: 0; background: #fff; transition: width .4s; }
+header.topp button { background: transparent; color: #fff; border: 1px solid rgba(255,255,255,.6); border-radius: 6px; padding: 6px 12px; font: inherit; font-size: 13px; cursor: pointer; }
+header.topp button:hover { background: var(--gron-mork); }
+
+/* ---------- To kolonnar ---------- */
+main.oppsett { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(320px, 40%) 1fr; gap: 14px; padding: 14px; }
+.kort { background: var(--kort); border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,.1); }
+#leksjonspanel { overflow-y: auto; min-height: 0; padding: 0; display: flex; flex-direction: column; }
+#sim { min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
+@media (max-width: 900px) {
+    body { height: auto; display: block; }
+    main.oppsett { display: flex; flex-direction: column; padding: 10px; }
+    #leksjonspanel { overflow: visible; }
+    #sim { height: 78vh; min-height: 460px; }
+}
+
+/* ---------- Leksjonsliste ---------- */
+#leksjonsliste { list-style: none; margin: 0; padding: 8px; border-bottom: 1px solid var(--linje); display: flex; flex-direction: column; gap: 2px; }
+#leksjonsliste li button { width: 100%; text-align: left; background: none; border: none; font: inherit; font-size: 14px; padding: 5px 8px; border-radius: 6px; cursor: pointer; display: flex; gap: 8px; align-items: baseline; color: var(--tekst); }
+#leksjonsliste li button:hover { background: var(--gron-lys); }
+#leksjonsliste li.aktiv button { background: var(--gron); color: #fff; }
+#leksjonsliste .status { width: 1.2em; text-align: center; flex: none; }
+#leksjonsliste .sirkel { display: inline-block; width: 11px; height: 11px; border-radius: 50%; border: 2px solid currentColor; vertical-align: -1px; opacity: .75; }
+#leksjonsliste .sirkel.halv { background: linear-gradient(90deg, currentColor 50%, transparent 50%); opacity: 1; }
+@media (max-width: 600px) { #leksjon .eksempel pre { padding-right: 12px; padding-top: 34px; } }
+#leksjonsliste .nr { color: var(--grå); width: 1.6em; flex: none; }
+#leksjonsliste li.aktiv .nr { color: #dfeee0; }
+#leksjonsliste .tal { margin-left: auto; font-size: 12px; color: var(--grå); }
+#leksjonsliste li.aktiv .tal { color: #dfeee0; }
+#leksjonsliste .ferdig .status { color: var(--gron); }
+#leksjonsliste li.aktiv.ferdig .status { color: #fff; }
+
+/* ---------- Leksjonsinnhald ---------- */
+#leksjon { padding: 14px 18px 18px; line-height: 1.5; }
+#leksjon h2 { font-size: 20px; margin: 0 0 4px; padding-bottom: 6px; border-bottom: 2px solid var(--gron); }
+#leksjon .laerer { color: var(--grå); font-size: 14px; margin: 6px 0 12px; }
+#leksjon .laerer b { color: var(--gron-mork); }
+#leksjon p { margin: 8px 0; }
+#leksjon code { font-family: var(--mono); background: var(--kode-bg); padding: 1px 4px; border-radius: 3px; font-size: 13.5px; }
+#leksjon h3 { font-size: 15px; margin: 18px 0 6px; color: var(--gron-mork); }
+.eksempel { position: relative; margin: 8px 0 12px; }
+.eksempel pre { margin: 0; background: #1e1e1e; color: #e6e6e6; font-family: var(--mono); font-size: 13.5px; padding: 10px 12px; padding-right: 70px; border-radius: 6px; overflow-x: auto; line-height: 1.4; }
+.eksempel .prov { position: absolute; top: 6px; right: 6px; background: var(--gron); color: #fff; border: none; border-radius: 4px; padding: 3px 9px; font: inherit; font-size: 12.5px; cursor: pointer; }
+.eksempel .prov:hover { background: var(--gron-mork); }
+.tips { background: var(--gul); border-left: 4px solid var(--gul-kant); padding: 8px 12px; border-radius: 4px; margin: 10px 0; }
+table.juks { border-collapse: collapse; width: 100%; font-size: 13.5px; margin: 8px 0; }
+table.juks td, table.juks th { border-bottom: 1px solid var(--linje); padding: 4px 6px; text-align: left; vertical-align: top; }
+table.juks td:first-child { font-family: var(--mono); white-space: nowrap; }
+
+/* ---------- Oppgåver ---------- */
+.oppgaver { list-style: none; padding: 0; margin: 6px 0; display: flex; flex-direction: column; gap: 8px; }
+.oppgave { border: 1px solid var(--linje); border-radius: 8px; padding: 9px 12px; display: grid; grid-template-columns: 1.4em 1fr auto; gap: 4px 8px; align-items: start; transition: background .4s, border-color .4s; }
+.oppgave .ikon { font-size: 16px; line-height: 1.4; color: #9aa59f; }
+.oppgave.loyst { background: var(--gron-lys); border-color: #a5d6a7; }
+.oppgave.loyst .ikon { color: var(--gron); }
+.oppgave .hintknapp { background: #fff; border: 1px solid var(--linje); border-radius: 5px; padding: 2px 9px; font: inherit; font-size: 12.5px; cursor: pointer; color: var(--grå); }
+.oppgave .hintknapp:hover { border-color: var(--gron); color: var(--gron-mork); }
+.oppgave .hint { grid-column: 2 / 4; font-size: 13.5px; background: var(--gul); border-radius: 5px; padding: 5px 9px; }
+.oppgave .bra { grid-column: 2 / 4; color: var(--gron-mork); font-weight: bold; font-size: 14px; animation: bra 2.6s forwards; }
+@keyframes bra { 0% { opacity: 0; } 10% { opacity: 1; } 75% { opacity: 1; } 100% { opacity: 0; } }
+.fullfort { background: var(--gron); color: #fff; border-radius: 8px; padding: 10px 14px; margin: 14px 0 6px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.fullfort button { background: #fff; color: var(--gron-mork); border: none; border-radius: 5px; padding: 5px 12px; font: inherit; font-weight: bold; cursor: pointer; }
+.navknappar { display: flex; justify-content: space-between; margin: 18px 0 8px; }
+.navknappar button { background: #fff; border: 1px solid var(--gron); color: var(--gron-mork); border-radius: 6px; padding: 6px 14px; font: inherit; cursor: pointer; }
+.navknappar button:hover:not(:disabled) { background: var(--gron); color: #fff; }
+.navknappar button:disabled { opacity: .35; cursor: default; }
+details.laerar { margin: 16px 0 0; border: 1px solid var(--linje); border-radius: 8px; padding: 8px 12px; font-size: 14px; background: #fafcfb; }
+details.laerar summary { cursor: pointer; font-weight: bold; color: var(--grå); }
+details.laerar ul { padding-left: 20px; margin: 6px 0; }
+
+/* ---------- Toast ---------- */
+#toast { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%) translateY(20px); background: var(--gron-mork); color: #fff; padding: 9px 16px; border-radius: 8px; box-shadow: 0 4px 14px rgba(0,0,0,.25); opacity: 0; pointer-events: none; transition: opacity .3s, transform .3s; z-index: 50; max-width: 90vw; font-size: 14px; }
+#toast.vis { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ---------- Kursbevis ---------- */
+#bevisbakgrunn { position: fixed; inset: 0; background: rgba(0,0,0,.5); display: none; align-items: center; justify-content: center; z-index: 100; padding: 16px; }
+#bevisbakgrunn.vis { display: flex; }
+#bevisboks { background: #fff; border-radius: 10px; max-width: 640px; width: 100%; max-height: 92vh; overflow-y: auto; padding: 18px; }
+.namnrad { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; font-size: 14px; }
+.namnrad input { flex: 1; min-width: 160px; padding: 7px 10px; font: inherit; border: 1px solid #bbb; border-radius: 6px; }
+#bevis { border: 3px solid var(--gron); border-radius: 6px; padding: 0 22px 18px; position: relative; text-align: center; }
+#bevis .stripe { height: 14px; background: var(--gron); margin: 0 -22px 16px; }
+#bevis h2 { margin: 6px 0 2px; font-size: 26px; color: var(--gron-mork); letter-spacing: .02em; }
+#bevis .bnamn { font-size: 24px; margin: 14px 0 2px; font-family: Georgia, serif; border-bottom: 1px solid #999; display: inline-block; min-width: 60%; padding: 0 10px 2px; }
+#bevis .skule { color: var(--grå); font-size: 14px; }
+#bevis ul { list-style: none; padding: 0; text-align: left; margin: 14px auto 6px; max-width: 420px; font-size: 14px; }
+#bevis ul li { padding: 2px 0; }
+#bevis .sum { font-weight: bold; margin-top: 8px; }
+#bevis .segl { position: absolute; right: 14px; top: 26px; width: 84px; height: 84px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #ffe680, #d4a017 60%, #a87900); color: #5a3d00; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 13px; box-shadow: 0 0 0 4px #f3d36b, 0 2px 6px rgba(0,0,0,.3); transform: rotate(-12deg); }
+#bevis .delvis { position: absolute; right: 14px; top: 30px; border: 2px dashed var(--grå); color: var(--grå); border-radius: 6px; padding: 4px 8px; font-size: 13px; transform: rotate(-8deg); }
+#bevis .manglar { font-size: 13px; color: var(--grå); }
+.bevisknappar { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+.bevisknappar button { padding: 7px 14px; font: inherit; border-radius: 6px; border: 1px solid var(--gron); background: #fff; color: var(--gron-mork); cursor: pointer; }
+.bevisknappar button.hoved { background: var(--gron); color: #fff; }
+@media print {
+    body * { visibility: hidden !important; }
+    #bevis, #bevis * { visibility: visible !important; }
+    #bevisbakgrunn { position: static; background: none; display: block; padding: 0; }
+    #bevisboks { box-shadow: none; max-height: none; overflow: visible; padding: 0; }
+    #bevis { position: absolute; left: 0; top: 0; width: 100%; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+
+/* ---------- Felles 💡-hjelpetekst (bruk i simulatoren) ---------- */
+.hjelp { color: #ffe9a8; font-family: var(--font); font-size: 14px; background: rgba(255, 214, 90, .08); border-left: 3px solid #f2c94c; padding: 4px 10px; margin: 4px 0 6px; white-space: pre-wrap; border-radius: 0 4px 4px 0; }
+
+/* ---------- JavaScript-simulator ---------- */
+#sim { background: #1e1e1e; color: #ddd; }
+.vtittel { display: flex; align-items: center; gap: 8px; padding: 7px 12px; background: #2b2b2b; border-bottom: 1px solid #111; font-size: 13.5px; color: #ddd; }
+.vtittel .jslogo { background: #f7df1e; color: #222; font-weight: bold; font-size: 11px; padding: 2px 4px; border-radius: 3px; font-family: var(--mono); }
+.vtittel .fnamn { font-family: var(--mono); }
+.vtittel .status { margin-left: auto; font-size: 12.5px; color: #9a9a9a; }
+.vtittel .status.koyrer { color: #7ee787; }
+.vtittel .status.feil { color: #ff7b72; }
+.verktoy { display: flex; gap: 8px; padding: 8px 10px; background: #252525; flex-wrap: wrap; align-items: center; }
+.verktoy button { background: #3a3a3a; color: #eee; border: 1px solid #4a4a4a; border-radius: 5px; padding: 6px 12px; font: inherit; font-size: 13.5px; cursor: pointer; }
+.verktoy button:hover:not(:disabled) { background: #474747; }
+.verktoy button:disabled { opacity: .45; cursor: default; }
+.verktoy #knappKoyr { background: var(--gron); border-color: var(--gron-mork); font-weight: bold; }
+.verktoy #knappKoyr:hover:not(:disabled) { background: var(--gron-mork); }
+.verktoy .snarveg { margin-left: auto; font-size: 12px; color: #8a8a8a; }
+#editorboks { flex: 3 1 0; min-height: 140px; overflow: hidden; border-bottom: 3px solid #111; }
+#editorboks .CodeMirror, #editorboks textarea { height: 100%; font-family: var(--mono); font-size: 14.5px; }
+#editorboks textarea { width: 100%; background: #212121; color: #eee; border: none; padding: 8px; resize: none; tab-size: 4; }
+.CodeMirror .feillinje { background: rgba(255, 70, 70, .28) !important; }
+.konsolltittel { font-size: 12px; color: #9a9a9a; padding: 4px 12px; background: #252525; letter-spacing: .05em; }
+#konsoll { flex: 2 1 0; min-height: 120px; overflow-y: auto; padding: 8px 12px; font-family: var(--mono); font-size: 14px; line-height: 1.45; background: #141414; white-space: pre-wrap; word-break: break-word; }
+#konsoll .tom { color: #6a6a6a; }
+#konsoll .info { color: #7a7a7a; font-style: italic; }
+#konsoll .err { color: #ff7b72; }
+#konsoll .warn { color: #f2cc60; }
+#konsoll .alert { border: 1px solid #555; border-radius: 4px; padding: 2px 8px; display: inline-block; background: #262626; }
+#konsoll .inrad { display: flex; align-items: baseline; }
+#konsoll .inrad input { flex: 1; background: transparent; border: none; border-bottom: 1px solid #f7df1e; color: #fff; font: inherit; outline: none; padding: 0 2px; min-width: 60px; }
+#konsoll .inn { color: #f7df1e; }
+@media (max-width: 900px) { .verktoy .snarveg { display: none; } }
+
+</style>
+</head>
+<body>
+
+<header class="topp">
+    <a class="tilbake" href="index.html">← Sandkassa</a>
+    <div class="titlar">
+        <h1>JavaScript 101</h1>
+        <p class="under">Ekte JavaScript i nettlesaren – språket som får nettsider til å leve</p>
+    </div>
+    <div class="hogre">
+        <div class="framdrift" title="Løyste oppgåver">
+            <span id="framdriftTekst">0 / 0 oppgåver</span>
+            <div class="linje"><div id="framdriftLinje"></div></div>
+        </div>
+        <button id="knappBevis" type="button">Kursbevis</button>
+        <button id="knappNullstill" type="button">Start på nytt</button>
+    </div>
+</header>
+
+<main class="oppsett">
+    <aside id="leksjonspanel" class="kort">
+        <ol id="leksjonsliste"></ol>
+        <div id="leksjon"></div>
+    </aside>
+    <section id="sim" class="kort">
+        <div class="vtittel"><span class="jslogo">JS</span><span class="fnamn">main.js</span><span id="status" class="status">Klar</span></div>
+        <div class="verktoy">
+            <button type="button" id="knappKoyr" title="Ctrl+Enter">▶ Køyr</button>
+            <button type="button" id="knappStopp" disabled>■ Stopp</button>
+            <button type="button" id="knappTom">Tøm utdata</button>
+            <button type="button" id="knappTilbake">Tilbakestill kode</button>
+            <span class="snarveg">Ctrl+Enter = køyr</span>
+        </div>
+        <div id="editorboks"><textarea id="kodefelt" spellcheck="false" aria-label="Kode"></textarea></div>
+        <div class="konsolltittel">KONSOLL</div>
+        <div id="konsoll" aria-live="polite"><span class="tom">Utdata frå programmet ditt kjem her.</span></div>
+    </section>
+</main>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<div id="bevisbakgrunn">
+    <div id="bevisboks" role="dialog" aria-modal="true" aria-label="Kursbevis">
+        <div class="namnrad">
+            <label for="bevisNamn">Fornamnet ditt:</label>
+            <input id="bevisNamn" type="text" maxlength="40" placeholder="Skriv fornamnet ditt">
+        </div>
+        <div id="bevis"></div>
+        <div class="bevisknappar">
+            <button type="button" id="bevisLukk">Lukk</button>
+            <button type="button" id="bevisSkriv" class="hoved">Skriv ut</button>
+        </div>
+    </div>
+</div>
+
+<script>
+"use strict";
+/* ================== KURSOPPSETT ================== */
+const KURS = {
+    namn: "JavaScript 101",
+    prefiks: "kode101-js-",
+};
+
+/* Hjelparar for leksjonane (funksjonsdeklarasjonar, så dei finst før LEKSJONAR blir laga) */
+function htmlEsc(s) { return String(s).replace(/[&<>"]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch])); }
+function ex(kode) { return `<div class="eksempel"><pre>${htmlEsc(kode)}</pre></div>`; }
+function rein(k) { return String(k).replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:"'`\\])\/\/.*$/gm, "$1"); }
+function utLinjer(ctx) { return ctx.utdata.split("\n").map(s => s.trim()).filter(Boolean); }
+function harLinje(ctx, verdi) { return utLinjer(ctx).some(l => l === String(verdi) || l.split(/[\s:=,]+/).includes(String(verdi))); }
+function ok(ctx) { return !ctx.feil && !ctx.stoppa; }
+function tal(s) { const n = Number(String(s).replace(",", ".")); return isNaN(n) ? null : n; }
+
+const LEKSJONAR = [
+{ id: "l1", tittel: "Første program", laerer: "å skrive ut tekst med <code>console.log</code> og å skrive kommentarar.",
+  start: `// Mitt første JavaScript-program\nconsole.log("Hei, verda!");\n`,
+  html: `
+<p>JavaScript er språket som får nettsider til å <b>gjere</b> ting: knappar, spel, skjema og animasjonar. Det køyrer i alle nettlesarar – også på mobilen din.</p>
+<p>Eit program er ei liste med instruksjonar som maskinen følgjer, éin etter éin. <code>console.log</code> skriv ut noko i konsollen:</p>
+${ex(`console.log("Hei, verda!");`)}
+<p>Tekst står i hermeteikn, og linja sluttar med semikolon <code>;</code>. Trykk <b>▶ Køyr</b> (eller <b>Ctrl+Enter</b>) for å køyre koden.</p>
+<p>Alt etter <code>//</code> er ein <b>kommentar</b>: ein beskjed til menneske som maskinen hoppar over.</p>
+${ex(`// Dette er ein kommentar\nconsole.log("Linje 1");\nconsole.log("Linje 2");`)}
+<div class="tips">💡 JavaScript skil mellom store og små bokstavar: <code>Console.Log</code> verkar ikkje – det må vere <code>console.log</code>.</div>`,
+  oppgaver: [
+    { id: "l1o1", tekst: "Køyr eit program som skriv <code>Hei, verda!</code>", hint: ["Startkoden gjer dette allereie – trykk ▶ Køyr."],
+      sjekk: c => ok(c) && /console\.log/.test(c.kode) && /hei,?\s*verda/i.test(c.utdata) },
+    { id: "l1o2", tekst: "Skriv ut namnet ditt på éi linje og klassen din (t.d. <code>1IMA</code>) på neste linje.", hint: ["Bruk to <code>console.log</code> etter kvarandre.", "<code>console.log(\"Kari\");</code><br><code>console.log(\"1IMA\");</code>"],
+      sjekk: c => ok(c) && (rein(c.kode).match(/console\.log\s*\(/g) || []).length >= 2 && utLinjer(c).length >= 2 },
+    { id: "l1o3", tekst: "Skriv ein kommentar med <code>//</code> som fortel kva programmet gjer, og køyr programmet.", hint: ["Ein kommentar kan stå på eiga linje: <code>// Programmet helsar</code>"],
+      sjekk: c => ok(c) && /(^|\s)\/\/\s*\S/.test(c.kode) && c.utdata.trim() !== "" },
+  ]},
+
+{ id: "l2", tittel: "Variablar og rekning", laerer: "å lagre verdiar i variablar med <code>let</code> og <code>const</code>, rekne med <code>+ - * /</code> og finne typen med <code>typeof</code>.",
+  start: `let alder = 17;\nconsole.log(alder);\n`,
+  html: `
+<p>Ein <b>variabel</b> er som ei boks med namn på, der du kan leggje ein verdi. I JavaScript lagar du han med <code>let</code>:</p>
+${ex(`let alder = 17;\nconsole.log("Alder:", alder);\nalder = alder + 1;\nconsole.log("Neste år:", alder);`)}
+<p>Bruk <code>const</code> for verdiar som aldri skal endrast. Prøver du å endre ein <code>const</code>, får du ein feil.</p>
+${ex(`const bitPerByte = 8;\nconsole.log(5 * bitPerByte);\nconsole.log(7 / 2);\nconsole.log(7 % 2); // rest`)}
+<p>Rekneteikna er <code>+ - * /</code> og <code>%</code> (rest). JavaScript har berre éin talttype: <code>7 / 2</code> blir <code>3.5</code>. Med <code>typeof</code> ser du kva type ein verdi har:</p>
+${ex(`console.log(typeof 17);\nconsole.log(typeof "17");\nconsole.log(typeof true);`)}`,
+  oppgaver: [
+    { id: "l2o1", tekst: "Lag ein variabel <code>alder</code> med <code>let</code>, gi han alderen din og skriv han ut.", hint: ["<code>let alder = 16;</code> og så <code>console.log(alder);</code>"],
+      sjekk: c => ok(c) && /\blet\s+alder\s*=/.test(rein(c.kode)) && /console\.log\s*\([^)]*alder/.test(rein(c.kode)) && /\d/.test(c.utdata) },
+    { id: "l2o2", tekst: "Rekn ut kor mange bit det er i 5 byte (1 byte = 8 bit). Bruk ein variabel og <code>*</code>, og skriv ut svaret.", hint: ["Lag t.d. <code>const bitPerByte = 8;</code>", "<code>console.log(5 * bitPerByte);</code> skal gi 40."],
+      sjekk: c => ok(c) && /\*/.test(rein(c.kode)) && /\b(let|const|var)\b/.test(rein(c.kode)) && !/\b40\b/.test(rein(c.kode)) && harLinje(c, 40) },
+    { id: "l2o3", tekst: "Lag ein <code>const</code> og prøv å gi han ein ny verdi etterpå. Køyr og les feilmeldinga.", hint: ["<code>const pi = 3.14;</code><br><code>pi = 3;</code>", "Her er det meininga at det skal bli feil!"],
+      sjekk: c => c.feiltype === "TypeError" && /constant/i.test(c.feil || "") },
+    { id: "l2o4", tekst: "Bruk <code>typeof</code> til å skrive ut typen til både <code>17</code> og <code>\"17\"</code>.", hint: ["To linjer: <code>console.log(typeof 17);</code> og <code>console.log(typeof \"17\");</code>"],
+      sjekk: c => ok(c) && /typeof/.test(c.kode) && harLinje(c, "number") && harLinje(c, "string") },
+  ]},
+
+{ id: "l3", tittel: "Strengar og malstrengar", laerer: "å setje saman tekst med <code>+</code> og <code>\`...\${}\`</code>, og bruke <code>.length</code> og <code>.toUpperCase()</code>.",
+  start: `let namn = "Kari";\nlet alder = 17;\nconsole.log("Hei, " + namn + "!");\n`,
+  html: `
+<p>Tekst heiter <b>streng</b> (string). Du kan skrive han i <code>"dobbelte"</code> eller <code>'enkle'</code> hermeteikn. Med <code>+</code> set du saman strengar:</p>
+${ex(`let namn = "Kari";\nconsole.log("Hei, " + namn + "!");`)}
+<p>Pass deg: <code>+</code> mellom ein streng og eit tal lagar <b>tekst</b>, ikkje sum. <code>"5" + 3</code> blir <code>"53"</code>!</p>
+${ex(`console.log("5" + 3);\nconsole.log(5 + 3);`)}
+<p>Enklare er ein <b>malstreng</b> (template literal) med <i>baklengs</i> hermeteikn <code>\`</code>. Inni kan du setje variablar og utrekningar med <code>\${ }</code>:</p>
+${ex("let namn = \"Kari\";\nlet alder = 17;\nconsole.log(`${namn} er ${alder} år og blir ${alder + 1} neste år.`);")}
+<p>Strengar har eigenskapar og metodar: <code>.length</code> gir talet på teikn, <code>.toUpperCase()</code> gir store bokstavar.</p>
+${ex(`let ord = "javascript";\nconsole.log(ord.length);\nconsole.log(ord.toUpperCase());`)}
+<div class="tips">💡 Baklengs hermeteikn <code>\`</code> finn du ofte med Shift + tasten til venstre for Backspace (og så mellomrom) på norsk tastatur.</div>`,
+  oppgaver: [
+    { id: "l3o1", tekst: "Skriv ut <code>\"5\" + 3</code> og sjå at svaret blir <code>53</code>, ikkje 8.", hint: ["<code>console.log(\"5\" + 3);</code>"],
+      sjekk: c => ok(c) && /["'`]\d+["'`]\s*\+\s*\d+|\d+\s*\+\s*["'`]\d+["'`]/.test(rein(c.kode)) && /\b53\b|\b35\b/.test(c.utdata) },
+    { id: "l3o2", tekst: "Bruk ein malstreng med <code>\${...}</code> til å skrive ei setning med minst éin variabel.", hint: ["Malstrengen startar og sluttar med <code>\`</code>.", "<code>console.log(\`Eg heiter \${namn}\`);</code>"],
+      sjekk: c => ok(c) && /`[^`]*\$\{[^}]+\}[^`]*`/.test(c.kode) && c.utdata.trim() !== "" && !/\$\{/.test(c.utdata) },
+    { id: "l3o3", tekst: "Skriv ut namnet ditt med STORE bokstavar og kor mange teikn det har.", hint: ["Bruk <code>.toUpperCase()</code> og <code>.length</code>.", "<code>console.log(namn.toUpperCase());</code><br><code>console.log(namn.length);</code>"],
+      sjekk: c => ok(c) && /\.toUpperCase\(\)/.test(c.kode) && /\.length/.test(c.kode) && /[A-ZÆØÅ]{2,}/.test(c.utdata) && /\d/.test(c.utdata) },
+  ]},
+
+{ id: "l4", tittel: "Input med prompt", laerer: "å spørje brukaren med <code>prompt</code> og gjere svaret om til tal med <code>Number</code>.",
+  start: `let namn = prompt("Kva heiter du?");\nconsole.log("Hei, " + namn + "!");\n`,
+  html: `
+<p>Med <code>prompt</code> spør du brukaren om noko. Programmet ventar til brukaren har svart. Her i simulatoren skriv du svaret rett i konsollen og trykkjer Enter.</p>
+${ex(`let namn = prompt("Kva heiter du?");\nconsole.log("Hei, " + namn + "!");`)}
+<p><code>prompt</code> gir deg alltid ein <b>streng</b> – sjølv om brukaren skriv eit tal. Skal du rekne, må du gjere svaret om til tal med <code>Number()</code>:</p>
+${ex(`let a = Number(prompt("Første tal:"));\nlet b = Number(prompt("Andre tal:"));\nconsole.log("Summen er " + (a + b));`)}
+<p>Gløymer du <code>Number</code>, blir <code>"2" + "3"</code> til <code>"23"</code>. Skriv brukaren noko som ikkje er eit tal, får du <code>NaN</code> («Not a Number»).</p>
+<div class="tips">💡 I ein ekte nettlesar kjem <code>prompt</code> som eit lite sprettoppvindauge. Her i simulatoren kjem det i konsollen i staden.</div>`,
+  oppgaver: [
+    { id: "l4o1", tekst: "Spør brukaren om namnet og hels på han/ho. Skriv namnet ditt når programmet spør.", hint: ["Startkoden gjer dette – trykk ▶ Køyr og svar i konsollen."],
+      sjekk: c => ok(c) && /prompt\s*\(/.test(c.kode) && c.input.length >= 1 && c.input[0].trim() !== "" && c.utdata.includes(c.input[0].trim()) },
+    { id: "l4o2", tekst: "Spør om to tal og skriv ut summen. Sjekk at 2 og 3 gir 5 – ikkje 23!", hint: ["Bruk <code>Number(prompt(...))</code> for begge tala.", "<code>let a = Number(prompt(\"Tal 1:\"));</code> – og same for <code>b</code>. Så <code>console.log(a + b);</code>"],
+      sjekk: c => { if (!ok(c) || c.input.length < 2) return false; const a = tal(c.input[0]), b = tal(c.input[1]); return a !== null && b !== null && /Number\s*\(|parseInt|parseFloat|\+\s*prompt/.test(c.kode) && harLinje(c, a + b); } },
+    { id: "l4o3", tekst: "Spør brukaren kor gammal han/ho er, og skriv ut kor gammal personen blir om 10 år.", hint: ["Hugs <code>Number(...)</code> rundt <code>prompt</code>.", "<code>console.log(\"Om 10 år er du \" + (alder + 10));</code>"],
+      sjekk: c => { if (!ok(c) || c.input.length < 1) return false; const a = tal(c.input[c.input.length - 1]); return a !== null && /prompt/.test(c.kode) && /10/.test(rein(c.kode)) && harLinje(c, a + 10); } },
+  ]},
+
+{ id: "l5", tittel: "Vilkår med if", laerer: "å la programmet velje med <code>if</code>, <code>else if</code> og <code>else</code>, og samanlikne med <code>=== &lt; &gt;</code>, <code>&amp;&amp;</code> og <code>||</code>.",
+  start: `let passord = prompt("Passord:");\n\nif (passord === "hemmeleg") {\n    console.log("Velkomen inn!");\n} else {\n    console.log("Feil passord.");\n}\n`,
+  html: `
+<p>Med <code>if</code> kan programmet gjere ulike ting avhengig av eit <b>vilkår</b>. Koden inni <code>{ }</code> blir berre køyrd når vilkåret er sant (<code>true</code>).</p>
+${ex(`let passord = prompt("Passord:");\nif (passord === "hemmeleg") {\n    console.log("Velkomen inn!");\n} else {\n    console.log("Feil passord.");\n}`)}
+<p>Samanlikningar: <code>===</code> (lik), <code>!==</code> (ikkje lik), <code>&lt;</code>, <code>&gt;</code>, <code>&lt;=</code>, <code>&gt;=</code>. Bruk <b>tre</b> likskapsteikn – eitt <code>=</code> betyr «set verdien».</p>
+${ex(`let alder = Number(prompt("Alder:"));\nif (alder < 13) {\n    console.log("Barn");\n} else if (alder < 20) {\n    console.log("Tenåring");\n} else {\n    console.log("Vaksen");\n}`)}
+<p>Fleire vilkår set du saman med <code>&amp;&amp;</code> (og) og <code>||</code> (eller):</p>
+${ex(`let temp = 22;\nif (temp > 20 && temp < 30) {\n    console.log("Perfekt badevêr!");\n}`)}`,
+  oppgaver: [
+    { id: "l5o1", tekst: "Lag ein passordsjekk med <code>if</code> og <code>else</code>. Køyr han og prøv både rett og feil passord.", hint: ["Startkoden er ein passordsjekk – byt gjerne passordet.", "Køyr to gonger: éin gong med rett og éin gong med feil passord."],
+      sjekk: (() => { const sett = new Set(); return c => { if (!ok(c) || !/\bif\s*\(/.test(c.kode) || !/\belse\b/.test(c.kode) || !c.input.length) return false; sett.add(c.utdata.trim()); return sett.size >= 2; }; })() },
+    { id: "l5o2", tekst: "Lag eit program med <code>else if</code> som deler inn i minst tre grupper (t.d. alder eller karakter).", hint: ["Sjå det andre eksempelet over.", "<code>if (...) { } else if (...) { } else { }</code>"],
+      sjekk: c => ok(c) && /\belse\s+if\b/.test(rein(c.kode)) && c.utdata.trim() !== "" },
+    { id: "l5o3", tekst: "Bruk <code>&amp;&amp;</code> eller <code>||</code> i eit vilkår, t.d. at alderen må vere mellom 13 og 19.", hint: ["<code>if (alder >= 13 && alder <= 19) { ... }</code>"],
+      sjekk: c => ok(c) && /\bif\s*\([^)]*(&&|\|\|)/.test(rein(c.kode)) && c.utdata.trim() !== "" },
+  ]},
+
+{ id: "l6", tittel: "Løkker", laerer: "å gjenta kode med <code>for</code> og <code>while</code>, og å stoppe ei evig løkke.",
+  start: `for (let i = 1; i <= 5; i++) {\n    console.log(i);\n}\n`,
+  html: `
+<p>Ei <b>løkke</b> gjentek kode. <code>for</code>-løkka har tre delar: startverdi, vilkår og kva som skjer etter kvar runde (<code>i++</code> betyr «auk i med 1»).</p>
+${ex(`for (let i = 1; i <= 5; i++) {\n    console.log("Runde " + i);\n}`)}
+<p><code>while</code> held fram så lenge vilkåret er sant. Fint når du ikkje veit kor mange rundar det blir – som i «gjett talet»:</p>
+${ex(`const hemmeleg = Math.floor(Math.random() * 100) + 1;\nlet gjett = 0;\nwhile (gjett !== hemmeleg) {\n    gjett = Number(prompt("Gjett eit tal (1-100):"));\n    if (gjett < hemmeleg) console.log("For lågt");\n    else if (gjett > hemmeleg) console.log("For høgt");\n}\nconsole.log("Riktig!");`)}
+<p><code>Math.random()</code> gir eit tilfeldig tal mellom 0 og 1, og <code>Math.floor</code> rundar ned.</p>
+<p>Gløymer du å endre vilkåret, får du ei <b>evig løkke</b>. I ein ekte nettlesar kan fana henge seg opp. Her trykkjer du berre <b>■ Stopp</b>.</p>
+${ex(`while (true) {\n    console.log("Hjelp, eg kjem meg ikkje ut!");\n}`)}`,
+  oppgaver: [
+    { id: "l6o1", tekst: "Skriv ut tala frå 1 til 10 med ei <code>for</code>-løkke.", hint: ["Endre vilkåret i startkoden.", "<code>for (let i = 1; i <= 10; i++)</code>"],
+      sjekk: c => { if (!ok(c) || !/\bfor\s*\(/.test(c.kode)) return false; const l = utLinjer(c).join(" "); return /\b1\b[\s\S]*\b5\b[\s\S]*\b10\b/.test(l) && !/\b11\b/.test(l); } },
+    { id: "l6o2", tekst: "Skriv ut 7-gangen (7, 14, 21 … 70) med ei løkke.", hint: ["Gong løkkevariabelen med 7.", "<code>console.log(i * 7);</code> eller <code>console.log(\`\${i} x 7 = \${i * 7}\`);</code>"],
+      sjekk: c => ok(c) && /\b(for|while)\b/.test(c.kode) && !/\b70\b/.test(rein(c.kode)) && harLinje(c, 49) && harLinje(c, 70) },
+    { id: "l6o3", tekst: "Lag «gjett talet» med <code>while</code>, <code>Math.random</code> og <code>prompt</code>, og spel til du vinn.", hint: ["Bruk eksempelet over – trykk «Prøv».", "Gjett 50 først, så halvparten av det som er att kvar gong."],
+      sjekk: c => ok(c) && /\bwhile\b/.test(c.kode) && /Math\.random/.test(c.kode) && c.input.length >= 2 },
+    { id: "l6o4", tekst: "Køyr ei evig løkke og stopp ho med <b>■ Stopp</b>.", hint: ["Bruk det siste eksempelet: <code>while (true) { ... }</code>"],
+      sjekk: c => c.stoppa && /\b(while|for)\b/.test(c.kode) },
+  ]},
+
+{ id: "l7", tittel: "Lister (arrays)", laerer: "å lagre fleire verdiar i ein array, hente ut med indeks, leggje til med <code>push</code> og gå gjennom alle.",
+  start: `let ipar = ["10.120.12.1", "8.8.8.8", "1.1.1.1"];\nconsole.log(ipar[0]);\n`,
+  html: `
+<p>Ein <b>array</b> (liste) lagrar fleire verdiar i éin variabel. Du hentar ut med <b>indeks</b> i hakeparentes – og teljinga startar på <b>0</b>:</p>
+${ex(`let ipar = ["10.120.12.1", "8.8.8.8", "1.1.1.1"];\nconsole.log(ipar[0]);       // første\nconsole.log(ipar.length);   // talet på element`)}
+<p>Med <code>push</code> legg du til nye element bak i lista:</p>
+${ex(`ipar.push("192.168.1.1");\nconsole.log(ipar);`)}
+<p>Med <code>for...of</code> går du gjennom alle elementa, eitt om gongen:</p>
+${ex(`for (const ip of ipar) {\n    console.log("Pingar " + ip);\n}`)}
+<div class="tips">💡 Ein indeks som ikkje finst, gir <code>undefined</code> – ikkje feil. <code>ipar[10]</code> er <code>undefined</code>.</div>`,
+  oppgaver: [
+    { id: "l7o1", tekst: "Lag ein array med minst tre IP-adresser og skriv ut den <b>første</b>.", hint: ["Indeksen til det første elementet er 0.", "<code>console.log(ipar[0]);</code>"],
+      sjekk: c => ok(c) && /\[\s*["'`][^\]]+,[^\]]+,[^\]]+\]/.test(rein(c.kode)) && /\[0\]/.test(rein(c.kode)) && /\d+\.\d+\.\d+\.\d+/.test(c.utdata) },
+    { id: "l7o2", tekst: "Legg til ei ny adresse med <code>push</code> og skriv ut kor mange adresser lista har no.", hint: ["<code>ipar.push(\"192.168.1.1\");</code>", "<code>console.log(ipar.length);</code>"],
+      sjekk: c => ok(c) && /\.push\s*\(/.test(rein(c.kode)) && /\.length/.test(rein(c.kode)) && /\b[4-9]\b/.test(c.utdata) },
+    { id: "l7o3", tekst: "Gå gjennom heile lista med ei løkke og skriv ut kvar adresse på eiga linje.", hint: ["<code>for (const ip of ipar) { console.log(ip); }</code>"],
+      sjekk: c => ok(c) && (/\bfor\s*\(\s*(const|let|var)\s+\w+\s+of\b/.test(c.kode) || /\.forEach\s*\(/.test(c.kode) || /\bfor\s*\([^)]*\.length/.test(c.kode)) && utLinjer(c).filter(l => /\d+\.\d+\.\d+\.\d+/.test(l)).length >= 3 },
+  ]},
+
+{ id: "l8", tittel: "Funksjonar", laerer: "å lage eigne funksjonar med parametrar og <code>return</code>.",
+  start: `function bytesTilKB(bytes) {\n    return bytes / 1024;\n}\n\nconsole.log(bytesTilKB(2048));\n`,
+  html: `
+<p>Ein <b>funksjon</b> er ein bit kode med eit namn, som du kan bruke om att. Han kan ta imot verdiar (<b>parametrar</b>) og gi tilbake eit svar med <code>return</code>:</p>
+${ex(`function bytesTilKB(bytes) {\n    return bytes / 1024;\n}\nconsole.log(bytesTilKB(2048));\nconsole.log(bytesTilKB(5120));`)}
+<p>Ein funksjon kan ha fleire parametrar, skilde med komma:</p>
+${ex(`function areal(breidd, hogd) {\n    return breidd * hogd;\n}\nconsole.log(areal(4, 5));`)}
+<p>Funksjonar kan også gi tilbake <code>true</code> eller <code>false</code> – fint til sjekkar:</p>
+${ex(`function erMyndig(alder) {\n    return alder >= 18;\n}\nconsole.log(erMyndig(17));\nconsole.log(erMyndig(18));`)}
+<div class="tips">💡 Du vil òg sjå «pilfunksjonar»: <code>const dobbel = x => x * 2;</code> Det er ein kortare måte å skrive det same på.</div>`,
+  oppgaver: [
+    { id: "l8o1", tekst: "Køyr <code>bytesTilKB</code> og kall han med eit nytt tal, t.d. <code>bytesTilKB(10240)</code>.", hint: ["Legg til ei ny linje: <code>console.log(bytesTilKB(10240));</code> – svaret er 10."],
+      sjekk: c => ok(c) && /function\s+\w+|=>/.test(c.kode) && /\breturn\b|=>/.test(c.kode) && utLinjer(c).length >= 2 },
+    { id: "l8o2", tekst: "Lag ein funksjon med <b>to</b> parametrar (t.d. <code>areal(breidd, hogd)</code>) som brukar <code>return</code>, og skriv ut svaret.", hint: ["<code>function areal(b, h) { return b * h; }</code>", "<code>console.log(areal(4, 5));</code>"],
+      sjekk: c => ok(c) && /(function\s+\w+\s*\(\s*\w+\s*,\s*\w+\s*\)|\(\s*\w+\s*,\s*\w+\s*\)\s*=>)[\s\S]*/.test(rein(c.kode)) && /\breturn\b|=>\s*[^{]/.test(rein(c.kode)) && /\d/.test(c.utdata) },
+    { id: "l8o3", tekst: "Lag funksjonen <code>sterktPassord(pw)</code> som gir <code>true</code> om passordet har minst 12 teikn. Test han med eit kort og eit langt passord.", hint: ["Bruk <code>pw.length</code>.", "<code>return pw.length >= 12;</code> – og skriv ut <code>sterktPassord(\"abc\")</code> og <code>sterktPassord(\"lang-og-sikker-setning\")</code>."],
+      sjekk: c => ok(c) && /sterktPassord/.test(c.kode) && /\.length/.test(c.kode) && /\breturn\b|=>/.test(c.kode) && harLinje(c, "true") && harLinje(c, "false") },
+  ]},
+
+{ id: "l9", tittel: "Vidare til ekte JavaScript", laerer: "korleis du køyrer JavaScript utan simulatoren – i nettlesaren, i ei HTML-fil og i VS Code.",
+  start: `// Fri leik! Prøv noko eige her.\nconsole.log("Klar for ekte JavaScript!");\n`,
+  html: `
+<p>Gratulerer – no kan du det viktigaste: variablar, input, vilkår, løkker, lister og funksjonar. Her er tre måtar å halde fram på:</p>
+<h3>1. Konsollen i nettlesaren</h3>
+<p>Trykk <b>F12</b> (eller Ctrl+Shift+J) i Chrome eller Edge, og vel fana <b>Console</b>. Der kan du skrive JavaScript direkte – på kva nettside som helst.</p>
+<h3>2. Ei HTML-fil med &lt;script&gt;</h3>
+<p>Lag ei fil <code>index.html</code> i Notisblokk eller VS Code og opne ho i nettlesaren. <code>console.log</code> kjem i F12-konsollen, og <code>prompt</code>/<code>alert</code> kjem som sprettoppvindauge:</p>
+${ex(`<!DOCTYPE html>\n<html>\n<body>\n  <h1>Mitt program</h1>\n  <script>\n    let namn = prompt("Kva heiter du?");\n    alert("Hei, " + namn + "!");\n    document.querySelector("h1").textContent = "Hei, " + namn;\n  <\/script>\n</body>\n</html>`)}
+<p>Med <code>document</code> kan JavaScript endre sjølve nettsida – det er det som gjer JavaScript så nyttig.</p>
+<h3>3. VS Code og Node.js</h3>
+<p>Installer <b>VS Code</b> (code.visualstudio.com) og <b>Node.js</b> (nodejs.org). Lagre koden som <code>main.js</code> og køyr han i terminalen med <code>node main.js</code>. Node.js har ikkje <code>prompt</code> – der les ein input på ein annan måte.</p>
+<h3>Skilnader frå simulatoren</h3>
+<ul>
+<li>Her kjem <code>prompt</code> i konsollen. I nettlesaren kjem han som eit vindauge.</li>
+<li>Her kan du stoppe evige løkker. I ein ekte nettlesar kan fana fryse – lukk ho då.</li>
+<li>Simulatoren har ikkje nettsida (<code>document</code>) – det må du prøve i ei ekte HTML-fil.</li>
+</ul>
+<h3>Jukselapp</h3>
+<table class="juks">
+<tr><td>console.log(x)</td><td>skriv ut</td></tr>
+<tr><td>let / const</td><td>lag variabel / konstant</td></tr>
+<tr><td>\`Hei \${namn}\`</td><td>malstreng</td></tr>
+<tr><td>Number(prompt("?"))</td><td>les inn eit tal</td></tr>
+<tr><td>if (a === b) { } else { }</td><td>vilkår</td></tr>
+<tr><td>for (let i = 0; i &lt; 10; i++) { }</td><td>tel-løkke</td></tr>
+<tr><td>while (vilkår) { }</td><td>løkke så lenge noko er sant</td></tr>
+<tr><td>let liste = [1, 2, 3]</td><td>array</td></tr>
+<tr><td>liste.push(4)</td><td>legg til</td></tr>
+<tr><td>for (const x of liste) { }</td><td>gå gjennom lista</td></tr>
+<tr><td>function f(x) { return x; }</td><td>funksjon</td></tr>
+<tr><td>Math.floor(Math.random() * 6) + 1</td><td>terning (1–6)</td></tr>
+</table>`,
+  oppgaver: [] },
+];
+
+const LAERAR_HTML = `<ul>
+<li><b>Ekte JavaScript:</b> koden til eleven køyrer i nettlesaren sin eigen JavaScript-motor (i ein Web Worker). Feilmeldingane er dei ekte frå nettlesaren, med nynorsk 💡-forklaring under.</li>
+<li><b>Simulert:</b> <code>prompt</code> og <code>alert</code> kjem i konsollen i staden for som sprettoppvindauge. <code>prompt</code> verkar ikkje inne i eigne funksjonar. <code>document</code> og nettsida finst ikkje.</li>
+<li><b>Lagring:</b> framdrift og kode blir berre lagra i nettlesaren til eleven (localStorage). Byter eleven maskin eller nettlesar, startar han/ho på nytt.</li>
+<li><b>I timen:</b> la elevane jobbe i sitt eige tempo, og bruk kursbeviset (Skriv ut / PDF) som dokumentasjon. Leksjon 9 er ein fin overgang til ei ekte HTML-fil.</li>
+</ul>`;
+
+
+
+/* ================== LAGRING ================== */
+const lager = {
+    hent(nokkel, standard) {
+        try { const v = localStorage.getItem(KURS.prefiks + nokkel); return v === null ? standard : JSON.parse(v); }
+        catch (e) { return standard; }
+    },
+    set(nokkel, verdi) { try { localStorage.setItem(KURS.prefiks + nokkel, JSON.stringify(verdi)); } catch (e) {} },
+    slettAlle() {
+        try {
+            const ut = [];
+            for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.startsWith(KURS.prefiks)) ut.push(k); }
+            ut.forEach(k => localStorage.removeItem(k));
+        } catch (e) {}
+    }
+};
+
+/* ================== TILSTAND ================== */
+let loyste = new Set(lager.hent("loyste", []));
+let besokt = new Set(lager.hent("besokt", []));
+let hintNiva = lager.hent("hint", {});
+let aktivIndeks = Math.min(Math.max(0, LEKSJONAR.findIndex(l => l.id === lager.hent("aktiv", LEKSJONAR[0].id))), LEKSJONAR.length - 1);
+const ALLE_OPPGAVER = LEKSJONAR.flatMap(l => l.oppgaver.map(o => ({ ...o, leksjon: l })));
+
+function lagreTilstand() {
+    lager.set("loyste", [...loyste]);
+    lager.set("besokt", [...besokt]);
+    lager.set("hint", hintNiva);
+    lager.set("aktiv", LEKSJONAR[aktivIndeks].id);
+}
+
+function leksjonStatus(l) {
+    const n = l.oppgaver.length, ok = l.oppgaver.filter(o => loyste.has(o.id)).length;
+    if (n === 0) return besokt.has(l.id) ? "ferdig" : "ny";
+    if (ok === n) return "ferdig";
+    if (ok > 0 || besokt.has(l.id)) return "igang";
+    return "ny";
+}
+const STATUSIKON = { ny: '<span class="sirkel"></span>', igang: '<span class="sirkel halv"></span>', ferdig: "✔" };
+
+/* ================== VISING ================== */
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+function oppdaterFramdrift() {
+    const n = ALLE_OPPGAVER.length, ok = ALLE_OPPGAVER.filter(o => loyste.has(o.id)).length;
+    document.getElementById("framdriftTekst").textContent = `${ok} / ${n} oppgåver`;
+    document.getElementById("framdriftLinje").style.width = (n ? 100 * ok / n : 0) + "%";
+}
+
+function teiknListe() {
+    const ol = document.getElementById("leksjonsliste");
+    ol.innerHTML = "";
+    LEKSJONAR.forEach((l, i) => {
+        const st = leksjonStatus(l);
+        const ok = l.oppgaver.filter(o => loyste.has(o.id)).length;
+        const li = document.createElement("li");
+        li.className = (i === aktivIndeks ? "aktiv " : "") + st;
+        li.innerHTML = `<button type="button"><span class="status" title="${st === "ferdig" ? "Ferdig" : st === "igang" ? "I gang" : "Ikkje starta"}">${STATUSIKON[st]}</span><span class="nr">${i + 1}.</span><span>${esc(l.tittel)}</span>${l.oppgaver.length ? `<span class="tal">${ok}/${l.oppgaver.length}</span>` : ""}</button>`;
+        li.querySelector("button").onclick = () => visLeksjon(i);
+        ol.appendChild(li);
+    });
+    oppdaterFramdrift();
+}
+
+function visLeksjon(i, rull = true) {
+    aktivIndeks = i;
+    const l = LEKSJONAR[i];
+    besokt.add(l.id);
+    lagreTilstand();
+    const el = document.getElementById("leksjon");
+    el.innerHTML = `
+        <h2>${i + 1}. ${esc(l.tittel)}</h2>
+        <p class="laerer"><b>Dette lærer du:</b> ${l.laerer}</p>
+        <div class="forklaring">${l.html}</div>
+        ${l.oppgaver.length ? `<h3>Oppgåver</h3><ul class="oppgaver"></ul>` : ""}
+        <div class="fullfortplass"></div>
+        <div class="navknappar">
+            <button type="button" class="forre" ${i === 0 ? "disabled" : ""}>◀ Førre</button>
+            <button type="button" class="neste" ${i === LEKSJONAR.length - 1 ? "disabled" : ""}>Neste ▶</button>
+        </div>
+        <details class="laerar"><summary>For læraren</summary>${LAERAR_HTML}</details>`;
+    el.querySelectorAll(".eksempel").forEach(ex => {
+        const pre = ex.querySelector("pre");
+        const b = document.createElement("button");
+        b.type = "button"; b.className = "prov"; b.textContent = "Prøv";
+        b.title = "Lim inn koden (du køyrer sjølv)";
+        b.onclick = () => { if (typeof simLim === "function") simLim(pre.dataset.kode ?? pre.textContent); };
+        ex.appendChild(b);
+    });
+    const ul = el.querySelector(".oppgaver");
+    if (ul) l.oppgaver.forEach(o => ul.appendChild(lagOppgaveEl(o)));
+    el.querySelector(".forre").onclick = () => visLeksjon(i - 1);
+    el.querySelector(".neste").onclick = () => visLeksjon(i + 1);
+    teiknFullfort();
+    teiknListe();
+    if (rull) document.getElementById("leksjonspanel").scrollTop = 0;
+    if (typeof simByttLeksjon === "function") simByttLeksjon(l);   // valfri krok (t.d. startkode i editoren)
+}
+
+function lagOppgaveEl(o) {
+    const li = document.createElement("li");
+    li.className = "oppgave" + (loyste.has(o.id) ? " loyst" : "");
+    li.dataset.id = o.id;
+    li.innerHTML = `<span class="ikon">${loyste.has(o.id) ? "✔" : "○"}</span><span class="tekst">${o.tekst}</span>` +
+        (o.hint && o.hint.length ? `<button type="button" class="hintknapp">Hint</button>` : "<span></span>");
+    const vis = () => {
+        li.querySelectorAll(".hint").forEach(h => h.remove());
+        const n = hintNiva[o.id] || 0;
+        for (let k = 0; k < n; k++) {
+            const d = document.createElement("div");
+            d.className = "hint"; d.innerHTML = "💡 " + o.hint[k];
+            li.appendChild(d);
+        }
+        const b = li.querySelector(".hintknapp");
+        if (b) { b.textContent = n === 0 ? "Hint" : n < o.hint.length ? "Meir hjelp" : "Hint"; b.disabled = n >= o.hint.length; b.style.opacity = n >= o.hint.length ? .4 : 1; }
+    };
+    const b = li.querySelector(".hintknapp");
+    if (b) b.onclick = () => { hintNiva[o.id] = Math.min((hintNiva[o.id] || 0) + 1, o.hint.length); lagreTilstand(); vis(); };
+    vis();
+    return li;
+}
+
+function teiknFullfort() {
+    const l = LEKSJONAR[aktivIndeks];
+    const plass = document.querySelector("#leksjon .fullfortplass");
+    if (!plass) return;
+    plass.innerHTML = "";
+    if (l.oppgaver.length && leksjonStatus(l) === "ferdig") {
+        const d = document.createElement("div");
+        d.className = "fullfort";
+        d.innerHTML = `<span>✔ Leksjon fullført!</span>` + (aktivIndeks < LEKSJONAR.length - 1 ? `<button type="button">Neste leksjon ▶</button>` : "");
+        const b = d.querySelector("button");
+        if (b) b.onclick = () => visLeksjon(aktivIndeks + 1);
+        plass.appendChild(d);
+    }
+}
+
+let toastTid = null;
+function toast(tekst) {
+    const t = document.getElementById("toast");
+    t.textContent = tekst; t.classList.add("vis");
+    clearTimeout(toastTid); toastTid = setTimeout(() => t.classList.remove("vis"), 3200);
+}
+
+/* ================== OPPGÅVESJEKK ================== */
+/* Kall etter KVAR kommando/køyring. Sjekkar alle oppgåver i alle leksjonar. */
+function sjekkOppgaver(ctx) {
+    const nye = [];
+    for (const o of ALLE_OPPGAVER) {
+        if (loyste.has(o.id)) continue;
+        let ok = false;
+        try { ok = !!o.sjekk(ctx); } catch (e) { ok = false; }
+        if (ok) { loyste.add(o.id); nye.push(o); }
+    }
+    if (!nye.length) return nye;
+    lagreTilstand();
+    const aktiv = LEKSJONAR[aktivIndeks];
+    for (const o of nye) {
+        const li = document.querySelector(`#leksjon .oppgave[data-id="${o.id}"]`);
+        if (li) {
+            li.classList.add("loyst");
+            li.querySelector(".ikon").textContent = "✔";
+            const bra = document.createElement("div");
+            bra.className = "bra"; bra.textContent = "✔ Bra!";
+            li.appendChild(bra);
+            setTimeout(() => bra.remove(), 2700);
+        }
+    }
+    const andre = nye.filter(o => o.leksjon !== aktiv);
+    if (andre.length) {
+        const o = andre[0];
+        toast(`✔ Bra! Du løyste ei oppgåve i leksjon ${LEKSJONAR.indexOf(o.leksjon) + 1}: ${o.leksjon.tittel}`);
+    }
+    teiknFullfort();
+    teiknListe();
+    return nye;
+}
+
+/* ================== KURSBEVIS ================== */
+function datoTekst(d = new Date()) {
+    return String(d.getDate()).padStart(2, "0") + "." + String(d.getMonth() + 1).padStart(2, "0") + "." + d.getFullYear();
+}
+function hentNamn() { try { return localStorage.getItem("kode101-namn") || ""; } catch (e) { return ""; } }
+function teiknBevis() {
+    const namn = document.getElementById("bevisNamn").value.trim();
+    const n = ALLE_OPPGAVER.length, ok = ALLE_OPPGAVER.filter(o => loyste.has(o.id)).length;
+    const alt = ok === n;
+    const leks = LEKSJONAR.filter(l => l.oppgaver.length);
+    const manglar = leks.filter(l => leksjonStatus(l) !== "ferdig");
+    document.getElementById("bevis").innerHTML = `
+        <div class="stripe"></div>
+        ${alt ? `<div class="segl">Fullført</div>` : `<div class="delvis">Delvis fullført</div>`}
+        <h2>Kursbevis – ${esc(KURS.namn)}</h2>
+        <div class="skule">Stord vidaregåande skule – IM</div>
+        <div class="bnamn">${namn ? esc(namn) : "&nbsp;"}</div>
+        <div class="skule">Dato: ${datoTekst()}</div>
+        <ul>${leks.map((l, i) => {
+            const lok = l.oppgaver.filter(o => loyste.has(o.id)).length;
+            return `<li>${lok === l.oppgaver.length ? "✔" : "○"} ${LEKSJONAR.indexOf(l) + 1}. ${esc(l.tittel)} <span style="color:#888">(${lok}/${l.oppgaver.length})</span></li>`;
+        }).join("")}</ul>
+        <div class="sum">${ok} av ${n} oppgåver</div>
+        ${alt ? "" : `<div class="manglar">Manglar: ${manglar.map(l => esc(l.tittel)).join(", ")}</div>`}`;
+}
+function opneBevis() {
+    document.getElementById("bevisNamn").value = hentNamn();
+    teiknBevis();
+    document.getElementById("bevisbakgrunn").classList.add("vis");
+    document.getElementById("bevisNamn").focus();
+}
+document.getElementById("bevisNamn").addEventListener("input", e => {
+    try { localStorage.setItem("kode101-namn", e.target.value.trim()); } catch (er) {}
+    teiknBevis();
+});
+document.getElementById("knappBevis").onclick = opneBevis;
+document.getElementById("bevisLukk").onclick = () => document.getElementById("bevisbakgrunn").classList.remove("vis");
+document.getElementById("bevisbakgrunn").addEventListener("click", e => { if (e.target.id === "bevisbakgrunn") e.target.classList.remove("vis"); });
+document.getElementById("bevisSkriv").onclick = () => window.print();
+document.addEventListener("keydown", e => { if (e.key === "Escape") document.getElementById("bevisbakgrunn").classList.remove("vis"); });
+
+/* ================== START PÅ NYTT ================== */
+document.getElementById("knappNullstill").onclick = () => {
+    if (!confirm("Vil du starte på nytt? All framdrift på denne sida blir sletta.")) return;
+    lager.slettAlle();
+    location.reload();
+};
+
+/* ================== JAVASCRIPT-SIMULATOR ================== */
+const STARTKODE = Object.fromEntries(LEKSJONAR.map(l => [l.id, l.start || ""]));
+const kodefelt = document.getElementById("kodefelt");
+const konsoll = document.getElementById("konsoll");
+const statusEl = document.getElementById("status");
+const knappKoyr = document.getElementById("knappKoyr"), knappStopp = document.getElementById("knappStopp");
+let cm = null, aktivKodeId = null, feilLinje = null, lagreTid = null;
+
+if (window.CodeMirror) {
+    cm = CodeMirror.fromTextArea(kodefelt, {
+        mode: "javascript", theme: "material-darker", lineNumbers: true, indentUnit: 4, tabSize: 4,
+        indentWithTabs: false, matchBrackets: true, autoCloseBrackets: "()[]{}''\"\"``",
+        extraKeys: {
+            "Ctrl-Enter": () => koyr(), "Cmd-Enter": () => koyr(),
+            "Tab": c => c.somethingSelected() ? c.indentSelection("add") : c.replaceSelection("    "),
+        },
+    });
+    cm.on("change", () => { fjernFeilmerke(); planleggLagring(); });
+} else {
+    kodefelt.addEventListener("keydown", e => {
+        if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); koyr(); }
+        else if (e.key === "Tab") { e.preventDefault(); kodefelt.setRangeText("    ", kodefelt.selectionStart, kodefelt.selectionEnd, "end"); }
+    });
+    kodefelt.addEventListener("input", planleggLagring);
+}
+function hentKode() { return cm ? cm.getValue() : kodefelt.value; }
+function settKode(t) { if (cm) { cm.setValue(t); cm.setCursor(cm.lineCount(), 0); } else kodefelt.value = t; }
+function planleggLagring() { clearTimeout(lagreTid); lagreTid = setTimeout(lagreKode, 300); }
+function lagreKode() { if (aktivKodeId) lager.set("kode-" + aktivKodeId, hentKode()); }
+function fjernFeilmerke() { if (cm && feilLinje !== null) { cm.removeLineClass(feilLinje, "background", "feillinje"); } feilLinje = null; }
+function markerLinje(n) {
+    if (!cm || !(n >= 1 && n <= cm.lineCount())) return;
+    fjernFeilmerke(); feilLinje = n - 1;
+    cm.addLineClass(feilLinje, "background", "feillinje");
+    cm.scrollIntoView({ line: feilLinje, ch: 0 }, 60);
+}
+function simLim(t) { settKode(t); lagreKode(); if (cm) cm.focus(); else kodefelt.focus(); }
+function simByttLeksjon(l) {
+    if (aktivKodeId) lagreKode();
+    aktivKodeId = l.id;
+    settKode(lager.hent("kode-" + l.id, STARTKODE[l.id]));
+    if (cm) cm.clearHistory();
+    fjernFeilmerke();
+}
+document.getElementById("knappTilbake").onclick = () => { settKode(STARTKODE[aktivKodeId] || ""); lagreKode(); };
+document.getElementById("knappTom").onclick = () => { konsoll.innerHTML = '<span class="tom">Utdata frå programmet ditt kjem her.</span>'; };
+knappKoyr.onclick = () => koyr();
+knappStopp.onclick = () => stopp();
+
+/* ---- Konsoll ---- */
+function skriv(tekst, klasse) {
+    const s = document.createElement("span");
+    if (klasse) s.className = klasse;
+    s.textContent = tekst;
+    konsoll.appendChild(s);
+    if (konsoll.textContent.length > 80000) { while (konsoll.childNodes.length > 1 && konsoll.textContent.length > 50000) konsoll.removeChild(konsoll.firstChild); }
+    konsoll.scrollTop = konsoll.scrollHeight;
+    return s;
+}
+function hjelp(tekst) {
+    const d = document.createElement("div");
+    d.className = "hjelp"; d.innerHTML = "💡 " + tekst;
+    konsoll.appendChild(d); konsoll.scrollTop = konsoll.scrollHeight;
+}
+function settStatus(t, k) { statusEl.textContent = t; statusEl.className = "status" + (k ? " " + k : ""); }
+
+/* ---- Koden som køyrer i workeren (preamble på éi linje, så linjenummera stemmer) ---- */
+const PREAMBLE = `
+var __buf = [], __sist = Date.now(), __tal = 0, __hoppa = 0, __svar = null;
+function __flush() { if (__buf.length) { postMessage({ t: "ut", l: __buf, h: __hoppa }); __buf = []; __hoppa = 0; } __sist = Date.now(); }
+function __fmt(v, d, inne) {
+  if (typeof v === "string") return inne ? "'" + v + "'" : v;
+  if (typeof v === "bigint") return v + "n";
+  if (v === null || typeof v !== "object" && typeof v !== "function") return Object.is(v, -0) ? "-0" : String(v);
+  if (typeof v === "function") return "[Function: " + (v.name || "(anonymous)") + "]";
+  if (v instanceof Error) return v.name + ": " + v.message;
+  if (v instanceof Date) return v.toISOString();
+  if (Array.isArray(v)) { if (d > 2) return "[Array]"; return v.length ? "[ " + v.map(function (x) { return __fmt(x, d + 1, true); }).join(", ") + " ]" : "[]"; }
+  if (d > 2) return "[Object]";
+  var k = Object.keys(v); return k.length ? "{ " + k.map(function (x) { return x + ": " + __fmt(v[x], d + 1, true); }).join(", ") + " }" : "{}";
+}
+function __ut(k, a) {
+  if (++__tal > 50000000) { __flush(); postMessage({ t: "formykje" }); throw new Error("__formykje"); }
+  __buf.push({ k: k, s: Array.prototype.map.call(a, function (x) { return __fmt(x, 0, false); }).join(" ") });
+  if (__buf.length > 400) { __buf.shift(); __hoppa++; } if (Date.now() - __sist > 40) __flush();
+}
+const console = { log: function () { __ut("log", arguments); }, info: function () { __ut("log", arguments); }, debug: function () { __ut("log", arguments); },
+  warn: function () { __ut("warn", arguments); }, error: function () { __ut("err", arguments); }, clear: function () { __buf = []; postMessage({ t: "clear" }); } };
+function prompt(q) { __flush(); postMessage({ t: "input", q: q === undefined ? "" : String(q) }); return new Promise(function (r) { __svar = r; }); }
+function alert(m) { __flush(); postMessage({ t: "alert", s: m === undefined ? "" : String(m) }); }
+onmessage = function (e) { if (e.data && e.data.t === "svar" && __svar) { var r = __svar; __svar = null; r(e.data.v); } };
+function __ferdig() { __flush(); postMessage({ t: "ferdig" }); }
+function __feil(e) { __flush(); if (e && e.message === "__formykje") return; postMessage({ t: "feil", namn: e && e.name || "Error", melding: e && e.message !== undefined ? String(e.message) : String(e), stack: e && e.stack || "" }); }
+`.replace(/\n\s*/g, " ");
+
+let worker = null, korer = false, kjoring = null;
+
+function koyr() {
+    if (korer) return;
+    const kode = hentKode();
+    lagreKode();
+    fjernFeilmerke();
+    konsoll.innerHTML = "";
+    skriv("▶ main.js\n", "info");
+    kjoring = { kode, utdata: [], input: [], feil: null, feiltype: null, stoppa: false, linjer: kode.split("\n").length };
+    const kropp = kode.replace(/(\bawait\s+)?\bprompt\s*\(/g, "await prompt(");
+    const src = PREAMBLE + "(async () => {\n" + kropp + "\n})().then(__ferdig, __feil);";
+    const url = URL.createObjectURL(new Blob([src], { type: "text/javascript" }));
+    worker = new Worker(url);
+    URL.revokeObjectURL(url);
+    korer = true;
+    knappKoyr.disabled = true; knappStopp.disabled = false;
+    settStatus("Køyrer …", "koyrer");
+    worker.onmessage = e => handterMelding(e.data);
+    worker.onerror = e => {
+        e.preventDefault();
+        const melding = String(e.message || "Error").replace(/^Uncaught\s+/, "");
+        const m = melding.match(/^(\w*Error):\s*([\s\S]*)$/);
+        let namn = m ? m[1] : "Error", tekst = m ? m[2] : melding, linje = e.lineno ? e.lineno - 1 : null;
+        // Feil som peikar forbi siste linje kjem av innpakkinga rundt koden: då manglar det ein } eller )
+        if (namn === "SyntaxError" && kjoring && linje > kjoring.linjer) { tekst = "Unexpected end of input"; linje = null; }
+        visFeil(namn, tekst, linje, e.colno);
+    };
+}
+
+function handterMelding(d) {
+    if (!kjoring) return;
+    if (d.t === "ut") {
+        const l = d.l;
+        if (d.h) skriv("… (" + d.h + " linjer hoppa over) …\n", "info");
+        for (const x of l) if (x.k === "log" && kjoring.utdata.length < 20000) kjoring.utdata.push(x.s);
+        let tekst = "", kl = null;
+        for (const x of l) {
+            const k = x.k === "log" ? "" : x.k;
+            if (kl !== null && k !== kl) { skriv(tekst, kl); tekst = ""; }
+            kl = k; tekst += x.s + "\n";
+        }
+        if (tekst) skriv(tekst, kl);
+    } else if (d.t === "clear") {
+        konsoll.innerHTML = "";
+    } else if (d.t === "alert") {
+        skriv(d.s, "alert"); skriv("\n"); kjoring.utdata.push(d.s);
+    } else if (d.t === "input") {
+        visInput(d.q);
+    } else if (d.t === "ferdig") {
+        avslutt("ferdig");
+    } else if (d.t === "formykje") {
+        skriv("\n■ Stoppa: programmet skreiv over 50 millionar linjer.\n", "warn");
+        hjelp("Har du ei evig løkke? Sjekk at vilkåret i <code>while</code>/<code>for</code> blir usant til slutt.");
+        kjoring.stoppa = true; avslutt("stoppa");
+    } else if (d.t === "feil") {
+        let linje = null, kol = null;
+        const m = String(d.stack).match(/blob:[^\s)]*:(\d+):(\d+)/);
+        if (m) { linje = Number(m[1]) - 1; kol = Number(m[2]); }
+        visFeil(d.namn, d.melding, linje, kol);
+    }
+}
+
+function visInput(q) {
+    settStatus("Ventar på svar …", "koyrer");
+    const rad = document.createElement("div");
+    rad.className = "inrad";
+    const s = document.createElement("span"); s.textContent = q ? q + " " : ""; rad.appendChild(s);
+    const inp = document.createElement("input");
+    inp.type = "text"; inp.autocomplete = "off"; inp.spellcheck = false; inp.setAttribute("aria-label", "Svar");
+    rad.appendChild(inp);
+    konsoll.appendChild(rad); konsoll.scrollTop = konsoll.scrollHeight;
+    inp.focus({ preventScroll: true });
+    inp.addEventListener("keydown", e => {
+        if (e.key !== "Enter") return;
+        e.preventDefault();
+        const v = inp.value;
+        const svar = document.createElement("span"); svar.className = "inn"; svar.textContent = v;
+        inp.replaceWith(svar);
+        konsoll.appendChild(document.createTextNode("\n"));
+        if (kjoring) kjoring.input.push(v);
+        settStatus("Køyrer …", "koyrer");
+        if (worker) worker.postMessage({ t: "svar", v });
+    });
+}
+
+function visFeil(namn, melding, linje, kol) {
+    if (!kjoring) return;
+    skriv("Uncaught " + namn + ": " + melding + "\n", "err");
+    if (linje && linje >= 1 && linje <= kjoring.linjer) { skriv("    at main.js:" + linje + (kol ? ":" + kol : "") + "\n", "err"); markerLinje(linje); }
+    hjelp(hjelpFor(namn, melding));
+    kjoring.feil = namn + ": " + melding; kjoring.feiltype = namn;
+    avslutt("feil");
+}
+
+function hjelpFor(namn, m) {
+    let x;
+    if (namn === "SyntaxError") {
+        if (/await is only valid|reserved word/.test(m)) return "I simulatoren kan <code>prompt</code> berre brukast utanfor eigne funksjonar. Hent svaret først, og send verdien inn i funksjonen som parameter.";
+        if (/missing \) after argument list/.test(m)) return "Det manglar ein sluttparentes <code>)</code> – eller eit hermeteikn, komma eller <code>+</code> inni parentesen. Sjå på linja som er raud.";
+        if (/Invalid or unexpected token/.test(m)) return "Ofte manglar eit hermeteikn: tekst må starte og slutte med same hermeteikn, t.d. <code>\"Hei\"</code>. Sjekk òg at du ikkje har kopiert inn «typografiske» hermeteikn.";
+        if (/Unexpected end of input/.test(m)) return "Programmet sluttar før det er ferdig. Oftast manglar ein <code>}</code> eller <code>)</code> – kvar <code>{</code> må ha ein <code>}</code>.";
+        if (/Unexpected token '\}'/.test(m)) return "Det er ein <code>}</code> for mykje, eller noko manglar like før han.";
+        if (/has already been declared/.test(m)) return "Du har laga same variabel to gonger med <code>let</code>/<code>const</code>. Bruk <code>let</code> berre første gongen – etterpå skriv du berre <code>namn = ny verdi</code>.";
+        if (/Unexpected (identifier|string|number)/.test(m)) return "Noko står på feil plass. Ofte manglar eit <code>+</code> mellom tekst og variabel, eit komma, eller eit hermeteikn. Sjå på den raude linja.";
+        if (/Unexpected token 'else'/.test(m)) return "<code>else</code> må kome rett etter <code>}</code> frå <code>if</code>-blokka. Sjekk krøllparentesane.";
+        return "Dette er ein <b>syntaksfeil</b> – ein skrivefeil som gjer at JavaScript ikkje forstår koden. Ingenting blir køyrt. Sjå på den raude linja og linja over.";
+    }
+    if (namn === "ReferenceError") {
+        if (/before initialization/.test(m)) return "Du brukar variabelen før linja der han blir laga med <code>let</code>/<code>const</code>. Flytt den linja høgare opp.";
+        if ((x = m.match(/^(\S+) is not defined/))) {
+            const v = x[1];
+            if (/^Console$/.test(v)) return "JavaScript skil mellom store og små bokstavar: det heiter <code>console.log</code> med liten <code>c</code>.";
+            if (v === "print") return "I JavaScript skriv du ut med <code>console.log(...)</code>. <code>print</code> er Python.";
+            if (v === "input") return "I JavaScript spør du brukaren med <code>prompt(\"...\")</code>. <code>input</code> er Python.";
+            if (v === "document" || v === "window") return "Simulatoren har inga nettside, så <code>" + v + "</code> finst ikkje her. Prøv det i ei ekte HTML-fil (sjå siste leksjon).";
+            return "Variabelen <code>" + htmlEsc(v) + "</code> finst ikkje. Har du laga han med <code>let</code>? Sjekk stavinga – store og små bokstavar er ulike. Skulle det vere tekst, manglar du hermeteikn.";
+        }
+    }
+    if (namn === "TypeError") {
+        if (/Assignment to constant/.test(m)) return "Ein <code>const</code> kan ikkje få ny verdi. Bruk <code>let</code> om verdien skal kunne endrast.";
+        if (/console\.\w+ is not a function/.test(m)) return "Hugs små bokstavar: <code>console.log</code>.";
+        if (/is not a function/.test(m)) return "Du prøver å kalle noko som ikkje er ein funksjon. Sjekk stavinga (t.d. <code>toUpperCase</code> med stor U og C) og at du har laga funksjonen.";
+        if (/Cannot read properties of (undefined|null)/.test(m)) return "Du prøver å hente noko frå ein verdi som er <code>undefined</code>. Ofte er indeksen i lista for stor (teljinga startar på 0), eller variabelen har ikkje fått nokon verdi.";
+        if (/is not iterable/.test(m)) return "<code>for...of</code> må gå gjennom ei liste (array) eller ein streng.";
+    }
+    if (namn === "RangeError" && /call stack/.test(m)) return "Funksjonen kallar seg sjølv om og om att utan å stoppe. Han treng eit vilkår som gjer at han sluttar.";
+    return "Programmet krasja medan det køyrde. Les feilmeldinga og sjå på den raude linja.";
+}
+
+function stopp() {
+    if (!korer || !kjoring) return;
+    skriv("\n■ Programmet vart stoppa.\n", "warn");
+    kjoring.stoppa = true;
+    avslutt("stoppa");
+}
+
+function avslutt(korleis) {
+    if (worker) { worker.terminate(); worker = null; }
+    konsoll.querySelectorAll(".inrad input").forEach(i => { i.disabled = true; });
+    korer = false;
+    knappKoyr.disabled = false; knappStopp.disabled = true;
+    const k = kjoring; kjoring = null;
+    if (!k) return;
+    const ut = k.utdata.join("\n");
+    if (korleis === "ferdig") {
+        skriv("\n— Programmet er ferdig —\n", "info");
+        settStatus("Ferdig");
+        if (/\bNaN\b/.test(ut)) hjelp("<code>NaN</code> betyr «Not a Number» – du har rekna med noko som ikkje er eit tal. Har du gløymt <code>Number(...)</code> rundt <code>prompt</code>, eller skreiv brukaren tekst?");
+        else if (k.input.length >= 2 && k.input.every(v => /^\s*-?\d+([.,]\d+)?\s*$/.test(v)) && ut.includes(k.input[0].trim() + k.input[1].trim()) && !/Number|parse|\+\s*prompt/.test(k.kode))
+            hjelp("Tala vart limte saman som tekst (" + htmlEsc(k.input[0].trim()) + " + " + htmlEsc(k.input[1].trim()) + " = " + htmlEsc(k.input[0].trim() + k.input[1].trim()) + "). <code>prompt</code> gir alltid tekst – bruk <code>Number(prompt(...))</code>.");
+    } else if (korleis === "stoppa") settStatus("Stoppa");
+    else settStatus("Feil – sjå konsollen", "feil");
+    sjekkOppgaver({ kode: k.kode, utdata: ut, input: k.input, feil: k.feil, feiltype: k.feiltype, stoppa: k.stoppa });
+}
+
+/* ================== OPPSTART ================== */
+visLeksjon(aktivIndeks, false);
+</script>
+</body>
+</html>
