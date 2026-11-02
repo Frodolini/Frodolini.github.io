@@ -58,6 +58,9 @@ main.oppsett { flex: 1; min-height: 0; display: grid; grid-template-columns: min
 #leksjonsliste li button:hover { background: var(--gron-lys); }
 #leksjonsliste li.aktiv button { background: var(--gron); color: #fff; }
 #leksjonsliste .status { width: 1.2em; text-align: center; flex: none; }
+#leksjonsliste .sirkel { display: inline-block; width: 11px; height: 11px; border-radius: 50%; border: 2px solid currentColor; vertical-align: -1px; opacity: .75; }
+#leksjonsliste .sirkel.halv { background: linear-gradient(90deg, currentColor 50%, transparent 50%); opacity: 1; }
+@media (max-width: 600px) { #leksjon .eksempel pre { padding-right: 12px; padding-top: 34px; } }
 #leksjonsliste .nr { color: var(--grå); width: 1.6em; flex: none; }
 #leksjonsliste li.aktiv .nr { color: #dfeee0; }
 #leksjonsliste .tal { margin-left: auto; font-size: 12px; color: var(--grå); }
@@ -693,7 +696,7 @@ function leksjonStatus(l) {
     if (ok > 0 || besokt.has(l.id)) return "igang";
     return "ny";
 }
-const STATUSIKON = { ny: "○", igang: "◐", ferdig: "✔" };
+const STATUSIKON = { ny: '<span class="sirkel"></span>', igang: '<span class="sirkel halv"></span>', ferdig: "✔" };
 
 /* ================== VISING ================== */
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -876,7 +879,7 @@ document.addEventListener("keydown", e => { if (e.key === "Escape") document.get
 
 /* ================== START PÅ NYTT ================== */
 document.getElementById("knappNullstill").onclick = () => {
-    if (!confirm("Vil du starte på nytt? All framdrift på denne sida blir sletta.")) return;
+    if (!confirm("Vil du starte på nytt? All framdrift på denne sida blir sletta, og filene og mappene du har laga blir borte (dei er delte mellom CMD 101 og PowerShell 101).")) return;
     lager.slettAlle();
     try { localStorage.removeItem("kode101-fs-v1"); } catch (e) {}   // felles filsystem (CMD/PowerShell)
     location.reload();

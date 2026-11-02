@@ -58,6 +58,9 @@ main.oppsett { flex: 1; min-height: 0; display: grid; grid-template-columns: min
 #leksjonsliste li button:hover { background: var(--gron-lys); }
 #leksjonsliste li.aktiv button { background: var(--gron); color: #fff; }
 #leksjonsliste .status { width: 1.2em; text-align: center; flex: none; }
+#leksjonsliste .sirkel { display: inline-block; width: 11px; height: 11px; border-radius: 50%; border: 2px solid currentColor; vertical-align: -1px; opacity: .75; }
+#leksjonsliste .sirkel.halv { background: linear-gradient(90deg, currentColor 50%, transparent 50%); opacity: 1; }
+@media (max-width: 600px) { #leksjon .eksempel pre { padding-right: 12px; padding-top: 34px; } }
 #leksjonsliste .nr { color: var(--grå); width: 1.6em; flex: none; }
 #leksjonsliste li.aktiv .nr { color: #dfeee0; }
 #leksjonsliste .tal { margin-left: auto; font-size: 12px; color: var(--grå); }
@@ -295,17 +298,17 @@ const fil = (namn, innhald) => `<pre class="fil" data-fil="${escH(namn)}">${escH
 const LEKSJONAR = [
   { id: "l1", tittel: "Velkomen til kommandolinja", laerer: "kva kommandolinja er, og dei første kommandoane <code>ver</code>, <code>echo</code>, <code>help</code> og <code>cls</code>.",
     html: `
-<p>Kommandolinja (CMD) er ein måte å styre datamaskina på ved å <b>skrive</b> kommandoar i staden for å klikke med musa. Det kan verke gammaldags, men IT-folk brukar ho kvar dag: Det går raskt, og du kan gjere ting som ikkje finst i menyane.</p>
-<p>I det svarte feltet ser du ein simulert CMD. Linja <code>C:\\Users\\elev&gt;</code> heiter <b>ledeteksten</b> (prompt). Han viser kvar du er, og at maskina ventar på deg. Skriv ein kommando og trykk <b>Enter</b>. Prøv denne – han viser kva Windows-versjon maskina har:</p>
+<p>Kommandolinja (CMD) er ein måte å styre datamaskinen på ved å <b>skrive</b> kommandoar i staden for å klikke med musa. Det kan verke gammaldags, men IT-folk brukar ho kvar dag: Det går raskt, og du kan gjere ting som ikkje finst i menyane.</p>
+<p>I det svarte feltet ser du ein simulert CMD. Linja <code>C:\\Users\\elev&gt;</code> heiter <b>ledeteksten</b> (prompt). Han viser kvar du er, og at maskinen ventar på deg. Skriv ein kommando og trykk <b>Enter</b>. Prøv denne – han viser kva Windows-versjon maskinen har:</p>
 ${ex("ver")}
-<p><code>echo</code> skriv ut tekst – litt som å la datamaskina seie noko:</p>
+<p><code>echo</code> skriv ut tekst – litt som å la datamaskinen seie noko:</p>
 ${ex("echo Hei, verda!")}
 <p>Treng du hjelp? <code>help</code> viser ei liste over kommandoane. Skriv <code>/?</code> etter ein kommando for å få hjelp til akkurat han, t.d. <code>dir /?</code>. Er skjermen full, tømmer du han med <code>cls</code> (clear screen).</p>
 ${ex("help")}
 ${ex("cls")}
 <div class="tips">Du kan ikkje øydeleggje noko her – alt er simulert. Prøv deg fram! Knappen <b>Prøv</b> limer inn kommandoen, så trykkjer du sjølv Enter.</div>`,
     oppgaver: [
-      { id: "l1o1", tekst: "Skriv <code>ver</code> for å sjå kva Windows-versjon maskina har.", hint: ["Klikk i det svarte feltet, skriv <code>ver</code> og trykk Enter."],
+      { id: "l1o1", tekst: "Skriv <code>ver</code> for å sjå kva Windows-versjon maskinen har.", hint: ["Klikk i det svarte feltet, skriv <code>ver</code> og trykk Enter."],
         sjekk: ctx => koyrt(ctx, "ver") },
       { id: "l1o2", tekst: "Bruk <code>echo</code> til å skrive ut ein tekst om deg sjølv, t.d. <code>echo Hei, eg heiter Kari</code>.", hint: ["Start med <code>echo</code> og eit mellomrom, og skriv så teksten.", "Skriv: <code>echo Hei, eg heiter Kari</code> og trykk Enter."],
         sjekk: ctx => koyrt(ctx, "echo", e => e.utdata.trim().length > 1 && !/^ECHO is (on|off)\.$/.test(e.utdata.trim())) },
@@ -317,7 +320,7 @@ ${ex("cls")}
 
   { id: "l2", tittel: "Kvar er eg?", laerer: "å sjå kva som finst i ei mappe med <code>dir</code>, og å flytte deg mellom mapper med <code>cd</code>.",
     html: `
-<p>Filene på datamaskina ligg i <b>mapper</b>, og mapper kan liggje inni andre mapper – som skuffer i eit skap. Ledeteksten viser kvar du står: <code>C:\\Users\\elev</code> betyr mappa <code>elev</code>, inni <code>Users</code>, på disken <code>C:</code>. Ei slik adresse heiter ein <b>sti</b>.</p>
+<p>Filene på datamaskinen ligg i <b>mapper</b>, og mapper kan liggje inni andre mapper – som skuffer i eit skap. Ledeteksten viser kvar du står: <code>C:\\Users\\elev</code> betyr mappa <code>elev</code>, inni <code>Users</code>, på disken <code>C:</code>. Ei slik adresse heiter ein <b>sti</b>.</p>
 <p><code>dir</code> viser innhaldet i mappa du står i. <code>&lt;DIR&gt;</code> betyr at det er ei mappe; elles ser du storleiken på fila i byte.</p>
 ${ex("dir")}
 <p><code>cd</code> (change directory) flyttar deg inn i ei mappe. <code>cd ..</code> går eitt steg opp, og <code>cd \\</code> går heilt til toppen (rota) av disken.</p>
@@ -415,18 +418,18 @@ ${ex("tasklist | findstr chrome")}
     html: `
 <p>Alle maskiner på eit nettverk har ei <b>IP-adresse</b> – litt som ei postadresse. <code>ipconfig</code> viser dei viktigaste nettverksinnstillingane:</p>
 ${ex("ipconfig")}
-<ul><li><b>IPv4 Address</b> – adressa til denne maskina.</li><li><b>Subnet Mask</b> – seier kor stort det lokale nettet er.</li><li><b>Default Gateway</b> – ruteren, «døra» ut av det lokale nettet.</li></ul>
+<ul><li><b>IPv4 Address</b> – adressa til denne maskinen.</li><li><b>Subnet Mask</b> – seier kor stort det lokale nettet er.</li><li><b>Default Gateway</b> – ruteren, «døra» ut av det lokale nettet.</li></ul>
 <p><code>ipconfig /all</code> viser endå meir: mellom anna maskinnamnet, DNS-tenaren og <b>MAC-adressa</b> (Physical Address), som er eit fast «serienummer» for nettverkskortet.</p>
 ${ex("ipconfig /all")}
-<p>Andre nyttige kommandoar er <code>hostname</code> (namnet på maskina), <code>getmac</code> (MAC-adressa) og <code>ipconfig /flushdns</code> (tømmer DNS-minnet).</p>
+<p>Andre nyttige kommandoar er <code>hostname</code> (namnet på maskinen), <code>getmac</code> (MAC-adressa) og <code>ipconfig /flushdns</code> (tømmer DNS-minnet).</p>
 ${ex("hostname")}
 <div class="tips"><code>ipconfig /release</code> slepp IP-adressa, og <code>ipconfig /renew</code> hentar ei ny frå DHCP-tenaren. Prøv – og sjå kva som skjer med <code>ping</code> i mellomtida!</div>`,
     oppgaver: [
-      { id: "l6o1", tekst: "Køyr <code>ipconfig</code> og finn IPv4-adressa til maskina.", hint: ["Skriv <code>ipconfig</code> og trykk Enter."],
+      { id: "l6o1", tekst: "Køyr <code>ipconfig</code> og finn IPv4-adressa til maskinen.", hint: ["Skriv <code>ipconfig</code> og trykk Enter."],
         sjekk: ctx => koyrt(ctx, "ipconfig", e => e.ok && !e.args.trim()) },
       { id: "l6o2", tekst: "Køyr <code>ipconfig /all</code> for å sjå alle detaljane.", hint: ["Skriv <code>ipconfig /all</code>."],
         sjekk: ctx => koyrt(ctx, "ipconfig", e => brytarar(e).has("all")) },
-      { id: "l6o3", tekst: "Finn ut kva maskina heiter med <code>hostname</code>.", hint: ["Skriv <code>hostname</code>."],
+      { id: "l6o3", tekst: "Finn ut kva maskinen heiter med <code>hostname</code>.", hint: ["Skriv <code>hostname</code>."],
         sjekk: ctx => koyrt(ctx, "hostname") },
       { id: "l6o4", tekst: "Finn MAC-adressa til Ethernet-kortet, og skriv ho ut med <code>echo</code> (t.d. <code>echo AA-BB-CC-DD-EE-FF</code>).", hint: ["MAC-adressa står ved <b>Physical Address</b> i <code>ipconfig /all</code>, eller i <code>getmac</code>.", "Ho startar med <code>3C-52-82</code>. Skriv <code>echo</code> og heile adressa."],
         sjekk: ctx => koyrt(ctx, "echo", e => lc(e.utdata).replace(/[:\s]/g, "-").includes(lc(MASKIN.mac))) },
@@ -442,12 +445,12 @@ ${ex("ping -t 8.8.8.8")}
 ${ex("nslookup vg.no")}
 ${ex("tracert google.com")}
 <h3>Feilsøking: gå frå nært til fjernt</h3>
-<ol><li><code>ping 127.0.0.1</code> – verkar nettverksdelen på maskina mi?</li><li><code>ping 10.120.12.1</code> – når eg gatewayen (ruteren)?</li><li><code>ping 8.8.8.8</code> – når eg Internett?</li><li><code>ping google.com</code> – verkar DNS (namn til IP)?</li></ol>
+<ol><li><code>ping 127.0.0.1</code> – verkar nettverksdelen på maskinen mi?</li><li><code>ping 10.120.12.1</code> – når eg gatewayen (ruteren)?</li><li><code>ping 8.8.8.8</code> – når eg Internett?</li><li><code>ping google.com</code> – verkar DNS (namn til IP)?</li></ol>
 <p>Stoppar det på eit steg, veit du kvar feilen er. Går <code>8.8.8.8</code> men ikkje <code>google.com</code>, er det truleg DNS som sviktar.</p>`,
     oppgaver: [
       { id: "l7o1", tekst: "Ping din eigen maskin med <code>ping 127.0.0.1</code> (eller <code>ping localhost</code>).", hint: ["127.0.0.1 er alltid «meg sjølv».", "Skriv <code>ping 127.0.0.1</code> og vent til han er ferdig."],
         sjekk: ctx => koyrt(ctx, "ping", e => /^lokal/.test(e.ekstra.type || "") && e.ekstra.motteke > 0) },
-      { id: "l7o2", tekst: "Ping <b>standard gateway</b> (ruteren) til maskina. Adressa finn du med <code>ipconfig</code>.", hint: ["Sjå etter <b>Default Gateway</b> i <code>ipconfig</code>.", "Skriv <code>ping 10.120.12.1</code>"],
+      { id: "l7o2", tekst: "Ping <b>standard gateway</b> (ruteren) til maskinen. Adressa finn du med <code>ipconfig</code>.", hint: ["Sjå etter <b>Default Gateway</b> i <code>ipconfig</code>.", "Skriv <code>ping 10.120.12.1</code>"],
         sjekk: ctx => koyrt(ctx, "ping", e => e.ekstra.ip === MASKIN.gw && e.ekstra.motteke > 0) },
       { id: "l7o3", tekst: "Finn IP-adressa til <code>vg.no</code> med <code>nslookup</code>.", hint: ["Skriv <code>nslookup vg.no</code>."],
         sjekk: ctx => koyrt(ctx, "nslookup", e => e.ok && /vg\.no/.test(e.ekstra.maal || "")) },
@@ -457,9 +460,9 @@ ${ex("tracert google.com")}
         sjekk: ctx => koyrt(ctx, "ping", e => e.ekstra.t && e.ekstra.avbrote) },
     ]},
 
-  { id: "l8", tittel: "System og prosessar", laerer: "å finne informasjon om maskina, og å sjå og avslutte program som køyrer.",
+  { id: "l8", tittel: "System og prosessar", laerer: "å finne informasjon om maskinen, og å sjå og avslutte program som køyrer.",
     html: `
-<p><code>whoami</code> viser kven du er logga inn som, i forma <code>domene\\brukar</code>. <code>systeminfo</code> gir ei lang liste med informasjon om maskina: Windows-versjon, minne, nettverkskort og mykje meir.</p>
+<p><code>whoami</code> viser kven du er logga inn som, i forma <code>domene\\brukar</code>. <code>systeminfo</code> gir ei lang liste med informasjon om maskinen: Windows-versjon, minne, nettverkskort og mykje meir.</p>
 ${ex("whoami")}
 ${ex("systeminfo")}
 <p>Kvart program som køyrer, er ein <b>prosess</b>. <code>tasklist</code> viser alle prosessane med namn, prosess-ID (PID) og kor mykje minne dei brukar – som Oppgåvebehandling, berre i tekst.</p>
@@ -509,9 +512,9 @@ ${fil("meny.bat", "@echo off\n:meny\necho 1 = Vis IP-adressa   2 = Avslutt\nset 
         sjekk: ctx => ctx.tilstand.batchar.some(b => b.brukteIf) },
     ]},
 
-  { id: "l10", tittel: "Vidare til ekte CMD", laerer: "korleis du opnar ekte CMD på skulemaskina, kva som er annleis enn i simulatoren, og ein jukselapp.",
+  { id: "l10", tittel: "Vidare til ekte CMD", laerer: "korleis du opnar ekte CMD på skulemaskinen, kva som er annleis enn i simulatoren, og ein jukselapp.",
     html: `
-<p>No kan du det viktigaste! Slik opnar du ekte CMD på skulemaskina:</p>
+<p>No kan du det viktigaste! Slik opnar du ekte CMD på skulemaskinen:</p>
 <ol><li>Trykk på <b>Windows-tasten</b>.</li><li>Skriv <code>cmd</code>.</li><li>Trykk Enter (eller klikk på «Ledetekst» / «Command Prompt»).</li></ol>
 <p>Treng du administratorrettar (t.d. for <code>sfc /scannow</code>), høgreklikkar du og vel <b>Køyr som administrator</b>. Då står det «Administrator» i tittellinja – og då kan du faktisk øydeleggje ting, så tenk deg om!</p>
 <h3>Kva er annleis enn i simulatoren?</h3>
@@ -538,7 +541,7 @@ ${fil("meny.bat", "@echo off\n:meny\necho 1 = Vis IP-adressa   2 = Avslutt\nset 
 <tr><td>a | b</td><td>røyr: send utskrifta frå a til b</td></tr>
 <tr><td>ipconfig /all</td><td>IP, maske, gateway, DNS, MAC</td></tr>
 <tr><td>ping / tracert / nslookup</td><td>test samband / vis vegen / slå opp DNS</td></tr>
-<tr><td>whoami / hostname</td><td>kven er eg / kva heiter maskina</td></tr>
+<tr><td>whoami / hostname</td><td>kven er eg / kva heiter maskinen</td></tr>
 <tr><td>tasklist / taskkill /im x /f</td><td>vis prosessar / avslutt program</td></tr>
 <tr><td>set x=5 / %x%</td><td>lag variabel / hent verdien</td></tr>
 <tr><td>set /a / set /p</td><td>rekn ut / spør brukaren</td></tr>
@@ -550,7 +553,7 @@ ${fil("meny.bat", "@echo off\n:meny\necho 1 = Vis IP-adressa   2 = Avslutt\nset 
 ];
 
 const LAERAR_HTML = `<ul>
-<li>Alt er simulert i nettlesaren: filsystem, nettverk og prosessar er påfunne (maskina <code>IM-PC07</code> i domenet <code>STORDVGS</code>). Ingenting blir sendt ut på nettet, og ingenting på elevmaskina blir endra.</li>
+<li>Alt er simulert i nettlesaren: filsystem, nettverk og prosessar er påfunne (maskinen <code>IM-PC07</code> i domenet <code>STORDVGS</code>). Ingenting blir sendt ut på nettet, og ingenting på elevmaskinen blir endra.</li>
 <li>Kommandoane gir truverdig engelsk utskrift som ekte cmd.exe, med ekte feilmeldingar og ei nynorsk 💡-forklaring under.</li>
 <li>Framdrifta og filene blir berre lagra i nettlesaren til eleven (localStorage). Filsystemet er felles med PowerShell 101-sida, og «Start på nytt» slettar begge.</li>
 <li>Oppgåvene blir sjekka automatisk etter kvar kommando, og dei fleste sjekkar resultatet (t.d. at mappa finst), ikkje nøyaktig kva eleven skreiv.</li>
@@ -597,7 +600,7 @@ function leksjonStatus(l) {
     if (ok > 0 || besokt.has(l.id)) return "igang";
     return "ny";
 }
-const STATUSIKON = { ny: "○", igang: "◐", ferdig: "✔" };
+const STATUSIKON = { ny: '<span class="sirkel"></span>', igang: '<span class="sirkel halv"></span>', ferdig: "✔" };
 
 /* ================== VISING ================== */
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -780,7 +783,7 @@ document.addEventListener("keydown", e => { if (e.key === "Escape") document.get
 
 /* ================== START PÅ NYTT ================== */
 document.getElementById("knappNullstill").onclick = () => {
-    if (!confirm("Vil du starte på nytt? All framdrift på denne sida blir sletta.")) return;
+    if (!confirm("Vil du starte på nytt? All framdrift på denne sida blir sletta, og filene og mappene du har laga blir borte (dei er delte mellom CMD 101 og PowerShell 101).")) return;
     lager.slettAlle();
     try { localStorage.removeItem("kode101-fs-v1"); } catch (e) {}   // felles filsystem med PowerShell 101
     location.reload();
@@ -1708,7 +1711,7 @@ async function koyrKommando(namn, rest, io, ktx) {
   const l = lc(namn);
   if (/^[a-z]:\\?$/i.test(namn) && !rest.trim()) {
     if (l.startsWith("c:")) return;
-    io.feil("The system cannot find the drive specified.", "Denne maskina har berre disken `C:`. Skriv `C:` for å vere på C-disken.");
+    io.feil("The system cannot find the drive specified.", "Denne maskinen har berre disken `C:`. Skriv `C:` for å vere på C-disken.");
     return false;
   }
   const k = KOMMANDOAR[l];
@@ -1956,11 +1959,11 @@ K.cd = K.chdir = async (a, io) => {
   if (!t) { io.ut(S.cwd + "\n"); return; }
   if (/^[a-z]:$/i.test(t)) {
     if (lc(t) === "c:") { io.ut(S.cwd + "\n"); return; }
-    io.feil("The system cannot find the drive specified.", "Denne maskina har berre disken `C:`.");
+    io.feil("The system cannot find the drive specified.", "Denne maskinen har berre disken `C:`.");
     return false;
   }
   const abs = absSti(t);
-  if (!FS[abs.slice(0, 2)]) { io.feil("The system cannot find the drive specified.", "Denne maskina har berre disken `C:`."); return false; }
+  if (!FS[abs.slice(0, 2)]) { io.feil("The system cannot find the drive specified.", "Denne maskinen har berre disken `C:`."); return false; }
   const n = hent(abs);
   if (!n) {
     const f = forelderAv(abs); const p = f && hent(f.sti);
@@ -2002,7 +2005,7 @@ K.dir = async (a, io) => {
   const af = attrFilter(sw);
   for (const s of sw) if (!/^(b|s|w|p|o.*|a.*|q|l|n|x|c|-c)$/.test(s)) { io.feil(`Invalid switch - "${s}".`, "Sjekk brytaren. Vanlege brytarar er `/b`, `/s`, `/w` og `/a`."); return false; }
   const maal = pos[0] ?? ".";
-  if (/^[a-z]:/i.test(maal) && lc(maal.slice(0, 2)) !== "c:") { io.feil("The system cannot find the path specified.", "Denne maskina har berre disken `C:`."); return false; }
+  if (/^[a-z]:/i.test(maal) && lc(maal.slice(0, 2)) !== "c:") { io.feil("The system cannot find the path specified.", "Denne maskinen har berre disken `C:`."); return false; }
   let abs = absSti(maal);
   let dirAbs = abs, monster = "*";
   let n = hent(abs);
@@ -2740,8 +2743,8 @@ K.ping = async (a, io) => {
     throw e;
   }
   io.ut(stat());
-  if (utanNett) io.hjelp("Maskina har ikkje IP-adresse (du køyrde `ipconfig /release`). Skriv `ipconfig /renew` for å få ny adresse.");
-  else if (r.type === "timeout") io.hjelp("Ingen svar. Maskina finst kanskje ikkje, er slått av, eller ein brannmur stoppar ping. Sjekk adressa med `ipconfig`.");
+  if (utanNett) io.hjelp("Maskinen har ikkje IP-adresse (du køyrde `ipconfig /release`). Skriv `ipconfig /renew` for å få ny adresse.");
+  else if (r.type === "timeout") io.hjelp("Ingen svar. Maskinen finst kanskje ikkje, er slått av, eller ein brannmur stoppar ping. Sjekk adressa med `ipconfig`.");
   if (!motteke) return false;
 };
 
@@ -2769,7 +2772,7 @@ K.tracert = async (a, io) => {
       if (r.visNamn || (r.vert.hopp || []).length) hopp.push([[r.vert.ms[0], r.vert.ms[0] + 1, r.vert.ms[0]], r.visNamn ? r.ip : sist]);
     }
   }
-  if (!S.harIp && r.type !== "lokal" && r.type !== "lokal6") { io.ut("Unable to contact IP driver. General failure.\n"); io.hjelp("Maskina har ikkje IP-adresse. Skriv `ipconfig /renew`."); return false; }
+  if (!S.harIp && r.type !== "lokal" && r.type !== "lokal6") { io.ut("Unable to contact IP driver. General failure.\n"); io.hjelp("Maskinen har ikkje IP-adresse. Skriv `ipconfig /renew`."); return false; }
   try {
     for (let i = 0; i < hopp.length; i++) {
       const [t, vert] = hopp[i];
@@ -2788,7 +2791,7 @@ K.nslookup = async (a, io) => {
   const maal = o[0];
   let l = lc(maal);
   io.post.ekstra = { maal: l };
-  if (!S.harIp) { io.ut("DNS request timed out.\n    timeout was 2 seconds.\n"); io.hjelp("Maskina har ikkje IP-adresse. Skriv `ipconfig /renew`."); return false; }
+  if (!S.harIp) { io.ut("DNS request timed out.\n    timeout was 2 seconds.\n"); io.hjelp("Maskinen har ikkje IP-adresse. Skriv `ipconfig /renew`."); return false; }
   await vent(250);
   if (erIp(l)) {
     const n = IP_KJENT[l] && VERTAR[IP_KJENT[l]];
@@ -2832,7 +2835,7 @@ K.ipconfig = async (a, io) => {
   if (s === "release") {
     S.harIp = false;
     io.ut("\nWindows IP Configuration\n\nNo operation can be performed on Wi-Fi while it has its media disconnected.\n" + kort() + wifi);
-    io.hjelp("Maskina har no gitt frå seg IP-adressa og er utan nett. Skriv `ipconfig /renew` for å be DHCP-tenaren om ei ny adresse.");
+    io.hjelp("Maskinen har no gitt frå seg IP-adressa og er utan nett. Skriv `ipconfig /renew` for å be DHCP-tenaren om ei ny adresse.");
     return;
   }
   if (s === "renew") {
@@ -2859,7 +2862,7 @@ K.netstat = async (a, io) => {
     "  TCP    10.120.14.57:50163     10.120.0.20:445        ESTABLISHED\n  TCP    127.0.0.1:49670        127.0.0.1:49671        ESTABLISHED\n");
 };
 K.arp = async (a, io) => {
-  if (!/-a|\/a|-g/i.test(a)) { io.ut("\nDisplays and modifies the IP-to-Physical address translation tables used by\naddress resolution protocol (ARP).\n\nARP -a\n"); io.hjelp("Skriv `arp -a` for å sjå kva MAC-adresser maskina kjenner til på det lokale nettet."); return; }
+  if (!/-a|\/a|-g/i.test(a)) { io.ut("\nDisplays and modifies the IP-to-Physical address translation tables used by\naddress resolution protocol (ARP).\n\nARP -a\n"); io.hjelp("Skriv `arp -a` for å sjå kva MAC-adresser maskinen kjenner til på det lokale nettet."); return; }
   io.ut(`\nInterface: ${MASKIN.ip} --- 0x5\n  Internet Address      Physical Address      Type\n  10.120.12.1           00-1a-1e-04-5c-01     dynamic\n  10.120.13.22          3c-52-82-4a-0e-91     dynamic\n  10.120.14.31          3c-52-82-4a-1b-3a     dynamic\n  10.120.15.255         ff-ff-ff-ff-ff-ff     static\n  224.0.0.22            01-00-5e-00-00-16     static\n  224.0.0.251           01-00-5e-00-00-fb     static\n  239.255.255.250       01-00-5e-7f-ff-fa     static\n  255.255.255.255       ff-ff-ff-ff-ff-ff     static\n`);
 };
 K.curl = async (a, io) => { io.hjelp("`curl` finst i ekte Windows, men simulatoren har ikkje Internett. Bruk `ping` eller `nslookup` for å teste nettet her."); };
@@ -2949,11 +2952,11 @@ K.shutdown = async (a, io) => {
     S.nedstenging = true;
     const t = (a.match(/[/-]t\s+(\d+)/i) || [])[1];
     const kva = sw.has("r") ? "starte på nytt" : sw.has("l") ? "logge deg av" : sw.has("h") ? "gå i dvale" : "slå seg av";
-    io.hjelp(`Åtvaring: På ein ekte PC ville maskina no ${kva}${t ? ` om ${t} sekund` : " om eitt minutt"} – og arbeid som ikkje er lagra, kan gå tapt! I simulatoren skjer ingenting. Ei planlagd nedstenging avbryt du med \`shutdown /a\`.`);
+    io.hjelp(`Åtvaring: På ein ekte PC ville maskinen no ${kva}${t ? ` om ${t} sekund` : " om eitt minutt"} – og arbeid som ikkje er lagra, kan gå tapt! I simulatoren skjer ingenting. Ei planlagd nedstenging avbryt du med \`shutdown /a\`.`);
     return;
   }
   io.ut("Usage: shutdown [/i | /l | /s | /sg | /r | /g | /a | /p | /h | /e | /o] [/hybrid] [/soft] [/fw] [/f]\n    [/m \\\\computer][/t xxx][/d [p|u:]xx:yy [/c \"comment\"]]\n\n    No args    Display help. This is the same as typing /?.\n    /s         Shutdown the computer.\n    /r         Full shutdown and restart the computer.\n    /a         Abort a system shutdown.\n    /t xxx     Set the time-out period before shutdown to xxx seconds.\n");
-  io.hjelp("`shutdown /s` slår av maskina og `shutdown /r` startar ho på nytt. `/t 60` ventar 60 sekund først. Ver forsiktig på ein ekte PC!");
+  io.hjelp("`shutdown /s` slår av maskinen og `shutdown /r` startar han på nytt. `/t 60` ventar 60 sekund først. Ver forsiktig på ein ekte PC!");
 };
 K.sfc = async (a, io) => { io.feil("\nYou must be an administrator running a console session in order to\nuse the sfc utility.", "`sfc /scannow` sjekkar systemfilene i Windows, men krev at CMD er opna som administrator."); return false; };
 K.chkdsk = async (a, io) => { io.feil("Access Denied as you do not have sufficient privileges or\nthe disk may be locked by another process.\nYou have to invoke this utility running in elevated mode\nand make sure the disk is unlocked.", "`chkdsk` sjekkar disken for feil, men krev administratorrettar."); return false; };
@@ -2985,7 +2988,7 @@ const HJELP = {
   set: ["Displays, sets, or removes cmd.exe environment variables.", "SET [variable=[string]]\nSET /A expression\nSET /P variable=[promptString]\n\n  /A   evaluates the expression (integers only).\n  /P   sets the variable to a line of input entered by the user.", "`set namn=Kari` lagar ein variabel (utan mellomrom rundt `=`). `%namn%` hentar verdien. `set /a` reknar, `set /p` spør brukaren."],
   sort: ["Sorts input.", "SORT [/R] [[drive1:][path1]filename1]\n\n  /R   Reverses the sort order; that is, sorts Z to A, then 9 to 0.", "`sort` sorterer linjer alfabetisk. `/r` sorterer baklengs."],
   start: ["Starts a separate window to run a specified program or command.", "START [\"title\"] [command/program] [parameters]", "`start notepad` opnar Notisblokk. `start .` opnar mappa i Utforskaren (på ein ekte PC)."],
-  systeminfo: ["Displays machine specific properties and configuration.", "SYSTEMINFO [/S system] [/FO format]", "`systeminfo` viser mykje informasjon om maskina. Kombiner med `findstr` for å finne det du treng."],
+  systeminfo: ["Displays machine specific properties and configuration.", "SYSTEMINFO [/S system] [/FO format]", "`systeminfo` viser mykje informasjon om maskinen. Kombiner med `findstr` for å finne det du treng."],
   tasklist: ["Displays all currently running tasks including services.", "TASKLIST [/S system] [/SVC] [/V] [/FI filter] [/FO format]", "`tasklist` viser alle program (prosessar) som køyrer, med PID og minnebruk."],
   taskkill: ["Kill or stop a running process or application.", "TASKKILL [/PID processid | /IM imagename] [/T] [/F]\n\n    /PID  processid        Specifies the PID of the process to be terminated.\n    /IM   imagename        Specifies the image name of the process to be terminated.\n    /F                     Specifies to forcefully terminate the process(es).", "`taskkill /im notepad.exe /f` avsluttar Notisblokk. Namnet finn du med `tasklist`."],
   time: ["Displays or sets the system time.", "TIME [/T | time]", "`time /t` viser berre klokkeslettet."],
@@ -2993,17 +2996,17 @@ const HJELP = {
   title: ["Sets the window title for a CMD.EXE session.", "TITLE [string]", "`title Mitt vindauge` endrar teksten i tittellinja."],
   tree: ["Graphically displays the folder structure of a drive or path.", "TREE [drive:][path] [/F] [/A]\n\n   /F   Display the names of the files in each folder.\n   /A   Use ASCII instead of extended characters.", "`tree` teiknar mappestrukturen. `tree /f` tek med filene."],
   type: ["Displays the contents of a text file or files.", "TYPE [drive:][path]filename", "`type fil.txt` viser innhaldet i ei tekstfil."],
-  ver: ["Displays the Windows version.", "VER", "`ver` viser kva Windows-versjon maskina køyrer."],
+  ver: ["Displays the Windows version.", "VER", "`ver` viser kva Windows-versjon maskinen køyrer."],
   xcopy: ["Copies files and directory trees.", "XCOPY source [destination] [/S] [/E] [/I] [/Y]\n\n  /S   Copies directories and subdirectories except empty ones.\n  /E   Copies directories and subdirectories, including empty ones.\n  /I   If destination does not exist and copying more than one file,\n       assumes that destination must be a directory.", "`xcopy Documents Backup /s /i` kopierer ei heil mappe med undermapper."],
   ping: [null, "Usage: ping [-t] [-n count] [-l size] target_name\n\nOptions:\n    -t             Ping the specified host until stopped.\n                   To stop - type Control-C.\n    -n count       Number of echo requests to send.\n    -l size        Send buffer size.", "`ping google.com` testar om ei maskin svarar. `-n 2` sender 2 pakkar, `-t` held fram til Ctrl+C."],
   ipconfig: [null, "USAGE:\n    ipconfig [/all | /release | /renew | /flushdns | /displaydns]\n\nwhere\n    Options:\n       /?           Display this help message\n       /all         Display full configuration information.\n       /release     Release the IPv4 address for the specified adapter.\n       /renew       Renew the IPv4 address for the specified adapter.\n       /flushdns    Purges the DNS Resolver cache.", "`ipconfig` viser IP-adresse, nettmaske og gateway. `/all` viser òg MAC-adresse og DNS-tenar."],
   tracert: [null, "Usage: tracert [-d] [-h maximum_hops] [-w timeout] target_name", "`tracert google.com` viser alle ruterane (hoppa) på vegen til målet."],
   nslookup: [null, "Usage:\n   nslookup [-opt ...] host        # just look up 'host' using default server", "`nslookup vg.no` spør DNS-tenaren kva IP-adresse namnet har."],
   whoami: [null, "WHOAMI [/USER | /GROUPS | /ALL]", "`whoami` viser kven du er logga inn som (domene\\brukar)."],
-  hostname: [null, "hostname", "`hostname` viser namnet på maskina."],
+  hostname: [null, "hostname", "`hostname` viser namnet på maskinen."],
   getmac: [null, "GETMAC [/S system] [/FO format] [/V]", "`getmac` viser MAC-adressa til nettverkskorta."],
-  netstat: [null, "NETSTAT [-a] [-n] [-o]", "`netstat` viser nettverkstilkoplingane maskina har akkurat no."],
-  arp: [null, "ARP -a [inet_addr]", "`arp -a` viser kva MAC-adresser maskina kjenner på det lokale nettet."],
+  netstat: [null, "NETSTAT [-a] [-n] [-o]", "`netstat` viser nettverkstilkoplingane maskinen har akkurat no."],
+  arp: [null, "ARP -a [inet_addr]", "`arp -a` viser kva MAC-adresser maskinen kjenner på det lokale nettet."],
   shutdown: ["Allows proper local or remote shutdown of machine.", "SHUTDOWN [/s | /r | /a] [/t xxx]", "`shutdown /s /t 0` slår av med ein gong. `shutdown /a` avbryt."],
   notepad: [null, "notepad [filename]", "`notepad fil.txt` opnar fila i Notisblokk."],
   call: ["Calls one batch program from another.", "CALL [drive:][path]filename [batch-parameters]\nCALL :label arguments", "`call annan.bat` køyrer ei anna batch-fil og kjem tilbake etterpå."],

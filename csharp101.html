@@ -68,6 +68,9 @@ main.oppsett { flex: 1; min-height: 0; display: grid; grid-template-columns: min
 #leksjonsliste li button:hover { background: var(--gron-lys); }
 #leksjonsliste li.aktiv button { background: var(--gron); color: #fff; }
 #leksjonsliste .status { width: 1.2em; text-align: center; flex: none; }
+#leksjonsliste .sirkel { display: inline-block; width: 11px; height: 11px; border-radius: 50%; border: 2px solid currentColor; vertical-align: -1px; opacity: .75; }
+#leksjonsliste .sirkel.halv { background: linear-gradient(90deg, currentColor 50%, transparent 50%); opacity: 1; }
+@media (max-width: 600px) { #leksjon .eksempel pre { padding-right: 12px; padding-top: 34px; } }
 #leksjonsliste .nr { color: var(--grå); width: 1.6em; flex: none; }
 #leksjonsliste li.aktiv .nr { color: #dfeee0; }
 #leksjonsliste .tal { margin-left: auto; font-size: 12px; color: var(--grå); }
@@ -4185,10 +4188,10 @@ function hjelpFor(d, kjelde) {
             return `Typane passar ikkje saman: ein verdi av typen \`${a}\` kan ikkje lagrast i ein variabel av typen \`${b}\`.`;
         }
         case "CS0266": { const [a, b] = fang(/type '(.+)' to '(.+)'\./); return `Ein \`${a}\` kan ikkje automatisk lagrast i ein \`${b}\`, fordi du då kan miste informasjon (t.d. desimalane). Vil du det likevel, skriv det tydeleg med ein cast: \`(${b})verdi\`. Eller bruk typen \`${a}\` på variabelen.`; }
-        case "CS0165": { const [n] = fang(/variable '(.+)'/); return `Variabelen \`${n}\` har ikkje fått nokon verdi før du bruker han. Gi han ein startverdi når du lagar han, t.d. \`${n} = 0\`, eller sørg for at han alltid får ein verdi (også i \`else\`).`; }
+        case "CS0165": { const [n] = fang(/variable '(.+)'/); return `Variabelen \`${n}\` har ikkje fått nokon verdi før du brukar han. Gi han ein startverdi når du lagar han, t.d. \`${n} = 0\`, eller sørg for at han alltid får ein verdi (også i \`else\`).`; }
         case "CS0128": { const [n] = fang(/named '(.+)' is/); return `Du har alt laga ein variabel som heiter \`${n}\`. Skal du berre endre verdien, skriv \`${n} = ...;\` utan type framfor.`; }
         case "CS0136": { const [n] = fang(/named '(.+)' cannot/); return `Namnet \`${n}\` er alt brukt på ein variabel i ei ytre blokk. Vel eit anna namn.`; }
-        case "CS0841": { const [n] = fang(/variable '(.+)'/); return `Du bruker \`${n}\` før linja der variabelen blir laga. Flytt deklarasjonen (\`type ${n} = ...;\`) opp.`; }
+        case "CS0841": { const [n] = fang(/variable '(.+)'/); return `Du brukar \`${n}\` før linja der variabelen blir laga. Flytt deklarasjonen (\`type ${n} = ...;\`) opp.`; }
         case "CS0019": {
             const [op, a, b] = fang(/Operator '(.+)' cannot be applied to operands of type '(.+)' and '(.+)'/);
             if ((a === "string" || b === "string") && ["-", "*", "/", "%", "<", ">", "<=", ">="].includes(op)) return `Du kan ikkje rekne med tekst. Gjer teksten om til tal først, t.d. med \`int.Parse(...)\`.`;
@@ -4276,7 +4279,7 @@ function hjelpUnntak(u, ctx = {}) {
                 const t = (/'(.*)'/s.exec(m) || [])[1] ?? "";
                 let s = t === "" ? "Du trykte Enter utan å skrive noko, og ein tom tekst kan ikkje gjerast om til tal." : `Teksten \`${t}\` kunne ikkje gjerast om til eit tal. \`int.Parse\` godtek berre heiltal med siffer, t.d. \`42\`.`;
                 s += " Bruk `int.TryParse(...)` om programmet skal tole feil inntasting utan å krasje.";
-                if (/^\s*-?\d+[.,]\d+\s*$/.test(t)) s += " Skal du ha desimaltal, bruk `double.Parse` – og merk at simulatoren bruker punktum (`2.5`). På ein norsk PC kan .NET vente komma (`2,5`).";
+                if (/^\s*-?\d+[.,]\d+\s*$/.test(t)) s += " Skal du ha desimaltal, bruk `double.Parse` – og merk at simulatoren brukar punktum (`2.5`). På ein norsk PC kan .NET vente komma (`2,5`).";
                 return s;
             }
             if (/Boolean/.test(m)) return "`bool.Parse` godtek berre `true` eller `false`.";
@@ -4489,7 +4492,7 @@ const LEKSJONAR = [
 Console.WriteLine("Hei, verda!");
 `,
       html: `
-<p>Eit program er ei liste med instruksjonar som datamaskina følgjer, éin etter éin – litt som ei oppskrift. I C# skriv du tekst til skjermen med ${c`Console.WriteLine`}:</p>
+<p>Eit program er ei liste med instruksjonar som datamaskinen følgjer, éin etter éin – litt som ei oppskrift. I C# skriv du tekst til skjermen med ${c`Console.WriteLine`}:</p>
 ${ex`Console.WriteLine("Hei, verda!");`}
 <p>Teksten står i hermeteikn ${c`" "`}, og linja sluttar med semikolon ${c`;`} – litt som punktum etter ei setning. Trykk <b>▶ Køyr</b> (eller <b>Ctrl+Enter</b>). Først blir programmet <i>bygd</i> (kompilert). Finn C# ein feil, blir programmet ikkje køyrt i det heile – då får du ei feilmelding med linje og kolonne.</p>
 <p>${c`Console.Write`} (utan <i>Line</i>) skriv utan å hoppe til ny linje. Alt etter ${c`//`} er ein <b>kommentar</b>: ein beskjed til menneske som C# ser bort frå.</p>
@@ -4600,7 +4603,7 @@ else
 {
     Console.WriteLine("Det var ikkje eit heiltal.");
 }`}
-<div class="tips">💡 Simulatoren bruker punktum som desimalteikn (${c`2.5`}). På ein PC med norske innstillingar kan ${c`double.Parse`} vente komma (${c`2,5`}).</div>`,
+<div class="tips">💡 Simulatoren brukar punktum som desimalteikn (${c`2.5`}). På ein PC med norske innstillingar kan ${c`double.Parse`} vente komma (${c`2,5`}).</div>`,
       oppgaver: [
         { id: "l3o1", tekst: `Spør brukaren om namnet med ${c`Console.ReadLine()`} og helse, t.d. ${c`Hei, Kari!`}. Skriv namnet ditt i konsollen når programmet spør.`,
           hint: ["Startkoden gjer dette allereie – trykk ▶ Køyr og skriv namnet ditt i konsollen.", "Trykk <b>Enter</b> etter at du har skrive namnet."],
@@ -4928,7 +4931,7 @@ static void Helsing(string namn)
 {
     Console.WriteLine($"Hei, {namn}!");
 }`}
-<p>${c`void`} betyr at metoden ikkje gir noko tilbake. Skal metoden <b>rekne ut</b> noko, skriv du typen i staden for ${c`void`} og bruker ${c`return`}:</p>
+<p>${c`void`} betyr at metoden ikkje gir noko tilbake. Skal metoden <b>rekne ut</b> noko, skriv du typen i staden for ${c`void`} og brukar ${c`return`}:</p>
 ${ex`Console.WriteLine(TilKB(5120));    // 5
 Console.WriteLine(TilKB(1536));    // 1.5
 
@@ -5014,7 +5017,7 @@ dotnet run</pre></div>
 <p>Dette er annleis i ekte C#:</p>
 <ul>
 <li>Du får også <b>åtvaringar</b> (warnings), t.d. CS8600 når ${c`Console.ReadLine()`} kan gi ${c`null`}. Programmet køyrer likevel.</li>
-<li>På ein PC med norske innstillingar bruker ${c`double.Parse`} og utskrift <b>komma</b> som desimalteikn (${c`2,5`}).</li>
+<li>På ein PC med norske innstillingar brukar ${c`double.Parse`} og utskrift <b>komma</b> som desimalteikn (${c`2,5`}).</li>
 <li>Du kan lage eigne <b>klassar og objekt</b>, lese og skrive filer, bruke LINQ med lambda (${c`x => x * 2`}) og mykje meir – det er ikkje med her.</li>
 <li>${c`Random`} gir andre tal, og feilmeldingane viser full sti til fila, t.d. ${c`C:\Users\elev\MittProgram\Program.cs(3,30)`}.</li>
 </ul>
@@ -5055,8 +5058,8 @@ dotnet run</pre></div>
 const LAERAR_HTML = `<ul>
 <li><b>Kva er simulert?</b> Sida har ein eigen C#-tolk skriven i JavaScript. Han kan eit nybegynnar-utval av C# 12 / .NET 8: toppnivå-program og klassisk ${c`Main`}, typane ${c`int long double float decimal bool char string var`}, tabellar, ${c`List<T>`}, enkel ${c`Dictionary`}, ${c`if/switch/while/do/for/foreach`}, statiske metodar, lokale funksjonar, rekursjon, ${c`try/catch`}, ${c`Console`}, ${c`Math`}, ${c`Convert`}, ${c`Random`}, ${c`DateTime`} og ${c`Thread.Sleep`}.</li>
 <li>Koden blir bygd før han køyrer: feil blir vist i same format som ekte ${c`dotnet build`} (t.d. ${c`Program.cs(3,30): error CS1002: ; expected`}), og unntak som i ekte .NET – på engelsk, med ei forklaring på nynorsk (💡) under.</li>
-<li><b>Ikkje med:</b> eigne klassar med objekt, LINQ med lambda, filer, nettverk, ${c`async`} og åtvaringar (warnings). Tal blir skrivne med punktum (invariant kultur); ein norsk Windows-PC bruker komma.</li>
-<li>Framdrift og kode blir <b>berre lagra i nettlesaren</b> til eleven (localStorage) på denne maskina. Kursbeviset kan skrivast ut eller lagrast som PDF.</li>
+<li><b>Ikkje med:</b> eigne klassar med objekt, LINQ med lambda, filer, nettverk, ${c`async`} og åtvaringar (warnings). Tal blir skrivne med punktum (invariant kultur); ein norsk Windows-PC brukar komma.</li>
+<li>Framdrift og kode blir <b>berre lagra i nettlesaren</b> til eleven (localStorage) på denne maskinen. Kursbeviset kan skrivast ut eller lagrast som PDF.</li>
 <li>Oppgåvene blir sjekka automatisk etter kvar køyring, ut frå koden og utdata. Sjekken er raus – eleven kan løyse oppgåvene på fleire måtar og i kva rekkjefølgje som helst.</li>
 <li>Tips: La elevane lese feilmeldingar høgt – fil, (linje,kolonne), feilkode og tekst – før dei les 💡-hjelpa. «Prøv»-knappane limer inn eksempel utan å køyre dei.</li>
 </ul>`;
@@ -5103,7 +5106,7 @@ function leksjonStatus(l) {
     if (ok > 0 || besokt.has(l.id)) return "igang";
     return "ny";
 }
-const STATUSIKON = { ny: "○", igang: "◐", ferdig: "✔" };
+const STATUSIKON = { ny: '<span class="sirkel"></span>', igang: '<span class="sirkel halv"></span>', ferdig: "✔" };
 
 /* ================== VISING ================== */
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -5592,7 +5595,7 @@ function stoppProgram() {
     if (SIM.sovRes) { clearTimeout(SIM.sovTid); const r = SIM.sovRes; SIM.sovRes = null; r(); }
 }
 
-/* ----- krokar som malen bruker ----- */
+/* ----- krokar som malen brukar ----- */
 function simLim(tekst) {
     settKode(tekst.replace(/\s+$/, "") + "\n", false);
     lagreKode();

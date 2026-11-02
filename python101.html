@@ -67,6 +67,9 @@ main.oppsett { flex: 1; min-height: 0; display: grid; grid-template-columns: min
 #leksjonsliste li button:hover { background: var(--gron-lys); }
 #leksjonsliste li.aktiv button { background: var(--gron); color: #fff; }
 #leksjonsliste .status { width: 1.2em; text-align: center; flex: none; }
+#leksjonsliste .sirkel { display: inline-block; width: 11px; height: 11px; border-radius: 50%; border: 2px solid currentColor; vertical-align: -1px; opacity: .75; }
+#leksjonsliste .sirkel.halv { background: linear-gradient(90deg, currentColor 50%, transparent 50%); opacity: 1; }
+@media (max-width: 600px) { #leksjon .eksempel pre { padding-right: 12px; padding-top: 34px; } }
 #leksjonsliste .nr { color: var(--grå); width: 1.6em; flex: none; }
 #leksjonsliste li.aktiv .nr { color: #dfeee0; }
 #leksjonsliste .tal { margin-left: auto; font-size: 12px; color: var(--grå); }
@@ -611,7 +614,7 @@ const STARTKOMMENTARAR = new Set(Object.values(STARTKODE).flatMap(k => k.split("
 const LEKSJONAR = [
     { id: "l1", tittel: "Første program", laerer: "å skrive ut tekst med <code>print()</code>, å skrive kommentarar og å køyre eit program.",
       html: `
-        <p>Eit program er ei liste med instruksjonar som datamaskina følgjer, linje for linje, ovanfrå og ned. Python er eit av dei mest brukte programmeringsspråka i verda – og eit av dei enklaste å lære.</p>
+        <p>Eit program er ei liste med instruksjonar som datamaskinen følgjer, linje for linje, ovanfrå og ned. Python er eit av dei mest brukte programmeringsspråka i verda – og eit av dei enklaste å lære.</p>
         <p>Funksjonen <code>print()</code> skriv ut det som står inne i parentesen. Tekst skal stå mellom hermeteikn.</p>
         ${ex(`print("Hei, alle saman!")\nprint("Eg lærer Python.")`)}
         <p>Skriv koden i editoren til høgre, og trykk <b>▶ Køyr</b> (eller <b>Ctrl+Enter</b>). Det programmet skriv ut, kjem i konsollen under editoren. Du kan også trykkje <b>Prøv</b> på eit eksempel for å lime det inn.</p>
@@ -762,7 +765,7 @@ print("  > ^ <  ")`)}
         { id: "l6o2", tekst: "Lag ei evig løkke med <code>while True:</code>, køyr ho, og stopp ho med <b>■ Stopp</b>.",
           hint: ["Ei løkke med <code>while True:</code> og utan <code>break</code> stoppar aldri av seg sjølv.", "<code>while True:</code><br><code>&nbsp;&nbsp;&nbsp;&nbsp;print(\"Hjelp, eg går i ring!\")</code><br>Køyr, og trykk ■ Stopp."],
           sjekk: c => node(c, "While") >= 1 && c.feiltype === "KeyboardInterrupt" },
-        { id: "l6o3", tekst: "Lag spelet «Gjett talet»: Datamaskina trekkjer eit tilfeldig tal med <code>random.randint</code>. Brukaren gjettar heilt til svaret er rett, og får vite om gjettinga er <code>For høgt</code> eller <code>For lågt</code>.",
+        { id: "l6o3", tekst: "Lag spelet «Gjett talet»: Datamaskinen trekkjer eit tilfeldig tal med <code>random.randint</code>. Brukaren gjettar heilt til svaret er rett, og får vite om gjettinga er <code>For høgt</code> eller <code>For lågt</code>.",
           hint: ["Bruk eksempelet over, men legg til <code>if gjett &gt; hemmeleg:</code> og <code>elif gjett &lt; hemmeleg:</code>.", "<code>if gjett == hemmeleg:</code><br><code>&nbsp;&nbsp;&nbsp;&nbsp;print(\"Rett!\")</code><br><code>&nbsp;&nbsp;&nbsp;&nbsp;break</code><br><code>elif gjett &gt; hemmeleg:</code><br><code>&nbsp;&nbsp;&nbsp;&nbsp;print(\"For høgt\")</code><br><code>else:</code><br><code>&nbsp;&nbsp;&nbsp;&nbsp;print(\"For lågt\")</code>"],
           sjekk: c => ok(c) && (kall(c, "randint") + kall(c, "randrange")) >= 1 && node(c, "While") >= 1 && A(c).inputILokke && harCmp(c, ...STORLEIK) && c.input.length >= 1 },
         { id: "l6o4", tekst: "Lag ei nedteljing frå 5 til 1 med ei løkke og <code>time.sleep(1)</code> mellom kvart tal, og skriv ut <code>Takeoff!</code> til slutt.",
@@ -851,7 +854,7 @@ print("  > ^ <  ")`)}
           sjekk: c => ok(c) && kall(c, "len") >= 1 && harCmp(c, ...STORLEIK) && A(c).funksjonar.some(f => f.retur && f.args >= 1 && kall(c, f.namn) >= 2) && /True/.test(c.utdata) && /False/.test(c.utdata) },
       ]},
 
-    { id: "l10", tittel: "Mini-prosjekt og vidare", laerer: "å setje saman alt du har lært i eit lite program, og korleis du held fram med ekte Python på skulemaskina.",
+    { id: "l10", tittel: "Mini-prosjekt og vidare", laerer: "å setje saman alt du har lært i eit lite program, og korleis du held fram med ekte Python på skulemaskinen.",
       html: `
         <p>No kan du det viktigaste: <code>print</code>, variablar, <code>input</code>, <code>if</code>, løkker, lister og funksjonar. Det er nok til å lage ekte, nyttige program!</p>
         <h3>Mini-prosjekt: eit menyprogram</h3>
@@ -867,7 +870,7 @@ print("  > ^ <  ")`)}
         </ul>
         <h3>Kva er annleis her?</h3>
         <ul>
-          <li>Her køyrer ekte Python 3.14 (Pyodide) inne i nettlesaren. Det meste er likt, men du kan ikkje installere pakkar med <code>pip</code>, lese filer på maskina eller bruke nettverket.</li>
+          <li>Her køyrer ekte Python 3.14 (Pyodide) inne i nettlesaren. Det meste er likt, men du kan ikkje installere pakkar med <code>pip</code>, lese filer på maskinen eller bruke nettverket.</li>
           <li>Her skriv du svar på <code>input()</code> i konsollen under editoren. I ekte Python skriv du i terminalvindauget.</li>
           <li><b>■ Stopp</b> her er det same som <b>Ctrl+C</b> i ein ekte terminal.</li>
           <li>Koden din her blir berre lagra i denne nettlesaren. Ta vare på program du er stolt av – kopier dei over i ei fil!</li>
@@ -955,7 +958,7 @@ function leksjonStatus(l) {
     if (ok > 0 || besokt.has(l.id)) return "igang";
     return "ny";
 }
-const STATUSIKON = { ny: "○", igang: "◐", ferdig: "✔" };
+const STATUSIKON = { ny: '<span class="sirkel"></span>', igang: '<span class="sirkel halv"></span>', ferdig: "✔" };
 
 /* ================== VISING ================== */
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
