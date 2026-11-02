@@ -135,44 +135,17 @@
         <p>IT, programmering og litt leik. Her samlar eg ting eg lagar – ofte til undervisninga på Stord vgs.</p>
         <input id="sok" type="search" placeholder="Søk, t.d. «passord» eller «piano» …" aria-label="Søk på sida">
         <nav>
-            <a href="#spel">Spel</a>
             <a href="#laering">Læring</a>
             <a href="#krypto">Kryptografi</a>
             <a href="#innlogging">Innlogging og tillit</a>
             <a href="#verktoy">Verktøy</a>
             <a href="#anna">Programvare og lyd</a>
+            <a href="#spel">Spel</a>
         </nav>
     </div>
 </header>
 
 <main class="innhald">
-
-    <section id="spel">
-        <h2>Spel</h2>
-        <ul>
-            <li><a href="https://claude.ai/public/artifacts/727a28f1-d76a-4e1f-bcc2-cfef1f28949e">MineSweeper Stord</a>
-                <span class="forklaring">Oppdrag frå 1940 – sveip miner rundt Stord</span></li>
-            <li><a href="snake3d.html">IM-Stord 3D Snake</a>
-                <span class="forklaring">Slangen kryp gjennom fem kjellarrom fram til alle edderkoppars mor</span></li>
-            <li><a href="fagdactle.html">FAGDACTLE</a>
-                <span class="forklaring">Gjett den sladda IT-artikkelen frå norsk Wikipedia</span></li>
-            <li><span class="tittel">Plinko</span>
-                <span class="utgaver">
-                    <a href="plimko.html" title="Klassisk, vel innsats sjølv">1</a>
-                    <a href="plimko2.html" title="Kor lenge held pengane?">2</a>
-                    <a href="plimko3.html" title="Pass deg for tjuven!">3</a>
-                </span>
-                <span class="forklaring">1: klassisk · 2: kor lenge held pengane? · 3: pass deg for tjuven! (pausekonk for 2ITKA)</span></li>
-            <li><span class="tittel">Piano</span>
-                <span class="utgaver">
-                    <a href="piano.html" title="Spel med mus, fingrar eller tastatur">1</a>
-                    <a href="piano2.html" title="Spel inn, lagre og del låtar">2</a>
-                    <a href="piano3.html" title="Fallande notar">3</a>
-                    <a href="piano4.html" title="Fallande notar med toppliste">4</a>
-                </span>
-                <span class="forklaring">1: spel fritt · 2: spel inn og del låtar · 3: fallande notar · 4: fallande notar med felles toppliste for klassen</span></li>
-        </ul>
-    </section>
 
     <section id="laering">
         <h2>Læring</h2>
@@ -187,10 +160,10 @@
                 <span class="forklaring">Vektstang og talje, interaktivt med utrekningar</span></li>
             <li><a href="imstord/">VM i prompting</a>
                 <span class="forklaring">Seks elevgrupper lagar nettsider med KI om IP, 2FA, DNS og PowerShell</span></li>
-            <li><a href="https://learningcontent.cisco.com/games/binary/index.html">Cisco Binary Game</a>
-                <span class="forklaring">Øv på å rekne mellom binært og desimalt (ekstern, Cisco)</span></li>
             <li><a href="https://ndla.no/nn/utdanning/informasjonsteknologi-og-medieproduksjon/23f18a24131e">IM på NDLA</a>
                 <span class="forklaring">Fagstoff for informasjonsteknologi og medieproduksjon, Vg1 og Vg2 (ekstern, NDLA)</span></li>
+            <li><a href="https://ki.sikt.no/MWUF">Brukarstøtte-Bjørn</a>
+                <span class="forklaring">KI-assistent for brukarstøtte (ekstern, Sikt)</span></li>
         </ul>
     </section>
 
@@ -235,8 +208,6 @@
         <ul>
             <li><a href="radio.html">Indieradio</a>
                 <span class="forklaring">Små og sjølvstendige radiostasjonar frå heile verda, no òg klassisk</span></li>
-            <li><a href="arkiv.html">Stord i arkivet</a>
-                <span class="forklaring">Bilete, aviser og radioklipp frå Nasjonalbiblioteket om lokale hendingar</span></li>
             <li><a href="svartkvitt.html">Svart-kvitt</a>
                 <span class="forklaring">Gjer fargebilete om til gråtonar, terskel eller dithering – sjå utrekninga per piksel</span></li>
             <li><a href="enkelbod.html">Enkelbod</a>
@@ -271,11 +242,40 @@
         </ul>
     </section>
 
+    <section id="spel">
+        <h2>Spel</h2>
+        <ul>
+            <li><a href="https://claude.ai/public/artifacts/727a28f1-d76a-4e1f-bcc2-cfef1f28949e">MineSweeper Stord</a>
+                <span class="forklaring">Oppdrag frå 1940 – sveip miner rundt Stord</span></li>
+            <li><a href="snake3d.html">IM-Stord 3D Snake</a>
+                <span class="forklaring">Slangen kryp gjennom fem kjellarrom fram til alle edderkoppars mor</span></li>
+            <li><a href="fagdactle.html">FAGDACTLE</a>
+                <span class="forklaring">Gjett den sladda IT-artikkelen frå norsk Wikipedia</span></li>
+            <li><span class="tittel">Plinko</span>
+                <span class="utgaver">
+                    <a href="plimko.html" title="Klassisk, vel innsats sjølv">1</a>
+                    <a href="plimko2.html" title="Kor lenge held pengane?">2</a>
+                    <a href="plimko3.html" title="Pass deg for tjuven!">3</a>
+                </span>
+                <span class="forklaring">1: klassisk · 2: kor lenge held pengane? · 3: pass deg for tjuven! (pausekonk for 2ITKA)</span></li>
+            <li><span class="tittel">Piano</span>
+                <span class="utgaver">
+                    <a href="piano.html" title="Spel med mus, fingrar eller tastatur">1</a>
+                    <a href="piano2.html" title="Spel inn, lagre og del låtar">2</a>
+                    <a href="piano3.html" title="Fallande notar">3</a>
+                    <a href="piano4.html" title="Fallande notar med toppliste">4</a>
+                </span>
+                <span class="forklaring">1: spel fritt · 2: spel inn og del låtar · 3: fallande notar · 4: fallande notar med felles toppliste for klassen</span></li>
+            <li><a href="https://learningcontent.cisco.com/games/binary/index.html">Cisco Binary Game</a>
+                <span class="forklaring">Øv på å rekne mellom binært og desimalt (ekstern, Cisco)</span></li>
+        </ul>
+    </section>
+
     <p id="ingen">Fann ingenting som passa søket.</p>
 </main>
 
 <footer>
-    <a href="https://www.stord.vgs.no">Stord vidaregåande skule</a> · Sist oppdatert: 01.11.2026
+    <a href="https://www.stord.vgs.no">Stord vidaregåande skule</a> · Sist oppdatert: 02.11.2026
 </footer>
 
 <script>
