@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="nn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phishing-detektiven</title>
+<style>
+:root {
+    --bg: #eef2f6;
+    --panel: #ffffff;
+    --panel2: #f2f5f9;
+    --border: #d3dae3;
+    --text: #1b2230;
+    --muted: #5b6577;
+    --accent: #0f766e;
+    --accent-soft: #d5f0ec;
+    --ok: #15803d;
+    --okbg: #dcfce7;
+    --bad: #b91c1c;
+    --badbg: #fee2e2;
+    --warn: #a16207;
+    --warnbg: #fef3c7;
+    --c1: #2563eb;
+    --c2: #c2410c;
+    --c3: #7c3aed;
+    --hl: #fde68a;
+    color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #171c26;
+        --panel: #222936;
+        --panel2: #2a3242;
+        --border: #3a4356;
+        --text: #e5e8ee;
+        --muted: #9aa3b4;
+        --accent: #2dd4bf;
+        --accent-soft: #134e4a;
+        --ok: #4ade80;
+        --okbg: #14391f;
+        --bad: #f87171;
+        --badbg: #4a1d22;
+        --warn: #fbbf24;
+        --warnbg: #3d3012;
+        --c1: #60a5fa;
+        --c2: #fb923c;
+        --c3: #a78bfa;
+        --hl: #6b5a12;
+        color-scheme: dark;
+    }
+}
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    line-height: 1.5;
+    padding: 0 0 60px;
+}
+main { max-width: 820px; margin: 0 auto; padding: 16px; }
+a { color: var(--accent); }
+
+/* Grøn tittellinje, same som 101-sidene */
+header.topp {
+    background: #2e7d32; color: #fff; padding: 12px 16px;
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+    border-bottom: 3px solid #1b5e20;
+}
+header.topp .tilbake {
+    color: #fff; text-decoration: none; font-size: 14px; padding: 4px 10px;
+    border: 1px solid rgba(255,255,255,.5); border-radius: 14px; white-space: nowrap;
+}
+header.topp .tilbake:hover { background: #1b5e20; }
+header.topp .titlar { flex: 1 1 260px; min-width: 0; }
+header.topp h1 { margin: 0; font-size: 21px; line-height: 1.2; }
+header.topp .under { margin: 2px 0 0; font-size: 13px; opacity: .92; }
+
+h1 { font-size: 27px; }
+.lead { color: var(--muted); margin: 0 0 16px; font-size: 17px; }
+.card {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px; margin-bottom: 16px;
+}
+.card h2 { margin: 0 0 8px; font-size: 19px; }
+.card h3 { margin: 14px 0 6px; font-size: 16px; }
+.card p { margin: 0 0 10px; }
+.card > :last-child { margin-bottom: 0; }
+.small { font-size: 14px; color: var(--muted); }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+label { display: block; font-weight: 600; margin: 10px 0 4px; font-size: 15px; }
+input[type=text] {
+    width: 100%; padding: 8px 10px; font: inherit;
+    border: 1px solid var(--border); border-radius: 8px;
+    background: var(--panel2); color: var(--text);
+}
+.btn {
+    border: 1px solid var(--border); background: var(--panel2); color: var(--text);
+    padding: 8px 14px; border-radius: 8px; font: inherit; font-size: 15px; cursor: pointer;
+}
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+.btn:disabled { opacity: .5; cursor: default; }
+details { background: var(--panel2); border-radius: 8px; padding: 8px 12px; margin: 6px 0; }
+details summary { cursor: pointer; font-weight: 600; }
+details p { margin: 6px 0 2px; }
+footer { font-size: 13px; color: var(--muted); text-align: center; margin: 8px 0 20px; }
+
+/* Nivåval + knappar */
+.nivaa { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.nivaa button {
+    font: inherit; color: var(--text); text-align: center; cursor: pointer;
+    background: var(--panel2); border: 2px solid var(--border); border-radius: 12px; padding: 12px;
+}
+.nivaa button:hover, .nivaa button.on { border-color: var(--accent); }
+.nivaa button.on { background: var(--accent-soft); }
+.nivaa svg { width: 110px; height: 110px; display: block; margin: 0 auto 6px; }
+.nivaa b { display: block; font-size: 17px; }
+.nivaa .small { display: block; }
+.nivaa .tatt { color: var(--ok); font-weight: 700; font-size: 13px; }
+.mine { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+.mine svg { width: 90px; height: 90px; }
+.knapp-stor { max-width: 320px; margin: 10px auto; }
+.knapp-stor svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 4px 10px rgba(0,0,0,.25)); }
+.center { text-align: center; }
+
+/* Framdrift */
+.framdrift { height: 8px; background: var(--panel2); border-radius: 4px; overflow: hidden; border: 1px solid var(--border); }
+.framdrift i { display: block; height: 100%; background: var(--accent); transition: width .25s; }
+.spm-topp { display: flex; justify-content: space-between; align-items: center; font-size: 14px; color: var(--muted); margin: 12px 0 4px; }
+.poeng { font-size: 44px; font-weight: 800; text-align: center; margin: 4px 0; }
+.poeng.ok { color: var(--ok); } .poeng.bad { color: var(--bad); }
+
+/* ---------- E-postklient ---------- */
+.klient {
+    border: 1px solid var(--border); border-radius: 12px; overflow: hidden;
+    background: var(--panel); box-shadow: 0 2px 8px rgba(0,0,0,.08);
+}
+.klient-topp { background: var(--panel2); padding: 8px 12px; font-size: 13px; color: var(--muted); border-bottom: 1px solid var(--border); display: flex; gap: 8px; align-items: center; }
+.klient-topp .pil { font-size: 15px; }
+.epost-emne { font-size: 19px; font-weight: 700; padding: 12px 14px 4px; }
+.epost-hovud { padding: 2px 14px 10px; border-bottom: 1px solid var(--border); font-size: 14px; }
+.avsendar { display: block; padding: 6px 8px; border-radius: 8px; border: 2px solid transparent; }
+.avsendar .avatar { display: inline-flex; width: 34px; height: 34px; border-radius: 50%; background: var(--c1); color: #fff; align-items: center; justify-content: center; font-weight: 700; margin-right: 8px; vertical-align: middle; }
+.avsendar .namn { font-weight: 700; color: var(--text); }
+.avsendar .adr { color: var(--muted); }
+.avsendar .vis-meir { background: none; border: 0; color: var(--accent); font: inherit; font-size: 13px; cursor: pointer; padding: 0 4px; text-decoration: underline; }
+.avsendar .detaljar { display: none; margin: 6px 0 2px 42px; font-size: 13px; color: var(--muted); border-left: 2px solid var(--border); padding-left: 10px; }
+.avsendar .detaljar.open { display: block; }
+.avsendar .detaljar .rad { margin: 2px 0; }
+.avsendar .detaljar b { color: var(--text); }
+.epost-kropp { padding: 12px 14px; font-size: 15px; }
+.epost-kropp p { margin: 0 0 10px; }
+.krav { display: block; background: var(--panel2); border-radius: 8px; padding: 10px 12px; margin: 10px 0; border: 2px solid transparent; }
+.lenke { color: var(--c1); text-decoration: underline; cursor: pointer; }
+.knapp-lenke { display: inline-block; background: var(--c1); color: #fff !important; text-decoration: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; margin: 4px 0; cursor: pointer; border: 2px solid transparent; }
+.vedlegg-liste { display: flex; flex-wrap: wrap; gap: 8px; padding: 8px 14px 12px; border-top: 1px solid var(--border); }
+.vedlegg {
+    display: inline-flex; align-items: center; gap: 6px; font-size: 14px;
+    background: var(--panel2); border: 2px solid var(--border); border-radius: 8px; padding: 6px 10px;
+}
+.vedlegg .fil-ikon { font-size: 16px; }
+.qr { display: block; width: 130px; margin: 8px 14px; border: 2px solid transparent; border-radius: 8px; padding: 6px; background: #fff; }
+.qr svg { display: block; width: 116px; height: 116px; }
+.hovud {
+    margin: 8px 14px 12px; border: 2px solid var(--border); border-radius: 8px; overflow: hidden;
+}
+.hovud summary { background: var(--panel2); padding: 7px 12px; font-size: 13px; color: var(--muted); }
+.hovud .felt { padding: 8px 12px; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 13px; }
+.hovud .felt div { margin: 2px 0; }
+.hovud .pass { color: var(--ok); font-weight: 700; }
+.hovud .fail { color: var(--bad); font-weight: 700; }
+
+/* peikbare element i peik-steget */
+.peikbar { cursor: pointer; }
+.peik-hover { outline: 2px dashed var(--accent); outline-offset: 1px; border-radius: 6px; }
+.valt-funn { outline: 3px solid var(--accent) !important; outline-offset: 1px; border-radius: 6px; }
+
+/* ---------- Mobilskjerm for SMS ---------- */
+.telefon {
+    max-width: 300px; margin: 0 auto; background: #0b1220; border-radius: 30px;
+    padding: 10px; box-shadow: 0 6px 20px rgba(0,0,0,.3);
+}
+.telefon .skjerm { background: #e9edf2; border-radius: 22px; overflow: hidden; color: #10151f; }
+.telefon .statuslinje { display: flex; justify-content: space-between; font-size: 12px; padding: 6px 14px 2px; color: #10151f; }
+.telefon .sms-topp { text-align: center; padding: 6px 10px 10px; border-bottom: 1px solid #c7ced8; }
+.telefon .sms-topp .krets { width: 40px; height: 40px; border-radius: 50%; background: #c7ced8; margin: 0 auto 4px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+.telefon .sms-topp .avs { font-weight: 700; font-size: 15px; display: inline-block; padding: 2px 6px; border-radius: 6px; border: 2px solid transparent; }
+.telefon .sms-kropp { padding: 12px 12px 18px; min-height: 120px; }
+.telefon .bobla { background: #fff; border-radius: 16px; padding: 9px 12px; font-size: 14px; max-width: 85%; box-shadow: 0 1px 2px rgba(0,0,0,.12); margin-bottom: 8px; }
+.telefon .bobla .lenke { color: #0a58ca; }
+.telefon .tid { text-align: center; font-size: 11px; color: #5b6577; margin: 2px 0 8px; }
+
+/* verdikt-knappar */
+.dom { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+.dom button { font: inherit; font-size: 16px; font-weight: 700; padding: 14px; border-radius: 10px; cursor: pointer; border: 2px solid var(--border); background: var(--panel2); color: var(--text); }
+.dom button.ekte:hover { border-color: var(--ok); color: var(--ok); }
+.dom button.phish:hover { border-color: var(--bad); color: var(--bad); }
+
+.peik-boks { margin-top: 14px; padding: 10px 12px; border-radius: 10px; background: var(--accent-soft); }
+.peik-boks b { display: block; margin-bottom: 4px; }
+.ingen-knapp { margin-top: 8px; }
+
+.fasit { margin-top: 14px; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border); }
+.fasit.rett { background: var(--okbg); border-color: var(--ok); }
+.fasit.feil { background: var(--badbg); border-color: var(--bad); }
+.fasit h3 { margin: 0 0 6px; }
+.fasit .merkelapp { font-weight: 800; }
+.fasit .raad { margin-top: 8px; font-size: 14px; }
+
+/* URL-linje nede, som i ein nettlesar */
+#urlbar {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
+    background: #10151f; color: #d7e0ea; font-family: ui-monospace, Menlo, Consolas, monospace;
+    font-size: 13px; padding: 7px 14px; display: none; word-break: break-all;
+    border-top: 2px solid var(--accent);
+}
+#urlbar.vis { display: block; }
+#urlbar .ikon { color: var(--warn); }
+
+@media (max-width: 480px) {
+    main { padding: 12px; }
+    h1 { font-size: 23px; }
+    .card { padding: 12px; }
+    .dom button { font-size: 15px; padding: 12px; }
+}
+</style>
+</head>
+<body>
+
+<header class="topp">
+    <a class="tilbake" href="index.html">← Sandkassa</a>
+    <div class="titlar">
+        <h1>Phishing-detektiven</h1>
+        <p class="under">Ekte eller phishing? Peik på teiknet som avslører meldinga, og ta knappen i bronse, sølv og gull.</p>
+    </div>
+</header>
+
+<main>
+
+<!-- START -->
+<section id="start">
+    <section class="card">
+        <h2>1. Vel nivå</h2>
+        <div class="nivaa" id="nivaval"></div>
+    </section>
+    <section class="card">
+        <h2>2. Skriv fornamnet ditt</h2>
+        <input type="text" id="namn" maxlength="20" placeholder="Fornamn" autocomplete="given-name">
+        <p class="small" style="margin-top:6px">Namnet kjem på knappen din.</p>
+        <div class="row" style="margin-top:10px">
+            <button class="btn primary" id="startknapp">Start</button>
+            <span class="small" id="startmsg"></span>
+        </div>
+    </section>
+    <section class="card">
+        <h2>Slik gjer du</h2>
+        <ol style="margin:0; padding-left:20px">
+            <li>Du får 10 meldingar, tilfeldig valde. Om lag halvparten er <b>ekte</b> – «alt er phishing» løner seg ikkje.</li>
+            <li>Les meldinga nøye. <b>Hald musepeikaren over ei lenke</b> (eller hald fingeren på henne på mobil) for å sjå kvar ho eigentleg går. Trykk på «detaljar» for å sjå heile avsendaradressa og Svar-til.</li>
+            <li>Vel <b>Ekte</b> eller <b>Phishing</b>.</li>
+            <li>Så må du <b>peike på teiknet</b>: klikk på det som avslører meldinga (avsendar, lenke, vedlegg, QR-kode, kravet i teksten eller det tekniske hovudet). Er meldinga ekte, vel du «Ingen faresignal her».</li>
+            <li>Rett svar tel <b>berre</b> om du òg peikar på rett stad. Peikar du på eit «teikn» i ei ekte melding, tel caset som feil.</li>
+            <li>Du må klare <b>8 av 10</b> for å ta knappen. Prøver du på nytt, får du nye meldingar.</li>
+        </ol>
+    </section>
+    <section class="card" id="mineKort" style="display:none">
+        <h2>Knappane dine</h2>
+        <div class="mine" id="mine"></div>
+        <p class="small center" style="margin-top:6px">Lagra i denne nettlesaren.</p>
+    </section>
+    <details>
+        <summary>For læraren</summary>
+        <p>Øvinga trenar elevane i å kjenne att phishing utan å stole på skrivefeil. Dei ekte meldingane er med vilje skumle (passord-tilbakestilling, ny innlogging, faktura, hastevarsel frå IT), og phishing-meldingane har feilfritt språk. Poenget er at eleven må <b>peike på det tekniske teiknet</b> – domene, underdomene, lenketekst mot adresse, Svar-til, vedlegg, QR-kode, krav i teksten eller SPF/DKIM/DMARC – ikkje gjette.</p>
+        <p>Tre nivå: <b>bronse</b> (tydelege teikn, berre e-post), <b>sølv</b> (subtile domene, lenker som må sjekkast, SMS, ekte meldingar som ser skumle ut) og <b>gull</b> (e-posthovud med SPF/DKIM/DMARC og Return-Path, direktørsvindel, kapra kollega, QR og MFA-trøyttleik). Kvart nivå har minst 15 case, og testen trekkjer 10 tilfeldig.</p>
+        <p>Alt skjer <b>lokalt i nettlesaren</b>. Ingen lenker fungerer – eit klikk gir berre ei forklaring – og ingenting blir sendt eller samla inn. Resultat og oppnådde knappar ligg i <code>localStorage</code> under prefikset <code>phishingknappen-</code>, berre på denne maskina. Alle avsendarar og firma er oppdikta eller tydeleg merkte som øving, og ingen ekte logoar er brukte.</p>
+    </details>
+</section>
+
+<!-- SPEL -->
+<section id="spel" style="display:none">
+    <div class="framdrift"><i id="bar"></i></div>
+    <div class="spm-topp"><span id="nr"></span><span id="score"></span></div>
+    <div id="melding"></div>
+    <div id="handling"></div>
+</section>
+
+<!-- RESULTAT -->
+<section id="resultat" style="display:none">
+    <section class="card center">
+        <div class="poeng" id="poeng"></div>
+        <p id="resTekst" style="font-size:18px"></p>
+        <div class="knapp-stor" id="stor"></div>
+        <div class="row" style="justify-content:center" id="resKnappar"></div>
+    </section>
+</section>
+
+<footer>Frode · IM-Stord · Øving. Alle avsendarar er oppdikta. Alt skjer i nettlesaren din – ingenting blir sendt.</footer>
+</main>
+
+<div id="urlbar"><span class="ikon">🔗</span> <span id="urltekst"></span></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+const K_NAMN = "Phishing-detektiven";
+const K_SVGTEKST = "PHISHING-DETEKTIVEN";
+const K_LAGER = "phishingknappen-";   // prefiks i localStorage
+
+/*
+  Kvart case:
+  { kanal: 'epost' | 'sms',
+    fasit: 'phishing' | 'ekte',
+    rettFunn: 'avsendar' | 'replyto' | 'lenke0'.. | 'vedlegg0'.. | 'qr' | 'krav' | 'hovud' | 'ingen',
+    teikn: kort namn på teiknet,
+    forklaring: kva var teiknet,
+    raad: kva eleven skulle gjort,
+    // e-post:
+    fraNamn, fraAdr, replyTo?, til, emne, dato,
+    avatar?, farge?,
+    blokker: [ 'tekst' | {krav:'tekst'} ]  (lenker skrivne som {{L0}} i teksten),
+    lenker?: [ {tekst, knapp?, real} ],
+    vedlegg?: [ 'filnamn.ext' ],
+    qr?: true,
+    hovud?: { spf, dkim, dmarc, retpath }   (gull)
+    // sms:
+    avs (avsendarnamn vist), sms: [ 'tekst' ] (lenker som {{L0}})
+  }
+*/
+
+const POOL = {
+bronse: [
+  { kanal:'epost', fasit:'phishing', rettFunn:'avsendar', teikn:'Falsk avsendaradresse (0 for o)',
+    fraNamn:'Microsoft 365', fraAdr:'tryggleik@micros0ft-support.com', til:'deg@nordhaug.vgs.no',
+    emne:'Uvanleg innlogging oppdaga', dato:'03.11.2026',
+    blokker:['Vi oppdaga ei innlogging frå ei ny eining. Var det ikkje deg, bør du stadfeste kontoen din no.','{{L0}}'],
+    lenker:[{tekst:'Stadfest kontoen', knapp:true, real:'https://micros0ft-support.com/verifiser'}],
+    forklaring:'Avsendaradressa er «micros0ft-support.com» – det står null i staden for o, og domenet er ikkje microsoft.com i det heile.',
+    raad:'Ikkje klikk. Logg inn ved å skrive adressa sjølv, og meld meldinga som phishing.' },
+
+  { kanal:'epost', fasit:'ekte', rettFunn:'ingen', teikn:'Tilbakestilling du sjølv bad om',
+    fraNamn:'Feide', fraAdr:'ingen-svar@feide.no', til:'deg@nordhaug.vgs.no',
+    emne:'Tilbakestilling av passord', dato:'03.11.2026',
+    blokker:['Du har bedt om å tilbakestille passordet ditt hos Feide. Vel eit nytt passord innan 30 minutt. Var det ikkje deg som bad om dette, kan du sjå bort frå meldinga.','{{L0}}'],
+    lenker:[{tekst:'Vel nytt passord', knapp:true, real:'https://innlogging.feide.no/passord'}],
+    forklaring:'Dette ser skummelt ut, men du bad sjølv om å byte passord, avsendaren er feide.no og lenka går til innlogging.feide.no. Alt stemmer.',
+    raad:'Dette er trygt når du nettopp bad om det. Hadde du ikkje bedt om det, skulle du late lenka vere og meldt frå.' },
+
+  { kanal:'epost', fasit:'phishing', rettFunn:'lenke0', teikn:'Lenka går til feil domene',
+    fraNamn:'Posten', fraAdr:'sporing@posten-levering.info', til:'deg@nordhaug.vgs.no',
+    emne:'Pakken din ventar på deg', dato:'02.11.2026',
+    blokker:['Pakken din ligg klar, men vi fekk ikkje levert. Følg sendinga og vel leveringsstad.','{{L0}}'],
+    lenker:[{tekst:'Spor pakken', knapp:true, real:'https://posten-levering.info/track?id=99124'}],
+    forklaring:'Posten brukar posten.no. Held du over lenka, ser du at ho går til «posten-levering.info» – eit heilt anna domene som berre har «posten» i namnet.',
+    raad:'Ikkje klikk. Gå til posten.no sjølv, eller bruk appen, om du ventar ein pakke.' },
+
+  { kanal:'epost', fasit:'ekte', rettFunn:'ingen', teikn:'Intern driftsmelding frå skulen',
+    fraNamn:'IT-tenesta Nordhaug vgs', fraAdr:'it@nordhaug.vgs.no', til:'alle@nordhaug.vgs.no',
+    emne:'Planlagt omstart av nettverket torsdag kveld', dato:'03.11.2026',
+    blokker:['Hei! Torsdag kl. 22 startar vi nettverksutstyret på nytt. Du treng ikkje gjere noko. Trådlaust nett kan vere borte i inntil 15 minutt. Spørsmål? Stikk innom IT på rom 118.'],
+    forklaring:'Avsendaren er den interne IT-adressa (nordhaug.vgs.no), det er ingen lenke, ingen vedlegg og ingen hast eller krav. Berre ei roleg melding.',
+    raad:'Ingenting å gjere. Kjenner du deg usikker, kan du alltids spørje IT på rom 118.' },
+
+  { kanal:'epost', fasit:'phishing', rettFunn:'vedlegg0', teikn:'HTML-vedlegg',
+    fraNamn:'Rekneskap', fraAdr:'faktura@regnskap-portalen.com', til:'deg@nordhaug.vgs.no',
+    emne:'Faktura 20264417 – opne vedlegget', dato:'01.11.2026',
+    blokker:['God dag. Vedlagt finn du fakturaen. Opne fila for å sjå detaljane og betale.'],
+    vedlegg:['Faktura_20264417.html'],
+    forklaring:'Vedlegget er ei .html-fil. Ein ekte faktura er vanlegvis PDF. Ei HTML-fil opnar ei falsk innloggingsside rett i nettlesaren din.',
+    raad:'Ikkje opne vedlegget. Slett meldinga, og ventar du ein faktura, sjekk på den offisielle sida til firmaet.' },
+
+  { kanal:'epost', fasit:'ekte', rettFunn:'ingen', teikn:'Faktura du venta frå strøymetenesta',
+    fraNamn:'Strøymly', fraAdr:'faktura@stroymly.no', til:'deg@nordhaug.vgs.no',
+    emne:'Kvittering for abonnementet ditt – 129 kr', dato:'01.11.2026',
+    blokker:['Takk! Vi har trekt 129 kr for Strøymly Standard denne månaden. Du kan sjå kvitteringa og endre abonnementet inne på kontoen din når du loggar inn sjølv.'],
+    forklaring:'Fakturaen handlar om pengar, men avsendaren stemmer (stroymly.no), og meldinga ber deg ikkje klikke på noko eller hasta. Du har eit abonnement du venta kvittering for.',
+    raad:'Dette er greitt. Vil du sjå kvitteringa, logg inn på tenesta sjølv i staden for å klikke i e-posten.' },
+
+  { kanal:'epost', fasit:'phishing', rettFunn:'avsendar', teikn:'Rett visingsnamn, feil adresse',
+    fraNamn:'Vipps', fraAdr:'vipps@betaling-stadfest.com', til:'deg@nordhaug.vgs.no',
+    emne:'Du har ei venteutbetaling på 750 kr', dato:'02.11.2026',
+    blokker:['Hei! Ei utbetaling på 750 kr ventar på deg. Logg inn for å ta imot beløpet før det går ut.','{{L0}}'],
+    lenker:[{tekst:'Ta imot beløpet', knapp:true, real:'https://betaling-stadfest.com/vipps'}],
+    forklaring:'Visingsnamnet er «Vipps», men adressa er «vipps@betaling-stadfest.com». Namnet kan vere kva som helst – det er adressa som tel, og ho er ikkje eit vipps-domene.',
+    raad:'Ikkje klikk. Opne Vipps-appen sjølv for å sjå om du verkeleg har pengar til gode.' },
+
+  { kanal:'epost', fasit:'phishing', rettFunn:'lenke0', teikn:'Lenketekst stemmer ikkje med adressa',
+    fraNamn:'Altinn', fraAdr:'noreply@altinn-melding.com', til:'deg@nordhaug.vgs.no',
+    emne:'Nytt brev i Altinn', dato:'31.10.2026',
+    blokker:['Du har fått eit nytt brev frå det offentlege. Logg inn for å lese det:','{{L0}}'],
+    lenker:[{tekst:'https://www.altinn.no', real:'https://altinn-innlogging.secure-login.net'}],
+    forklaring:'Lenketeksten viser «https://www.altinn.no», men held du over, går ho til «altinn-innlogging.secure-login.net». Teksten i ei lenke kan vere kva som helst – adressa er det som gjeld.',
+    raad:'Ikkje klikk. Gå til altinn.no sjølv og logg inn med ID-porten.' },
+
+  { kanal:'epost', fasit:'ekte', rettFunn:'ingen', teikn:'Varsel om ny innlogging frå Microsoft',
+    fraNamn:'Microsoft-konto', fraAdr:'account-security-noreply@accountprotection.microsoft.com', til:'deg@nordhaug.vgs.no',
+    emne:'Ny innlogging på kontoen din', dato:'03.11.2026',
+    blokker:['Vi registrerte ei innlogging på Microsoft-kontoen din frå Chrome på Windows i Bergen. Var det deg, treng du ikkje gjere noko. Var det ikkje deg, gå til kontoen din og byt passord.'],
+    forklaring:'Varselet er skummelt, men avsendaren er eit ekte Microsoft-domene (accountprotection.microsoft.com), og meldinga ber deg ikkje klikke – ho seier at du sjølv kan gå til kontoen din.',
+    raad:'Kjende du att innlogginga, er alt greitt. Elles går du til account.microsoft.com sjølv og byter passord.' },
+
+  { kanal:'epost', fasit:'phishing', rettFunn:'avsendar', teikn:'Ekstra bokstavar i domenet',
+    fraNamn:'Skatteetaten', fraAdr:'refusjon@skatteetaten-no.com', til:'deg@nordhaug.vgs.no',
+    emne:'Du har 2 480 kr til gode', dato:'30.10.2026',
+    blokker:['Etter ny utrekning har du 2 480 kr til gode. Oppgi kontonummeret ditt for å få pengane utbetalte.','{{L0}}'],
+    lenker:[{tekst:'Få utbetaling', knapp:true, real:'https://skatteetaten-no.com/refusjon'}],
+    forklaring:'Rett domene er skatteetaten.no. Her står det «skatteetaten-no.com» – med bindestrek og .com. Det er eit domene nokon andre har kjøpt.',
+    raad:'Ikkje klikk. Skatteetaten ber deg aldri oppgi kontonummer slik. Sjekk på skatteetaten.no.' },
+
+  { kanal:'epost', fasit:'phishing', rettFunn:'vedlegg0', teikn:'ZIP-vedlegg frå ukjend',
+    fraNamn:'HR-avdelinga', fraAdr:'hr@dokument-deling.net', til:'deg@nordhaug.vgs.no',
+    emne:'Oppdatert personalhandbok', dato:'29.10.2026',
+    blokker:['Vedlagt ligg den nye personalhandboka. Pakk ut og opne dokumentet.'],
+    vedlegg:['Personalhandbok.zip'],
+    forklaring:'Ein ZIP-fil frå ein avsendar du ikkje kjenner (dokument-deling.net) er klassisk. Inni ligg det ofte eit program som installerer skadevare.',
+    raad:'Ikkje pakk ut. Slett meldinga og spør HR på kjend måte om dei verkeleg har sendt noko.' },
+
+  { kanal:'epost', fasit:'ekte', rettFunn:'ingen', teikn:'Straumfaktura frå rett leverandør',
+    fraNamn:'Fjordstraum', fraAdr:'faktura@fjordstraum.no', til:'deg@nordhaug.vgs.no',
+    emne:'Straumfaktura for oktober', dato:'01.11.2026',
+    blokker:['Hei! Fakturaen for oktober er klar: 842 kr, forfall 20.11. Du finn heile fakturaen ved å logge inn på Mi side når det passar deg. Hugs at vi aldri ber om passordet ditt i e-post.'],
+    forklaring:'Avsendaren er leverandøren sitt eige domene (fjordstraum.no), det er ingen lenke å klikke på, og dei minner deg til og med på at dei aldri spør om passord.',
+    raad:'Dette er trygt. Logg inn på Mi side sjølv for å sjå fakturaen.' },
+
+  { kanal:'epost', fasit:'ekte', rettFunn:'ingen', teikn:'Ekte hastevarsel frå IT',
+    fraNamn:'IT-tenesta Nordhaug vgs', fraAdr:'it@nordhaug.vgs.no', til:'alle@nordhaug.vgs.no',
+    emne:'VIKTIG: lagre arbeidet ditt før kl. 15', dato:'03.11.2026',
+    blokker:['Hei alle! På grunn av ein feil må vi starte filserveren på nytt kl. 15 i dag. Lagre og lukk opne dokument før det. Du treng ikkje logge inn nokon stad eller gjere noko anna. Ring oss på 5555 1234 om noko er uklart.'],
+    forklaring:'Det hastar, men avsendaren er den interne IT-adressa, det er ingen lenke eller vedlegg, og dei ber deg berre lagre arbeidet – ikkje logge inn eller «stadfeste» noko.',
+    raad:'Følg rådet og lagre arbeidet. Treng du å sjekke, ring IT på det kjende nummeret.' },
+
+  { kanal:'epost', fasit:'ekte', rettFunn:'ingen', teikn:'Varsel om ny innlogging frå Feide',
+    fraNamn:'Feide', fraAdr:'ingen-svar@feide.no', til:'deg@nordhaug.vgs.no',
+    emne:'Ny innlogging med Feide-kontoen din', dato:'02.11.2026',
+    blokker:['Det var ei ny innlogging med Feide-kontoen din på ei ny eining. Kjende du att dette, treng du ikkje gjere noko. Elles tek du kontakt med skulen din.'],
+    forklaring:'Avsendaren er feide.no, meldinga har inga lenke og ber deg ikkje gjere noko anna enn å ta kontakt med skulen om du er i tvil. Slike varsel er ekte og nyttige.',
+    raad:'Var det deg, er alt greitt. Elles kontaktar du skulen for å byte passord.' },
+
+  { kanal:'epost', fasit:'phishing', rettFunn:'vedlegg0', teikn:'Dobbel filending',
+    fraNamn:'Søkjar', fraAdr:'jobb@karriere-portal.net', til:'deg@nordhaug.vgs.no',
+    emne:'CV til stillinga', dato:'28.10.2026',
+    blokker:['Hei, her er CV-en min til den utlyste stillinga. Ser fram til svar!'],
+    vedlegg:['CV_oppdatert.pdf.exe'],
+    forklaring:'Fila heiter «CV_oppdatert.pdf.exe». Den siste endinga er .exe – det er eit program, ikkje eit dokument. «.pdf» framføre er berre til for å lure deg.',
+    raad:'Ikkje opne. Eit program som kjem utan at du venta det, skal aldri køyrast. Slett meldinga.' },
+],
+
+solv: [
+  { kanal:'epost', fasit:'phishing', rettFunn:'lenke0', teikn:'Underdomene-triks',
+    fraNamn:'Microsoft 365', fraAdr:'noreply@varsel-ms.com', til:'deg@nordhaug.vgs.no',
+    emne:'Kontoen din må stadfestast', dato:'03.11.2026',
+    blokker:['For å behalde tilgangen må du stadfeste kontoen din i dag.','{{L0}}'],
+    lenker:[{tekst:'Logg inn på Microsoft 365', knapp:true, real:'https://login.microsoft.com.sikker-verifisering.net/auth'}],
+    forklaring:'Lenka ser ut til å starte med login.microsoft.com, men les heilt til slutt: det verkelege domenet er «sikker-verifisering.net». Alt framføre er berre underdomene dei har laga.',
+    raad:'Les domenet frå høgre: det siste ordet før første «/» er den eigentlege staden. Ikkje klikk – gå til portal.office.com sjølv.' },
+
+  { kanal:'sms', fasit:'phishing', rettFunn:'lenke0', teikn:'Toll-svindel med falsk lenke',
+    avs:'Bring', dato:'03.11.2026',
+    sms:['Pakken din er stoppa i tollen. Betal 29 kr toll for levering: {{L0}}'],
+    lenker:[{tekst:'bring-toll.info/betal', real:'https://bring-toll.info/betal'}],
+    forklaring:'Lenka går til «bring-toll.info», ikkje bring.no. 29 kr verkar lite, men målet er at du oppgir kortnummeret ditt på ei falsk side.',
+    raad:'Ikkje trykk. Ventar du pakke, sjekk sporinga i den offisielle appen. Slett meldinga.' },
+
+  { kanal:'sms', fasit:'ekte', rettFunn:'ingen', teikn:'Eingongskode frå banken',
+    avs:'Sparebank 1', dato:'03.11.2026',
+    sms:['Eingongskoden din er 418203. Vi spør aldri om koden. Del han aldri med nokon.'],
+    forklaring:'Dette er berre ein kode, utan lenke og utan at du blir bedd om å gjere noko. Banken minner deg til og med om aldri å dele koden. Slike kodar er ekte.',
+    raad:'Skriv koden berre inn i banken sin eigen app eller side – som du opna sjølv. Ring nokon deg koden? Då er nokon i gang med å lure deg – ikkje gi han frå deg.' },
+
+  { kanal:'epost', fasit:'phishing', rettFunn:'avsendar', teikn:'rn ser ut som m',
+    fraNamn:'Microsoft Billing', fraAdr:'faktura@rnicrosoft-billing.com', til:'deg@nordhaug.vgs.no',
+    emne:'Betalinga di gjekk ikkje gjennom', dato:'02.11.2026',
+    blokker:['Vi fekk ikkje trekt abonnementet ditt. Oppdater betalingskortet for å unngå at tenesta blir stengd.','{{L0}}'],
+    lenker:[{tekst:'Oppdater kortet', knapp:true, real:'https://rnicrosoft-billing.com/pay'}],
+    forklaring:'Les adressa teikn for teikn: «rnicrosoft». Det er r + n tett saman, som ser ut som ein m. Det eigentlege domenet er «rnicrosoft-billing.com», ikkje microsoft.',
+    raad:'Ikkje klikk. Sjekk abonnementet ved å logge inn på Microsoft-kontoen din sjølv.' },
+
+  { kanal:'epost', fasit:'ekte', rettFunn:'ingen', teikn:'Ekte kvittering frå Microsoft',
+    fraNamn:'Microsoft', fraAdr:'microsoft-noreply@microsoft.com', til:'deg@nordhaug.vgs.no',
+    emne:'Kvittering: Microsoft 365 Family', dato:'01.11.2026',
+    blokker:['Takk for kjøpet. Vi har fornya Microsoft 365 Family for eitt år. Du kan sjå ordren og skru av automatisk fornying ved å logge inn på kontoen din.'],
+    forklaring:'Det handlar om pengar, men avsendaren er det ekte microsoft.com-domenet, og du blir ikkje bedd om å klikke på noko – du kan sjølv logge inn for å sjå ordren.',
+    raad:'Greitt. Vil du sjekke, gå til account.microsoft.com sjølv.' },
+
+  { kanal:'epost', fasit:'phishing', rettFunn:'replyto', teikn:'Svar-til ein annan stad',
+    fraNamn:'Rekneskap Nordhaug vgs', fraAdr:'rekneskap@nordhaug.vgs.no', replyTo:'nordhaug.rekneskap@gmail.com', til:'deg@nordhaug.vgs.no',
+    emne:'Hastar: endra kontonummer for utbetaling', dato:'03.11.2026',
+    blokker:['Hei. Lønsutbetalinga di vart stoppa. Send meg det nye kontonummeret ditt så ordnar eg det i dag.'],
+    forklaring:'Avsendaradressa ser rett ut, men trykk på «detaljar»: Svar-til går til ein gmail-adresse. Svarar du, hamnar svaret hos svindlaren, ikkje hos skulen.',
+    raad:'Ikkje svar. Ring rekneskap på det kjende nummeret og sjekk. Endring av kontonummer skal aldri skje berre over e-post.' },
+
+  { kanal:'sms', fasit:'phishing', rettFunn:'lenke0', teikn:'Falskt banknettstad',
+    avs:'DNB', dato:'02.11.2026',
+    sms:['Vi har oppdaga mistenkeleg aktivitet. Kontoen din er mellombels sperra. Logg inn for å opne han att: {{L0}}'],
+    lenker:[{tekst:'dnb-sikker.me/login', real:'https://dnb-sikker.me/login'}],
+    forklaring:'Banken sitt domene er dnb.no. Her går lenka til «dnb-sikker.me» – eit heilt anna domene. Bankar sender aldri innloggingslenker på SMS.',
+    raad:'Ikkje trykk. Opne bankappen sjølv eller ring banken på nummeret bak på kortet.' },
+
+  { kanal:'sms', fasit:'ekte', rettFunn:'ingen', teikn:'Hentekode frå Posten',
+    avs:'Posten', dato:'02.11.2026',
+    sms:['Pakken din er klar til henting på Nærbutikken Nordhaug. Hentekode: 7731. Frist: 09.11.'],
+    forklaring:'Meldinga har ingen lenke, ber deg ikkje logge inn og ber deg ikkje betale noko. Ein hentekode med ein stad og ein frist er heilt vanleg og ekte.',
+    raad:'Ingenting å passe seg for. Berre hent pakken med koden.' },
+
+  { kanal:'epost', fasit:'phishing', rettFunn:'lenke0', teikn:'Bindestrek-domene liknar banken',
+    fraNamn:'DNB Nettbank', fraAdr:'kundeservice@dnb-varsel.com', til:'deg@nordhaug.vgs.no',
+    emne:'Ny innlogging – stadfest at det var deg', dato:'02.11.2026',
+    blokker:['Vi registrerte ei innlogging i nettbanken frå ei ny eining. Var det ikkje deg, stadfest med ein gong:','{{L0}}'],
+    lenker:[{tekst:'Gå til nettbanken', knapp:true, real:'https://logg-inn-dnb.com/verifiser'}],
+    forklaring:'Lenka går til «logg-inn-dnb.com». Det ser kjent ut, men banken sitt domene er dnb.no – ikkje noko med bindestrekar og .com rundt namnet.',
+    raad:'Ikkje klikk. Opne nettbanken via appen eller ved å skrive dnb.no sjølv.' },
+
+  { kanal:'epost', fasit:'ekte', rettFunn:'ingen', teikn:'Nytt brev i Altinn',
+    fraNamn:'Altinn', fraAdr:'ikke-svar@altinn.no', til:'deg@nordhaug.vgs.no',
+    emne:'Du har fått eit nytt brev i Altinn', dato:'31.10.2026',
+    blokker:['Hei! Du har fått eit nytt brev i innboksen din i Altinn. Logg inn på altinn.no når det passar for å lese det. Vi legg aldri sjølve innhaldet i e-posten.'],
+    forklaring:'Avsendaren er altinn.no, og meldinga ber deg logge inn på altinn.no sjølv i staden for å klikke på ei lenke. Det er nettopp slik ekte Altinn-varsel ser ut.',
+    raad:'Greitt. Logg inn på altinn.no med ID-porten for å lese brevet.' },
+
+  { kanal:'epost', fasit:'phishing', rettFunn:'avsendar', teikn:'l bytt med i i domenet',
+    fraNamn:'Kundeservice Strøymly', fraAdr:'support@stroymiy.no', til:'deg@nordhaug.vgs.no',
+    emne:'Abonnementet ditt er sett på pause', dato:'01.11.2026',
+    blokker:['Betalinga vart avvist, og abonnementet ditt er sett på pause. Oppdater kortet for å halde fram med å sjå.','{{L0}}'],
+    lenker:[{tekst:'Oppdater betaling', knapp:true, real:'https://stroymiy.no/konto'}],
+    forklaring:'Firmaet heiter Strøymly (stroymly.no). Her står det «stroymiy.no» – ein i i staden for l. Lett å oversjå, men det er eit anna domene.',
+    raad:'Ikkje klikk. Logg inn på tenesta sjølv for å sjå om abonnementet verkeleg er på pause.' },
+
+  { kanal:'epost', fasit:'ekte', rettFunn:'ingen', teikn:'Intern melding om passordbyte',
+    fraNamn:'IT-tenesta Nordhaug vgs', fraAdr:'it@nordhaug.vgs.no', til:'deg@nordhaug.vgs.no',
+    emne:'Passordet ditt går ut om 7 dagar', dato:'03.11.2026',
+    blokker:['Hei! Passordet ditt går ut om 7 dagar. Byt det når du vil frå ein skule-PC via Start → Ctrl+Alt+Del → Endre passord, eller stikk innom oss på rom 118. Vi sender aldri lenker for passordbyte i e-post.'],
+    forklaring:'Avsendaren er intern IT, det er ingen lenke, og dei forklarer at du byter passord på vanleg måte på PC-en. Dei understrekar at dei aldri sender passordlenker.',
+    raad:'Byt passord på vanleg måte på ein skule-PC. Ingen grunn til uro.' },
+
+  { kanal:'epost', fasit:'ekte', rettFunn:'ingen', teikn:'Oppgåve frå læraren',
+    fraNamn:'Kari Nordbø', fraAdr:'kari.nordbo@nordhaug.vgs.no', til:'2itk@nordhaug.vgs.no',
+    emne:'Innlevering fredag – hugs kjelder', dato:'03.11.2026',
+    blokker:['Hei alle! Hugs at rapporten skal leverast i Teams fredag kl. 23.59. Legg ved kjeldene de har brukt. Ta kontakt om noko er uklart. Mvh Kari'],
+    forklaring:'Avsendaren er ein lærar på skulen sitt eige domene, meldinga går til klassa, og det er ingen lenker eller krav – berre ei vanleg beskjed.',
+    raad:'Heilt vanleg. Lever som avtalt i Teams.' },
+
+  { kanal:'sms', fasit:'phishing', rettFunn:'krav', teikn:'MFA-trøyttleik',
+    avs:'Microsoft', dato:'03.11.2026',
+    sms:['Nokon prøver å logge inn på kontoen din. Svar JA på denne meldinga for å godkjenne innlogginga.'],
+    forklaring:'Du prøvde ikkje å logge inn sjølv. Svindlaren har passordet ditt og håpar du godkjenner for å få ro. Ekte godkjenning skjer i appen – ikkje ved å svare JA på ein SMS.',
+    raad:'Svar aldri JA. Godkjenner du ikkje, kjem ingen inn. Byt passord og meld frå til IT.' },
+
+  { kanal:'sms', fasit:'ekte', rettFunn:'ingen', teikn:'Varsel om fornying',
+    avs:'Strøymly', dato:'02.11.2026',
+    sms:['Abonnementet ditt blir fornya 15.11 for 129 kr. Du kan endre eller seie opp inne på kontoen din.'],
+    forklaring:'Meldinga har ingen lenke og ber deg ikkje gjere noko akkurat no. Du blir berre minna på ei fornying du har sagt ja til. Det er heilt vanleg.',
+    raad:'Ingen fare. Vil du endre, logg inn på tenesta sjølv.' },
+],
+
+gull: [
+  { kanal:'epost', fasit:'phishing', rettFunn:'hovud', teikn:'SPF, DKIM og DMARC feilar',
+    fraNamn:'Microsoft 365', fraAdr:'security@microsoft.com', til:'deg@nordhaug.vgs.no',
+    emne:'Handling kravd: stadfest kontoen', dato:'03.11.2026',
+    blokker:['Kontoen din blir deaktivert i dag om du ikkje stadfestar han.','{{L0}}'],
+    lenker:[{tekst:'Stadfest no', knapp:true, real:'https://account-verify-ms.com/login'}],
+    hovud:{ spf:'fail', dkim:'none', dmarc:'fail', retpath:'bounce@mailer-bulk-77.ru' },
+    forklaring:'Avsendaren utgir seg for microsoft.com, men opne det tekniske hovudet: SPF=fail, DKIM=none og DMARC=fail. Det tyder at tenaren ikkje har lov til å sende på vegner av microsoft.com. Return-Path peikar dessutan til eit russisk bulk-domene.',
+    raad:'Ikkje klikk. Når SPF/DKIM/DMARC feilar på ei «offisiell» melding, er ho forfalska. Meld som phishing.' },
+
+  { kanal:'epost', fasit:'phishing', rettFunn:'replyto', teikn:'Direktørsvindel',
+    fraNamn:'Rektor Per Sund', fraAdr:'per.sund@nordhaug.vgs.no', replyTo:'rektor.sund.priv@gmail.com', til:'deg@nordhaug.vgs.no',
+    emne:'Diskré oppdrag – kan du hjelpe raskt?', dato:'03.11.2026',
+    blokker:['Hei, eg sit i eit møte og kan ikkje ringe. Eg treng at du kjøper 4 gåvekort (Steam) à 1000 kr til ein premie. Skrap fram kodane og send meg bilde. Eg refunderer i ettermiddag. Dette hastar litt.'],
+    forklaring:'Visingsnamnet er rektor, men Svar-til (sjå detaljar) går til ein gmail-adresse. Kombinert med hast, løyndom og kjøp av gåvekort er dette klassisk direktørsvindel.',
+    raad:'Ingen ekte sjef ber deg kjøpe gåvekort i løynd over e-post. Ring rektor på det kjende nummeret og sjekk. Ikkje svar på meldinga.' },
+
+  { kanal:'epost', fasit:'phishing', rettFunn:'krav', teikn:'Kapra ekte kollega',
+    fraNamn:'Ola Vik', fraAdr:'ola.vik@nordhaug.vgs.no', til:'deg@nordhaug.vgs.no',
+    emne:'SV: budsjett', dato:'03.11.2026',
+    hovud:{ spf:'pass', dkim:'pass', dmarc:'pass', retpath:'ola.vik@nordhaug.vgs.no' },
+    blokker:['Hei! Kan du betale denne leverandørfakturaen på 38 400 kr i dag? Nytt kontonummer: 1503 22 55871. Hastar, eg er på reise. Takk!'],
+    forklaring:'Alt det tekniske stemmer – SPF/DKIM/DMARC passerer, for e-posten kjem verkeleg frå Ola si kapra konto. Teiknet er sjølve kravet: ei hasteutbetaling til eit nytt kontonummer. Innhaldet, ikkje adressa, er det rare.',
+    raad:'Når ein ekte konto ber om pengar eller nytt kontonummer, stadfest alltid på ein annan kanal – ring Ola. Ikkje betal på e-post åleine.' },
+
+  { kanal:'epost', fasit:'phishing', rettFunn:'qr', teikn:'QR-kode-phishing (quishing)',
+    fraNamn:'IT-drift', fraAdr:'it-drift@ms-sikkerheit.net', til:'deg@nordhaug.vgs.no',
+    emne:'Tofaktor må stadfestast på nytt', dato:'03.11.2026',
+    hovud:{ spf:'fail', dkim:'none', dmarc:'fail', retpath:'noreply@ms-sikkerheit.net' },
+    blokker:['Tofaktoren din må stadfestast innan 24 timar. Skann QR-koden under med mobilen for å halde tilgangen.'],
+    qr:true,
+    forklaring:'QR-koden fører mobilen til ei falsk innloggingsside, utanfor det PC-en din kan filtrere. Avsendaren er ikkje microsoft, og hovudet feilar. QR i e-post som ber deg «stadfeste MFA» er eit typisk triks.',
+    raad:'Ikkje skann. Stadfesting av tofaktor skjer inne i den ekte tenesta – aldri via ein QR-kode i e-post. Meld frå til IT.' },
+
+  { kanal:'epost', fasit:'phishing', rettFunn:'krav', teikn:'MFA-trøyttleik',
+    fraNamn:'Microsoft Authenticator', fraAdr:'noreply@ms-auth-varsel.com', til:'deg@nordhaug.vgs.no',
+    emne:'Godkjenn innloggingsforespurnaden din', dato:'03.11.2026',
+    blokker:['Det ligg ein innloggingsforespurnad og ventar på kontoen din. Trykk «Godkjenn» for å halde fram.','{{L0}}'],
+    lenker:[{tekst:'Godkjenn', knapp:true, real:'https://ms-auth-varsel.com/approve'}],
+    forklaring:'Du prøvde ikkje å logge inn. Nokon med passordet ditt sender godkjenningsvarsel om og om att i håp om at du trykkjer «Godkjenn». Ekte godkjenning startar alltid med at du sjølv loggar inn.',
+    raad:'Aldri godkjenn ei innlogging du ikkje sjølv starta. Byt passord og meld frå til IT.' },
+
+  { kanal:'epost', fasit:'ekte', rettFunn:'ingen', teikn:'Ekte Microsoft-varsel, hovudet passerer',
+    fraNamn:'Microsoft-konto', fraAdr:'account-security-noreply@accountprotection.microsoft.com', til:'deg@nordhaug.vgs.no',
+    emne:'Uvanleg innlogging', dato:'03.11.2026',
+    hovud:{ spf:'pass', dkim:'pass', dmarc:'pass', retpath:'account-security-noreply@accountprotection.microsoft.com' },
+    blokker:['Vi stoppa ein innloggingsforsøk frå ein ny stad. Var det deg, kan du trygt sjå bort frå meldinga. Var det ikkje deg, gå sjølv til kontoen din og byt passord.'],
+    forklaring:'Varselet er skummelt, men hovudet er reint (SPF/DKIM/DMARC=pass), avsendaren er eit ekte Microsoft-domene, og meldinga ber deg gå til kontoen din sjølv – ikkje klikke på ei lenke.',
+    raad:'Var det deg, gjer ingenting. Elles går du til account.microsoft.com sjølv.' },
+
+  { kanal:'epost', fasit:'phishing', rettFunn:'avsendar', teikn:'Punycode / homoglyf',
+    fraNamn:'Microsoft', fraAdr:'noreply@xn--mirosoft-fcc.com', til:'deg@nordhaug.vgs.no',
+    emne:'Lagringsplassen din er full', dato:'02.11.2026',
+    blokker:['Postkassa di er full. Oppgrader lagringa for å halde fram med å ta imot e-post.','{{L0}}'],
+    lenker:[{tekst:'Oppgrader lagring', knapp:true, real:'https://xn--mirosoft-fcc.com/storage'}],
+    forklaring:'Domenet startar med «xn--». Det er punycode – måten nettlesaren skriv internasjonaliserte teikn på. Her gøymer det eit domene med eit teikn som ser ut som ein vanleg bokstav, men ikkje er microsoft.com.',
+    raad:'Ser du «xn--» i eit domene som utgir seg for å vere eit kjent merke, er det nesten alltid svindel. Ikkje klikk.' },
+
+  { kanal:'epost', fasit:'ekte', rettFunn:'ingen', teikn:'Venta faktura, hovudet passerer',
+    fraNamn:'Fjordstraum', fraAdr:'faktura@fjordstraum.no', til:'deg@nordhaug.vgs.no',
+    emne:'Straumfaktura for oktober', dato:'01.11.2026',
+    hovud:{ spf:'pass', dkim:'pass', dmarc:'pass', retpath:'faktura@fjordstraum.no' },
+    blokker:['Fakturaen for oktober er klar: 842 kr, forfall 20.11. Logg inn på Mi side for å sjå heile fakturaen. Vi ber aldri om passord på e-post.'],
+    forklaring:'Du ventar denne fakturaen, hovudet passerer heilt (SPF/DKIM/DMARC=pass, Return-Path = fjordstraum.no), og det er inga lenke som pressar deg. Alt stemmer.',
+    raad:'Trygt. Logg inn på Mi side sjølv for å sjå fakturaen.' },
+
+  { kanal:'epost', fasit:'phishing', rettFunn:'hovud', teikn:'Return-Path og SPF avslører forfalsking',
+    fraNamn:'Nordhaug vgs', fraAdr:'post@nordhaug.vgs.no', til:'deg@nordhaug.vgs.no',
+    emne:'Ny lønsslipp tilgjengeleg', dato:'02.11.2026',
+    blokker:['Den nye lønsslippen din ligg klar. Logg inn for å laste han ned.','{{L0}}'],
+    lenker:[{tekst:'Opne lønsslipp', knapp:true, real:'https://lonsslipp-portal.net/login'}],
+    hovud:{ spf:'softfail', dkim:'none', dmarc:'fail', retpath:'send@mkt-relay-204.net' },
+    forklaring:'Avsendaren ser ut som skulen (post@nordhaug.vgs.no), men Return-Path går til «mkt-relay-204.net», SPF er softfail og DMARC feilar. Avsendaradressa er forfalska – svaret og den tekniske stien peikar ein heilt annan stad.',
+    raad:'Ikkje klikk. Når Return-Path ikkje matchar avsendaren og DMARC feilar, er From-feltet dikta opp. Meld som phishing.' },
+
+  { kanal:'epost', fasit:'phishing', rettFunn:'lenke0', teikn:'Falskt delingsvarsel',
+    fraNamn:'OneDrive', fraAdr:'no-reply@sharepoint-fildeling.net', til:'deg@nordhaug.vgs.no',
+    emne:'Ola Vik har delt «Løn_2026.xlsx» med deg', dato:'02.11.2026',
+    blokker:['Ola Vik har delt eit dokument med deg i OneDrive.','{{L0}}'],
+    lenker:[{tekst:'Opne i OneDrive', knapp:true, real:'https://sharepoint-fildeling.net/share/op?id=88213'}],
+    forklaring:'Ekte OneDrive-deling kjem frå microsoft/sharepoint-domene og lenka går til ...sharepoint.com. Her er avsendaren «sharepoint-fildeling.net» og lenka til same falske domenet. Eit lokkande filnamn som «Løn_2026» skal få deg til å klikke raskt.',
+    raad:'Ikkje klikk. Spør Ola på ein annan kanal om han verkeleg delte noko, eller opne OneDrive sjølv og sjå.' },
+
+  { kanal:'epost', fasit:'ekte', rettFunn:'ingen', teikn:'Ekte OneDrive-deling frå kollega',
+    fraNamn:'Kari Nordbø', fraAdr:'kari.nordbo@nordhaug.vgs.no', til:'deg@nordhaug.vgs.no',
+    emne:'Kari delte «Fagfornying – plan.docx»', dato:'03.11.2026',
+    hovud:{ spf:'pass', dkim:'pass', dmarc:'pass', retpath:'kari.nordbo@nordhaug.vgs.no' },
+    blokker:['Hei! Eg har delt planen vår i OneDrive slik vi avtalte på møtet. Sei frå om du ikkje får tilgang. Mvh Kari','{{L0}}'],
+    lenker:[{tekst:'Opne i OneDrive', knapp:true, real:'https://nordhaugvgs-my.sharepoint.com/personal/kari_nordbo/plan.docx'}],
+    forklaring:'Avsendaren er ein kollega på skulens domene, hovudet passerer, lenka går til det ekte ...sharepoint.com, og det stemmer med noko de avtalte. Dette er ei vanleg, trygg deling.',
+    raad:'Greitt å opne. Er du i tvil, held du over lenka og ser at ho går til sharepoint.com.' },
+
+  { kanal:'epost', fasit:'ekte', rettFunn:'ingen', teikn:'Ekte kalenderinvitasjon',
+    fraNamn:'Kari Nordbø', fraAdr:'kari.nordbo@nordhaug.vgs.no', til:'faglag@nordhaug.vgs.no',
+    emne:'Invitasjon: Fagmøte tysdag kl. 14', dato:'03.11.2026',
+    hovud:{ spf:'pass', dkim:'pass', dmarc:'pass', retpath:'kari.nordbo@nordhaug.vgs.no' },
+    blokker:['Du er invitert til Fagmøte tysdag kl. 14–15 på rom 204. Svar gjerne ja/nei i kalenderen.'],
+    vedlegg:['moete.ics'],
+    forklaring:'Invitasjonen kjem frå ein kollega på skulens domene, hovudet passerer, og .ics er det vanlege formatet for kalenderinvitasjonar. Det er ingen lenke du må klikke og ingen hast. Dette er ekte.',
+    raad:'Svar i kalenderen som normalt. .ics frå ein kjend kollega er trygt.' },
+
+  { kanal:'epost', fasit:'phishing', rettFunn:'vedlegg0', teikn:'Makro-dokument (.docm)',
+    fraNamn:'Faktura', fraAdr:'billing@invoice-cloud-77.com', til:'deg@nordhaug.vgs.no',
+    emne:'Purring – ubetalt faktura', dato:'01.11.2026',
+    hovud:{ spf:'fail', dkim:'none', dmarc:'fail', retpath:'bounce@invoice-cloud-77.com' },
+    blokker:['Fakturaen din er forfalla. Opne vedlegget og aktiver innhald for å sjå detaljane.'],
+    vedlegg:['Purring.docm'],
+    forklaring:'Vedlegget er ein .docm – eit Word-dokument med makroar. «Aktiver innhald» køyrer makroen, som kan installere skadevare. Hovudet feilar òg. Ekte fakturaer treng ikkje makroar.',
+    raad:'Ikkje opne, og aldri trykk «Aktiver innhald». Slett meldinga og sjekk hos firmaet om du ventar ein faktura.' },
+
+  { kanal:'epost', fasit:'ekte', rettFunn:'ingen', teikn:'Ekte førespurnad frå leiinga',
+    fraNamn:'Rektor Per Sund', fraAdr:'per.sund@nordhaug.vgs.no', til:'alle@nordhaug.vgs.no',
+    emne:'Takk for innsatsen denne veka', dato:'03.11.2026',
+    hovud:{ spf:'pass', dkim:'pass', dmarc:'pass', retpath:'per.sund@nordhaug.vgs.no' },
+    blokker:['Hei alle! Tusen takk for ein god veke og fin stå-på-vilje under opne dagar. Hugs fellesmøtet måndag kl. 8.15 på personalrommet. God helg! Per'],
+    forklaring:'Avsendaren er rektor på skulens domene, hovudet passerer, og det er ingen lenker, vedlegg, hast eller krav om pengar. Berre ei vanleg, roleg beskjed.',
+    raad:'Ingenting å gjere. Ei heilt vanleg melding frå leiinga.' },
+
+  { kanal:'epost', fasit:'ekte', rettFunn:'ingen', teikn:'Godkjenning du sjølv starta',
+    fraNamn:'Microsoft Authenticator', fraAdr:'account-security-noreply@accountprotection.microsoft.com', til:'deg@nordhaug.vgs.no',
+    emne:'Innlogginga vart godkjend', dato:'03.11.2026',
+    hovud:{ spf:'pass', dkim:'pass', dmarc:'pass', retpath:'account-security-noreply@accountprotection.microsoft.com' },
+    blokker:['Du godkjende nettopp ei innlogging frå Chrome på Windows kl. 08.42. Var det ikkje deg, gå til kontoen din og byt passord.'],
+    forklaring:'Dette er ei stadfesting som kjem rett etter at du sjølv logga inn og trykte «Godkjenn» i appen. Avsendaren er eit ekte Microsoft-domene og hovudet passerer. Det er ikkje eit krav om å godkjenne noko nytt.',
+    raad:'Var det deg som logga inn, er alt i orden. Elles byter du passord sjølv på account.microsoft.com.' },
+],
+};
+
+const NIVA = {
+    bronse: { namn: "Bronse", tekst: "Tydelege teikn, berre e-post", lys: "#f0b27a", mid: "#c07a3e", mork: "#7a4518", tekstfarge: "#3d2008" },
+    solv:   { namn: "Sølv",   tekst: "Subtile domene, lenker og SMS", lys: "#f4f6f8", mid: "#b8c0c8", mork: "#6b7480", tekstfarge: "#2a3038" },
+    gull:   { namn: "Gull",   tekst: "E-posthovud, QR, MFA, svindel", lys: "#fff1a8", mid: "#e2b53c", mork: "#9a6b0a", tekstfarge: "#4a3300" },
+};
+
+/* ---------- Teikning av knappen ---------- */
+let svgTeljar = 0;
+function knappSVG(nivaa, namn, dato) {
+    const N = NIVA[nivaa], u = "k" + (++svgTeljar);
+    let takk = "";
+    for (let i = 0; i < 72; i++) {
+        const a = i / 72 * 2 * Math.PI, r = i % 2 ? 196 : 188;
+        takk += (i ? "L" : "M") + (200 + r * Math.cos(a)).toFixed(1) + " " + (200 + r * Math.sin(a)).toFixed(1);
+    }
+    const tom = !namn;
+    return `<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${K_NAMN} ${esc(N.namn)}${tom ? "" : " – " + esc(namn)}">
+  <defs>
+    <radialGradient id="${u}g" cx="38%" cy="32%" r="75%">
+      <stop offset="0" stop-color="${N.lys}"/><stop offset=".55" stop-color="${N.mid}"/><stop offset="1" stop-color="${N.mork}"/>
+    </radialGradient>
+    <path id="${u}top" d="M 70 200 A 130 130 0 0 1 330 200"/>
+    <path id="${u}bot" d="M 58 200 A 142 142 0 0 0 342 200"/>
+  </defs>
+  <path d="${takk}Z" fill="${N.mork}"/>
+  <circle cx="200" cy="200" r="182" fill="url(#${u}g)"/>
+  <circle cx="200" cy="200" r="170" fill="none" stroke="${N.tekstfarge}" stroke-width="3" stroke-dasharray="7 6" opacity=".55"/>
+  <circle cx="200" cy="200" r="110" fill="#ffffff" opacity=".22"/>
+  <text font-family="Arial, Helvetica, sans-serif" font-weight="bold" font-size="20" letter-spacing="1.5" fill="${N.tekstfarge}">
+    <textPath href="#${u}top" startOffset="50%" text-anchor="middle">${K_SVGTEKST}</textPath></text>
+  <text font-family="Arial, Helvetica, sans-serif" font-weight="bold" font-size="19" letter-spacing="4" fill="${N.tekstfarge}">
+    <textPath href="#${u}bot" startOffset="50%" text-anchor="middle">STORD VGS</textPath></text>
+  <g transform="translate(200 ${tom ? 168 : 128})" fill="none" stroke="${N.tekstfarge}" stroke-width="10" stroke-linecap="round">
+    <circle cx="-8" cy="-6" r="30" fill="#ffffff" fill-opacity=".25"/>
+    <line x1="14" y1="16" x2="34" y2="36"/>
+    <path d="M -20 -6 a 12 12 0 0 1 12 -12" stroke-width="7" opacity=".8"/>
+  </g>
+  <text x="200" y="${tom ? 250 : 210}" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="bold" font-size="${tom ? 40 : 34}" fill="${N.tekstfarge}">${esc(N.namn.toUpperCase())}</text>
+  ${tom ? "" : `<text x="200" y="256" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="bold" font-size="${namn.length > 12 ? 26 : 34}" fill="${N.tekstfarge}">${esc(namn)}</text>
+  <text x="200" y="288" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="${N.tekstfarge}">${esc(dato)}</text>`}
+</svg>`;
+}
+
+/* QR-liknande rute (ikkje ekte skannbar – berre pynt til øvinga) */
+function qrSVG() {
+    let r = 1234567;
+    const rnd = () => (r = (r * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
+    const n = 21, s = 116 / n;
+    let celler = "";
+    for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
+        const hjorne = (x < 7 && y < 7) || (x > n - 8 && y < 7) || (x < 7 && y > n - 8);
+        let svart;
+        if (hjorne) {
+            const lx = x > n - 8 ? x - (n - 7) : x, ly = y > n - 8 ? y - (n - 7) : y;
+            svart = lx === 0 || lx === 6 || ly === 0 || ly === 6 || (lx >= 2 && lx <= 4 && ly >= 2 && ly <= 4);
+        } else svart = rnd() > 0.5;
+        if (svart) celler += `<rect x="${(x*s).toFixed(1)}" y="${(y*s).toFixed(1)}" width="${s.toFixed(2)}" height="${s.toFixed(2)}"/>`;
+    }
+    return `<svg viewBox="0 0 116 116" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="QR-kode (øving)"><rect width="116" height="116" fill="#fff"/><g fill="#111">${celler}</g></svg>`;
+}
+
+/* ---------- Lagra knappar (prefiks phishingknappen-) ---------- */
+function hentMine() {
+    const m = {};
+    for (const k of Object.keys(NIVA)) {
+        try { const v = JSON.parse(localStorage.getItem(K_LAGER + k) || "null"); if (v) m[k] = v; } catch {}
+    }
+    return m;
+}
+function lagreMin(nivaa, namn, dato) {
+    try { localStorage.setItem(K_LAGER + nivaa, JSON.stringify({ namn, dato })); } catch {}
+}
+
+/* ---------- URL-linje (hald over lenke) ---------- */
+function visUrl(u) { $("urltekst").textContent = u; $("urlbar").classList.add("vis"); }
+function skjulUrl() { $("urlbar").classList.remove("vis"); }
+document.addEventListener("mouseover", e => { const a = e.target.closest(".lenke, .knapp-lenke"); if (a && a.dataset.real) visUrl(a.dataset.real); });
+document.addEventListener("mouseout", e => { const a = e.target.closest(".lenke, .knapp-lenke"); if (a) skjulUrl(); });
+document.addEventListener("touchstart", e => { const a = e.target.closest(".lenke, .knapp-lenke"); if (a && a.dataset.real) { visUrl(a.dataset.real); } }, { passive: true });
+document.addEventListener("touchend", e => { const a = e.target.closest(".lenke, .knapp-lenke"); if (a) setTimeout(skjulUrl, 1400); }, { passive: true });
+
+/* ---------- Startskjerm ---------- */
+let valtNivaa = "bronse";
+function visStart() {
+    const mine = hentMine();
+    $("nivaval").innerHTML = Object.keys(NIVA).map(k => `<button data-n="${k}" class="${k === valtNivaa ? "on" : ""}">
+        ${knappSVG(k)}<b>${NIVA[k].namn}</b><span class="small">${NIVA[k].tekst}</span>
+        ${mine[k] ? `<span class="tatt">✓ Teken ${esc(mine[k].dato)}</span>` : ""}</button>`).join("");
+    const har = Object.keys(NIVA).filter(k => mine[k]);
+    $("mineKort").style.display = har.length ? "block" : "none";
+    $("mine").innerHTML = har.map(k => knappSVG(k, mine[k].namn, mine[k].dato)).join("");
+    $("start").style.display = "block"; $("spel").style.display = "none"; $("resultat").style.display = "none";
+    skjulUrl();
+}
+$("nivaval").onclick = e => { const b = e.target.closest("button"); if (!b) return; valtNivaa = b.dataset.n; visStart(); };
+
+/* ---------- Spel ---------- */
+function stokk(a) { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
+const ANTAL = 10, KRAV = 8;
+let saker = [], idx = 0, namn = "", rette = 0, steg = "dom", valtFunn = null, domVal = null;
+
+$("startknapp").onclick = () => {
+    namn = $("namn").value.trim().replace(/\s+/g, " ");
+    if (!namn) { $("startmsg").textContent = "Skriv fornamnet ditt først."; $("namn").focus(); return; }
+    $("startmsg").textContent = "";
+    saker = stokk(POOL[valtNivaa]).slice(0, ANTAL);
+    idx = 0; rette = 0;
+    $("start").style.display = "none"; $("spel").style.display = "block";
+    visSak();
+    window.scrollTo(0, 0);
+};
+
+function avatarBokstav(namn) { return (namn || "?").trim()[0].toUpperCase(); }
+
+function byggLenke(l, i) {
+    const cls = l.knapp ? "knapp-lenke" : "lenke";
+    return `<a class="${cls}" data-funn="lenke${i}" data-real="${esc(l.real)}" role="button" tabindex="0">${esc(l.tekst)}</a>`;
+}
+function renderEpost(s) {
+    const lenker = s.lenker || [];
+    const kropp = (s.blokker || []).map(b => {
+        const biter = String(b).split(/(\{\{L\d+\}\})/);
+        return "<p>" + biter.map(x => {
+            const m = x.match(/^\{\{L(\d+)\}\}$/);
+            return m ? byggLenke(lenker[+m[1]], +m[1]) : esc(x);
+        }).join("") + "</p>";
+    }).join("");
+
+    const detaljar = `<div class="detaljar">
+        <div class="rad">Til: ${esc(s.til || "deg@nordhaug.vgs.no")}</div>
+        <div class="rad">Frå: ${esc(s.fraAdr)}</div>
+        ${s.replyTo ? `<div class="rad peikbar" data-funn="replyto"><b>Svar-til (Reply-To):</b> ${esc(s.replyTo)}</div>` : ""}
+    </div>`;
+
+    const vedlegg = (s.vedlegg && s.vedlegg.length)
+        ? `<div class="vedlegg-liste">${s.vedlegg.map((v, i) =>
+            `<span class="vedlegg" data-funn="vedlegg${i}"><span class="fil-ikon">📎</span>${esc(v)}</span>`).join("")}</div>`
+        : "";
+
+    const qr = s.qr ? `<div class="qr" data-funn="qr">${qrSVG()}<div class="small center" style="color:#555;margin-top:2px">Skann meg</div></div>` : "";
+
+    const hovud = s.hovud ? `<details class="hovud" data-funn="hovud">
+        <summary>Vis teknisk hovud (SPF/DKIM/DMARC)</summary>
+        <div class="felt">
+            <div>SPF: <span class="${s.hovud.spf === 'pass' ? 'pass' : 'fail'}">${esc(s.hovud.spf)}</span></div>
+            <div>DKIM: <span class="${s.hovud.dkim === 'pass' ? 'pass' : 'fail'}">${esc(s.hovud.dkim)}</span></div>
+            <div>DMARC: <span class="${s.hovud.dmarc === 'pass' ? 'pass' : 'fail'}">${esc(s.hovud.dmarc)}</span></div>
+            <div>Return-Path: ${esc(s.hovud.retpath)}</div>
+        </div></details>` : "";
+
+    return `<div class="klient">
+        <div class="klient-topp"><span class="pil">✉️</span> Innboks</div>
+        <div class="epost-emne">${esc(s.emne)}</div>
+        <div class="epost-hovud">
+            <span class="avsendar" data-funn="avsendar">
+                <span class="avatar">${esc(avatarBokstav(s.fraNamn))}</span>
+                <span class="namn">${esc(s.fraNamn)}</span>
+                <span class="adr">&lt;${esc(s.fraAdr)}&gt;</span>
+                <button class="vis-meir" type="button">detaljar ▾</button>
+                ${detaljar}
+            </span>
+            <div class="small" style="margin:6px 0 0 42px">${esc(s.dato)}</div>
+        </div>
+        <div class="epost-kropp" data-funn="krav">${kropp}</div>
+        ${hovud}
+        ${qr}
+        ${vedlegg}
+    </div>`;
+}
+
+function renderSms(s) {
+    const lenker = s.lenker || [];
+    const boblar = (s.sms || []).map(t => {
+        const biter = String(t).split(/(\{\{L\d+\}\})/);
+        const html = biter.map(x => {
+            const m = x.match(/^\{\{L(\d+)\}\}$/);
+            return m ? byggLenke(lenker[+m[1]], +m[1]) : esc(x);
+        }).join("");
+        return `<div class="bobla">${html}</div>`;
+    }).join("");
+    return `<div class="telefon"><div class="skjerm">
+        <div class="statuslinje"><span>09:41</span><span>5G ▪ 📶 🔋</span></div>
+        <div class="sms-topp">
+            <div class="krets">💬</div>
+            <span class="avs" data-funn="avsendar">${esc(s.avs)}</span>
+        </div>
+        <div class="sms-kropp" data-funn="krav">
+            <div class="tid">SMS · ${esc(s.dato)}</div>
+            ${boblar}
+        </div>
+    </div></div>`;
+}
+
+function visSak() {
+    const s = saker[idx];
+    steg = "dom"; valtFunn = null; domVal = null;
+    $("bar").style.width = (idx / saker.length * 100) + "%";
+    $("nr").textContent = `Melding ${idx + 1} av ${saker.length} · ${NIVA[valtNivaa].namn}`;
+    $("score").textContent = `Rette: ${rette}`;
+    $("melding").innerHTML = s.kanal === "sms" ? renderSms(s) : renderEpost(s);
+    $("handling").innerHTML = `<div class="dom">
+        <button class="ekte" data-d="ekte">✔ Ekte</button>
+        <button class="phish" data-d="phishing">⚠ Phishing</button>
+    </div>
+    <p class="small center" style="margin-top:8px">Les meldinga nøye. Hald over lenker for å sjå kvar dei går, og trykk «detaljar» for heile avsendaradressa.</p>`;
+    koplaVisMeir();
+    window.scrollTo(0, 0);
+}
+
+function koplaVisMeir() {
+    document.querySelectorAll(".vis-meir").forEach(b => b.onclick = e => {
+        e.stopPropagation();
+        const d = b.parentElement.querySelector(".detaljar");
+        d.classList.toggle("open");
+        b.textContent = d.classList.contains("open") ? "detaljar ▴" : "detaljar ▾";
+    });
+    document.querySelectorAll(".hovud summary").forEach(sm => sm.addEventListener("click", e => {
+        if (steg === "peik") e.preventDefault();   // i peik-steget vel vi hovudet i staden for å opne/lukke
+    }));
+}
+
+$("handling").onclick = e => {
+    const d = e.target.closest(".dom button");
+    if (d && steg === "dom") { domVal = d.dataset.d; startPeik(); return; }
+    const ingen = e.target.closest("#ingenKnapp");
+    if (ingen && steg === "peik") { valtFunn = "ingen"; visFasit(); return; }
+};
+
+function startPeik() {
+    steg = "peik";
+    // gjer alle funn-element peikbare
+    document.querySelectorAll("#melding [data-funn]").forEach(el => el.classList.add("peikbar"));
+    // opne detaljar så Svar-til er synleg
+    document.querySelectorAll(".detaljar").forEach(d => d.classList.add("open"));
+    // opne teknisk hovud så felta er synlege
+    document.querySelectorAll(".hovud").forEach(h => h.open = true);
+    $("handling").innerHTML = `<div class="peik-boks">
+        <b>${domVal === "phishing" ? "Du svara: Phishing." : "Du svara: Ekte."}</b>
+        Peik på det som avgjer: klikk på avsendaren, ei lenke, eit vedlegg, QR-koden, kravet i teksten eller det tekniske hovudet. Er meldinga trygg, vel du knappen under.
+        <div class="center ingen-knapp"><button class="btn" id="ingenKnapp">Ingen faresignal her</button></div>
+    </div>`;
+    window.scrollTo(0, 0);
+}
+
+function reinHover() { document.querySelectorAll("#melding .peik-hover").forEach(x => x.classList.remove("peik-hover")); }
+document.addEventListener("pointerover", e => {
+    if (steg !== "peik") return;
+    reinHover();
+    const el = e.target.closest("#melding [data-funn]");
+    if (el) el.classList.add("peik-hover");
+});
+document.addEventListener("pointerout", e => {
+    if (steg !== "peik") return;
+    if (!e.relatedTarget || !e.relatedTarget.closest || !e.relatedTarget.closest("#melding [data-funn]")) reinHover();
+});
+document.addEventListener("click", e => {
+    if (steg !== "peik") return;
+    const el = e.target.closest("#melding [data-funn]");
+    if (!el) return;
+    e.preventDefault();
+    reinHover();
+    valtFunn = el.dataset.funn;
+    document.querySelectorAll("#melding .valt-funn").forEach(x => x.classList.remove("valt-funn"));
+    el.classList.add("valt-funn");
+    visFasit();
+});
+
+function visFasit() {
+    const s = saker[idx];
+    steg = "fasit";
+    document.querySelectorAll("#melding [data-funn]").forEach(el => el.classList.remove("peikbar"));
+    const domRett = domVal === s.fasit;
+    const funnRett = valtFunn === s.rettFunn;
+    const bestatt = domRett && funnRett;
+    if (bestatt) rette++;
+
+    let tittel, kropp = "";
+    if (bestatt) {
+        tittel = "✔ Rett!";
+    } else if (domRett && !funnRett) {
+        tittel = "✘ Rett dom, men feil teikn";
+        if (s.fasit === "ekte")
+            kropp += `<p>Du peika på eit «teikn» i ei <b>ekte</b> melding. Her var det ingen faresignal – då skal du velje «Ingen faresignal her». Feil funn i ekte meldingar trekkjer.</p>`;
+        else
+            kropp += `<p>Du såg at det var phishing, men peika på feil stad. Det tel som feil – du må peike på det eigentlege teiknet.</p>`;
+    } else {
+        tittel = "✘ Feil";
+    }
+
+    kropp += `<p><span class="merkelapp">Fasit:</span> ${s.fasit === "phishing" ? "⚠ Phishing" : "✔ Ekte"}. Teiknet: <b>${esc(s.teikn)}</b>.</p>`;
+    kropp += `<p>${esc(s.forklaring)}</p>`;
+    kropp += `<p class="raad"><b>Kva skulle du gjort:</b> ${esc(s.raad)}</p>`;
+
+    const sisteSak = idx === saker.length - 1;
+    $("handling").innerHTML = `<div class="fasit ${bestatt ? "rett" : "feil"}">
+        <h3>${tittel}</h3>
+        ${kropp}
+    </div>
+    <div class="row" style="justify-content:flex-end; margin-top:12px">
+        <button class="btn primary" id="nesteSak">${sisteSak ? "Sjå resultat" : "Neste melding →"}</button>
+    </div>`;
+    $("score").textContent = `Rette: ${rette}`;
+    $("nesteSak").onclick = () => { if (sisteSak) visResultat(); else { idx++; visSak(); } };
+    document.querySelector(".fasit").scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+/* ---------- Resultat ---------- */
+function visResultat() {
+    const ok = rette >= KRAV;
+    const N = NIVA[valtNivaa];
+    const dato = new Date().toLocaleDateString("nb-NO", { day: "2-digit", month: "2-digit", year: "numeric" });
+    $("bar").style.width = "100%";
+    $("spel").style.display = "none"; $("resultat").style.display = "block";
+    $("poeng").textContent = `${rette} / ${saker.length}`;
+    $("poeng").className = "poeng " + (ok ? "ok" : "bad");
+    skjulUrl();
+
+    const nesteNivaa = { bronse: "solv", solv: "gull" }[valtNivaa];
+    let knappar = "";
+    if (ok) {
+        lagreMin(valtNivaa, namn, dato);
+        $("resTekst").innerHTML = `Gratulerer, ${esc(namn)}! Du tok <b>${K_NAMN} i ${N.namn.toLowerCase()}</b>.`;
+        $("stor").innerHTML = knappSVG(valtNivaa, namn, dato);
+        knappar += `<button class="btn primary" id="lastned">Last ned knappen</button>`;
+        if (nesteNivaa) knappar += `<button class="btn" id="neste-nivaa">Prøv ${NIVA[nesteNivaa].namn.toLowerCase()}</button>`;
+    } else {
+        $("resTekst").innerHTML = `Du treng ${KRAV} rette for å få knappen. Les forklaringane og prøv igjen – du får nye meldingar.`;
+        $("stor").innerHTML = "";
+        knappar += `<button class="btn primary" id="igjen">Prøv igjen</button>`;
+    }
+    knappar += `<button class="btn" id="tilstart">Til start</button>`;
+    $("resKnappar").innerHTML = knappar;
+
+    if (ok) {
+        $("lastned").onclick = () => lastNed(valtNivaa, namn, dato);
+        if (nesteNivaa) $("neste-nivaa").onclick = () => { valtNivaa = nesteNivaa; visStart(); $("namn").value = namn; window.scrollTo(0, 0); };
+    } else {
+        $("igjen").onclick = () => { $("namn").value = namn; $("startknapp").click(); };
+    }
+    $("tilstart").onclick = () => { visStart(); window.scrollTo(0, 0); };
+    window.scrollTo(0, 0);
+}
+
+function lastNed(nivaa, namn, dato) {
+    const svg = knappSVG(nivaa, namn, dato);
+    const img = new Image();
+    img.onload = () => {
+        const c = document.createElement("canvas");
+        c.width = c.height = 800;
+        c.getContext("2d").drawImage(img, 0, 0, 800, 800);
+        const a = document.createElement("a");
+        a.download = `phishingknappen-${nivaa}-${namn.toLowerCase().replace(/[^a-zæøå0-9]+/g, "-")}.png`;
+        a.href = c.toDataURL("image/png");
+        a.click();
+    };
+    img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+}
+
+$("namn").onkeydown = e => { if (e.key === "Enter") $("startknapp").click(); };
+visStart();
+</script>
+</body>
+</html>
