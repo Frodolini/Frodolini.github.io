@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="nn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HTML og CSS 101</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-darker.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/xml-fold.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closetag.min.js"></script>
+<!-- Kode 101 – HTML og CSS. Bygd på felles mal for Kode 101-sidene. -->
+<style>
+:root {
+    --gron: #2e7d32;
+    --gron-mork: #1b5e20;
+    --gron-lys: #e8f5e9;
+    --bg: #eef3ef;
+    --kort: #ffffff;
+    --tekst: #24302a;
+    --grå: #5f6b64;
+    --linje: #dfe6e1;
+    --lenke: #0066cc;
+    --gul: #fff6d6;
+    --gul-kant: #e8c547;
+    --kode-bg: #f4f6f5;
+    --font: system-ui, "Segoe UI", Arial, sans-serif;
+    --mono: Consolas, "Cascadia Mono", "Cascadia Code", Menlo, monospace;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body { margin: 0; background: var(--bg); color: var(--tekst); font-family: var(--font); font-size: 15px; display: flex; flex-direction: column; }
+
+/* ---------- Grøn tittellinje ---------- */
+header.topp { background: var(--gron); color: #fff; padding: 10px 16px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; border-bottom: 3px solid var(--gron-mork); }
+header.topp .tilbake { color: #fff; text-decoration: none; font-size: 14px; padding: 4px 10px; border: 1px solid rgba(255,255,255,.5); border-radius: 14px; white-space: nowrap; }
+header.topp .tilbake:hover { background: var(--gron-mork); }
+header.topp .titlar { flex: 1 1 260px; min-width: 0; }
+header.topp h1 { margin: 0; font-size: 21px; line-height: 1.2; }
+header.topp .under { margin: 2px 0 0; font-size: 13px; opacity: .9; }
+header.topp .hogre { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.framdrift { font-size: 13px; min-width: 130px; }
+.framdrift .linje { height: 6px; background: rgba(255,255,255,.3); border-radius: 3px; margin-top: 4px; overflow: hidden; }
+.framdrift .linje div { height: 100%; width: 0; background: #fff; transition: width .4s; }
+header.topp button { background: transparent; color: #fff; border: 1px solid rgba(255,255,255,.6); border-radius: 6px; padding: 6px 12px; font: inherit; font-size: 13px; cursor: pointer; }
+header.topp button:hover { background: var(--gron-mork); }
+
+/* ---------- To kolonnar ---------- */
+main.oppsett { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(320px, 40%) 1fr; gap: 14px; padding: 14px; }
+.kort { background: var(--kort); border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,.1); }
+#leksjonspanel { overflow-y: auto; min-height: 0; padding: 0; display: flex; flex-direction: column; }
+#sim { min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
+@media (max-width: 900px) {
+    body { height: auto; display: block; }
+    main.oppsett { display: flex; flex-direction: column; padding: 10px; }
+    #leksjonspanel { overflow: visible; }
+    #sim { height: 78vh; min-height: 460px; }
+}
+
+/* ---------- Leksjonsliste ---------- */
+#leksjonsliste { list-style: none; margin: 0; padding: 8px; border-bottom: 1px solid var(--linje); display: flex; flex-direction: column; gap: 2px; }
+#leksjonsliste li button { width: 100%; text-align: left; background: none; border: none; font: inherit; font-size: 14px; padding: 5px 8px; border-radius: 6px; cursor: pointer; display: flex; gap: 8px; align-items: baseline; color: var(--tekst); }
+#leksjonsliste li button:hover { background: var(--gron-lys); }
+#leksjonsliste li.aktiv button { background: var(--gron); color: #fff; }
+#leksjonsliste .status { width: 1.2em; text-align: center; flex: none; }
+#leksjonsliste .sirkel { display: inline-block; width: 11px; height: 11px; border-radius: 50%; border: 2px solid currentColor; vertical-align: -1px; opacity: .75; }
+#leksjonsliste .sirkel.halv { background: linear-gradient(90deg, currentColor 50%, transparent 50%); opacity: 1; }
+@media (max-width: 600px) { #leksjon .eksempel pre { padding-right: 12px; padding-top: 34px; } }
+#leksjonsliste .nr { color: var(--grå); width: 1.6em; flex: none; }
+#leksjonsliste li.aktiv .nr { color: #dfeee0; }
+#leksjonsliste .tal { margin-left: auto; font-size: 12px; color: var(--grå); }
+#leksjonsliste li.aktiv .tal { color: #dfeee0; }
+#leksjonsliste .ferdig .status { color: var(--gron); }
+#leksjonsliste li.aktiv.ferdig .status { color: #fff; }
+
+/* ---------- Leksjonsinnhald ---------- */
+#leksjon { padding: 14px 18px 18px; line-height: 1.5; }
+#leksjon h2 { font-size: 20px; margin: 0 0 4px; padding-bottom: 6px; border-bottom: 2px solid var(--gron); }
+#leksjon .laerer { color: var(--grå); font-size: 14px; margin: 6px 0 12px; }
+#leksjon .laerer b { color: var(--gron-mork); }
+#leksjon p { margin: 8px 0; }
+#leksjon code { font-family: var(--mono); background: var(--kode-bg); padding: 1px 4px; border-radius: 3px; font-size: 13.5px; }
+#leksjon h3 { font-size: 15px; margin: 18px 0 6px; color: var(--gron-mork); }
+.eksempel { position: relative; margin: 8px 0 12px; }
+.eksempel pre { margin: 0; background: #1e1e1e; color: #e6e6e6; font-family: var(--mono); font-size: 13.5px; padding: 10px 12px; padding-right: 70px; border-radius: 6px; overflow-x: auto; line-height: 1.4; }
+.eksempel .prov { position: absolute; top: 6px; right: 6px; background: var(--gron); color: #fff; border: none; border-radius: 4px; padding: 3px 9px; font: inherit; font-size: 12.5px; cursor: pointer; }
+.eksempel .prov:hover { background: var(--gron-mork); }
+.tips { background: var(--gul); border-left: 4px solid var(--gul-kant); padding: 8px 12px; border-radius: 4px; margin: 10px 0; }
+table.juks { border-collapse: collapse; width: 100%; font-size: 13.5px; margin: 8px 0; }
+table.juks td, table.juks th { border-bottom: 1px solid var(--linje); padding: 4px 6px; text-align: left; vertical-align: top; }
+table.juks td:first-child { font-family: var(--mono); white-space: nowrap; }
+
+/* ---------- Oppgåver ---------- */
+.oppgaver { list-style: none; padding: 0; margin: 6px 0; display: flex; flex-direction: column; gap: 8px; }
+.oppgave { border: 1px solid var(--linje); border-radius: 8px; padding: 9px 12px; display: grid; grid-template-columns: 1.4em 1fr auto; gap: 4px 8px; align-items: start; transition: background .4s, border-color .4s; }
+.oppgave .ikon { font-size: 16px; line-height: 1.4; color: #9aa59f; }
+.oppgave.loyst { background: var(--gron-lys); border-color: #a5d6a7; }
+.oppgave.loyst .ikon { color: var(--gron); }
+.oppgave .hintknapp { background: #fff; border: 1px solid var(--linje); border-radius: 5px; padding: 2px 9px; font: inherit; font-size: 12.5px; cursor: pointer; color: var(--grå); }
+.oppgave .hintknapp:hover { border-color: var(--gron); color: var(--gron-mork); }
+.oppgave .hint { grid-column: 2 / 4; font-size: 13.5px; background: var(--gul); border-radius: 5px; padding: 5px 9px; }
+.oppgave .bra { grid-column: 2 / 4; color: var(--gron-mork); font-weight: bold; font-size: 14px; animation: bra 2.6s forwards; }
+@keyframes bra { 0% { opacity: 0; } 10% { opacity: 1; } 75% { opacity: 1; } 100% { opacity: 0; } }
+.fullfort { background: var(--gron); color: #fff; border-radius: 8px; padding: 10px 14px; margin: 14px 0 6px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.fullfort button { background: #fff; color: var(--gron-mork); border: none; border-radius: 5px; padding: 5px 12px; font: inherit; font-weight: bold; cursor: pointer; }
+.navknappar { display: flex; justify-content: space-between; margin: 18px 0 8px; }
+.navknappar button { background: #fff; border: 1px solid var(--gron); color: var(--gron-mork); border-radius: 6px; padding: 6px 14px; font: inherit; cursor: pointer; }
+.navknappar button:hover:not(:disabled) { background: var(--gron); color: #fff; }
+.navknappar button:disabled { opacity: .35; cursor: default; }
+details.laerar { margin: 16px 0 0; border: 1px solid var(--linje); border-radius: 8px; padding: 8px 12px; font-size: 14px; background: #fafcfb; }
+details.laerar summary { cursor: pointer; font-weight: bold; color: var(--grå); }
+details.laerar ul { padding-left: 20px; margin: 6px 0; }
+
+/* ---------- Toast ---------- */
+#toast { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%) translateY(20px); background: var(--gron-mork); color: #fff; padding: 9px 16px; border-radius: 8px; box-shadow: 0 4px 14px rgba(0,0,0,.25); opacity: 0; pointer-events: none; transition: opacity .3s, transform .3s; z-index: 50; max-width: 90vw; font-size: 14px; }
+#toast.vis { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ---------- Kursbevis ---------- */
+#bevisbakgrunn { position: fixed; inset: 0; background: rgba(0,0,0,.5); display: none; align-items: center; justify-content: center; z-index: 100; padding: 16px; }
+#bevisbakgrunn.vis { display: flex; }
+#bevisboks { background: #fff; border-radius: 10px; max-width: 640px; width: 100%; max-height: 92vh; overflow-y: auto; padding: 18px; }
+.namnrad { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; font-size: 14px; }
+.namnrad input { flex: 1; min-width: 160px; padding: 7px 10px; font: inherit; border: 1px solid #bbb; border-radius: 6px; }
+#bevis { border: 3px solid var(--gron); border-radius: 6px; padding: 0 22px 18px; position: relative; text-align: center; }
+#bevis .stripe { height: 14px; background: var(--gron); margin: 0 -22px 16px; }
+#bevis h2 { margin: 6px 0 2px; font-size: 26px; color: var(--gron-mork); letter-spacing: .02em; }
+#bevis .bnamn { font-size: 24px; margin: 14px 0 2px; font-family: Georgia, serif; border-bottom: 1px solid #999; display: inline-block; min-width: 60%; padding: 0 10px 2px; }
+#bevis .skule { color: var(--grå); font-size: 14px; }
+#bevis ul { list-style: none; padding: 0; text-align: left; margin: 14px auto 6px; max-width: 420px; font-size: 14px; }
+#bevis ul li { padding: 2px 0; }
+#bevis .sum { font-weight: bold; margin-top: 8px; }
+#bevis .segl { position: absolute; right: 14px; top: 26px; width: 84px; height: 84px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #ffe680, #d4a017 60%, #a87900); color: #5a3d00; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 13px; box-shadow: 0 0 0 4px #f3d36b, 0 2px 6px rgba(0,0,0,.3); transform: rotate(-12deg); }
+#bevis .delvis { position: absolute; right: 14px; top: 30px; border: 2px dashed var(--grå); color: var(--grå); border-radius: 6px; padding: 4px 8px; font-size: 13px; transform: rotate(-8deg); }
+#bevis .manglar { font-size: 13px; color: var(--grå); }
+.bevisknappar { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+.bevisknappar button { padding: 7px 14px; font: inherit; border-radius: 6px; border: 1px solid var(--gron); background: #fff; color: var(--gron-mork); cursor: pointer; }
+.bevisknappar button.hoved { background: var(--gron); color: #fff; }
+@media print {
+    body * { visibility: hidden !important; }
+    #bevis, #bevis * { visibility: visible !important; }
+    #bevisbakgrunn { position: static; background: none; display: block; padding: 0; }
+    #bevisboks { box-shadow: none; max-height: none; overflow: visible; padding: 0; }
+    #bevis { position: absolute; left: 0; top: 0; width: 100%; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+
+/* ---------- Felles 💡-hjelpetekst (bruk i simulatoren) ---------- */
+.hjelp { color: #ffe9a8; font-family: var(--font); font-size: 14px; background: rgba(255, 214, 90, .08); border-left: 3px solid #f2c94c; padding: 4px 10px; margin: 4px 0 6px; white-space: pre-wrap; border-radius: 0 4px 4px 0; }
+
+/* ---------- HTML/CSS-editor med direktevising ---------- */
+#sim { background: #1e1e1e; color: #ddd; }
+.vtittel { display: flex; align-items: center; gap: 8px; padding: 7px 12px; background: #2b2b2b; border-bottom: 1px solid #111; font-size: 13.5px; }
+.vtittel .logo { background: #e44d26; color: #fff; font-weight: bold; font-size: 11px; padding: 2px 4px; border-radius: 3px; font-family: var(--mono); }
+.vtittel .logo.css { background: #264de4; }
+.vtittel .fnamn { font-family: var(--mono); color: #ddd; }
+.vtittel .info { margin-left: auto; font-size: 12.5px; color: #9a9a9a; }
+.verktoy { display: flex; gap: 6px; padding: 0 10px; background: #252525; align-items: flex-end; flex-wrap: wrap; }
+.fane { background: #2d2d2d; color: #aaa; border: 1px solid #3a3a3a; border-bottom: none; border-radius: 6px 6px 0 0; padding: 6px 14px; font: inherit; font-family: var(--mono); font-size: 13.5px; cursor: pointer; margin-top: 6px; }
+.fane.aktiv { background: #212121; color: #fff; border-color: #555; }
+.fane .prikk { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; background: #e44d26; }
+.fane.cssfane .prikk { background: #264de4; }
+.verktoy .hogreknappar { margin-left: auto; display: flex; gap: 6px; padding: 5px 0; }
+.verktoy button.knapp { background: #3a3a3a; color: #eee; border: 1px solid #4a4a4a; border-radius: 5px; padding: 5px 11px; font: inherit; font-size: 13px; cursor: pointer; }
+.verktoy button.knapp:hover { background: #474747; }
+#editorboks { flex: 1 1 0; min-height: 150px; overflow: hidden; }
+#editorboks .CodeMirror, #editorboks textarea { height: 100%; font-family: var(--mono); font-size: 14.5px; }
+#editorboks textarea { width: 100%; background: #212121; color: #eee; border: none; padding: 8px; resize: none; tab-size: 4; }
+.CodeMirror .feillinje { background: rgba(255, 190, 60, .18) !important; }
+#tipsboks { background: #1a1a1a; border-top: 1px solid #333; max-height: 30%; overflow-y: auto; }
+#tipsboks:empty { display: none; }
+#tipsboks .hjelp { margin: 6px 10px; cursor: pointer; }
+#tipsboks .hjelp code { background: rgba(255,255,255,.08); color: #fff; padding: 0 3px; border-radius: 3px; font-family: var(--mono); }
+.nettlesar { flex: 1 1 0; min-height: 180px; display: flex; flex-direction: column; background: #dcdcdc; border-top: 3px solid #111; }
+.nettlesar .adresse { display: flex; align-items: center; gap: 8px; padding: 5px 10px; font-size: 13px; color: #333; background: #e9e9e9; border-bottom: 1px solid #c8c8c8; }
+.nettlesar .flipp { background: #fff; border-radius: 6px 6px 0 0; padding: 3px 12px; max-width: 45%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.nettlesar .url { flex: 1; background: #fff; border-radius: 12px; padding: 2px 12px; color: #666; font-family: var(--mono); font-size: 12px; overflow: hidden; white-space: nowrap; }
+#vising { flex: 1; width: 100%; border: none; background: #fff; }
+@media (max-width: 900px) { .vtittel .info { display: none; } #sim { height: 92vh; } .nettlesar .flipp { max-width: 40%; } }
+
+</style>
+</head>
+<body>
+
+<header class="topp">
+    <a class="tilbake" href="index.html">← Sandkassa</a>
+    <div class="titlar">
+        <h1>HTML og CSS 101</h1>
+        <p class="under">Lag di eiga nettside – og sjå ho bli til medan du skriv</p>
+    </div>
+    <div class="hogre">
+        <div class="framdrift" title="Løyste oppgåver">
+            <span id="framdriftTekst">0 / 0 oppgåver</span>
+            <div class="linje"><div id="framdriftLinje"></div></div>
+        </div>
+        <button id="knappBevis" type="button">Kursbevis</button>
+        <button id="knappNullstill" type="button">Start på nytt</button>
+    </div>
+</header>
+
+<main class="oppsett">
+    <aside id="leksjonspanel" class="kort">
+        <ol id="leksjonsliste"></ol>
+        <div id="leksjon"></div>
+    </aside>
+    <section id="sim" class="kort">
+        <div class="vtittel"><span class="logo">HTML</span><span class="logo css">CSS</span><span class="fnamn">mi-nettside/</span><span class="info" id="lagraInfo">Endringar blir viste med ein gong</span></div>
+        <div class="verktoy">
+            <button type="button" class="fane aktiv" id="faneHtml"><span class="prikk"></span>index.html</button>
+            <button type="button" class="fane cssfane" id="faneCss"><span class="prikk"></span>style.css</button>
+            <div class="hogreknappar">
+                <button type="button" class="knapp" id="knappTilbake">Tilbakestill kode</button>
+            </div>
+        </div>
+        <div id="editorboks"><textarea id="kodefelt" spellcheck="false" aria-label="Kode"></textarea></div>
+        <div id="tipsboks" aria-live="polite"></div>
+        <div class="nettlesar">
+            <div class="adresse"><span class="flipp" id="flipp">Mi nettside</span><span class="url">mi-nettside/index.html</span></div>
+            <iframe id="vising" title="Direktevising av nettsida" sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox"></iframe>
+        </div>
+    </section>
+</main>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<div id="bevisbakgrunn">
+    <div id="bevisboks" role="dialog" aria-modal="true" aria-label="Kursbevis">
+        <div class="namnrad">
+            <label for="bevisNamn">Fornamnet ditt:</label>
+            <input id="bevisNamn" type="text" maxlength="40" placeholder="Skriv fornamnet ditt">
+        </div>
+        <div id="bevis"></div>
+        <div class="bevisknappar">
+            <button type="button" id="bevisLukk">Lukk</button>
+            <button type="button" id="bevisSkriv" class="hoved">Skriv ut</button>
+        </div>
+    </div>
+</div>
+
+<script>
+"use strict";
+/* ================== KURSOPPSETT ================== */
+const KURS = {
+    namn: "HTML og CSS 101",
+    prefiks: "kode101-hc-",
+};
+
+/* Hjelparar (funksjonsdeklarasjonar, så dei finst før LEKSJONAR blir laga) */
+function htmlEsc(s) { return String(s).replace(/[&<>"]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch])); }
+function ex(kode) { return `<div class="eksempel"><pre>${htmlEsc(kode)}</pre></div>`; }
+function dok(tittel, kropp, medCss) {
+    return `<!DOCTYPE html>\n<html lang="nn">\n<head>\n    <meta charset="utf-8">\n    <title>${tittel}</title>\n` +
+        (medCss ? `    <link rel="stylesheet" href="style.css">\n` : "") + `</head>\n<body>\n${kropp}\n</body>\n</html>\n`;
+}
+function qa(c, sel) { return c.doc ? [...c.doc.querySelectorAll(sel)] : []; }
+function q(c, sel) { return c.doc ? c.doc.querySelector(sel) : null; }
+function st(c, el) { return c.win.getComputedStyle(el); }
+function tekst(el) { return el ? el.textContent.trim() : ""; }
+function cssRein(c) { return String(c.css).replace(/\/\*[\s\S]*?\*\//g, ""); }
+function kroppEl(c) { return qa(c, "body *").filter(e => !/^(SCRIPT|STYLE|BR)$/.test(e.tagName)); }
+function harLink(c) { return qa(c, 'link[rel~="stylesheet" i]').some(l => /^(\.\/)?style\.css$/i.test((l.dataset.href || l.getAttribute("href") || "").trim())); }
+function stylaKlasse(c, k) { return new RegExp("\\." + k.replace(/[-]/g, "\\-") + "(?![\\w-])[^{}]*\\{").test(cssRein(c)); }
+
+const OM_MEG = `    <h1>Om meg</h1>
+    <p class="ingress">Eg heiter Kari og går på IM ved Stord vgs.</p>
+    <h2>Hobbyar</h2>
+    <ul>
+        <li>Gaming</li>
+        <li>Fotball</li>
+        <li>Teikning</li>
+    </ul>`;
+
+const LEKSJONAR = [
+{ id: "l1", tittel: "Første nettside", laerer: "korleis ei HTML-side er bygd opp, og taggane <code>&lt;h1&gt;</code>, <code>&lt;p&gt;</code> og <code>&lt;title&gt;</code>.",
+  start: { html: dok("Mi nettside", `    <h1>Hei, verda!</h1>\n    <p>Dette er den første nettsida mi.</p>`), css: "" },
+  html: `
+<p>Alle nettsider er laga med <b>HTML</b>. HTML er tekst med <b>taggar</b> som fortel nettlesaren kva som er overskrift, avsnitt, bilete og så vidare. Ein tagg har ein start og ein slutt:</p>
+${ex(`<h1>Dette er ei overskrift</h1>\n<p>Dette er eit avsnitt.</p>`)}
+<p>Sluttaggen har ein skråstrek: <code>&lt;/p&gt;</code>. Alt mellom start og slutt er innhaldet.</p>
+<p>Ei heil side har alltid same «skjelett». Det som står i <code>&lt;head&gt;</code> er informasjon <i>om</i> sida (t.d. tittelen i fana), og det som står i <code>&lt;body&gt;</code> er det du ser:</p>
+${ex(`<!DOCTYPE html>\n<html lang="nn">\n<head>\n    <meta charset="utf-8">\n    <title>Mi nettside</title>\n</head>\n<body>\n    <h1>Hei, verda!</h1>\n</body>\n</html>`)}
+<p>Skriv i editoren til høgre – nettsida under oppdaterer seg med ein gong.</p>
+<div class="tips">💡 Hugs å lukke taggane. Gløymer du <code>&lt;/h1&gt;</code>, blir resten av sida også stor overskrift!</div>`,
+  oppgaver: [
+    { id: "l1o1", tekst: "Byt ut teksten i <code>&lt;h1&gt;</code> med namnet ditt.", hint: ["Endre teksten mellom <code>&lt;h1&gt;</code> og <code>&lt;/h1&gt;</code>."],
+      sjekk: c => { const h = q(c, "h1"); return !!h && tekst(h) !== "" && !/hei,?\s*verda/i.test(tekst(h)); } },
+    { id: "l1o2", tekst: "Lag minst tre avsnitt med <code>&lt;p&gt;</code> om deg sjølv.", hint: ["Kvart avsnitt startar med <code>&lt;p&gt;</code> og sluttar med <code>&lt;/p&gt;</code>.", "<code>&lt;p&gt;Eg er 16 år.&lt;/p&gt;</code> – tre slike under kvarandre."],
+      sjekk: c => qa(c, "body p").filter(p => tekst(p)).length >= 3 },
+    { id: "l1o3", tekst: "Endre <code>&lt;title&gt;</code> til noko eige. Sjå at teksten i fana over nettsida endrar seg.", hint: ["<code>&lt;title&gt;</code> står inne i <code>&lt;head&gt;</code>."],
+      sjekk: c => !!c.doc && c.doc.title.trim() !== "" && c.doc.title.trim() !== "Mi nettside" },
+  ]},
+
+{ id: "l2", tittel: "Overskrifter og lister", laerer: "underoverskrifter, <b>feit</b> og <i>kursiv</i> tekst, og punktlister og nummererte lister.",
+  start: { html: dok("Om meg", `    <h1>Om meg</h1>\n    <p>Eg heiter Kari og går på IM ved Stord vgs.</p>`), css: "" },
+  html: `
+<p>Det finst seks nivå med overskrifter, frå <code>&lt;h1&gt;</code> (størst) til <code>&lt;h6&gt;</code>. Bruk <code>&lt;h1&gt;</code> éin gong øvst, og <code>&lt;h2&gt;</code> for delane av sida.</p>
+${ex(`<h2>Hobbyar</h2>`)}
+<p>Inne i tekst kan du bruke <code>&lt;strong&gt;</code> for <b>viktig</b> (feit) og <code>&lt;em&gt;</code> for <i>trykk</i> (kursiv):</p>
+${ex(`<p>Eg er <strong>veldig</strong> glad i <em>pizza</em>.</p>`)}
+<p>Ei punktliste er <code>&lt;ul&gt;</code> (unordered list), og ei nummerert liste er <code>&lt;ol&gt;</code> (ordered list). Kvart punkt er eit <code>&lt;li&gt;</code> (list item):</p>
+${ex(`<ul>\n    <li>Gaming</li>\n    <li>Fotball</li>\n    <li>Teikning</li>\n</ul>`)}
+${ex(`<ol>\n    <li>Stå opp</li>\n    <li>Ete frukost</li>\n    <li>Gå på skulen</li>\n</ol>`)}
+<div class="tips">💡 Innrykk (mellomrom framfor linjene) gjer koden lettare å lese. Nettlesaren bryr seg ikkje – men det gjer læraren din!</div>`,
+  oppgaver: [
+    { id: "l2o1", tekst: "Lag ei underoverskrift med <code>&lt;h2&gt;</code>.", hint: ["<code>&lt;h2&gt;Hobbyar&lt;/h2&gt;</code>"],
+      sjekk: c => qa(c, "h2").some(h => tekst(h)) },
+    { id: "l2o2", tekst: "Lag ei punktliste (<code>&lt;ul&gt;</code>) med minst tre punkt.", hint: ["Kvart punkt er eit <code>&lt;li&gt;</code> inne i <code>&lt;ul&gt;</code>.", "Trykk «Prøv» på eksempelet over."],
+      sjekk: c => qa(c, "ul").some(u => [...u.children].filter(e => e.tagName === "LI" && tekst(e)).length >= 3) },
+    { id: "l2o3", tekst: "Lag ei nummerert liste (<code>&lt;ol&gt;</code>) med minst tre punkt, t.d. morgonrutinen din.", hint: ["Som punktlista, men med <code>&lt;ol&gt;</code> i staden for <code>&lt;ul&gt;</code>."],
+      sjekk: c => qa(c, "ol").some(u => [...u.children].filter(e => e.tagName === "LI" && tekst(e)).length >= 3) },
+    { id: "l2o4", tekst: "Gjer eitt ord <b>feit</b> med <code>&lt;strong&gt;</code> eller <i>kursiv</i> med <code>&lt;em&gt;</code> inne i eit avsnitt.", hint: ["<code>&lt;p&gt;Eg er &lt;strong&gt;veldig&lt;/strong&gt; glad i pizza.&lt;/p&gt;</code>"],
+      sjekk: c => qa(c, "p strong, p em, p b, p i").some(e => tekst(e)) },
+  ]},
+
+{ id: "l3", tittel: "Lenker og bilete", laerer: "å lage lenker med <code>&lt;a&gt;</code> og vise bilete med <code>&lt;img&gt;</code> – og kva <b>attributt</b> er.",
+  start: { html: dok("Om meg", OM_MEG), css: "" },
+  html: `
+<p>Nokre taggar treng ekstra informasjon. Den skriv du som <b>attributt</b> inne i starttaggen: <code>namn="verdi"</code>.</p>
+<p>Ei lenke er <code>&lt;a&gt;</code> (anchor). Attributtet <code>href</code> seier kvar lenka går:</p>
+${ex(`<p>Skulen min: <a href="https://www.stord.vgs.no">Stord vgs</a></p>`)}
+<p>Med <code>target="_blank"</code> blir lenka opna i ei ny fane.</p>
+<p>Eit bilete er <code>&lt;img&gt;</code>. Han har ingen sluttagg. <code>src</code> er fila, og <code>alt</code> er ein tekst som blir lesen opp for blinde og vist om biletet ikkje lastar:</p>
+${ex(`<img src="katt.jpg" alt="Ein grå katt som søv" width="250">`)}
+<div class="tips">💡 I simulatoren finst bileta <code>katt.jpg</code>, <code>fjord.jpg</code> og <code>logo.png</code>. På ei ekte nettside legg du biletfila i same mappe som HTML-fila.</div>`,
+  oppgaver: [
+    { id: "l3o1", tekst: "Lag ei lenke til ei nettside du likar (adressa skal starte med <code>https://</code>).", hint: ["<code>&lt;a href=\"https://www.nrk.no\"&gt;NRK&lt;/a&gt;</code>", "Teksten mellom taggane er det du klikkar på."],
+      sjekk: c => qa(c, "a[href]").some(a => /^https?:\/\/\S+\.\S+/i.test(a.getAttribute("href").trim()) && tekst(a)) },
+    { id: "l3o2", tekst: "Vis eit bilete med <code>&lt;img&gt;</code>. Biletet skal ha ein <code>alt</code>-tekst som fortel kva det viser.", hint: ["<code>&lt;img src=\"katt.jpg\" alt=\"Ein grå katt\"&gt;</code>", "Sjekk at filnamnet er skrive heilt rett, og at biletet faktisk syner."],
+      sjekk: c => qa(c, "img").some(i => (i.getAttribute("alt") || "").trim().length >= 3 && i.complete && i.naturalWidth > 0) },
+    { id: "l3o3", tekst: "Få ei lenke til å opne i ei ny fane.", hint: ["Legg til attributtet <code>target=\"_blank\"</code> i <code>&lt;a&gt;</code>-taggen."],
+      sjekk: c => qa(c, 'a[href][target="_blank" i]').some(a => tekst(a) || a.querySelector("img")) },
+  ]},
+
+{ id: "l4", tittel: "Tabellar", laerer: "å lage tabellar med <code>&lt;table&gt;</code>, <code>&lt;tr&gt;</code>, <code>&lt;th&gt;</code> og <code>&lt;td&gt;</code>.",
+  start: { html: dok("Timeplan", `    <h1>Timeplanen min</h1>\n    <table>\n        <tr>\n            <th>Dag</th>\n            <th>Fag</th>\n        </tr>\n        <tr>\n            <td>Måndag</td>\n            <td>Teknologiforståing</td>\n        </tr>\n    </table>`), css: `table, th, td {\n    border: 1px solid #999;\n    border-collapse: collapse;\n    padding: 6px;\n}\n` },
+  html: `
+<p>Ein tabell er bygd av <b>rader</b>. <code>&lt;table&gt;</code> er heile tabellen, <code>&lt;tr&gt;</code> (table row) er éi rad, og <code>&lt;td&gt;</code> (table data) er éi rute. Overskriftsruter heiter <code>&lt;th&gt;</code>:</p>
+${ex(`<table>\n    <tr>\n        <th>Dag</th>\n        <th>Fag</th>\n    </tr>\n    <tr>\n        <td>Måndag</td>\n        <td>Teknologiforståing</td>\n    </tr>\n    <tr>\n        <td>Tysdag</td>\n        <td>Driftsstøtte</td>\n    </tr>\n</table>`)}
+<p>Kvar rad bør ha like mange ruter. I startkoden er det alt lagt til litt CSS i <code>style.css</code> så du ser strekane – det lærer du meir om i neste leksjon.</p>
+<div class="tips">💡 Tabellar er for <b>data</b> (timeplanar, resultat, prisar) – ikkje for å plassere ting på sida. Til det bruker ein CSS.</div>`,
+  oppgaver: [
+    { id: "l4o1", tekst: "Utvid tabellen så han har minst fire rader (overskriftsrada + tre dagar).", hint: ["Kopier ei heil <code>&lt;tr&gt;</code> … <code>&lt;/tr&gt;</code>-blokk og endre teksten."],
+      sjekk: c => qa(c, "table").some(t => t.querySelectorAll("tr").length >= 4 && t.querySelectorAll("td").length >= 3) },
+    { id: "l4o2", tekst: "Legg til ein tredje kolonne, t.d. «Rom», med <code>&lt;th&gt;</code> øvst og <code>&lt;td&gt;</code> i kvar rad.", hint: ["Kvar <code>&lt;tr&gt;</code> må få éi rute til.", "Overskriftsrada: <code>&lt;th&gt;Rom&lt;/th&gt;</code>. Dei andre radene: <code>&lt;td&gt;A102&lt;/td&gt;</code>."],
+      sjekk: c => qa(c, "table").some(t => { const r = [...t.querySelectorAll("tr")]; return r.length >= 2 && r[0].querySelectorAll("th").length >= 3 && r.slice(1).every(x => x.children.length >= 3); }) },
+  ]},
+
+{ id: "l5", tittel: "Første CSS", laerer: "å kople CSS til HTML, og å endre farge, bakgrunn og skrifttype.",
+  start: { html: dok("Om meg", OM_MEG, true), css: `/* Stilane for nettsida mi */\nh1 {\n    color: darkgreen;\n}\n` },
+  html: `
+<p>HTML seier <b>kva</b> som er på sida. <b>CSS</b> seier korleis det skal <b>sjå ut</b>: farge, storleik, skrift og plassering.</p>
+<p>CSS-en ligg i fila <code>style.css</code> (fana over editoren). HTML-fila må kople seg til ho med ei <code>&lt;link&gt;</code>-linje inne i <code>&lt;head&gt;</code>:</p>
+${ex(`<link rel="stylesheet" href="style.css">`)}
+<p>Ein CSS-regel har ein <b>selektor</b> (kva element) og <b>eigenskapar</b> med verdiar inne i krøllparentesar. Kvar linje sluttar med semikolon:</p>
+${ex(`h1 {\n    color: darkgreen;\n    font-size: 40px;\n}\n\nbody {\n    background-color: #f0f7f0;\n    font-family: Arial, sans-serif;\n}`)}
+<p>Fargar kan vere namn (<code>red</code>, <code>navy</code>, <code>tomato</code>) eller kodar som <code>#2e7d32</code>. CSS brukar <b>amerikansk engelsk</b>: det heiter <code>color</code>, ikkje <code>colour</code>!</p>
+<div class="tips">💡 Endrar du CSS og ingenting skjer? Sjekk at <code>&lt;link&gt;</code>-linja finst i HTML-fila, og at du ikkje manglar <code>;</code> eller <code>}</code>.</div>`,
+  oppgaver: [
+    { id: "l5o1", tekst: "Sjekk at HTML-fila er kopla til <code>style.css</code> med <code>&lt;link&gt;</code>, og at overskrifta blir grøn.", hint: ["Startkoden har alt ei <code>&lt;link&gt;</code>-linje – har du sletta ho, legg ho inn att i <code>&lt;head&gt;</code>.", "<code>&lt;link rel=\"stylesheet\" href=\"style.css\"&gt;</code>"],
+      sjekk: c => harLink(c) && !!q(c, "h1") && st(c, q(c, "h1")).color !== "rgb(0, 0, 0)" },
+    { id: "l5o2", tekst: "Gi heile sida ein bakgrunnsfarge med <code>background-color</code> på <code>body</code>.", hint: ["Lag ein ny regel: <code>body { background-color: lightyellow; }</code>"],
+      sjekk: c => { const b = q(c, "body"); if (!b) return false; const bg = st(c, b).backgroundColor; return bg !== "rgba(0, 0, 0, 0)" && bg !== "rgb(255, 255, 255)"; } },
+    { id: "l5o3", tekst: "Byt skrifttype for heile sida med <code>font-family</code>.", hint: ["<code>body { font-family: Arial, sans-serif; }</code>", "Du kan ha fleire eigenskapar i same regel."],
+      sjekk: c => { const b = q(c, "body"); return !!b && /font-family\s*:/.test(cssRein(c)) && !/times/i.test(st(c, b).fontFamily); } },
+    { id: "l5o4", tekst: "Gjer teksten i avsnitta større med <code>font-size</code> på <code>p</code>.", hint: ["<code>p { font-size: 20px; }</code>"],
+      sjekk: c => qa(c, "p").some(p => parseFloat(st(c, p).fontSize) > 16.5) },
+  ]},
+
+{ id: "l6", tittel: "Klassar og id", laerer: "å style utvalde element med <code>class</code> og <code>id</code>.",
+  start: { html: dok("Om meg", OM_MEG + `\n    <p class="viktig">Dette er viktig!</p>\n    <p>Dette er ikkje så viktig.</p>`, true), css: `h1 {\n    color: darkgreen;\n}\n` },
+  html: `
+<p>Ein regel med <code>p { }</code> gjeld <b>alle</b> avsnitt. Vil du style berre nokre av dei, gir du dei ein <b>klasse</b>:</p>
+${ex(`<p class="viktig">Dette er viktig!</p>`)}
+<p>I CSS skriv du klassen med punktum framfor:</p>
+${ex(`.viktig {\n    color: crimson;\n    font-weight: bold;\n}`)}
+<p>Fleire element kan ha same klasse. Ein <b>id</b> er derimot unik – berre eitt element på sida skal ha same id. I CSS skriv du id med <code>#</code>:</p>
+${ex(`<h2 id="kontakt">Kontakt</h2>`)}
+${ex(`#kontakt {\n    background-color: gold;\n}`)}
+<div class="tips">💡 Klassenamn kan ikkje ha mellomrom. Bruk bindestrek: <code>class="stor-tekst"</code>. Ingen æ, ø eller å i namna, så slepp du trøbbel.</div>`,
+  oppgaver: [
+    { id: "l6o1", tekst: "Style klassen <code>viktig</code> i CSS-en, t.d. med raud farge.", hint: ["I <code>style.css</code>: <code>.viktig { color: crimson; }</code> – hugs punktumet."],
+      sjekk: c => qa(c, "[class]").some(e => [...e.classList].some(k => stylaKlasse(c, k)) && st(c, e).color !== st(c, q(c, "body")).color) },
+    { id: "l6o2", tekst: "Gi eitt element ein <code>id</code> og style det med <code>#</code> i CSS-en.", hint: ["HTML: <code>&lt;h2 id=\"kontakt\"&gt;Kontakt&lt;/h2&gt;</code>", "CSS: <code>#kontakt { background-color: gold; }</code>"],
+      sjekk: c => qa(c, "[id]").some(e => e.id && new RegExp("#" + e.id.replace(/[-]/g, "\\-") + "(?![\\w-])[^{}]*\\{").test(cssRein(c))) },
+    { id: "l6o3", tekst: "Gi same klasse til minst to ulike element, og style klassen.", hint: ["T.d. <code>class=\"boks\"</code> på to avsnitt – og <code>.boks { ... }</code> i CSS."],
+      sjekk: c => { const tal = {}; qa(c, "body [class]").forEach(e => e.classList.forEach(k => tal[k] = (tal[k] || 0) + 1)); return Object.keys(tal).some(k => tal[k] >= 2 && stylaKlasse(c, k)); } },
+  ]},
+
+{ id: "l7", tittel: "Boksmodellen", laerer: "at alle element er boksar med <code>padding</code>, <code>border</code> og <code>margin</code>.",
+  start: { html: dok("Om meg", OM_MEG + `\n    <p class="boks">Eg er ein boks!</p>`, true), css: `body {\n    font-family: Arial, sans-serif;\n}\n\n.boks {\n    background-color: lightblue;\n}\n` },
+  html: `
+<p>For nettlesaren er <b>alle element boksar</b>. Kvar boks har fire lag, frå innst til ytst:</p>
+<ul><li><b>innhald</b> – teksten eller biletet</li><li><code>padding</code> – luft <i>inne i</i> boksen</li><li><code>border</code> – kantlinja</li><li><code>margin</code> – luft <i>utanfor</i> boksen</li></ul>
+${ex(`.boks {\n    background-color: lightblue;\n    padding: 20px;\n    border: 3px solid navy;\n    margin: 30px;\n    border-radius: 10px;\n}`)}
+<p><code>border</code> har tre delar: tjukkleik, stil (<code>solid</code>, <code>dashed</code>, <code>dotted</code>) og farge. <code>border-radius</code> rundar av hjørna.</p>
+<p>Med <code>width</code> kan du bestemme kor brei boksen skal vere, t.d. <code>width: 300px;</code>.</p>
+<div class="tips">💡 Høgreklikk på ei ekte nettside og vel <b>Inspiser</b> (F12). Då ser du boksmodellen til kvart element, med padding og margin i ulike fargar.</div>`,
+  oppgaver: [
+    { id: "l7o1", tekst: "Gi boksen luft inni med <code>padding</code>.", hint: ["<code>padding: 20px;</code> inne i <code>.boks { }</code>"],
+      sjekk: c => /padding[\w-]*\s*:/.test(cssRein(c)) && kroppEl(c).some(e => !/^(TD|TH|UL|OL)$/.test(e.tagName) && (parseFloat(st(c, e).paddingTop) > 0 || parseFloat(st(c, e).paddingLeft) > 0)) },
+    { id: "l7o2", tekst: "Gi boksen ei kantlinje med <code>border</code>.", hint: ["<code>border: 3px solid navy;</code> – tjukkleik, stil og farge."],
+      sjekk: c => kroppEl(c).some(e => !/^(TABLE|TD|TH)$/.test(e.tagName) && st(c, e).borderTopStyle !== "none" && parseFloat(st(c, e).borderTopWidth) > 0) },
+    { id: "l7o3", tekst: "Gjer hjørna runde med <code>border-radius</code>.", hint: ["<code>border-radius: 10px;</code>"],
+      sjekk: c => kroppEl(c).some(e => parseFloat(st(c, e).borderTopLeftRadius) > 0) },
+  ]},
+
+{ id: "l8", tittel: "Layout med flexbox", laerer: "å plassere boksar ved sida av kvarandre med <code>display: flex</code>.",
+  start: { html: dok("Om meg", `    <h1>Om meg</h1>\n    <div class="rad">\n        <div class="kort">Gaming</div>\n        <div class="kort">Fotball</div>\n        <div class="kort">Teikning</div>\n    </div>`, true),
+           css: `body {\n    font-family: Arial, sans-serif;\n}\n\n.kort {\n    background-color: #c8e6c9;\n    padding: 20px;\n    border-radius: 8px;\n}\n` },
+  html: `
+<p>Element som <code>&lt;div&gt;</code> og <code>&lt;p&gt;</code> legg seg under kvarandre. Vil du ha dei <b>ved sida av</b> kvarandre, pakkar du dei inn i ein boks og gir han <code>display: flex</code>:</p>
+${ex(`.rad {\n    display: flex;\n    gap: 16px;\n}`)}
+<p><code>&lt;div&gt;</code> er ein «tom» boks utan eiga meining – berre ein behaldar du kan style. <code>gap</code> gir luft mellom boksane.</p>
+<p>Med <code>justify-content</code> fordeler du boksane bortover (<code>center</code>, <code>space-between</code>), og med <code>align-items: center</code> plasserer du dei midt på i høgda:</p>
+${ex(`.rad {\n    display: flex;\n    gap: 16px;\n    justify-content: center;\n    align-items: center;\n}`)}
+<div class="tips">💡 Flexbox er det mest brukte verktøyet for layout i dag – menyar, kort, toppfelt og botnfelt blir ofte laga slik.</div>`,
+  oppgaver: [
+    { id: "l8o1", tekst: "Få korta til å liggje ved sida av kvarandre med <code>display: flex</code> på <code>.rad</code>.", hint: ["Lag regelen <code>.rad { display: flex; }</code> i <code>style.css</code>."],
+      sjekk: c => kroppEl(c).some(e => /flex/.test(st(c, e).display) && e.children.length >= 2) },
+    { id: "l8o2", tekst: "Gi luft mellom korta med <code>gap</code>, eller fordel dei med <code>justify-content</code>.", hint: ["<code>gap: 16px;</code> inne i <code>.rad { }</code>"],
+      sjekk: c => kroppEl(c).some(e => /flex/.test(st(c, e).display) && (parseFloat(st(c, e).columnGap) > 0 || !/^(normal|flex-start|start)$/.test(st(c, e).justifyContent))) },
+    { id: "l8o3", tekst: "Midtstill korta i høgda med <code>align-items: center</code>. Gjer eitt kort høgare (t.d. med meir tekst) så du ser verknaden.", hint: ["<code>align-items: center;</code> inne i <code>.rad { }</code>"],
+      sjekk: c => kroppEl(c).some(e => /flex/.test(st(c, e).display) && st(c, e).alignItems === "center") },
+  ]},
+
+{ id: "l9", tittel: "Vidare til ekte verktøy", laerer: "korleis du lagar nettsider på eiga maskin og publiserer dei på nettet.",
+  start: { html: dok("Mi nettside", `    <h1>Fri leik!</h1>\n    <p>Lag kva du vil her.</p>`, true), css: `body {\n    font-family: Arial, sans-serif;\n}\n` },
+  html: `
+<p>No kan du det viktigaste i HTML og CSS. Slik held du fram på eiga maskin:</p>
+<h3>1. Lag ei mappe med to filer</h3>
+<p>Installer <b>VS Code</b> (code.visualstudio.com). Lag ei mappe, t.d. <code>mi-nettside</code>, og opne ho i VS Code (File → Open Folder). Lag filene <code>index.html</code> og <code>style.css</code> – akkurat som fanene her. Bileta legg du i same mappe.</p>
+<h3>2. Sjå sida i nettlesaren</h3>
+<p>Dobbeltklikk på <code>index.html</code> i Utforskar, så opnar ho seg i nettlesaren. Lagre i VS Code og trykk <b>F5</b> i nettlesaren for å sjå endringane. Utvidinga <b>Live Server</b> i VS Code oppdaterer sida automatisk.</p>
+<p>Tips: skriv <code>!</code> og trykk Tab i ei tom HTML-fil i VS Code – då får du heile skjelettet gratis.</p>
+<h3>3. Inspiser andre nettsider</h3>
+<p>Trykk <b>F12</b> (eller høgreklikk → Inspiser) på kva nettside som helst. Der ser du HTML-en og CSS-en, og du kan endre dei for moro skuld (berre hos deg sjølv).</p>
+<h3>4. Publiser</h3>
+<p>Med <b>GitHub Pages</b> kan du leggje sida ut på nettet gratis – slik denne sida ligg ute. Du lastar opp filene til eit repository, og så får du ei adresse som <code>brukarnamn.github.io</code>.</p>
+<h3>Skilnader frå simulatoren</h3>
+<ul><li>Her blir sida oppdatert med ein gong. På maskina må du lagre og oppdatere nettlesaren.</li><li>Bileta <code>katt.jpg</code>, <code>fjord.jpg</code> og <code>logo.png</code> finst berre her – på maskina bruker du dine eigne.</li><li>Sjekk koden din på <b>validator.w3.org</b> – han finn feil som nettlesaren tilgir.</li></ul>
+<h3>Jukselapp</h3>
+<table class="juks">
+<tr><td>&lt;h1&gt; … &lt;h6&gt;</td><td>overskrifter</td></tr>
+<tr><td>&lt;p&gt;</td><td>avsnitt</td></tr>
+<tr><td>&lt;ul&gt; / &lt;ol&gt; + &lt;li&gt;</td><td>punktliste / nummerert liste</td></tr>
+<tr><td>&lt;a href="…"&gt;</td><td>lenke</td></tr>
+<tr><td>&lt;img src="…" alt="…"&gt;</td><td>bilete</td></tr>
+<tr><td>&lt;table&gt; &lt;tr&gt; &lt;td&gt;</td><td>tabell, rad, rute</td></tr>
+<tr><td>&lt;div class="…"&gt;</td><td>boks du kan style</td></tr>
+<tr><td>color / background-color</td><td>tekstfarge / bakgrunn</td></tr>
+<tr><td>font-family / font-size</td><td>skrifttype / storleik</td></tr>
+<tr><td>padding / border / margin</td><td>luft inni / kant / luft utanfor</td></tr>
+<tr><td>.klasse { } / #id { }</td><td>style klasse / id</td></tr>
+<tr><td>display: flex; gap: 16px;</td><td>boksar ved sida av kvarandre</td></tr>
+</table>`,
+  oppgaver: [] },
+];
+
+const LAERAR_HTML = `<ul>
+<li><b>Ekte HTML og CSS:</b> sida til eleven blir vist av nettlesaren sjølv i ei avgrensa ramme (utan JavaScript). Oppgåvene blir sjekka ved å sjå på den ferdige sida, ikkje på eksakt kodetekst – så ulike løysingar blir godtekne.</li>
+<li><b>Simulert:</b> to filer (<code>index.html</code> og <code>style.css</code>) i éi «mappe», og tre innebygde bilete (<code>katt.jpg</code>, <code>fjord.jpg</code>, <code>logo.png</code>). Lenker blir opna i ny fane.</li>
+<li><b>💡-tips:</b> nettlesaren gir ingen feilmeldingar for HTML/CSS. Sida sjekkar difor sjølv for vanlege feil: taggar som ikkje er lukka, manglande <code>alt</code>, ukjende CSS-eigenskapar (t.d. <code>colour</code>), ugyldige verdiar og manglande <code>;</code>/<code>}</code>.</li>
+<li><b>Lagring:</b> framdrift og kode (per leksjon) blir berre lagra i nettlesaren til eleven (localStorage).</li>
+<li><b>I timen:</b> leksjon 3–8 byggjer ei «om meg»-side. Leksjon 9 er ein fin overgang til VS Code og eiga mappe – og eventuelt publisering på GitHub Pages.</li>
+</ul>`;
+
+
+
+/* ================== LAGRING ================== */
+const lager = {
+    hent(nokkel, standard) {
+        try { const v = localStorage.getItem(KURS.prefiks + nokkel); return v === null ? standard : JSON.parse(v); }
+        catch (e) { return standard; }
+    },
+    set(nokkel, verdi) { try { localStorage.setItem(KURS.prefiks + nokkel, JSON.stringify(verdi)); } catch (e) {} },
+    slettAlle() {
+        try {
+            const ut = [];
+            for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.startsWith(KURS.prefiks)) ut.push(k); }
+            ut.forEach(k => localStorage.removeItem(k));
+        } catch (e) {}
+    }
+};
+
+/* ================== TILSTAND ================== */
+let loyste = new Set(lager.hent("loyste", []));
+let besokt = new Set(lager.hent("besokt", []));
+let hintNiva = lager.hent("hint", {});
+let aktivIndeks = Math.min(Math.max(0, LEKSJONAR.findIndex(l => l.id === lager.hent("aktiv", LEKSJONAR[0].id))), LEKSJONAR.length - 1);
+const ALLE_OPPGAVER = LEKSJONAR.flatMap(l => l.oppgaver.map(o => ({ ...o, leksjon: l })));
+
+function lagreTilstand() {
+    lager.set("loyste", [...loyste]);
+    lager.set("besokt", [...besokt]);
+    lager.set("hint", hintNiva);
+    lager.set("aktiv", LEKSJONAR[aktivIndeks].id);
+}
+
+function leksjonStatus(l) {
+    const n = l.oppgaver.length, ok = l.oppgaver.filter(o => loyste.has(o.id)).length;
+    if (n === 0) return besokt.has(l.id) ? "ferdig" : "ny";
+    if (ok === n) return "ferdig";
+    if (ok > 0 || besokt.has(l.id)) return "igang";
+    return "ny";
+}
+const STATUSIKON = { ny: '<span class="sirkel"></span>', igang: '<span class="sirkel halv"></span>', ferdig: "✔" };
+
+/* ================== VISING ================== */
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+function oppdaterFramdrift() {
+    const n = ALLE_OPPGAVER.length, ok = ALLE_OPPGAVER.filter(o => loyste.has(o.id)).length;
+    document.getElementById("framdriftTekst").textContent = `${ok} / ${n} oppgåver`;
+    document.getElementById("framdriftLinje").style.width = (n ? 100 * ok / n : 0) + "%";
+}
+
+function teiknListe() {
+    const ol = document.getElementById("leksjonsliste");
+    ol.innerHTML = "";
+    LEKSJONAR.forEach((l, i) => {
+        const st = leksjonStatus(l);
+        const ok = l.oppgaver.filter(o => loyste.has(o.id)).length;
+        const li = document.createElement("li");
+        li.className = (i === aktivIndeks ? "aktiv " : "") + st;
+        li.innerHTML = `<button type="button"><span class="status" title="${st === "ferdig" ? "Ferdig" : st === "igang" ? "I gang" : "Ikkje starta"}">${STATUSIKON[st]}</span><span class="nr">${i + 1}.</span><span>${esc(l.tittel)}</span>${l.oppgaver.length ? `<span class="tal">${ok}/${l.oppgaver.length}</span>` : ""}</button>`;
+        li.querySelector("button").onclick = () => visLeksjon(i);
+        ol.appendChild(li);
+    });
+    oppdaterFramdrift();
+}
+
+function visLeksjon(i, rull = true) {
+    aktivIndeks = i;
+    const l = LEKSJONAR[i];
+    besokt.add(l.id);
+    lagreTilstand();
+    const el = document.getElementById("leksjon");
+    el.innerHTML = `
+        <h2>${i + 1}. ${esc(l.tittel)}</h2>
+        <p class="laerer"><b>Dette lærer du:</b> ${l.laerer}</p>
+        <div class="forklaring">${l.html}</div>
+        ${l.oppgaver.length ? `<h3>Oppgåver</h3><ul class="oppgaver"></ul>` : ""}
+        <div class="fullfortplass"></div>
+        <div class="navknappar">
+            <button type="button" class="forre" ${i === 0 ? "disabled" : ""}>◀ Førre</button>
+            <button type="button" class="neste" ${i === LEKSJONAR.length - 1 ? "disabled" : ""}>Neste ▶</button>
+        </div>
+        <details class="laerar"><summary>For læraren</summary>${LAERAR_HTML}</details>`;
+    el.querySelectorAll(".eksempel").forEach(ex => {
+        const pre = ex.querySelector("pre");
+        const b = document.createElement("button");
+        b.type = "button"; b.className = "prov"; b.textContent = "Prøv";
+        b.title = "Lim inn koden (du køyrer sjølv)";
+        b.onclick = () => { if (typeof simLim === "function") simLim(pre.dataset.kode ?? pre.textContent); };
+        ex.appendChild(b);
+    });
+    const ul = el.querySelector(".oppgaver");
+    if (ul) l.oppgaver.forEach(o => ul.appendChild(lagOppgaveEl(o)));
+    el.querySelector(".forre").onclick = () => visLeksjon(i - 1);
+    el.querySelector(".neste").onclick = () => visLeksjon(i + 1);
+    teiknFullfort();
+    teiknListe();
+    if (rull) document.getElementById("leksjonspanel").scrollTop = 0;
+    if (typeof simByttLeksjon === "function") simByttLeksjon(l);   // valfri krok (t.d. startkode i editoren)
+}
+
+function lagOppgaveEl(o) {
+    const li = document.createElement("li");
+    li.className = "oppgave" + (loyste.has(o.id) ? " loyst" : "");
+    li.dataset.id = o.id;
+    li.innerHTML = `<span class="ikon">${loyste.has(o.id) ? "✔" : "○"}</span><span class="tekst">${o.tekst}</span>` +
+        (o.hint && o.hint.length ? `<button type="button" class="hintknapp">Hint</button>` : "<span></span>");
+    const vis = () => {
+        li.querySelectorAll(".hint").forEach(h => h.remove());
+        const n = hintNiva[o.id] || 0;
+        for (let k = 0; k < n; k++) {
+            const d = document.createElement("div");
+            d.className = "hint"; d.innerHTML = "💡 " + o.hint[k];
+            li.appendChild(d);
+        }
+        const b = li.querySelector(".hintknapp");
+        if (b) { b.textContent = n === 0 ? "Hint" : n < o.hint.length ? "Meir hjelp" : "Hint"; b.disabled = n >= o.hint.length; b.style.opacity = n >= o.hint.length ? .4 : 1; }
+    };
+    const b = li.querySelector(".hintknapp");
+    if (b) b.onclick = () => { hintNiva[o.id] = Math.min((hintNiva[o.id] || 0) + 1, o.hint.length); lagreTilstand(); vis(); };
+    vis();
+    return li;
+}
+
+function teiknFullfort() {
+    const l = LEKSJONAR[aktivIndeks];
+    const plass = document.querySelector("#leksjon .fullfortplass");
+    if (!plass) return;
+    plass.innerHTML = "";
+    if (l.oppgaver.length && leksjonStatus(l) === "ferdig") {
+        const d = document.createElement("div");
+        d.className = "fullfort";
+        d.innerHTML = `<span>✔ Leksjon fullført!</span>` + (aktivIndeks < LEKSJONAR.length - 1 ? `<button type="button">Neste leksjon ▶</button>` : "");
+        const b = d.querySelector("button");
+        if (b) b.onclick = () => visLeksjon(aktivIndeks + 1);
+        plass.appendChild(d);
+    }
+}
+
+let toastTid = null;
+function toast(tekst) {
+    const t = document.getElementById("toast");
+    t.textContent = tekst; t.classList.add("vis");
+    clearTimeout(toastTid); toastTid = setTimeout(() => t.classList.remove("vis"), 3200);
+}
+
+/* ================== OPPGÅVESJEKK ================== */
+/* Kall etter KVAR kommando/køyring. Sjekkar alle oppgåver i alle leksjonar. */
+function sjekkOppgaver(ctx) {
+    const nye = [];
+    for (const o of ALLE_OPPGAVER) {
+        if (loyste.has(o.id)) continue;
+        let ok = false;
+        try { ok = !!o.sjekk(ctx); } catch (e) { ok = false; }
+        if (ok) { loyste.add(o.id); nye.push(o); }
+    }
+    if (!nye.length) return nye;
+    lagreTilstand();
+    const aktiv = LEKSJONAR[aktivIndeks];
+    for (const o of nye) {
+        const li = document.querySelector(`#leksjon .oppgave[data-id="${o.id}"]`);
+        if (li) {
+            li.classList.add("loyst");
+            li.querySelector(".ikon").textContent = "✔";
+            const bra = document.createElement("div");
+            bra.className = "bra"; bra.textContent = "✔ Bra!";
+            li.appendChild(bra);
+            setTimeout(() => bra.remove(), 2700);
+        }
+    }
+    const andre = nye.filter(o => o.leksjon !== aktiv);
+    if (andre.length) {
+        const o = andre[0];
+        toast(`✔ Bra! Du løyste ei oppgåve i leksjon ${LEKSJONAR.indexOf(o.leksjon) + 1}: ${o.leksjon.tittel}`);
+    }
+    teiknFullfort();
+    teiknListe();
+    return nye;
+}
+
+/* ================== KURSBEVIS ================== */
+function datoTekst(d = new Date()) {
+    return String(d.getDate()).padStart(2, "0") + "." + String(d.getMonth() + 1).padStart(2, "0") + "." + d.getFullYear();
+}
+function hentNamn() { try { return localStorage.getItem("kode101-namn") || ""; } catch (e) { return ""; } }
+function teiknBevis() {
+    const namn = document.getElementById("bevisNamn").value.trim();
+    const n = ALLE_OPPGAVER.length, ok = ALLE_OPPGAVER.filter(o => loyste.has(o.id)).length;
+    const alt = ok === n;
+    const leks = LEKSJONAR.filter(l => l.oppgaver.length);
+    const manglar = leks.filter(l => leksjonStatus(l) !== "ferdig");
+    document.getElementById("bevis").innerHTML = `
+        <div class="stripe"></div>
+        ${alt ? `<div class="segl">Fullført</div>` : `<div class="delvis">Delvis fullført</div>`}
+        <h2>Kursbevis – ${esc(KURS.namn)}</h2>
+        <div class="skule">Stord vidaregåande skule – IM</div>
+        <div class="bnamn">${namn ? esc(namn) : "&nbsp;"}</div>
+        <div class="skule">Dato: ${datoTekst()}</div>
+        <ul>${leks.map((l, i) => {
+            const lok = l.oppgaver.filter(o => loyste.has(o.id)).length;
+            return `<li>${lok === l.oppgaver.length ? "✔" : "○"} ${LEKSJONAR.indexOf(l) + 1}. ${esc(l.tittel)} <span style="color:#888">(${lok}/${l.oppgaver.length})</span></li>`;
+        }).join("")}</ul>
+        <div class="sum">${ok} av ${n} oppgåver</div>
+        ${alt ? "" : `<div class="manglar">Manglar: ${manglar.map(l => esc(l.tittel)).join(", ")}</div>`}`;
+}
+function opneBevis() {
+    document.getElementById("bevisNamn").value = hentNamn();
+    teiknBevis();
+    document.getElementById("bevisbakgrunn").classList.add("vis");
+    document.getElementById("bevisNamn").focus();
+}
+document.getElementById("bevisNamn").addEventListener("input", e => {
+    try { localStorage.setItem("kode101-namn", e.target.value.trim()); } catch (er) {}
+    teiknBevis();
+});
+document.getElementById("knappBevis").onclick = opneBevis;
+document.getElementById("bevisLukk").onclick = () => document.getElementById("bevisbakgrunn").classList.remove("vis");
+document.getElementById("bevisbakgrunn").addEventListener("click", e => { if (e.target.id === "bevisbakgrunn") e.target.classList.remove("vis"); });
+document.getElementById("bevisSkriv").onclick = () => window.print();
+document.addEventListener("keydown", e => { if (e.key === "Escape") document.getElementById("bevisbakgrunn").classList.remove("vis"); });
+
+/* ================== START PÅ NYTT ================== */
+document.getElementById("knappNullstill").onclick = () => {
+    if (!confirm("Vil du starte på nytt? All framdrift på denne sida blir sletta.")) return;
+    lager.slettAlle();
+    location.reload();
+};
+
+/* ================== HTML/CSS-EDITOR OG DIREKTEVISING ================== */
+const STARTKODE = Object.fromEntries(LEKSJONAR.map(l => [l.id, l.start]));
+const kodefelt = document.getElementById("kodefelt");
+const vising = document.getElementById("vising");
+const tipsboks = document.getElementById("tipsboks");
+let cm = null, aktivFane = "html", aktivKodeId = null, oppdTid = null, merkte = [], cssUrl = null, rull = { x: 0, y: 0 };
+const tekstar = { html: "", css: "" };          // brukt når CodeMirror manglar
+const docs = {};
+
+/* Innebygde bilete (SVG) */
+const BILETE = {
+    "katt.jpg": `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300"><rect width="400" height="300" fill="#f3e3c3"/><circle cx="200" cy="170" r="95" fill="#8a8f98"/><polygon points="120,110 135,25 185,85" fill="#8a8f98"/><polygon points="280,110 265,25 215,85" fill="#8a8f98"/><polygon points="135,95 142,50 170,85" fill="#f2b8c6"/><polygon points="265,95 258,50 230,85" fill="#f2b8c6"/><ellipse cx="165" cy="160" rx="14" ry="20" fill="#2f3a2f"/><ellipse cx="235" cy="160" rx="14" ry="20" fill="#2f3a2f"/><circle cx="170" cy="153" r="5" fill="#fff"/><circle cx="240" cy="153" r="5" fill="#fff"/><polygon points="190,195 210,195 200,207" fill="#e88aa0"/><path d="M200 207 q-12 16 -26 6 M200 207 q12 16 26 6" stroke="#333" stroke-width="3" fill="none"/><path d="M150 200 h-70 M150 210 l-65 15 M250 200 h70 M250 210 l65 15" stroke="#333" stroke-width="2"/></svg>`,
+    "fjord.jpg": `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="260" viewBox="0 0 400 260"><rect width="400" height="260" fill="#9fd3f5"/><circle cx="320" cy="55" r="28" fill="#ffe27a"/><polygon points="0,170 90,60 170,170" fill="#4f6f52"/><polygon points="120,170 230,40 340,170" fill="#3c5a40"/><polygon points="205,70 230,40 255,70 240,64 230,75 218,64" fill="#fff"/><polygon points="270,170 350,90 400,140 400,170" fill="#56775a"/><rect y="168" width="400" height="92" fill="#2f6f9f"/><path d="M20 200 h60 M140 220 h80 M260 195 h70 M60 240 h50" stroke="#8cc4ec" stroke-width="3"/></svg>`,
+    "logo.png": `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><circle cx="100" cy="100" r="95" fill="#2e7d32"/><circle cx="100" cy="100" r="80" fill="none" stroke="#fff" stroke-width="4"/><text x="100" y="125" font-family="Arial, sans-serif" font-size="72" font-weight="bold" fill="#fff" text-anchor="middle">IM</text></svg>`,
+};
+const BILETE_URL = Object.fromEntries(Object.entries(BILETE).map(([k, v]) => [k, "data:image/svg+xml;charset=utf-8," + encodeURIComponent(v)]));
+
+/* ---- Editor ---- */
+if (window.CodeMirror) {
+    docs.html = CodeMirror.Doc("", "htmlmixed");
+    docs.css = CodeMirror.Doc("", "css");
+    cm = CodeMirror.fromTextArea(kodefelt, {
+        theme: "material-darker", lineNumbers: true, indentUnit: 4, tabSize: 4, indentWithTabs: false, lineWrapping: true,
+        matchBrackets: true, autoCloseBrackets: true, autoCloseTags: true,
+        extraKeys: { "Tab": c => c.somethingSelected() ? c.indentSelection("add") : c.replaceSelection("    ") },
+    });
+    cm.swapDoc(docs.html);
+    cm.on("change", () => planlegg());
+} else {
+    kodefelt.addEventListener("input", () => { tekstar[aktivFane] = kodefelt.value; planlegg(); });
+    kodefelt.addEventListener("keydown", e => { if (e.key === "Tab") { e.preventDefault(); kodefelt.setRangeText("    ", kodefelt.selectionStart, kodefelt.selectionEnd, "end"); tekstar[aktivFane] = kodefelt.value; planlegg(); } });
+}
+function hent(f) { return cm ? docs[f].getValue() : tekstar[f]; }
+function sett(f, t) {
+    if (cm) { docs[f].setValue(t); docs[f].clearHistory(); }
+    else { tekstar[f] = t; if (f === aktivFane) kodefelt.value = t; }
+}
+function byttFane(f) {
+    aktivFane = f;
+    document.getElementById("faneHtml").classList.toggle("aktiv", f === "html");
+    document.getElementById("faneCss").classList.toggle("aktiv", f === "css");
+    if (cm) { cm.swapDoc(docs[f]); cm.refresh(); } else kodefelt.value = tekstar[f];
+    visTips(sisteTips);
+}
+document.getElementById("faneHtml").onclick = () => { byttFane("html"); if (cm) cm.focus(); };
+document.getElementById("faneCss").onclick = () => { byttFane("css"); if (cm) cm.focus(); };
+document.getElementById("knappTilbake").onclick = () => {
+    const s = STARTKODE[aktivKodeId]; sett("html", s.html); sett("css", s.css); oppdater();
+};
+
+function planlegg() { clearTimeout(oppdTid); oppdTid = setTimeout(oppdater, 350); }
+function lagreKode() { if (aktivKodeId) lager.set("kode-" + aktivKodeId, { html: hent("html"), css: hent("css") }); }
+
+function simByttLeksjon(l) {
+    if (aktivKodeId) lagreKode();
+    aktivKodeId = l.id;
+    const k = lager.hent("kode-" + l.id, null) || STARTKODE[l.id];
+    sett("html", k.html || ""); sett("css", k.css || "");
+    byttFane("html");
+    rull = { x: 0, y: 0 };
+    oppdater();
+}
+
+function simLim(t) {
+    t = t.replace(/\s+$/, "");
+    if (/^\s*</.test(t)) {
+        byttFane("html");
+        let h = hent("html");
+        if (/^\s*<!DOCTYPE/i.test(t)) h = t + "\n";
+        else {
+            const iHead = /^\s*<(link|meta|title|style)\b/i.test(t);
+            const m = (iHead ? /^([ \t]*)<\/head>/im : /^([ \t]*)<\/body>/im).exec(h);
+            const inn = t.split("\n").map(l => "    " + l).join("\n") + "\n";
+            h = m ? h.slice(0, m.index) + inn + h.slice(m.index) : h + "\n" + t + "\n";
+        }
+        sett("html", h);
+    } else {
+        byttFane("css");
+        const c = hent("css");
+        sett("css", c + (c && !c.endsWith("\n\n") ? (c.endsWith("\n") ? "\n" : "\n\n") : "") + t + "\n");
+    }
+    if (cm) { cm.focus(); cm.setCursor(cm.lineCount(), 0); }
+    oppdater();
+}
+
+/* ---- Bygg sida for vising ---- */
+function bygg(html, css) {
+    if (cssUrl) URL.revokeObjectURL(cssUrl);
+    cssUrl = URL.createObjectURL(new Blob([css], { type: "text/css" }));
+    let h = html.replace(/(<link\b[^>]*?\bhref\s*=\s*)(["']?)(?:\.\/)?style\.css\2/gi, (m, a, q) => `${a}"${cssUrl}" data-href="style.css"`);
+    h = h.replace(/(<img\b[^>]*?\bsrc\s*=\s*)(["']?)(?:\.\/)?([\w.-]+\.(?:jpg|jpeg|png|gif|svg|webp))\2/gi, (m, a, q, fil) => {
+        const k = fil.toLowerCase(); return `${a}"${BILETE_URL[k] || "data:image/png;base64,"}" data-src="${fil}"`;
+    });
+    const base = `<base target="_blank">`;
+    h = /<head[^>]*>/i.test(h) ? h.replace(/<head[^>]*>/i, x => x + base) : base + h;
+    return h;
+}
+
+function oppdater() {
+    clearTimeout(oppdTid);
+    lagreKode();
+    try { const w = vising.contentWindow; if (w && w.document && w.document.documentElement) rull = { x: w.scrollX, y: w.scrollY }; } catch (e) {}
+    vising.srcdoc = bygg(hent("html"), hent("css"));
+}
+
+vising.addEventListener("load", () => {
+    let doc = null, win = null;
+    try { doc = vising.contentDocument; win = vising.contentWindow; } catch (e) {}
+    if (!doc) return;
+    try { win.scrollTo(rull.x, rull.y); } catch (e) {}
+    document.getElementById("flipp").textContent = (doc.title || "").trim() || "index.html";
+    const html = hent("html"), css = hent("css");
+    visTips(lint(html, css, doc));
+    sjekkOppgaver({ html, css, doc, win, kode: html + "\n" + css });
+});
+
+/* ================== 💡-SJEKK AV VANLEGE FEIL ================== */
+const VOID = new Set("area base br col embed hr img input link meta source track wbr".split(" "));
+const KJENDE = new Set(("html head body title meta link style script noscript base h1 h2 h3 h4 h5 h6 p br hr a img ul ol li dl dt dd table tr td th thead tbody tfoot caption colgroup col " +
+    "div span strong em b i u s small mark section article header footer nav main aside figure figcaption blockquote q code pre kbd button input label form textarea select option " +
+    "iframe video audio source picture sup sub abbr address time details summary canvas svg path circle rect line polygon text g").split(" "));
+const MA_LUKKAST = new Set("h1 h2 h3 h4 h5 h6 a ul ol table div span strong em b i u title section article header footer nav main aside button figure blockquote code pre style".split(" "));
+const ORDBOK = { colour: "color", "background-colour": "background-color", "font-colour": "color", "font-color": "color", "text-color": "color", "text-colour": "color",
+    "text-size": "font-size", "font": "font", "align": "text-align", "text-align-center": "text-align", "border-colour": "border-color", "bg-color": "background-color",
+    "background-colour:": "background-color", farge: "color", bakgrunn: "background-color", "skrift": "font-family", "boarder": "border", "boarder-radius": "border-radius", "boder": "border",
+    "padd": "padding", "marign": "margin", "widht": "width", "heigth": "height", "font-wieght": "font-weight", "dispaly": "display", "justify-contents": "justify-content", "align-item": "align-items" };
+const NORSKE_FARGAR = { raud: "red", rød: "red", blå: "blue", bla: "blue", grøn: "green", grønn: "green", gul: "yellow", svart: "black", kvit: "white", hvit: "white", grå: "gray", gra: "gray",
+    rosa: "pink", lilla: "purple", oransje: "orange", brun: "brown", lyseblå: "lightblue", mørkeblå: "darkblue", lysegrøn: "lightgreen", mørkegrøn: "darkgreen" };
+
+function linjeNr(tekst, pos) { let n = 1; for (let i = 0; i < pos; i++) if (tekst.charCodeAt(i) === 10) n++; return n; }
+const kodeEsc = s => "<code>" + htmlEsc(s) + "</code>";
+
+function lint(html, css, doc) {
+    const t = [];
+    // ---- HTML ----
+    const blank = html.replace(/<!--[\s\S]*?-->/g, m => m.replace(/[^\n]/g, " "))
+                      .replace(/(<(style|script)\b[^>]*>)([\s\S]*?)(<\/\2>)/gi, (m, a, n, inn, b) => a + inn.replace(/[^\n]/g, " ") + b);
+    const stabel = [];
+    const re = /<(\/?)([a-zA-Z][a-zA-Z0-9-]*)\b([^>]*)>/g;
+    let m;
+    while ((m = re.exec(blank))) {
+        const slutt = m[1] === "/", namn = m[2].toLowerCase(), linje = linjeNr(blank, m.index);
+        if (!KJENDE.has(namn) && !namn.includes("-")) { t.push({ f: "html", l: linje, s: `Taggen ${kodeEsc("<" + m[2] + ">")} finst ikkje i HTML. Sjekk stavinga${namn === "bold" ? " – feit tekst er <code>&lt;strong&gt;</code>" : namn === "heading" || namn === "header1" ? " – overskrift er <code>&lt;h1&gt;</code>" : ""}.` }); continue; }
+        if (VOID.has(namn)) {
+            if (slutt) continue;
+            if (namn === "img") {
+                const alt = /\balt\s*=/i.test(m[3]), src = (m[3].match(/\bsrc\s*=\s*["']?([^"'\s>]+)/i) || [])[1];
+                if (!src) t.push({ f: "html", l: linje, s: `Biletet manglar ${kodeEsc("src")} – kva fil skal visast? T.d. <code>src="katt.jpg"</code>.` });
+                else if (!/^(https?:|data:)/i.test(src) && !BILETE[src.replace(/^\.\//, "").toLowerCase()]) t.push({ f: "html", l: linje, s: `Biletfila ${kodeEsc(src)} finst ikkje i simulatoren. Prøv <code>katt.jpg</code>, <code>fjord.jpg</code> eller <code>logo.png</code> – eller ei full adresse som startar med <code>https://</code>.` });
+                if (!alt) t.push({ f: "html", l: linje, s: `Biletet manglar ${kodeEsc("alt")}-tekst. Han blir lesen opp for blinde og vist om biletet ikkje lastar: <code>alt="Ein grå katt"</code>.` });
+            }
+            continue;
+        }
+        if (!slutt) {
+            if (namn === "a" && !/\bhref\s*=/i.test(m[3])) t.push({ f: "html", l: linje, s: `Lenka manglar ${kodeEsc("href")} – kvar skal ho gå? T.d. <code>&lt;a href="https://www.nrk.no"&gt;</code>.` });
+            stabel.push({ namn, linje });
+            continue;
+        }
+        let i = stabel.length - 1;
+        while (i >= 0 && stabel[i].namn !== namn) i--;
+        if (i < 0) { t.push({ f: "html", l: linje, s: `Sluttaggen ${kodeEsc("</" + m[2] + ">")} har ingen starttagg ${kodeEsc("<" + m[2] + ">")} før seg.` }); continue; }
+        for (let j = stabel.length - 1; j > i; j--) if (MA_LUKKAST.has(stabel[j].namn)) t.push({ f: "html", l: stabel[j].linje, s: `${kodeEsc("<" + stabel[j].namn + ">")} på linje ${stabel[j].linje} er ikkje lukka. Legg til ${kodeEsc("</" + stabel[j].namn + ">")} der han skal slutte.` });
+        stabel.length = i;
+    }
+    for (const s of stabel) if (MA_LUKKAST.has(s.namn)) t.push({ f: "html", l: s.linje, s: `${kodeEsc("<" + s.namn + ">")} på linje ${s.linje} er ikkje lukka. Legg til ${kodeEsc("</" + s.namn + ">")} der han skal slutte.` });
+    if (/=\s*[“”«»]/.test(blank)) t.push({ f: "html", l: linjeNr(blank, blank.search(/=\s*[“”«»]/)), s: "Attributt må ha vanlege hermeteikn <code>\"</code>, ikkje «typografiske» som “ ” eller « »." });
+    const kopla = /<link\b[^>]*href\s*=\s*["']?(\.\/)?style\.css/i.test(blank);
+    if (css.replace(/\/\*[\s\S]*?\*\//g, "").trim() && !kopla) t.push({ f: "html", l: Math.max(1, linjeNr(blank, Math.max(0, blank.search(/<\/head>/i)))), s: `Du har skrive CSS, men ${kodeEsc("style.css")} er ikkje kopla til HTML-fila. Legg <code>&lt;link rel="stylesheet" href="style.css"&gt;</code> inn i <code>&lt;head&gt;</code>.` });
+    else if (/<link\b[^>]*href\s*=\s*["']?(\.\/)?styles?\.css/i.test(blank) === false && /<link\b[^>]*rel\s*=\s*["']?stylesheet/i.test(blank)) t.push({ f: "html", l: linjeNr(blank, blank.search(/<link\b/i)), s: `<code>&lt;link&gt;</code> peikar på ei fil som ikkje finst. CSS-fila heiter ${kodeEsc("style.css")}.` });
+
+    // ---- CSS ----
+    const c = css.replace(/\/\*[\s\S]*?\*\//g, x => x.replace(/[^\n]/g, " "));
+    const opne = [];
+    for (let i = 0; i < c.length; i++) {
+        if (c[i] === "{") opne.push(i);
+        else if (c[i] === "}") { if (!opne.length) t.push({ f: "css", l: linjeNr(c, i), s: "Ein <code>}</code> for mykje – han har ingen <code>{</code> å lukke." }); else opne.pop(); }
+    }
+    for (const p of opne) t.push({ f: "css", l: linjeNr(c, p), s: "Regelen som startar her, er ikkje lukka. Kvar <code>{</code> må ha ein <code>}</code>." });
+    const klassar = new Set(), idar = new Set();
+    if (doc) { doc.querySelectorAll("[class]").forEach(e => e.classList.forEach(k => klassar.add(k))); doc.querySelectorAll("[id]").forEach(e => idar.add(e.id)); }
+    const blokk = /([^{}]*)\{([^{}]*)\}/g;
+    while ((m = blokk.exec(c))) {
+        const sel = m[1].trim(), selLinje = linjeNr(c, m.index + m[1].search(/\S|$/));
+        for (const del of sel.split(",").map(s => s.trim())) {
+            if (/^[a-zA-Z][\w-]*$/.test(del) && !KJENDE.has(del.toLowerCase()) && del !== "html" && del !== "body") {
+                if (klassar.has(del)) t.push({ f: "css", l: selLinje, s: `${kodeEsc(del)} er ein klasse i HTML-en. I CSS må klassar ha punktum framfor: ${kodeEsc("." + del)}.` });
+                else if (idar.has(del)) t.push({ f: "css", l: selLinje, s: `${kodeEsc(del)} er ein id i HTML-en. I CSS må id ha <code>#</code> framfor: ${kodeEsc("#" + del)}.` });
+                else t.push({ f: "css", l: selLinje, s: `Selektoren ${kodeEsc(del)} passar ikkje til nokon tagg. Meinte du ein klasse (${kodeEsc("." + del)})?` });
+            }
+        }
+        let pos = m.index + m[1].length + 1;
+        for (const decl of m[2].split(";")) {
+            const linje = linjeNr(c, pos + decl.search(/\S|$/));
+            pos += decl.length + 1;
+            const d = decl.trim();
+            if (!d) continue;
+            const k = d.indexOf(":");
+            if (k < 0) { t.push({ f: "css", l: linje, s: `${kodeEsc(d.split("\n")[0])} manglar kolon. Skriv <code>eigenskap: verdi;</code>, t.d. <code>color: red;</code>.` }); continue; }
+            const prop = d.slice(0, k).trim().toLowerCase(), val = d.slice(k + 1).trim().replace(/\s*!important$/i, "");
+            if (prop.startsWith("--")) continue;
+            if (!window.CSS || !CSS.supports) continue;
+            if (!CSS.supports(prop, "inherit")) {
+                const forslag = ORDBOK[prop];
+                t.push({ f: "css", l: linje, s: `Eigenskapen ${kodeEsc(prop)} finst ikkje i CSS.` + (forslag ? ` Meinte du ${kodeEsc(forslag)}? CSS brukar amerikansk engelsk.` : " Sjekk stavinga.") });
+                continue;
+            }
+            if (!val) { t.push({ f: "css", l: linje, s: `${kodeEsc(prop)} manglar verdi etter kolonet.` }); continue; }
+            if (!CSS.supports(prop, val)) {
+                const ord = val.toLowerCase();
+                if (/[a-z-]+\s*:/.test(val) || val.includes("\n")) t.push({ f: "css", l: linje, s: `Det ser ut til at du manglar <code>;</code> etter ${kodeEsc(prop + ": " + val.split(/\s|\n/)[0])}. Kvar linje i CSS må slutte med semikolon.` });
+                else if (NORSKE_FARGAR[ord]) t.push({ f: "css", l: linje, s: `Fargenamn må vere på engelsk: ${kodeEsc(NORSKE_FARGAR[ord])} i staden for ${kodeEsc(val)}.` });
+                else if (/^-?\d+(\.\d+)?$/.test(val) && CSS.supports(prop, val + "px")) t.push({ f: "css", l: linje, s: `Tal treng ei eining i CSS: ${kodeEsc(val + "px")} i staden for ${kodeEsc(val)}.` });
+                else if (/^\d+(\.\d+)?\s+(px|em|rem|%)$/.test(val)) t.push({ f: "css", l: linje, s: `Det skal ikkje vere mellomrom mellom tal og eining: ${kodeEsc(val.replace(/\s+/, ""))}.` });
+                else if (ord === "centre") t.push({ f: "css", l: linje, s: "CSS brukar amerikansk engelsk: <code>center</code>, ikkje <code>centre</code>." });
+                else t.push({ f: "css", l: linje, s: `Verdien ${kodeEsc(val)} verkar ikkje for ${kodeEsc(prop)}. Sjekk stavinga.` });
+            }
+        }
+    }
+    const rest = c.replace(/([^{}]*)\{([^{}]*)\}/g, x => x.replace(/[^\n]/g, " "));
+    const lause = rest.search(/[a-z-]+\s*:\s*[^;{}\s]/i);
+    if (lause >= 0 && !opne.length) t.push({ f: "css", l: linjeNr(c, lause), s: "Denne linja står utanfor ein regel. Eigenskapar må stå inne i krøllparentesar: <code>p { color: red; }</code>." });
+    return t;
+}
+
+let sisteTips = [];
+function visTips(tips) {
+    sisteTips = tips;
+    if (cm) { merkte.forEach(([d, n]) => { try { d.removeLineClass(n, "background", "feillinje"); } catch (e) {} }); merkte = []; }
+    tipsboks.innerHTML = "";
+    tips.slice(0, 4).forEach(x => {
+        const d = document.createElement("div");
+        d.className = "hjelp";
+        d.innerHTML = "💡 " + x.s + ` <span style="opacity:.7">(${x.f === "html" ? "index.html" : "style.css"}, linje ${x.l})</span>`;
+        d.title = "Klikk for å gå til linja";
+        d.onclick = () => { byttFane(x.f); if (cm) { cm.focus(); cm.setCursor(x.l - 1, 0); cm.scrollIntoView(null, 60); } };
+        tipsboks.appendChild(d);
+    });
+    if (tips.length > 4) { const d = document.createElement("div"); d.className = "hjelp"; d.textContent = `… og ${tips.length - 4} tips til. Rett dei første, så kjem resten.`; tipsboks.appendChild(d); }
+    if (cm) for (const x of tips) {
+        if (x.f !== aktivFane || x.l > docs[x.f].lineCount()) continue;
+        docs[x.f].addLineClass(x.l - 1, "background", "feillinje"); merkte.push([docs[x.f], x.l - 1]);
+    }
+}
+
+/* ================== OPPSTART ================== */
+visLeksjon(aktivIndeks, false);
+</script>
+</body>
+</html>
