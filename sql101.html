@@ -1,0 +1,1371 @@
+<!DOCTYPE html>
+<html lang="nn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SQL 101</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-darker.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/sql/sql.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/sql-hint.min.js"></script>
+<!-- Kode 101 – SQL. Bygd på felles mal for Kode 101-sidene. SQLite (sql.js) blir lasta inn dynamisk lenger nede. -->
+<style>
+:root {
+    --gron: #2e7d32;
+    --gron-mork: #1b5e20;
+    --gron-lys: #e8f5e9;
+    --bg: #eef3ef;
+    --kort: #ffffff;
+    --tekst: #24302a;
+    --grå: #5f6b64;
+    --linje: #dfe6e1;
+    --lenke: #0066cc;
+    --gul: #fff6d6;
+    --gul-kant: #e8c547;
+    --kode-bg: #f4f6f5;
+    --font: system-ui, "Segoe UI", Arial, sans-serif;
+    --mono: Consolas, "Cascadia Mono", "Cascadia Code", Menlo, monospace;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body { margin: 0; background: var(--bg); color: var(--tekst); font-family: var(--font); font-size: 15px; display: flex; flex-direction: column; }
+
+/* ---------- Grøn tittellinje ---------- */
+header.topp { background: var(--gron); color: #fff; padding: 10px 16px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; border-bottom: 3px solid var(--gron-mork); }
+header.topp .tilbake { color: #fff; text-decoration: none; font-size: 14px; padding: 4px 10px; border: 1px solid rgba(255,255,255,.5); border-radius: 14px; white-space: nowrap; }
+header.topp .tilbake:hover { background: var(--gron-mork); }
+header.topp .titlar { flex: 1 1 260px; min-width: 0; }
+header.topp h1 { margin: 0; font-size: 21px; line-height: 1.2; }
+header.topp .under { margin: 2px 0 0; font-size: 13px; opacity: .9; }
+header.topp .hogre { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.framdrift { font-size: 13px; min-width: 130px; }
+.framdrift .linje { height: 6px; background: rgba(255,255,255,.3); border-radius: 3px; margin-top: 4px; overflow: hidden; }
+.framdrift .linje div { height: 100%; width: 0; background: #fff; transition: width .4s; }
+header.topp button { background: transparent; color: #fff; border: 1px solid rgba(255,255,255,.6); border-radius: 6px; padding: 6px 12px; font: inherit; font-size: 13px; cursor: pointer; }
+header.topp button:hover { background: var(--gron-mork); }
+
+/* ---------- To kolonnar ---------- */
+main.oppsett { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(320px, 40%) 1fr; gap: 14px; padding: 14px; }
+.kort { background: var(--kort); border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,.1); }
+#leksjonspanel { overflow-y: auto; min-height: 0; padding: 0; display: flex; flex-direction: column; }
+#sim { min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
+@media (max-width: 900px) {
+    body { height: auto; display: block; }
+    main.oppsett { display: flex; flex-direction: column; padding: 10px; }
+    #leksjonspanel { overflow: visible; }
+    #sim { height: 78vh; min-height: 460px; }
+}
+
+/* ---------- Leksjonsliste ---------- */
+#leksjonsliste { list-style: none; margin: 0; padding: 8px; border-bottom: 1px solid var(--linje); display: flex; flex-direction: column; gap: 2px; }
+#leksjonsliste li button { width: 100%; text-align: left; background: none; border: none; font: inherit; font-size: 14px; padding: 5px 8px; border-radius: 6px; cursor: pointer; display: flex; gap: 8px; align-items: baseline; color: var(--tekst); }
+#leksjonsliste li button:hover { background: var(--gron-lys); }
+#leksjonsliste li.aktiv button { background: var(--gron); color: #fff; }
+#leksjonsliste .status { width: 1.2em; text-align: center; flex: none; }
+#leksjonsliste .sirkel { display: inline-block; width: 11px; height: 11px; border-radius: 50%; border: 2px solid currentColor; vertical-align: -1px; opacity: .75; }
+#leksjonsliste .sirkel.halv { background: linear-gradient(90deg, currentColor 50%, transparent 50%); opacity: 1; }
+@media (max-width: 600px) { #leksjon .eksempel pre { padding-right: 12px; padding-top: 34px; } }
+#leksjonsliste .nr { color: var(--grå); width: 1.6em; flex: none; }
+#leksjonsliste li.aktiv .nr { color: #dfeee0; }
+#leksjonsliste .tal { margin-left: auto; font-size: 12px; color: var(--grå); }
+#leksjonsliste li.aktiv .tal { color: #dfeee0; }
+#leksjonsliste .ferdig .status { color: var(--gron); }
+#leksjonsliste li.aktiv.ferdig .status { color: #fff; }
+
+/* ---------- Leksjonsinnhald ---------- */
+#leksjon { padding: 14px 18px 18px; line-height: 1.5; }
+#leksjon h2 { font-size: 20px; margin: 0 0 4px; padding-bottom: 6px; border-bottom: 2px solid var(--gron); }
+#leksjon .laerer { color: var(--grå); font-size: 14px; margin: 6px 0 12px; }
+#leksjon .laerer b { color: var(--gron-mork); }
+#leksjon p { margin: 8px 0; }
+#leksjon code { font-family: var(--mono); background: var(--kode-bg); padding: 1px 4px; border-radius: 3px; font-size: 13.5px; }
+#leksjon h3 { font-size: 15px; margin: 18px 0 6px; color: var(--gron-mork); }
+.eksempel { position: relative; margin: 8px 0 12px; }
+.eksempel pre { margin: 0; background: #1e1e1e; color: #e6e6e6; font-family: var(--mono); font-size: 13.5px; padding: 10px 12px; padding-right: 70px; border-radius: 6px; overflow-x: auto; line-height: 1.4; }
+.eksempel .prov { position: absolute; top: 6px; right: 6px; background: var(--gron); color: #fff; border: none; border-radius: 4px; padding: 3px 9px; font: inherit; font-size: 12.5px; cursor: pointer; }
+.eksempel .prov:hover { background: var(--gron-mork); }
+.tips { background: var(--gul); border-left: 4px solid var(--gul-kant); padding: 8px 12px; border-radius: 4px; margin: 10px 0; }
+table.juks { border-collapse: collapse; width: 100%; font-size: 13.5px; margin: 8px 0; }
+table.juks td, table.juks th { border-bottom: 1px solid var(--linje); padding: 4px 6px; text-align: left; vertical-align: top; }
+table.juks td:first-child { font-family: var(--mono); white-space: nowrap; }
+
+/* ---------- Oppgåver ---------- */
+.oppgaver { list-style: none; padding: 0; margin: 6px 0; display: flex; flex-direction: column; gap: 8px; }
+.oppgave { border: 1px solid var(--linje); border-radius: 8px; padding: 9px 12px; display: grid; grid-template-columns: 1.4em 1fr auto; gap: 4px 8px; align-items: start; transition: background .4s, border-color .4s; }
+.oppgave .ikon { font-size: 16px; line-height: 1.4; color: #9aa59f; }
+.oppgave.loyst { background: var(--gron-lys); border-color: #a5d6a7; }
+.oppgave.loyst .ikon { color: var(--gron); }
+.oppgave .hintknapp { background: #fff; border: 1px solid var(--linje); border-radius: 5px; padding: 2px 9px; font: inherit; font-size: 12.5px; cursor: pointer; color: var(--grå); }
+.oppgave .hintknapp:hover { border-color: var(--gron); color: var(--gron-mork); }
+.oppgave .hint { grid-column: 2 / 4; font-size: 13.5px; background: var(--gul); border-radius: 5px; padding: 5px 9px; }
+.oppgave .bra { grid-column: 2 / 4; color: var(--gron-mork); font-weight: bold; font-size: 14px; animation: bra 2.6s forwards; }
+@keyframes bra { 0% { opacity: 0; } 10% { opacity: 1; } 75% { opacity: 1; } 100% { opacity: 0; } }
+.fullfort { background: var(--gron); color: #fff; border-radius: 8px; padding: 10px 14px; margin: 14px 0 6px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.fullfort button { background: #fff; color: var(--gron-mork); border: none; border-radius: 5px; padding: 5px 12px; font: inherit; font-weight: bold; cursor: pointer; }
+.navknappar { display: flex; justify-content: space-between; margin: 18px 0 8px; }
+.navknappar button { background: #fff; border: 1px solid var(--gron); color: var(--gron-mork); border-radius: 6px; padding: 6px 14px; font: inherit; cursor: pointer; }
+.navknappar button:hover:not(:disabled) { background: var(--gron); color: #fff; }
+.navknappar button:disabled { opacity: .35; cursor: default; }
+details.laerar { margin: 16px 0 0; border: 1px solid var(--linje); border-radius: 8px; padding: 8px 12px; font-size: 14px; background: #fafcfb; }
+details.laerar summary { cursor: pointer; font-weight: bold; color: var(--grå); }
+details.laerar ul { padding-left: 20px; margin: 6px 0; }
+
+/* ---------- Toast ---------- */
+#toast { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%) translateY(20px); background: var(--gron-mork); color: #fff; padding: 9px 16px; border-radius: 8px; box-shadow: 0 4px 14px rgba(0,0,0,.25); opacity: 0; pointer-events: none; transition: opacity .3s, transform .3s; z-index: 50; max-width: 90vw; font-size: 14px; }
+#toast.vis { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ---------- Kursbevis ---------- */
+#bevisbakgrunn { position: fixed; inset: 0; background: rgba(0,0,0,.5); display: none; align-items: center; justify-content: center; z-index: 100; padding: 16px; }
+#bevisbakgrunn.vis { display: flex; }
+#bevisboks { background: #fff; border-radius: 10px; max-width: 640px; width: 100%; max-height: 92vh; overflow-y: auto; padding: 18px; }
+.namnrad { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; font-size: 14px; }
+.namnrad input { flex: 1; min-width: 160px; padding: 7px 10px; font: inherit; border: 1px solid #bbb; border-radius: 6px; }
+#bevis { border: 3px solid var(--gron); border-radius: 6px; padding: 0 22px 18px; position: relative; text-align: center; }
+#bevis .stripe { height: 14px; background: var(--gron); margin: 0 -22px 16px; }
+#bevis h2 { margin: 6px 0 2px; font-size: 26px; color: var(--gron-mork); letter-spacing: .02em; }
+#bevis .bnamn { font-size: 24px; margin: 14px 0 2px; font-family: Georgia, serif; border-bottom: 1px solid #999; display: inline-block; min-width: 60%; padding: 0 10px 2px; }
+#bevis .skule { color: var(--grå); font-size: 14px; }
+#bevis ul { list-style: none; padding: 0; text-align: left; margin: 14px auto 6px; max-width: 420px; font-size: 14px; }
+#bevis ul li { padding: 2px 0; }
+#bevis .sum { font-weight: bold; margin-top: 8px; }
+#bevis .segl { position: absolute; right: 14px; top: 26px; width: 84px; height: 84px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #ffe680, #d4a017 60%, #a87900); color: #5a3d00; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 13px; box-shadow: 0 0 0 4px #f3d36b, 0 2px 6px rgba(0,0,0,.3); transform: rotate(-12deg); }
+#bevis .delvis { position: absolute; right: 14px; top: 30px; border: 2px dashed var(--grå); color: var(--grå); border-radius: 6px; padding: 4px 8px; font-size: 13px; transform: rotate(-8deg); }
+#bevis .manglar { font-size: 13px; color: var(--grå); }
+.bevisknappar { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+.bevisknappar button { padding: 7px 14px; font: inherit; border-radius: 6px; border: 1px solid var(--gron); background: #fff; color: var(--gron-mork); cursor: pointer; }
+.bevisknappar button.hoved { background: var(--gron); color: #fff; }
+@media print {
+    body * { visibility: hidden !important; }
+    #bevis, #bevis * { visibility: visible !important; }
+    #bevisbakgrunn { position: static; background: none; display: block; padding: 0; }
+    #bevisboks { box-shadow: none; max-height: none; overflow: visible; padding: 0; }
+    #bevis { position: absolute; left: 0; top: 0; width: 100%; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+
+/* ---------- Felles 💡-hjelpetekst (bruk i simulatoren) ---------- */
+.hjelp { color: #ffe9a8; font-family: var(--font); font-size: 14px; background: rgba(255, 214, 90, .08); border-left: 3px solid #f2c94c; padding: 4px 10px; margin: 4px 0 6px; white-space: pre-wrap; border-radius: 0 4px 4px 0; }
+table.juks.vid td:first-child { white-space: normal; }
+table.juks.vid td { font-family: var(--mono); font-size: 13px; }
+table.juks.vid th { font-size: 13px; }
+#leksjon button.handling { background: var(--gron); color: #fff; border: none; border-radius: 6px; padding: 6px 12px; font: inherit; font-size: 14px; cursor: pointer; margin: 2px 6px 2px 0; }
+#leksjon button.handling:hover { background: var(--gron-mork); }
+
+/* ---------- SQL-editor og resultat ---------- */
+#sim { background: #1e1e1e; color: #ddd; }
+.vtittel { display: flex; align-items: center; gap: 8px; padding: 7px 12px; background: #2b2b2b; border-bottom: 1px solid #111; font-size: 13.5px; }
+.vtittel .logo { background: #0f80cc; color: #fff; font-weight: bold; font-size: 11px; padding: 2px 4px; border-radius: 3px; font-family: var(--mono); }
+.vtittel .fnamn { font-family: var(--mono); color: #ddd; }
+.vtittel .info { margin-left: auto; font-size: 12.5px; color: #9a9a9a; }
+.tabellrad { display: flex; flex-wrap: wrap; gap: 6px; padding: 6px 10px; background: #252525; align-items: center; font-size: 12.5px; color: #9a9a9a; border-bottom: 1px solid #111; }
+.tabellrad .brikke { background: #333; color: #eee; border: 1px solid #4a4a4a; border-radius: 12px; padding: 2px 10px; font: inherit; font-family: var(--mono); font-size: 12.5px; cursor: pointer; }
+.tabellrad .brikke:hover { background: #444; border-color: #777; }
+.tabellrad .brikke span { color: #9a9a9a; margin-left: 4px; }
+#editorboks { flex: 0 0 auto; height: 36%; min-height: 120px; overflow: hidden; }
+#editorboks .CodeMirror, #editorboks textarea { height: 100%; font-family: var(--mono); font-size: 14.5px; }
+#editorboks textarea { width: 100%; background: #212121; color: #eee; border: none; padding: 8px; resize: none; tab-size: 4; }
+.CodeMirror .feillinje { background: rgba(255, 190, 60, .18) !important; }
+.verktoy { display: flex; gap: 6px; padding: 6px 10px; background: #252525; align-items: center; flex-wrap: wrap; border-top: 1px solid #111; }
+.verktoy button.knapp { background: #3a3a3a; color: #eee; border: 1px solid #4a4a4a; border-radius: 5px; padding: 5px 11px; font: inherit; font-size: 13px; cursor: pointer; }
+.verktoy button.knapp:hover { background: #474747; }
+.verktoy button.koyr { background: var(--gron); border-color: var(--gron); color: #fff; font-weight: bold; }
+.verktoy button.koyr:hover { background: var(--gron-mork); }
+.verktoy button:disabled { opacity: .5; cursor: default; }
+.verktoy .snarveg { font-size: 12px; color: #8a8a8a; }
+.verktoy .hogreknappar { margin-left: auto; display: flex; gap: 6px; flex-wrap: wrap; }
+#resultat { flex: 1 1 0; min-height: 140px; overflow: auto; background: #181818; border-top: 3px solid #111; padding: 8px 10px; font-size: 13.5px; }
+#resultat .blokk { margin-bottom: 14px; }
+#resultat .stmt { font-family: var(--mono); color: #8a8a8a; font-size: 12.5px; margin-bottom: 4px; white-space: pre-wrap; word-break: break-word; }
+#resultat .tabellboks { overflow-x: auto; max-width: 100%; }
+table.res { border-collapse: collapse; font-family: var(--mono); font-size: 13px; }
+table.res th { background: #2b2b2b; color: #fff; text-align: left; font-weight: 600; }
+table.res th, table.res td { border: 1px solid #3a3a3a; padding: 3px 8px; white-space: nowrap; }
+table.res tr:nth-child(even) td { background: #202020; }
+table.res td.tal { text-align: right; color: #b5cea8; }
+table.res td.null { color: #777; font-style: italic; }
+#resultat .melding { margin: 4px 0; }
+#resultat .melding.ok { color: #8fd18f; }
+#resultat .melding.feil { color: #ff8a80; font-family: var(--mono); font-size: 13px; white-space: pre-wrap; word-break: break-word; }
+#resultat .melding.info { color: #a8a8a8; }
+#resultat .hjelp code { background: rgba(255,255,255,.08); color: #fff; padding: 0 3px; border-radius: 3px; font-family: var(--mono); }
+@media (max-width: 900px) { .vtittel .info { display: none; } #sim { height: 92vh; } .verktoy .snarveg { display: none; } }
+
+</style>
+</head>
+<body>
+
+<header class="topp">
+    <a class="tilbake" href="index.html">← Sandkassa</a>
+    <div class="titlar">
+        <h1>SQL 101</h1>
+        <p class="under">Spør databasen – ekte SQLite i nettlesaren</p>
+    </div>
+    <div class="hogre">
+        <div class="framdrift" title="Løyste oppgåver">
+            <span id="framdriftTekst">0 / 0 oppgåver</span>
+            <div class="linje"><div id="framdriftLinje"></div></div>
+        </div>
+        <button id="knappBevis" type="button">Kursbevis</button>
+        <button id="knappNullstill" type="button">Start på nytt</button>
+    </div>
+</header>
+
+<main class="oppsett">
+    <aside id="leksjonspanel" class="kort">
+        <ol id="leksjonsliste"></ol>
+        <div id="leksjon"></div>
+    </aside>
+    <section id="sim" class="kort">
+        <div class="vtittel"><span class="logo">SQL</span><span class="fnamn">skule.db</span><span class="info" id="dbInfo">SQLite i nettlesaren</span></div>
+        <div class="tabellrad" id="tabellrad"><span>Tabellar:</span></div>
+        <div id="editorboks"><textarea id="kodefelt" spellcheck="false" aria-label="SQL-kode"></textarea></div>
+        <div class="verktoy">
+            <button type="button" class="knapp koyr" id="knappKoyr" disabled>▶ Køyr</button>
+            <span class="snarveg">Ctrl + Enter</span>
+            <div class="hogreknappar">
+                <button type="button" class="knapp" id="knappTilbake">Tilbakestill kode</button>
+                <button type="button" class="knapp" id="knappDb">Tilbakestill database</button>
+            </div>
+        </div>
+        <div id="resultat" aria-live="polite"><div class="melding info">Lastar SQLite …</div></div>
+    </section>
+</main>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<div id="bevisbakgrunn">
+    <div id="bevisboks" role="dialog" aria-modal="true" aria-label="Kursbevis">
+        <div class="namnrad">
+            <label for="bevisNamn">Fornamnet ditt:</label>
+            <input id="bevisNamn" type="text" maxlength="40" placeholder="Skriv fornamnet ditt">
+        </div>
+        <div id="bevis"></div>
+        <div class="bevisknappar">
+            <button type="button" id="bevisLukk">Lukk</button>
+            <button type="button" id="bevisSkriv" class="hoved">Skriv ut</button>
+        </div>
+    </div>
+</div>
+
+<script>
+"use strict";
+/* ================== KURSOPPSETT ================== */
+const KURS = {
+    namn: "SQL 101",
+    prefiks: "kode101-sql-",
+};
+
+/* ================== STARTDATABASE (fiktive data) ================== */
+const DB_VERSJON = 1;
+const SEED_SQL = `
+CREATE TABLE elevar (
+    id INTEGER PRIMARY KEY,
+    fornamn TEXT NOT NULL,
+    etternamn TEXT NOT NULL,
+    klasse TEXT NOT NULL,
+    epost TEXT UNIQUE
+);
+CREATE TABLE utstyr (
+    id INTEGER PRIMARY KEY,
+    namn TEXT NOT NULL,
+    type TEXT NOT NULL,
+    serienummer TEXT UNIQUE,
+    innkjopt DATE,
+    tilstand TEXT NOT NULL DEFAULT 'OK'
+);
+CREATE TABLE utlan (
+    id INTEGER PRIMARY KEY,
+    elev_id INTEGER NOT NULL REFERENCES elevar(id),
+    utstyr_id INTEGER NOT NULL REFERENCES utstyr(id),
+    dato_ut DATE NOT NULL,
+    dato_inn DATE
+);
+CREATE TABLE saker (
+    id INTEGER PRIMARY KEY,
+    elev_id INTEGER REFERENCES elevar(id),
+    tittel TEXT NOT NULL,
+    kategori TEXT NOT NULL,
+    prioritet TEXT NOT NULL DEFAULT 'Middels',
+    status TEXT NOT NULL DEFAULT 'Open',
+    oppretta DATETIME NOT NULL,
+    lukka DATE
+);
+INSERT INTO elevar (id, fornamn, etternamn, klasse, epost) VALUES
+ (1, 'Sigrid', 'Haugland', '1IMA', 'sigrid.haugland@elev.test'),
+ (2, 'Jonas', 'Myklebust', '1IMA', 'jonas.myklebust@elev.test'),
+ (3, 'Emma', 'Aasen', '1IMA', NULL),
+ (4, 'Ole', 'Tveit', '1IMA', 'ole.tveit@elev.test'),
+ (5, 'Nora', 'Rød', '1IMB', 'nora.rod@elev.test'),
+ (6, 'Sander', 'Bakke', '1IMB', 'sander.bakke@elev.test'),
+ (7, 'Ingrid', 'Vik', '1IMB', 'ingrid.vik@elev.test'),
+ (8, 'Elias', 'Dale', '1IMB', 'elias.dale@elev.test'),
+ (9, 'Maja', 'Økland', '1IMB', NULL),
+ (10, 'Tobias', 'Eide', '2ITA', 'tobias.eide@elev.test'),
+ (11, 'Sara', 'Kvinge', '2ITA', 'sara.kvinge@elev.test'),
+ (12, 'Henrik', 'Fjeld', '2ITA', 'henrik.fjeld@elev.test'),
+ (13, 'Thea', 'Lunde', '2ITA', 'thea.lunde@elev.test'),
+ (14, 'Mathias', 'Grov', '2ITA', NULL),
+ (15, 'Aurora', 'Sletten', '1IMA', 'aurora.sletten@elev.test'),
+ (16, 'Øyvind', 'Nilsen', '2ITA', 'oyvind.nilsen@elev.test');
+INSERT INTO utstyr (id, namn, type, serienummer, innkjopt, tilstand) VALUES
+ (1, 'Raspberry Pi 4 #1', 'Raspberry Pi', 'RPI4-0001', '2021-08-16', 'OK'),
+ (2, 'Raspberry Pi 4 #2', 'Raspberry Pi', 'RPI4-0002', '2021-08-16', 'OK'),
+ (3, 'Raspberry Pi 5 #1', 'Raspberry Pi', 'RPI5-0001', '2024-01-10', 'OK'),
+ (4, 'Cisco Catalyst 2960 #1', 'Svitsj', 'C2960-0001', '2019-06-03', 'OK'),
+ (5, 'Cisco Catalyst 2960 #2', 'Svitsj', 'C2960-0002', '2019-06-03', 'Skadd'),
+ (6, 'Cisco ISR 1100', 'Ruter', 'ISR-0001', '2022-03-21', 'OK'),
+ (7, 'Lenovo ThinkPad L14 #1', 'PC', 'L14-0001', '2023-08-01', 'OK'),
+ (8, 'Lenovo ThinkPad L14 #2', 'PC', 'L14-0002', '2023-08-01', 'OK'),
+ (9, 'HP EliteBook 840', 'PC', 'HP840-0001', '2018-09-03', 'Kassert'),
+ (10, 'Canon EOS 250D', 'Kamera', 'EOS-0001', '2020-02-14', 'OK'),
+ (11, 'Sony ZV-E10', 'Kamera', 'ZVE-0001', '2023-01-16', 'OK'),
+ (12, 'Røde VideoMic Go', 'Mikrofon', 'RODE-0001', '2022-11-07', 'OK'),
+ (13, 'Meta Quest 3', 'VR-briller', 'MQ3-0001', '2024-02-05', 'OK'),
+ (14, 'Fluke kabeltestar', 'Verktøy', 'FLK-0001', '2017-05-12', 'OK'),
+ (15, 'Krympetang RJ45', 'Verktøy', 'RJ45-0001', '2016-10-03', 'Kassert'),
+ (16, 'micro:bit-sett (10 stk)', 'Mikrokontroller', 'MB-0001', '2020-09-01', 'OK'),
+ (17, 'Dell P2422H', 'Skjerm', 'DELL-0001', '2021-01-20', 'Skadd'),
+ (18, 'Logitech C920', 'Kamera', 'C920-0001', '2020-04-01', 'OK');
+INSERT INTO utlan (id, elev_id, utstyr_id, dato_ut, dato_inn) VALUES
+ (1, 2, 7, '2026-08-24', '2026-08-28'),
+ (2, 10, 4, '2026-08-26', '2026-09-02'),
+ (3, 11, 13, '2026-09-01', '2026-09-02'),
+ (4, 1, 1, '2026-09-07', '2026-09-21'),
+ (5, 5, 10, '2026-09-10', '2026-09-11'),
+ (6, 12, 6, '2026-09-14', NULL),
+ (7, 2, 3, '2026-09-21', '2026-10-05'),
+ (8, 13, 11, '2026-09-28', NULL),
+ (9, 6, 12, '2026-10-05', '2026-10-06'),
+ (10, 10, 14, '2026-10-12', NULL),
+ (11, 9, 16, '2026-10-14', '2026-10-21'),
+ (12, 1, 2, '2026-10-19', NULL),
+ (13, 7, 8, '2026-10-26', NULL),
+ (14, 16, 5, '2026-10-28', '2026-10-30');
+INSERT INTO saker (id, elev_id, tittel, kategori, prioritet, status, oppretta, lukka) VALUES
+ (1, 4, 'Hugsar ikkje passordet til Feide', 'Passord', 'Høg', 'Lukka', '2026-08-20 08:15', '2026-08-20'),
+ (2, 8, 'Får ikkje kopla til Wi-Fi (eduroam)', 'Nettverk', 'Middels', 'Lukka', '2026-08-21 09:02', '2026-08-21'),
+ (3, 3, 'Teams startar ikkje', 'Programvare', 'Låg', 'Lukka', '2026-08-25 12:40', '2026-08-27'),
+ (4, 15, 'Skrivaren på rom 214 skriv ikkje ut', 'Utskrift', 'Middels', 'Open', '2026-09-02 10:05', NULL),
+ (5, 1, 'Passordet har gått ut', 'Passord', 'Middels', 'Lukka', '2026-09-03 08:30', '2026-09-03'),
+ (6, 6, 'Treg PC etter oppdatering', 'Programvare', 'Låg', 'Under arbeid', '2026-09-10 13:20', NULL),
+ (7, 13, 'Utestengd etter for mange feil passord', 'Passord', 'Høg', 'Lukka', '2026-09-15 07:55', '2026-09-15'),
+ (8, 10, 'Ingen nettverk i labben på rom 120', 'Nettverk', 'Høg', 'Under arbeid', '2026-09-22 11:10', NULL),
+ (9, 5, 'Skjermen flimrar', 'Maskinvare', 'Middels', 'Open', '2026-09-29 14:00', NULL),
+ (10, 2, 'Treng nytt passord til skuleportalen', 'Passord', 'Låg', 'Lukka', '2026-10-01 08:45', '2026-10-02'),
+ (11, 10, 'VPN koplar ned heile tida', 'Nettverk', 'Middels', 'Open', '2026-10-06 09:30', NULL),
+ (12, 7, 'Tastaturet manglar tasten Ø', 'Maskinvare', 'Låg', 'Open', '2026-10-12 10:15', NULL),
+ (13, 6, 'Videoredigeringsprogrammet krasjar ved eksport', 'Programvare', 'Høg', 'Open', '2026-10-19 12:00', NULL),
+ (14, 11, 'Har sletta tofaktor-appen og får ikkje skrive inn passord', 'Passord', 'Høg', 'Open', '2026-10-26 08:05', NULL),
+ (15, 16, 'Får ikkje IP-adresse (169.254.x.x)', 'Nettverk', 'Høg', 'Open', '2026-10-30 13:45', NULL);
+`;
+const START_ELEVAR = new Set(["Sigrid Haugland", "Jonas Myklebust", "Emma Aasen", "Ole Tveit", "Nora Rød", "Sander Bakke", "Ingrid Vik", "Elias Dale", "Maja Økland", "Tobias Eide", "Sara Kvinge", "Henrik Fjeld", "Thea Lunde", "Mathias Grov", "Aurora Sletten", "Øyvind Nilsen"]);
+
+/* Hjelparar (funksjonsdeklarasjonar, så dei finst før LEKSJONAR blir laga) */
+function htmlEsc(s) { return String(s).replace(/[&<>"]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch])); }
+function ex(kode) { return `<div class="eksempel"><pre>${htmlEsc(kode)}</pre></div>`; }
+/* Eksempel som berre fungerer i PostgreSQL/JavaScript – utan «Prøv»-knapp */
+function exPg(kode) { return `<div class="eksempel pg"><pre style="padding-right:12px">${htmlEsc(kode)}</pre></div>`; }
+
+/* Køyr ei spørjing og returner første resultatsett */
+function kjor(db, sql) { const r = db.exec(sql); return r[0] || { columns: [], values: [] }; }
+function tal(db, sql) { const r = kjor(db, sql); return r.values.length ? r.values[0][0] : null; }
+function nk(v) { return v === null || v === undefined ? "∅NULL" : typeof v === "number" ? String(Number.isInteger(v) ? v : +v.toPrecision(12)) : String(v); }
+
+/* Samanlikn resultatet til eleven (s) med fasit (f).
+   Kolonnerekkjefølgje og alias er likegyldig. «orden» er indeksar til fasitkolonnar som må kome i same rekkjefølgje (ORDER BY). */
+function likResultat(s, f, orden) {
+    const n = f.columns.length;
+    if (!f.values.length || s.columns.length !== n || s.values.length !== f.values.length) return false;
+    const sig = (res, i) => res.values.map(r => nk(r[i])).sort().join("\u0001");
+    const fSig = f.columns.map((_, i) => sig(f, i)), sSig = s.columns.map((_, i) => sig(s, i));
+    const kand = fSig.map(x => sSig.map((y, j) => (y === x ? j : -1)).filter(j => j >= 0));
+    if (kand.some(k => !k.length)) return false;
+    const fRader = f.values.map(r => r.map(nk).join("\u0002")).sort().join("\u0003");
+    const brukt = new Array(n).fill(false), perm = [];
+    const prov = i => {
+        if (i === n) {
+            const sRader = s.values.map(r => perm.map(j => nk(r[j])).join("\u0002")).sort().join("\u0003");
+            if (sRader !== fRader) return false;
+            for (const k of orden || []) if (s.values.map(r => nk(r[perm[k]])).join("\u0001") !== f.values.map(r => nk(r[k])).join("\u0001")) return false;
+            return true;
+        }
+        for (const j of kand[i]) if (!brukt[j]) { brukt[j] = true; perm[i] = j; if (prov(i + 1)) return true; brukt[j] = false; }
+        return false;
+    };
+    return prov(0);
+}
+/* Godta oppgåva om eitt av resultata frå siste køyring er likt eitt av fasitalternativa.
+   Eit alternativ er ein SQL-streng eller { sql, orden, krev } (krev = regex som spørjinga til eleven må passe med). */
+function fasit(c, ...alt) {
+    return alt.some(a => {
+        const { sql, orden, krev } = typeof a === "string" ? { sql: a } : a;
+        let f;
+        try { f = kjor(c.db, sql); } catch (e) { return false; }
+        return c.resultat.some(r => (!krev || krev.test(r.sql)) && likResultat(r, f, orden));
+    });
+}
+function tabellFinst(db, namn) { return tal(db, `SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND lower(name) = lower('${namn}')`) > 0; }
+
+const LEKSJONAR = [
+{ id: "l1", tittel: "Første spørjing", laerer: "kva ein database er, og korleis du hentar data med <code>SELECT</code> og <code>FROM</code>.",
+  start: `-- Skriv SQL her og trykk «Køyr» (eller Ctrl + Enter).\n-- Linjer som byrjar med -- er kommentarar.\n\nSELECT * FROM saker;\n`,
+  html: `
+<p>Ein <b>database</b> er ein stad der data blir lagra ordna i <b>tabellar</b>. Ein tabell liknar eit rekneark: kvar <b>rad</b> er éin ting (t.d. éin elev), og kvar <b>kolonne</b> er éin eigenskap (t.d. fornamn eller klasse).</p>
+<p>Til høgre har du ein ekte SQLite-database for IT-avdelinga på ein vidaregåande skule. Han har fire tabellar:</p>
+<table class="juks">
+<tr><td>elevar</td><td>elevane på IM og IT</td></tr>
+<tr><td>utstyr</td><td>labutstyret: PC-ar, svitsjar, kamera, Raspberry Pi …</td></tr>
+<tr><td>utlan</td><td>kven som har lånt kva, og når</td></tr>
+<tr><td>saker</td><td>brukarstøttesaker som elevane har meldt inn</td></tr>
+</table>
+<p>For å hente data skriv du ei <b>spørjing</b> i språket <b>SQL</b> (Structured Query Language). Den enklaste spørjinga hentar alt frå ein tabell:</p>
+${ex(`SELECT * FROM saker;`)}
+<p><code>SELECT</code> betyr «vel ut», og <code>*</code> betyr «alle kolonnane». <code>FROM saker</code> seier kva tabell du hentar frå. Vil du berre ha nokre av kolonnane, skriv du namna med komma mellom:</p>
+${ex(`SELECT fornamn, etternamn FROM elevar;`)}
+<p>Trykk <b>Køyr</b> (eller <b>Ctrl + Enter</b>) for å køyre spørjinga. Klikk på eit tabellnamn over editoren for å sjå kva kolonnar tabellen har.</p>
+<div class="tips">💡 SQL bryr seg ikkje om store eller små bokstavar i kommandoane: <code>select</code> og <code>SELECT</code> er det same. Det er vanleg å skrive kommandoane med store bokstavar, for då er spørjinga lettare å lese. Avslutt kvar spørjing med semikolon <code>;</code>.</div>`,
+  oppgaver: [
+    { id: "l1o1", tekst: "Vis alle kolonnane og radene i tabellen <code>elevar</code>.", hint: ["Byt ut <code>saker</code> med <code>elevar</code> i eksempelet.", "<code>SELECT * FROM elevar;</code>"],
+      sjekk: c => fasit(c, "SELECT * FROM elevar") },
+    { id: "l1o2", tekst: "Vis berre <code>fornamn</code> og <code>klasse</code> for alle elevane.", hint: ["Skriv kolonnenamna med komma mellom, i staden for <code>*</code>.", "<code>SELECT fornamn, klasse FROM elevar;</code>"],
+      sjekk: c => fasit(c, "SELECT fornamn, klasse FROM elevar") },
+    { id: "l1o3", tekst: "Vis alt utstyret i labben. Kor mange rader får du?", hint: ["Tabellen heiter <code>utstyr</code>."],
+      sjekk: c => fasit(c, "SELECT * FROM utstyr") },
+  ]},
+
+{ id: "l2", tittel: "Filtrere med WHERE", laerer: "å hente berre dei radene du treng, med <code>WHERE</code>, samanlikningar og <code>AND</code>/<code>OR</code>.",
+  start: `-- Leksjon 2: Filtrere med WHERE\n\nSELECT * FROM elevar WHERE klasse = '1IMA';\n`,
+  html: `
+<p>Som oftast vil du ikkje ha alle radene. Med <code>WHERE</code> set du eit <b>vilkår</b>, og berre radene som oppfyller vilkåret, kjem med:</p>
+${ex(`SELECT * FROM elevar WHERE klasse = '1IMA';`)}
+<p>Tekst skal stå i <b>enkle hermeteikn</b>: <code>'1IMA'</code>. Tal skriv du utan hermeteikn: <code>WHERE id = 3</code>. Du kan samanlikne med desse teikna:</p>
+<table class="juks">
+<tr><td>=</td><td>lik</td></tr>
+<tr><td>&lt;&gt;</td><td>ikkje lik (du kan også skrive <code>!=</code>)</td></tr>
+<tr><td>&lt;  &gt;</td><td>mindre enn, større enn</td></tr>
+<tr><td>&lt;=  &gt;=</td><td>mindre enn eller lik, større enn eller lik</td></tr>
+</table>
+<p>Datoar er lagra som tekst på forma <code>ÅÅÅÅ-MM-DD</code>. Då kan du samanlikne dei som vanleg:</p>
+${ex(`SELECT * FROM utstyr WHERE innkjopt >= '2023-01-01';`)}
+<p>Med <code>AND</code> må begge vilkåra vere sanne. Med <code>OR</code> held det at eitt av dei er sant:</p>
+${ex(`SELECT * FROM saker WHERE kategori = 'Nettverk' AND status = 'Open';`)}
+<p><code>IN</code> er ein snarveg når du vil samanlikne med fleire verdiar:</p>
+${ex(`SELECT * FROM utstyr WHERE type IN ('PC', 'Kamera');`)}
+<div class="tips">💡 Tekst må skrivast nøyaktig slik han står i databasen. <code>'1ima'</code> er ikkje det same som <code>'1IMA'</code>, og <code>'Hog'</code> er ikkje det same som <code>'Høg'</code>.</div>`,
+  oppgaver: [
+    { id: "l2o1", tekst: "Vis alle elevane i klasse <code>2ITA</code>.", hint: ["Bruk <code>WHERE klasse = '2ITA'</code>.", "<code>SELECT * FROM elevar WHERE klasse = '2ITA';</code>"],
+      sjekk: c => fasit(c, "SELECT * FROM elevar WHERE klasse = '2ITA'") },
+    { id: "l2o2", tekst: "Vis alt utstyr som vart kjøpt inn <b>før</b> 2022 (kolonnen <code>innkjopt</code>).", hint: ["«Før 2022» betyr mindre enn <code>'2022-01-01'</code>.", "<code>SELECT * FROM utstyr WHERE innkjopt &lt; '2022-01-01';</code>"],
+      sjekk: c => fasit(c, "SELECT * FROM utstyr WHERE innkjopt < '2022-01-01'") },
+    { id: "l2o3", tekst: "Vis sakene som har prioritet <code>Høg</code>, og som <b>ikkje</b> er lukka.", hint: ["Du treng to vilkår med <code>AND</code> mellom.", "Status skal vere ulik <code>'Lukka'</code>: <code>status &lt;&gt; 'Lukka'</code>.", "<code>SELECT * FROM saker WHERE prioritet = 'Høg' AND status &lt;&gt; 'Lukka';</code>"],
+      sjekk: c => fasit(c, "SELECT * FROM saker WHERE prioritet = 'Høg' AND status <> 'Lukka'") },
+    { id: "l2o4", tekst: "Vis <code>fornamn</code>, <code>etternamn</code> og <code>klasse</code> for alle elevane i <code>1IMA</code> og <code>1IMB</code>.", hint: ["Ein elev går anten i 1IMA <b>eller</b> i 1IMB – bruk <code>OR</code> eller <code>IN</code>.", "<code>... WHERE klasse = '1IMA' OR klasse = '1IMB';</code>"],
+      sjekk: c => fasit(c, "SELECT fornamn, etternamn, klasse FROM elevar WHERE klasse IN ('1IMA', '1IMB')", "SELECT * FROM elevar WHERE klasse IN ('1IMA', '1IMB')") },
+  ]},
+
+{ id: "l3", tittel: "Sortere og søkje", laerer: "å sortere med <code>ORDER BY</code>, avgrense med <code>LIMIT</code> og søkje i tekst med <code>LIKE</code>.",
+  start: `-- Leksjon 3: Sortere og søkje\n\nSELECT * FROM utstyr ORDER BY innkjopt;\n`,
+  html: `
+<p>Radene kjem ikkje i nokon bestemd rekkjefølgje. Med <code>ORDER BY</code> sorterer du dei:</p>
+${ex(`SELECT * FROM utstyr ORDER BY innkjopt;`)}
+<p>Standard er stigande rekkjefølgje (<code>ASC</code>): A–Å, lågaste tal og eldste dato først. Skriv <code>DESC</code> for synkande rekkjefølgje. Med <code>LIMIT</code> bestemmer du kor mange rader du får:</p>
+${ex(`SELECT * FROM utstyr ORDER BY innkjopt DESC LIMIT 5;`)}
+<p>Med <code>LIKE</code> kan du søkje etter delar av ein tekst. Teiknet <code>%</code> står for «kva som helst, kor mange teikn som helst»:</p>
+${ex(`SELECT * FROM elevar WHERE fornamn LIKE 'S%';`)}
+<p><code>'S%'</code> betyr «byrjar på S», <code>'%en'</code> betyr «sluttar på en», og <code>'%nett%'</code> betyr «inneheld nett ein stad».</p>
+<div class="tips">💡 Rekkjefølgja på delane i ei spørjing er fast: <code>SELECT … FROM … WHERE … ORDER BY … LIMIT …</code></div>`,
+  oppgaver: [
+    { id: "l3o1", tekst: "Vis <code>fornamn</code> og <code>etternamn</code> til alle elevane, sortert alfabetisk på etternamn.", hint: ["Legg <code>ORDER BY etternamn</code> til slutt.", "<code>SELECT fornamn, etternamn FROM elevar ORDER BY etternamn;</code>"],
+      sjekk: c => fasit(c, { sql: "SELECT fornamn, etternamn FROM elevar ORDER BY etternamn", orden: [1] }, { sql: "SELECT * FROM elevar ORDER BY etternamn", orden: [2] }) },
+    { id: "l3o2", tekst: "Vis dei tre nyaste sakene (kolonnen <code>oppretta</code>).", hint: ["Nyaste først betyr synkande rekkjefølgje: <code>ORDER BY oppretta DESC</code>.", "Avgrens til tre rader med <code>LIMIT 3</code>."],
+      sjekk: c => fasit(c, { sql: "SELECT * FROM saker ORDER BY oppretta DESC LIMIT 3", orden: [6] }, { sql: "SELECT tittel, oppretta FROM saker ORDER BY oppretta DESC LIMIT 3", orden: [1] }) },
+    { id: "l3o3", tekst: "Finn alle saker der tittelen inneheld ordet «passord».", hint: ["Bruk <code>LIKE</code> med <code>%</code> på begge sider av ordet.", "<code>SELECT * FROM saker WHERE tittel LIKE '%passord%';</code>"],
+      sjekk: c => fasit(c, "SELECT * FROM saker WHERE tittel LIKE '%passord%'", "SELECT tittel FROM saker WHERE tittel LIKE '%passord%'") },
+  ]},
+
+{ id: "l4", tittel: "Telje og gruppere", laerer: "å rekne ut med <code>COUNT</code>, <code>MIN</code>, <code>MAX</code> og <code>AVG</code>, og å gruppere med <code>GROUP BY</code> og <code>HAVING</code>.",
+  start: `-- Leksjon 4: Telje og gruppere\n\nSELECT COUNT(*) FROM saker WHERE status = 'Open';\n`,
+  html: `
+<p>Ofte vil du ikkje sjå radene, men få eit <b>svar</b>: Kor mange? Kva er eldst? Til det har SQL <b>aggregatfunksjonar</b>:</p>
+<table class="juks">
+<tr><td>COUNT(*)</td><td>tel radene</td></tr>
+<tr><td>MIN(kolonne)</td><td>minste verdi</td></tr>
+<tr><td>MAX(kolonne)</td><td>største verdi</td></tr>
+<tr><td>SUM(kolonne)</td><td>summen</td></tr>
+<tr><td>AVG(kolonne)</td><td>gjennomsnittet</td></tr>
+</table>
+${ex(`SELECT COUNT(*) FROM saker WHERE status = 'Open';`)}
+${ex(`SELECT MIN(innkjopt), MAX(innkjopt) FROM utstyr;`)}
+<p>Med <code>GROUP BY</code> deler du radene i grupper og reknar ut eit svar for kvar gruppe. <code>AS</code> gir kolonnen eit namn:</p>
+${ex(`SELECT type, COUNT(*) AS antal\nFROM utstyr\nGROUP BY type;`)}
+<p>Vil du filtrere på resultatet av ei utrekning, bruker du <code>HAVING</code> – ikkje <code>WHERE</code>. <code>WHERE</code> filtrerer radene <i>før</i> grupperinga, medan <code>HAVING</code> filtrerer gruppene <i>etterpå</i>:</p>
+${ex(`SELECT type, COUNT(*) AS antal\nFROM utstyr\nGROUP BY type\nHAVING COUNT(*) >= 2;`)}
+<div class="tips">💡 Kolonnar i <code>SELECT</code> som ikkje står inne i ein funksjon som <code>COUNT</code>, bør også stå i <code>GROUP BY</code>.</div>`,
+  oppgaver: [
+    { id: "l4o1", tekst: "Kor mange elevar er det på skulen? Svaret skal vere eitt tal.", hint: ["<code>SELECT COUNT(*) FROM ...</code>"],
+      sjekk: c => fasit(c, { sql: "SELECT COUNT(*) FROM elevar", krev: /elevar/i }) },
+    { id: "l4o2", tekst: "Kor mange elevar er det i kvar klasse?", hint: ["Grupper på klasse: <code>GROUP BY klasse</code>.", "<code>SELECT klasse, COUNT(*) FROM elevar GROUP BY klasse;</code>"],
+      sjekk: c => fasit(c, "SELECT klasse, COUNT(*) FROM elevar GROUP BY klasse") },
+    { id: "l4o3", tekst: "Tel kor mange saker det er i kvar kategori, og sorter slik at kategorien med flest saker kjem først.", hint: ["Grupper på <code>kategori</code>.", "Sorter på talet: <code>ORDER BY COUNT(*) DESC</code> – eller på aliaset, om du har brukt <code>AS</code>."],
+      sjekk: c => fasit(c, { sql: "SELECT kategori, COUNT(*) FROM saker GROUP BY kategori ORDER BY COUNT(*) DESC", orden: [1] }) },
+    { id: "l4o4", tekst: "Kva elevar (<code>elev_id</code>) har meldt inn <b>meir enn éi</b> sak?", hint: ["Grupper sakene på <code>elev_id</code>.", "Bruk <code>HAVING COUNT(*) &gt; 1</code> etter <code>GROUP BY</code>."],
+      sjekk: c => fasit(c, "SELECT elev_id, COUNT(*) FROM saker GROUP BY elev_id HAVING COUNT(*) > 1", "SELECT elev_id FROM saker GROUP BY elev_id HAVING COUNT(*) > 1") },
+  ]},
+
+{ id: "l5", tittel: "Kople tabellar med JOIN", laerer: "korleis tabellar heng saman med <b>primærnøklar</b> og <b>framandnøklar</b>, og korleis du koplar dei med <code>JOIN</code>.",
+  start: `-- Leksjon 5: Kople tabellar med JOIN\n\nSELECT * FROM utlan;\n`,
+  html: `
+<p>I tabellen <code>utlan</code> står ikkje namnet på eleven – berre <code>elev_id</code>. Det er eit tal som peikar på <code>id</code> i tabellen <code>elevar</code>. Slik slepp vi å lagre det same namnet mange gonger.</p>
+<ul>
+<li><b>Primærnøkkel</b> (<code>id</code>): eit unikt nummer for kvar rad i tabellen.</li>
+<li><b>Framandnøkkel</b> (t.d. <code>elev_id</code>): ein kolonne som peikar på primærnøkkelen i ein annan tabell.</li>
+</ul>
+<table class="juks">
+<tr><td>utlan.elev_id</td><td>→ elevar.id</td></tr>
+<tr><td>utlan.utstyr_id</td><td>→ utstyr.id</td></tr>
+<tr><td>saker.elev_id</td><td>→ elevar.id</td></tr>
+</table>
+<p>Med <code>JOIN … ON</code> koplar du saman rader der nøklane er like:</p>
+${ex(`SELECT utlan.dato_ut, elevar.fornamn, elevar.etternamn\nFROM utlan\nJOIN elevar ON utlan.elev_id = elevar.id;`)}
+<p>Når to tabellar har kolonnar med same namn (begge har <code>id</code>), må du skrive <code>tabell.kolonne</code>. Det blir kortare med <b>alias</b> – eit kallenamn du skriv rett etter tabellnamnet:</p>
+${ex(`SELECT l.dato_ut, e.fornamn, e.etternamn\nFROM utlan l\nJOIN elevar e ON l.elev_id = e.id;`)}
+<p>Du kan kople på fleire tabellar med fleire <code>JOIN</code> etter kvarandre. <code>WHERE</code>, <code>GROUP BY</code> og <code>ORDER BY</code> kjem etter alle <code>JOIN</code>-ane.</p>
+<div class="tips">💡 Gløymer du <code>ON</code>, blir <i>kvar</i> rad kopla med <i>kvar</i> rad – og plutseleg får du hundrevis av rader.</div>`,
+  oppgaver: [
+    { id: "l5o1", tekst: "Vis <code>tittel</code> på kvar sak saman med <code>fornamn</code> til eleven som melde ho inn.", hint: ["Kople <code>saker</code> og <code>elevar</code> med <code>JOIN</code>.", "<code>... FROM saker s JOIN elevar e ON s.elev_id = e.id</code>"],
+      sjekk: c => fasit(c, "SELECT s.tittel, e.fornamn FROM saker s JOIN elevar e ON s.elev_id = e.id") },
+    { id: "l5o2", tekst: "Vis <code>fornamn</code> på eleven, <code>namn</code> på utstyret og <code>dato_ut</code> for alle utlån. Her må du kople saman tre tabellar.", hint: ["Start med <code>FROM utlan l</code>, og legg til to <code>JOIN</code>: éin til <code>elevar</code> og éin til <code>utstyr</code>.", "<code>JOIN utstyr u ON l.utstyr_id = u.id</code>"],
+      sjekk: c => fasit(c, "SELECT e.fornamn, u.namn, l.dato_ut FROM utlan l JOIN elevar e ON l.elev_id = e.id JOIN utstyr u ON l.utstyr_id = u.id") },
+    { id: "l5o3", tekst: "Kor mange saker har kvar klasse meldt inn? Vis <code>klasse</code> og talet på saker.", hint: ["Kople <code>saker</code> og <code>elevar</code>, og grupper på <code>e.klasse</code>.", "<code>SELECT e.klasse, COUNT(*) FROM saker s JOIN elevar e ON s.elev_id = e.id GROUP BY e.klasse;</code>"],
+      sjekk: c => fasit(c, "SELECT e.klasse, COUNT(*) FROM saker s JOIN elevar e ON s.elev_id = e.id GROUP BY e.klasse") },
+  ]},
+
+{ id: "l6", tittel: "Tomme felt og LEFT JOIN", laerer: "kva <code>NULL</code> er, korleis du finn tomme felt med <code>IS NULL</code>, og korleis <code>LEFT JOIN</code> tek med rader utan treff.",
+  start: `-- Leksjon 6: Tomme felt og LEFT JOIN\n\nSELECT * FROM saker WHERE lukka IS NULL;\n`,
+  html: `
+<p>Når eit felt ikkje har nokon verdi, står det <code>NULL</code>. Det betyr «ukjend» eller «manglar» – ikkje 0 og ikkje tom tekst. I <code>utlan</code> er <code>dato_inn</code> NULL så lenge utstyret ikkje er levert tilbake.</p>
+<p>NULL er ikkje lik noko – ikkje eingong NULL. Difor fungerer ikkje <code>= NULL</code>. Du må bruke <code>IS NULL</code> eller <code>IS NOT NULL</code>:</p>
+${ex(`SELECT * FROM saker WHERE lukka IS NULL;`)}
+<h3>LEFT JOIN</h3>
+<p>Ein vanleg <code>JOIN</code> tek berre med rader som har treff i begge tabellane. Med <code>LEFT JOIN</code> får du med <b>alle</b> radene frå den første (venstre) tabellen – og NULL der det ikkje finst noko treff:</p>
+${ex(`SELECT u.namn, l.dato_ut\nFROM utstyr u\nLEFT JOIN utlan l ON l.utstyr_id = u.id;`)}
+<p>Utstyr som aldri har vore lånt ut, får NULL i <code>dato_ut</code>. Då kan du finne det slik:</p>
+${ex(`SELECT u.namn\nFROM utstyr u\nLEFT JOIN utlan l ON l.utstyr_id = u.id\nWHERE l.id IS NULL;`)}
+<div class="tips">💡 <code>COALESCE(dato_inn, 'Ikkje levert')</code> viser ein eigen tekst i staden for NULL.</div>`,
+  oppgaver: [
+    { id: "l6o1", tekst: "Vis alle utlån der utstyret <b>ikkje</b> er levert tilbake enno.", hint: ["Det er <code>dato_inn</code> som er tom.", "<code>SELECT * FROM utlan WHERE dato_inn IS NULL;</code>"],
+      sjekk: c => fasit(c, "SELECT * FROM utlan WHERE dato_inn IS NULL") },
+    { id: "l6o2", tekst: "Vis <code>fornamn</code> og <code>etternamn</code> på elevane som manglar e-postadresse.", hint: ["Bruk <code>WHERE epost IS NULL</code> – ikkje <code>= NULL</code>."],
+      sjekk: c => fasit(c, "SELECT fornamn, etternamn FROM elevar WHERE epost IS NULL") },
+    { id: "l6o3", tekst: "Vis <code>fornamn</code> og <code>etternamn</code> på elevane som <b>aldri</b> har lånt noko utstyr.", hint: ["Start med <code>FROM elevar e LEFT JOIN utlan l ON l.elev_id = e.id</code>.", "Elevar utan utlån får NULL i alle utlånskolonnane: <code>WHERE l.id IS NULL</code>."],
+      sjekk: c => fasit(c, "SELECT e.fornamn, e.etternamn FROM elevar e LEFT JOIN utlan l ON l.elev_id = e.id WHERE l.id IS NULL") },
+  ]},
+
+{ id: "l7", tittel: "Endre data", laerer: "å leggje til, endre og slette rader med <code>INSERT</code>, <code>UPDATE</code> og <code>DELETE</code>.",
+  start: `-- Leksjon 7: Endre data\n-- Endringane blir lagra. «Tilbakestill database» hentar startdataa tilbake.\n\n`,
+  html: `
+<p>Til no har du berre lese data. No skal du endre databasen. Endringane blir lagra i nettlesaren din, og du kan alltid trykkje <b>Tilbakestill database</b> for å få tilbake startdataa.</p>
+<h3>INSERT – legg til ei rad</h3>
+${ex(`INSERT INTO utstyr (namn, type, serienummer, innkjopt, tilstand)\nVALUES ('Raspberry Pi 5 #2', 'Raspberry Pi', 'RPI5-0002', '2026-11-01', 'OK');`)}
+<p>Du treng ikkje oppgi <code>id</code>. Han er primærnøkkel, og databasen gir den nye rada det neste ledige nummeret.</p>
+<h3>UPDATE – endre rader</h3>
+${ex(`UPDATE utstyr SET tilstand = 'Skadd' WHERE id = 8;`)}
+<h3>DELETE – slett rader</h3>
+${ex(`DELETE FROM utlan WHERE id = 1;`)}
+<div class="tips">💡 <b>Gløym aldri WHERE</b> på <code>UPDATE</code> og <code>DELETE</code>! Utan WHERE blir <i>alle</i> radene endra eller sletta. Ein lur vane: Køyr først ein <code>SELECT</code> med same <code>WHERE</code>, og sjå at du får dei rette radene.</div>
+<p>Databasen passar også på seg sjølv: Prøver du å slette ein elev som har utlån, eller å registrere eit utlån på ein elev som ikkje finst, får du feilen <code>FOREIGN KEY constraint failed</code>.</p>`,
+  oppgaver: [
+    { id: "l7o1", tekst: "Legg deg sjølv inn som ny elev i tabellen <code>elevar</code>.", hint: ["<code>INSERT INTO elevar (fornamn, etternamn, klasse) VALUES (...);</code>", "Tekstverdiane skal stå i enkle hermeteikn, i same rekkjefølgje som kolonnane: <code>VALUES ('Kari', 'Nordmann', '1IMA')</code>."],
+      sjekk: c => kjor(c.db, "SELECT fornamn || ' ' || etternamn FROM elevar").values.some(r => !START_ELEVAR.has(String(r[0]).trim())) },
+    { id: "l7o2", tekst: "Sak nummer 4 (skrivaren på rom 214) er løyst. Set <code>status</code> til <code>'Lukka'</code> og <code>lukka</code> til dagens dato.", hint: ["Du kan endre fleire kolonnar i same <code>SET</code>, med komma mellom.", "Dagens dato får du med <code>date('now')</code>.", "<code>UPDATE saker SET status = 'Lukka', lukka = date('now') WHERE id = 4;</code>"],
+      sjekk: c => tal(c.db, "SELECT COUNT(*) FROM saker WHERE id = 4 AND status = 'Lukka' AND lukka IS NOT NULL") === 1 && tal(c.db, "SELECT COUNT(*) FROM saker WHERE status <> 'Lukka'") > 0 },
+    { id: "l7o3", tekst: "Slett alt utstyr som har tilstanden <code>Kassert</code>.", hint: ["Sjekk først kva som blir sletta: <code>SELECT * FROM utstyr WHERE tilstand = 'Kassert';</code>", "Byt ut <code>SELECT *</code> med <code>DELETE</code>."],
+      sjekk: c => tal(c.db, "SELECT COUNT(*) FROM utstyr WHERE tilstand = 'Kassert'") === 0 && tal(c.db, "SELECT COUNT(*) FROM utstyr") >= 10 },
+  ]},
+
+{ id: "l8", tittel: "Lag din eigen tabell", laerer: "å lage nye tabellar med <code>CREATE TABLE</code>, datatypar og nøklar.",
+  start: `-- Leksjon 8: Lag din eigen tabell\n\n`,
+  html: `
+<p>Med <code>CREATE TABLE</code> lagar du ein ny tabell. For kvar kolonne skriv du namn og <b>datatype</b>:</p>
+<table class="juks">
+<tr><td>INTEGER</td><td>heiltal</td></tr>
+<tr><td>TEXT</td><td>tekst</td></tr>
+<tr><td>REAL</td><td>desimaltal</td></tr>
+<tr><td>DATE</td><td>dato (blir lagra som tekst i SQLite)</td></tr>
+</table>
+${ex(`CREATE TABLE kurs (\n    id INTEGER PRIMARY KEY,\n    namn TEXT NOT NULL,\n    timar INTEGER\n);`)}
+<p><code>PRIMARY KEY</code> gjer <code>id</code> til primærnøkkel. <code>NOT NULL</code> betyr at kolonnen ikkje kan stå tom. Skal ein kolonne peike på ein annan tabell, bruker du <code>REFERENCES</code>:</p>
+${ex(`CREATE TABLE pameldingar (\n    id INTEGER PRIMARY KEY,\n    elev_id INTEGER NOT NULL REFERENCES elevar(id),\n    kurs_id INTEGER NOT NULL REFERENCES kurs(id)\n);`)}
+<p>Ein tabell du ikkje treng lenger, slettar du med <code>DROP TABLE kurs;</code> – då forsvinn tabellen og alt innhaldet.</p>
+<div class="tips">💡 Bruk små bokstavar, ingen mellomrom og helst ikkje æ, ø og å i tabell- og kolonnenamn. Skriv <code>dato_inn</code>, ikkje <code>Dato inn</code>.</div>`,
+  oppgaver: [
+    { id: "l8o1", tekst: "Lag tabellen <code>rom</code> med kolonnane <code>id</code> (primærnøkkel), <code>namn</code> og <code>etasje</code>.", hint: ["Bruk eksempelet med <code>kurs</code> som mal.", "<code>CREATE TABLE rom (id INTEGER PRIMARY KEY, namn TEXT NOT NULL, etasje INTEGER);</code>"],
+      sjekk: c => tabellFinst(c.db, "rom") && (() => { const k = kjor(c.db, "PRAGMA table_info(rom)").values; return k.length >= 3 && k.some(r => r[5] > 0); })() },
+    { id: "l8o2", tekst: "Legg minst tre rom inn i tabellen <code>rom</code>, t.d. labben, verkstaden og klasserommet ditt.", hint: ["Du kan leggje inn fleire rader i éin <code>INSERT</code>: <code>VALUES ('Lab 120', 1), ('Rom 214', 2), ...</code>", "<code>INSERT INTO rom (namn, etasje) VALUES ('Lab 120', 1), ('Rom 214', 2), ('Verkstaden', 1);</code>"],
+      sjekk: c => tabellFinst(c.db, "rom") && tal(c.db, "SELECT COUNT(*) FROM rom") >= 3 },
+  ]},
+
+{ id: "l9", tittel: "Vidare til Supabase", laerer: "korleis du flyttar databasen til <b>Supabase</b> og held fram med ekte PostgreSQL i skya.",
+  start: `-- Leksjon 9: Vidare til Supabase\n-- Denne spørjinga fungerer både her og i Supabase:\n\nSELECT tittel, status FROM saker WHERE status = 'Open' ORDER BY oppretta DESC;\n`,
+  html: `
+<p>SQLite er ein database som ligg i éi fil – perfekt for å lære, og for appar som køyrer på éi maskin. Skal mange brukarar og appar dele data over nettet, treng du ein <b>databasetenar</b>. <b>Supabase</b> gir deg ein ekte <b>PostgreSQL</b>-database i skya, med ein gratis plan, og SQL-en du har lært her, fungerer nesten heilt likt.</p>
+<h3>1. Lag eit prosjekt</h3>
+<p>Gå til <b>supabase.com</b>, logg inn (t.d. med GitHub-kontoen din) og vel <b>New project</b>. Gi prosjektet eit namn, lag eit sterkt databasepassord (lagre det i passordhandsamaren din) og vel ein region i Europa.</p>
+<h3>2. Flytt skuledatabasen over</h3>
+<p>Last ned databasen din – med alle endringane du har gjort – som PostgreSQL-kode:</p>
+<p><button type="button" class="handling" data-handling="lastned">⬇ Last ned skule-supabase.sql</button><button type="button" class="handling" data-handling="kopier">Kopier koden</button></p>
+<p>I Supabase opnar du <b>SQL Editor</b>, limer inn koden og trykkjer <b>Run</b>. Under <b>Table Editor</b> ser du no dei same tabellane. Prøv spørjingane frå kurset i SQL Editor!</p>
+<h3>3. Skilnader mellom SQLite og PostgreSQL</h3>
+<table class="juks vid">
+<tr><th>SQLite</th><th>PostgreSQL (Supabase)</th></tr>
+<tr><td>id INTEGER PRIMARY KEY</td><td>id bigint generated by default as identity primary key</td></tr>
+<tr><td>'tekst' og "tekst"</td><td>berre 'tekst' – "…" er alltid namn på tabellar og kolonnar</td></tr>
+<tr><td>LIKE skil ikkje mellom a og A</td><td>LIKE skil mellom store og små bokstavar – bruk ILIKE</td></tr>
+<tr><td>date('now')</td><td>current_date (og now() for tidspunkt)</td></tr>
+<tr><td>datoar er tekst</td><td>eigne typar: date og timestamp</td></tr>
+</table>
+<p>I Table Editor kan du også lage tabellar ved å klikke i staden for å skrive <code>CREATE TABLE</code>. I bakgrunnen blir det laga den same SQL-koden.</p>
+<h3>4. Tryggleik: Row Level Security</h3>
+<p>Supabase lagar automatisk eit <b>API</b> til databasen, slik at nettsider og appar kan hente data direkte. Difor er tryggleik viktig:</p>
+<ul>
+<li>Slå på <b>Row Level Security (RLS)</b> på alle tabellar. Då er alt stengt til du lagar <b>reglar</b> (policies) for kven som får lese og skrive. Fila du lastar ned, slår på RLS for deg.</li>
+<li>Den <b>publiserbare nøkkelen</b> (publishable eller anon) kan stå i koden på ei nettside. Den <b>hemmelege nøkkelen</b> (secret eller service_role) går forbi alle reglane og skal <b>aldri</b> liggje i nettsidekode eller på GitHub.</li>
+</ul>
+${exPg(`-- PostgreSQL: Alle får lese utstyrslista, men ingen får endre ho via API-et\nCREATE POLICY "Alle kan lese utstyr"\nON utstyr FOR SELECT\nUSING (true);`)}
+<h3>5. Frå SQL til kode</h3>
+<p>I ei nettside eller ein app bruker du biblioteket <code>supabase-js</code>. Spørjinga i editoren til høgre blir skriven slik i JavaScript:</p>
+${exPg(`const { data, error } = await supabase\n    .from('saker')\n    .select('tittel, status')\n    .eq('status', 'Open')\n    .order('oppretta', { ascending: false });`)}
+<p>Sidan RLS er slått på, får du ingen rader før du har laga ein policy som tillèt å lese <code>saker</code>. Det er ein typisk feil første gongen – og no veit du kvifor.</p>
+<h3>Jukselapp</h3>
+<table class="juks">
+<tr><td>SELECT k1, k2 FROM t</td><td>hent kolonnar frå ein tabell</td></tr>
+<tr><td>WHERE … AND / OR …</td><td>filtrer rader</td></tr>
+<tr><td>LIKE '%tekst%'</td><td>søk i tekst</td></tr>
+<tr><td>ORDER BY k DESC LIMIT 5</td><td>sorter og avgrens</td></tr>
+<tr><td>COUNT(*) MIN MAX AVG SUM</td><td>rekn ut</td></tr>
+<tr><td>GROUP BY k HAVING …</td><td>grupper og filtrer grupper</td></tr>
+<tr><td>JOIN t2 ON t1.x = t2.id</td><td>kople tabellar</td></tr>
+<tr><td>LEFT JOIN … IS NULL</td><td>finn rader utan treff</td></tr>
+<tr><td>INSERT INTO t (…) VALUES (…)</td><td>legg til rad</td></tr>
+<tr><td>UPDATE t SET k = v WHERE …</td><td>endre rader</td></tr>
+<tr><td>DELETE FROM t WHERE …</td><td>slett rader</td></tr>
+<tr><td>CREATE TABLE / DROP TABLE</td><td>lag / slett tabell</td></tr>
+</table>`,
+  oppgaver: [] },
+];
+
+const LAERAR_HTML = `<ul>
+<li><b>Ekte SQLite:</b> sida køyrer SQLite (sql.js, WebAssembly) i nettlesaren. Første gong blir om lag 1 MB lasta ned frå cdn.jsdelivr.net. Det trengst ingen innlogging eller tenar.</li>
+<li><b>Databasen:</b> fire tabellar med fiktive data – <code>elevar</code> (16), <code>utstyr</code> (18), <code>utlan</code> (14) og <code>saker</code> (15) – med primærnøklar og framandnøklar. Framandnøklane blir handheva (<code>PRAGMA foreign_keys = ON</code>).</li>
+<li><b>Sjekk av oppgåver:</b> resultatet til eleven blir samanlikna med ein fasit som blir køyrd på databasen slik han er no. Rekkjefølgja på kolonnane, alias og ulike løysingar (t.d. <code>IN</code> eller <code>OR</code>) blir godtekne. Rekkjefølgja på radene tel berre når oppgåva ber om sortering. I leksjon 7–8 blir innhaldet i databasen sjekka.</li>
+<li><b>💡-tips:</b> feilmeldingane frå SQLite (på engelsk) blir viste slik dei er, med ei forklaring på nynorsk under. Sida åtvarar også mot <code>UPDATE</code>/<code>DELETE</code> utan <code>WHERE</code>, <code>= NULL</code>, tekst i doble hermeteikn og tekst som nesten stemmer (store og små bokstavar).</li>
+<li><b>Lagring:</b> framdrift, kode og database blir berre lagra i nettlesaren til eleven (localStorage). «Tilbakestill database» hentar startdataa tilbake utan å slette framdrifta.</li>
+<li><b>I timen:</b> leksjon 1–6 handlar om å lese data, leksjon 7–8 om å endre databasen. Leksjon 9 flyttar databasen til Supabase (PostgreSQL) – ein fin overgang til eit prosjekt med nettside eller app.</li>
+</ul>`;
+
+/* ================== LAGRING ================== */
+const lager = {
+    hent(nokkel, standard) {
+        try { const v = localStorage.getItem(KURS.prefiks + nokkel); return v === null ? standard : JSON.parse(v); }
+        catch (e) { return standard; }
+    },
+    set(nokkel, verdi) { try { localStorage.setItem(KURS.prefiks + nokkel, JSON.stringify(verdi)); } catch (e) {} },
+    slettAlle() {
+        try {
+            const ut = [];
+            for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.startsWith(KURS.prefiks)) ut.push(k); }
+            ut.forEach(k => localStorage.removeItem(k));
+        } catch (e) {}
+    }
+};
+
+/* ================== TILSTAND ================== */
+let loyste = new Set(lager.hent("loyste", []));
+let besokt = new Set(lager.hent("besokt", []));
+let hintNiva = lager.hent("hint", {});
+let aktivIndeks = Math.min(Math.max(0, LEKSJONAR.findIndex(l => l.id === lager.hent("aktiv", LEKSJONAR[0].id))), LEKSJONAR.length - 1);
+const ALLE_OPPGAVER = LEKSJONAR.flatMap(l => l.oppgaver.map(o => ({ ...o, leksjon: l })));
+
+function lagreTilstand() {
+    lager.set("loyste", [...loyste]);
+    lager.set("besokt", [...besokt]);
+    lager.set("hint", hintNiva);
+    lager.set("aktiv", LEKSJONAR[aktivIndeks].id);
+}
+
+function leksjonStatus(l) {
+    const n = l.oppgaver.length, ok = l.oppgaver.filter(o => loyste.has(o.id)).length;
+    if (n === 0) return besokt.has(l.id) ? "ferdig" : "ny";
+    if (ok === n) return "ferdig";
+    if (ok > 0 || besokt.has(l.id)) return "igang";
+    return "ny";
+}
+const STATUSIKON = { ny: '<span class="sirkel"></span>', igang: '<span class="sirkel halv"></span>', ferdig: "✔" };
+
+/* ================== VISING ================== */
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+function oppdaterFramdrift() {
+    const n = ALLE_OPPGAVER.length, ok = ALLE_OPPGAVER.filter(o => loyste.has(o.id)).length;
+    document.getElementById("framdriftTekst").textContent = `${ok} / ${n} oppgåver`;
+    document.getElementById("framdriftLinje").style.width = (n ? 100 * ok / n : 0) + "%";
+}
+
+function teiknListe() {
+    const ol = document.getElementById("leksjonsliste");
+    ol.innerHTML = "";
+    LEKSJONAR.forEach((l, i) => {
+        const st = leksjonStatus(l);
+        const ok = l.oppgaver.filter(o => loyste.has(o.id)).length;
+        const li = document.createElement("li");
+        li.className = (i === aktivIndeks ? "aktiv " : "") + st;
+        li.innerHTML = `<button type="button"><span class="status" title="${st === "ferdig" ? "Ferdig" : st === "igang" ? "I gang" : "Ikkje starta"}">${STATUSIKON[st]}</span><span class="nr">${i + 1}.</span><span>${esc(l.tittel)}</span>${l.oppgaver.length ? `<span class="tal">${ok}/${l.oppgaver.length}</span>` : ""}</button>`;
+        li.querySelector("button").onclick = () => visLeksjon(i);
+        ol.appendChild(li);
+    });
+    oppdaterFramdrift();
+}
+
+function visLeksjon(i, rull = true) {
+    aktivIndeks = i;
+    const l = LEKSJONAR[i];
+    besokt.add(l.id);
+    lagreTilstand();
+    const el = document.getElementById("leksjon");
+    el.innerHTML = `
+        <h2>${i + 1}. ${esc(l.tittel)}</h2>
+        <p class="laerer"><b>Dette lærer du:</b> ${l.laerer}</p>
+        <div class="forklaring">${l.html}</div>
+        ${l.oppgaver.length ? `<h3>Oppgåver</h3><ul class="oppgaver"></ul>` : ""}
+        <div class="fullfortplass"></div>
+        <div class="navknappar">
+            <button type="button" class="forre" ${i === 0 ? "disabled" : ""}>◀ Førre</button>
+            <button type="button" class="neste" ${i === LEKSJONAR.length - 1 ? "disabled" : ""}>Neste ▶</button>
+        </div>
+        <details class="laerar"><summary>For læraren</summary>${LAERAR_HTML}</details>`;
+    el.querySelectorAll(".eksempel:not(.pg)").forEach(ex => {
+        const pre = ex.querySelector("pre");
+        const b = document.createElement("button");
+        b.type = "button"; b.className = "prov"; b.textContent = "Prøv";
+        b.title = "Lim inn koden (du køyrer sjølv)";
+        b.onclick = () => { if (typeof simLim === "function") simLim(pre.dataset.kode ?? pre.textContent); };
+        ex.appendChild(b);
+    });
+    const ul = el.querySelector(".oppgaver");
+    if (ul) l.oppgaver.forEach(o => ul.appendChild(lagOppgaveEl(o)));
+    el.querySelector(".forre").onclick = () => visLeksjon(i - 1);
+    el.querySelector(".neste").onclick = () => visLeksjon(i + 1);
+    teiknFullfort();
+    teiknListe();
+    if (rull) document.getElementById("leksjonspanel").scrollTop = 0;
+    if (typeof simByttLeksjon === "function") simByttLeksjon(l);   // valfri krok (t.d. startkode i editoren)
+}
+
+function lagOppgaveEl(o) {
+    const li = document.createElement("li");
+    li.className = "oppgave" + (loyste.has(o.id) ? " loyst" : "");
+    li.dataset.id = o.id;
+    li.innerHTML = `<span class="ikon">${loyste.has(o.id) ? "✔" : "○"}</span><span class="tekst">${o.tekst}</span>` +
+        (o.hint && o.hint.length ? `<button type="button" class="hintknapp">Hint</button>` : "<span></span>");
+    const vis = () => {
+        li.querySelectorAll(".hint").forEach(h => h.remove());
+        const n = hintNiva[o.id] || 0;
+        for (let k = 0; k < n; k++) {
+            const d = document.createElement("div");
+            d.className = "hint"; d.innerHTML = "💡 " + o.hint[k];
+            li.appendChild(d);
+        }
+        const b = li.querySelector(".hintknapp");
+        if (b) { b.textContent = n === 0 ? "Hint" : n < o.hint.length ? "Meir hjelp" : "Hint"; b.disabled = n >= o.hint.length; b.style.opacity = n >= o.hint.length ? .4 : 1; }
+    };
+    const b = li.querySelector(".hintknapp");
+    if (b) b.onclick = () => { hintNiva[o.id] = Math.min((hintNiva[o.id] || 0) + 1, o.hint.length); lagreTilstand(); vis(); };
+    vis();
+    return li;
+}
+
+function teiknFullfort() {
+    const l = LEKSJONAR[aktivIndeks];
+    const plass = document.querySelector("#leksjon .fullfortplass");
+    if (!plass) return;
+    plass.innerHTML = "";
+    if (l.oppgaver.length && leksjonStatus(l) === "ferdig") {
+        const d = document.createElement("div");
+        d.className = "fullfort";
+        d.innerHTML = `<span>✔ Leksjon fullført!</span>` + (aktivIndeks < LEKSJONAR.length - 1 ? `<button type="button">Neste leksjon ▶</button>` : "");
+        const b = d.querySelector("button");
+        if (b) b.onclick = () => visLeksjon(aktivIndeks + 1);
+        plass.appendChild(d);
+    }
+}
+
+let toastTid = null;
+function toast(tekst) {
+    const t = document.getElementById("toast");
+    t.textContent = tekst; t.classList.add("vis");
+    clearTimeout(toastTid); toastTid = setTimeout(() => t.classList.remove("vis"), 3200);
+}
+
+/* ================== OPPGÅVESJEKK ================== */
+/* Kall etter KVAR kommando/køyring. Sjekkar alle oppgåver i alle leksjonar. */
+function sjekkOppgaver(ctx) {
+    const nye = [];
+    for (const o of ALLE_OPPGAVER) {
+        if (loyste.has(o.id)) continue;
+        let ok = false;
+        try { ok = !!o.sjekk(ctx); } catch (e) { ok = false; }
+        if (ok) { loyste.add(o.id); nye.push(o); }
+    }
+    if (!nye.length) return nye;
+    lagreTilstand();
+    const aktiv = LEKSJONAR[aktivIndeks];
+    for (const o of nye) {
+        const li = document.querySelector(`#leksjon .oppgave[data-id="${o.id}"]`);
+        if (li) {
+            li.classList.add("loyst");
+            li.querySelector(".ikon").textContent = "✔";
+            const bra = document.createElement("div");
+            bra.className = "bra"; bra.textContent = "✔ Bra!";
+            li.appendChild(bra);
+            setTimeout(() => bra.remove(), 2700);
+        }
+    }
+    const andre = nye.filter(o => o.leksjon !== aktiv);
+    if (andre.length) {
+        const o = andre[0];
+        toast(`✔ Bra! Du løyste ei oppgåve i leksjon ${LEKSJONAR.indexOf(o.leksjon) + 1}: ${o.leksjon.tittel}`);
+    }
+    teiknFullfort();
+    teiknListe();
+    return nye;
+}
+
+/* ================== KURSBEVIS ================== */
+function datoTekst(d = new Date()) {
+    return String(d.getDate()).padStart(2, "0") + "." + String(d.getMonth() + 1).padStart(2, "0") + "." + d.getFullYear();
+}
+function hentNamn() { try { return localStorage.getItem("kode101-namn") || ""; } catch (e) { return ""; } }
+function teiknBevis() {
+    const namn = document.getElementById("bevisNamn").value.trim();
+    const n = ALLE_OPPGAVER.length, ok = ALLE_OPPGAVER.filter(o => loyste.has(o.id)).length;
+    const alt = ok === n;
+    const leks = LEKSJONAR.filter(l => l.oppgaver.length);
+    const manglar = leks.filter(l => leksjonStatus(l) !== "ferdig");
+    document.getElementById("bevis").innerHTML = `
+        <div class="stripe"></div>
+        ${alt ? `<div class="segl">Fullført</div>` : `<div class="delvis">Delvis fullført</div>`}
+        <h2>Kursbevis – ${esc(KURS.namn)}</h2>
+        <div class="skule">Stord vidaregåande skule – IM</div>
+        <div class="bnamn">${namn ? esc(namn) : "&nbsp;"}</div>
+        <div class="skule">Dato: ${datoTekst()}</div>
+        <ul>${leks.map((l, i) => {
+            const lok = l.oppgaver.filter(o => loyste.has(o.id)).length;
+            return `<li>${lok === l.oppgaver.length ? "✔" : "○"} ${LEKSJONAR.indexOf(l) + 1}. ${esc(l.tittel)} <span style="color:#888">(${lok}/${l.oppgaver.length})</span></li>`;
+        }).join("")}</ul>
+        <div class="sum">${ok} av ${n} oppgåver</div>
+        ${alt ? "" : `<div class="manglar">Manglar: ${manglar.map(l => esc(l.tittel)).join(", ")}</div>`}`;
+}
+function opneBevis() {
+    document.getElementById("bevisNamn").value = hentNamn();
+    teiknBevis();
+    document.getElementById("bevisbakgrunn").classList.add("vis");
+    document.getElementById("bevisNamn").focus();
+}
+document.getElementById("bevisNamn").addEventListener("input", e => {
+    try { localStorage.setItem("kode101-namn", e.target.value.trim()); } catch (er) {}
+    teiknBevis();
+});
+document.getElementById("knappBevis").onclick = opneBevis;
+document.getElementById("bevisLukk").onclick = () => document.getElementById("bevisbakgrunn").classList.remove("vis");
+document.getElementById("bevisbakgrunn").addEventListener("click", e => { if (e.target.id === "bevisbakgrunn") e.target.classList.remove("vis"); });
+document.getElementById("bevisSkriv").onclick = () => window.print();
+document.addEventListener("keydown", e => { if (e.key === "Escape") document.getElementById("bevisbakgrunn").classList.remove("vis"); });
+
+/* ================== START PÅ NYTT ================== */
+document.getElementById("knappNullstill").onclick = () => {
+    if (!confirm("Vil du starte på nytt? All framdrift på denne sida blir sletta.")) return;
+    lager.slettAlle();
+    location.reload();
+};
+
+/* ================== SQL-EDITOR ================== */
+const STARTKODE = Object.fromEntries(LEKSJONAR.map(l => [l.id, l.start]));
+const kodefelt = document.getElementById("kodefelt");
+const resultatEl = document.getElementById("resultat");
+const knappKoyr = document.getElementById("knappKoyr");
+let cm = null, aktivKodeId = null, lagreTid = null, merkte = [];
+
+if (window.CodeMirror) {
+    cm = CodeMirror.fromTextArea(kodefelt, {
+        mode: "text/x-sqlite", theme: "material-darker", lineNumbers: true, indentUnit: 4, tabSize: 4, indentWithTabs: false, lineWrapping: true,
+        matchBrackets: true, autoCloseBrackets: true,
+        hintOptions: { tables: {}, completeSingle: false },
+        extraKeys: {
+            "Ctrl-Enter": () => koyr(), "Cmd-Enter": () => koyr(), "Shift-Enter": () => koyr(),
+            "Ctrl-Space": "autocomplete",
+            "Tab": c => c.somethingSelected() ? c.indentSelection("add") : c.replaceSelection("    "),
+        },
+    });
+    cm.on("change", () => { fjernMerke(); planleggLagring(); });
+} else {
+    kodefelt.addEventListener("input", planleggLagring);
+    kodefelt.addEventListener("keydown", e => {
+        if (e.key === "Enter" && (e.ctrlKey || e.metaKey || e.shiftKey)) { e.preventDefault(); koyr(); }
+        else if (e.key === "Tab") { e.preventDefault(); kodefelt.setRangeText("    ", kodefelt.selectionStart, kodefelt.selectionEnd, "end"); planleggLagring(); }
+    });
+}
+function hentKode() { return cm ? cm.getValue() : kodefelt.value; }
+function settKode(t) { if (cm) cm.setValue(t); else kodefelt.value = t; }
+function planleggLagring() { clearTimeout(lagreTid); lagreTid = setTimeout(lagreKode, 400); }
+function lagreKode() { if (aktivKodeId) lager.set("kode-" + aktivKodeId, hentKode()); }
+function fjernMerke() { if (cm) merkte.forEach(n => { try { cm.removeLineClass(n, "background", "feillinje"); } catch (e) {} }); merkte = []; }
+function merkLinje(n) { if (cm && n >= 0 && n < cm.lineCount()) { cm.addLineClass(n, "background", "feillinje"); merkte.push(n); } }
+
+function simByttLeksjon(l) {
+    if (aktivKodeId) lagreKode();
+    aktivKodeId = l.id;
+    const k = lager.hent("kode-" + l.id, null);
+    settKode(typeof k === "string" ? k : STARTKODE[l.id]);
+    if (cm) { cm.clearHistory(); cm.setCursor(cm.lineCount(), 0); }
+}
+function simLim(t) {
+    settKode(t.replace(/\s+$/, "") + "\n");
+    if (cm) { cm.focus(); cm.setCursor(cm.lineCount(), 0); } else kodefelt.focus();
+    lagreKode();
+}
+document.getElementById("knappTilbake").onclick = () => { settKode(STARTKODE[aktivKodeId]); lagreKode(); };
+knappKoyr.onclick = () => koyr();
+
+/* ================== SQLITE (sql.js) ================== */
+const SQLJS_VERSJON = "1.13.0";
+const SQLJS_KJELDER = [
+    `https://cdn.jsdelivr.net/npm/sql.js@${SQLJS_VERSJON}/dist/`,
+    `https://cdnjs.cloudflare.com/ajax/libs/sql.js/${SQLJS_VERSJON}/`,
+];
+let SQL = null, db = null;
+
+function lastSkript(url) {
+    return new Promise((ok, feil) => {
+        const s = document.createElement("script");
+        s.src = url; s.onload = ok; s.onerror = () => { s.remove(); feil(new Error("Klarte ikkje å laste " + url)); };
+        document.head.appendChild(s);
+    });
+}
+async function lastSqlJs() {
+    for (const base of SQLJS_KJELDER) {
+        try {
+            window.initSqlJs = undefined;
+            await lastSkript(base + "sql-wasm.js");
+            return await window.initSqlJs({ locateFile: f => base + f });
+        } catch (e) { console.warn("sql.js:", base, e); }
+    }
+    throw new Error("sql.js");
+}
+function tilB64(u8) { let s = ""; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(s); }
+function fraB64(b) { const s = atob(b), u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); return u; }
+
+function nyDatabase() {
+    if (db) db.close();
+    db = new SQL.Database();
+    db.run(SEED_SQL);
+    db.run("PRAGMA foreign_keys = ON");
+}
+function lagreDb() {
+    try {
+        lager.set("db", tilB64(db.export()));
+        lager.set("dbversjon", DB_VERSJON);
+    } catch (e) { console.warn(e); }
+    db.run("PRAGMA foreign_keys = ON");   // export() opnar databasen på nytt og nullstiller PRAGMA
+}
+function opneDatabase() {
+    const lagra = lager.hent("db", null);
+    if (lagra && lager.hent("dbversjon", 0) === DB_VERSJON) {
+        try { db = new SQL.Database(fraB64(lagra)); db.run("PRAGMA foreign_keys = ON"); kjor(db, "SELECT COUNT(*) FROM sqlite_master"); return; }
+        catch (e) { console.warn("Lagra database er øydelagd – lagar ny.", e); }
+    }
+    nyDatabase();
+}
+
+/* ---- Skjema: tabellar og kolonnar ---- */
+function skjema() {
+    const ut = {};
+    if (!db) return ut;
+    for (const [t] of kjor(db, "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY rowid").values)
+        ut[t] = kjor(db, `PRAGMA table_info("${String(t).replace(/"/g, '""')}")`).values.map(r => r[1]);
+    return ut;
+}
+function teiknTabellar() {
+    const rad = document.getElementById("tabellrad");
+    rad.innerHTML = "<span>Tabellar:</span>";
+    const s = skjema();
+    for (const t of Object.keys(s)) {
+        const b = document.createElement("button");
+        b.type = "button"; b.className = "brikke"; b.title = "Vis kolonnane i " + t;
+        let n = "?"; try { n = tal(db, `SELECT COUNT(*) FROM "${t.replace(/"/g, '""')}"`); } catch (e) {}
+        b.innerHTML = `${esc(t)}<span>${n}</span>`;
+        b.onclick = () => visStruktur(t);
+        rad.appendChild(b);
+    }
+    if (cm) cm.setOption("hintOptions", { tables: s, completeSingle: false });
+}
+function visStruktur(t) {
+    const q = `"${t.replace(/"/g, '""')}"`;
+    const kol = kjor(db, `PRAGMA table_info(${q})`).values;
+    const fk = kjor(db, `PRAGMA foreign_key_list(${q})`).values;   // id, seq, table, from, to, ...
+    let n = 0; try { n = tal(db, `SELECT COUNT(*) FROM ${q}`); } catch (e) {}
+    const rader = kol.map(r => {
+        const f = fk.find(x => x[3] === r[1]);
+        const nokkel = r[5] > 0 ? "primærnøkkel" : f ? `→ ${f[2]}.${f[4] || "id"}` : "";
+        return `<tr><td>${esc(r[1])}</td><td>${esc(r[2] || "")}</td><td>${nokkel}</td><td>${r[3] || r[5] > 0 ? "nei" : "ja"}</td></tr>`;
+    }).join("");
+    resultatEl.innerHTML = `<div class="blokk"><div class="melding ok">Tabellen <b>${esc(t)}</b> har ${kol.length} kolonnar og ${n} ${n === 1 ? "rad" : "rader"}.</div>
+        <div class="tabellboks"><table class="res"><tr><th>Kolonne</th><th>Type</th><th>Nøkkel</th><th>Kan vere tom</th></tr>${rader}</table></div>
+        <div class="melding info">Skriv <code>SELECT * FROM ${esc(t)};</code> og trykk Køyr for å sjå innhaldet.</div></div>`;
+}
+
+/* ================== KØYR SQL ================== */
+const MAKS_RADER = 200;
+function utanKommentarar(s) { return s.replace(/--[^\n]*/g, "").replace(/\/\*[\s\S]*?\*\//g, ""); }
+function forsteOrd(s) { const m = /^\s*([A-Za-zÆØÅæøå]+)/.exec(utanKommentarar(s)); return m ? m[1].toUpperCase() : ""; }
+function linjeAv(tekst, pos) { let n = 0; for (let i = 0; i < pos && i < tekst.length; i++) if (tekst.charCodeAt(i) === 10) n++; return n; }
+function forsteTeikn(s, fra) {   // hopp over mellomrom og kommentarar
+    let i = fra;
+    for (;;) {
+        while (i < s.length && /\s/.test(s[i])) i++;
+        if (s.startsWith("--", i)) { while (i < s.length && s[i] !== "\n") i++; continue; }
+        if (s.startsWith("/*", i)) { const j = s.indexOf("*/", i + 2); i = j < 0 ? s.length : j + 2; continue; }
+        return i;
+    }
+}
+function visSql(s) { const t = utanKommentarar(s).trim(); return esc(t.length > 160 ? t.slice(0, 160) + " …" : t); }
+function radord(n) { return n === 1 ? "rad" : "rader"; }
+
+function lagTabell(cols, rows) {
+    const hode = cols.map(c => `<th>${esc(c)}</th>`).join("");
+    const kropp = rows.slice(0, MAKS_RADER).map(r => "<tr>" + r.map(v =>
+        v === null ? `<td class="null">NULL</td>` : typeof v === "number" ? `<td class="tal">${esc(nk(v))}</td>` :
+        v instanceof Uint8Array ? `<td class="null">(binære data)</td>` : `<td>${esc(v)}</td>`).join("") + "</tr>").join("");
+    return `<div class="tabellboks"><table class="res"><tr>${hode}</tr>${kropp}</table></div>`;
+}
+function hjelpHtml(s) { return `<div class="hjelp">💡 ${s}</div>`; }
+
+function koyr() {
+    if (!db) { toast("SQLite lastar framleis – vent litt."); return; }
+    fjernMerke();
+    let kode = hentKode(), basis = 0;
+    if (cm && cm.somethingSelected()) { kode = cm.getSelection(); basis = cm.indexFromPos(cm.getCursor("from")); }
+    lagreKode();
+    const heile = hentKode();
+    resultatEl.innerHTML = "";
+    if (!utanKommentarar(kode).trim()) {
+        resultatEl.innerHTML = hjelpHtml("Editoren er tom. Skriv ei SQL-spørjing, t.d. <code>SELECT * FROM elevar;</code>, og trykk Køyr.");
+        return;
+    }
+    const blokker = [], resultat = [];
+    let endra = false, feila = false;
+    if (/[‘’“”«»]/.test(kode)) blokker.push(hjelpHtml("Koden inneheld «typografiske» hermeteikn (‘ ’ “ ” « »). SQL forstår berre vanlege enkle hermeteikn <code>'</code> rundt tekst. Skriv dei på nytt med apostrof-tasten <code>'</code>, som ligg ved sida av Enter på eit norsk tastatur."));
+    const it = db.iterateStatements(kode);
+    for (;;) {
+        const rest = it.getRemainingSQL();
+        const start = kode.length - rest.length;
+        let neste;
+        try { neste = it.next(); }
+        catch (e) {
+            const s = rest;
+            const p = forsteTeikn(kode, start);
+            blokker.push(feilBlokk(e, s, basis + p, heile));
+            feila = true; break;
+        }
+        if (neste.done) break;
+        const stmt = neste.value;
+        const s = stmt.getSQL();
+        const p = forsteTeikn(kode, start);
+        const ord = forsteOrd(s);
+        try {
+            const cols = stmt.getColumnNames();
+            const rows = [];
+            while (stmt.step()) rows.push(stmt.get());
+            const tips = [];
+            let html = `<div class="stmt">${visSql(s)}</div>`;
+            if (cols.length) {
+                resultat.push({ columns: cols, values: rows, sql: s });
+                html += lagTabell(cols, rows);
+                html += `<div class="melding ${rows.length ? "ok" : "info"}">${rows.length} ${radord(rows.length)}${rows.length > MAKS_RADER ? ` (viser dei første ${MAKS_RADER})` : ""}</div>`;
+                if (!rows.length) tips.push(...tipsIngenTreff(s));
+            } else {
+                const n = db.getRowsModified();
+                if (/^(INSERT|REPLACE)$/.test(ord)) { endra = true; html += `<div class="melding ok">✔ ${n} ${radord(n)} lagt til.</div>`; if (n === 1) { const id = tal(db, "SELECT last_insert_rowid()"); html += `<div class="melding info">Den nye rada fekk id ${id}.</div>`; } }
+                else if (ord === "UPDATE") { endra = true; html += `<div class="melding ok">✔ ${n} ${radord(n)} endra.</div>`; if (!n) tips.push(...tipsIngenTreff(s)); }
+                else if (ord === "DELETE") { endra = true; html += `<div class="melding ok">✔ ${n} ${radord(n)} sletta.</div>`; if (!n) tips.push(...tipsIngenTreff(s)); }
+                else if (ord === "CREATE") { endra = true; html += `<div class="melding ok">✔ ${/^\s*CREATE\s+TABLE/i.test(utanKommentarar(s)) ? "Tabellen er laga." : "Ferdig."}</div>`; }
+                else if (ord === "DROP") { endra = true; html += `<div class="melding ok">✔ ${/^\s*DROP\s+TABLE/i.test(utanKommentarar(s)) ? "Tabellen er sletta." : "Ferdig."}</div>`; }
+                else if (ord === "ALTER") { endra = true; html += `<div class="melding ok">✔ Tabellen er endra.</div>`; }
+                else { endra = true; html += `<div class="melding ok">✔ Ferdig.</div>`; }
+                if (/^(UPDATE|DELETE)$/.test(ord) && !/\bWHERE\b/i.test(utanKommentarar(s)) && n > 1)
+                    tips.push(`${ord} utan <code>WHERE</code> gjeld <b>alle</b> radene i tabellen – no vart ${n} rader ${ord === "UPDATE" ? "endra" : "sletta"}. Var det meininga? Trykk <b>Tilbakestill database</b> om du vil få tilbake startdataa.`);
+            }
+            tips.unshift(...tipsAlltid(s));
+            html += tips.map(hjelpHtml).join("");
+            blokker.push(`<div class="blokk">${html}</div>`);
+            if (tips.length) merkLinje(cm ? cm.posFromIndex(basis + p).line : -1);
+        } catch (e) {
+            try { stmt.free(); } catch (e2) {}
+            blokker.push(feilBlokk(e, s, basis + p, heile));
+            feila = true; break;
+        }
+    }
+    if (!blokker.length) blokker.push(`<div class="melding info">Ingen SQL å køyre.</div>`);
+    resultatEl.innerHTML = blokker.join("");
+    resultatEl.scrollTop = 0;
+    if (endra) { lagreDb(); teiknTabellar(); }
+    sjekkOppgaver({ db, resultat, sql: kode, feila });
+}
+
+/* ================== 💡-HJELP ================== */
+const NOKKELORD = ["SELECT", "FROM", "WHERE", "ORDER", "GROUP", "BY", "HAVING", "LIMIT", "INSERT", "INTO", "VALUES", "UPDATE", "SET", "DELETE", "CREATE", "TABLE", "DROP", "ALTER",
+    "JOIN", "LEFT", "INNER", "ON", "AND", "OR", "NOT", "NULL", "IS", "LIKE", "IN", "BETWEEN", "DISTINCT", "COUNT", "AS", "ASC", "DESC", "PRIMARY", "KEY", "REFERENCES", "INTEGER", "TEXT", "DEFAULT"];
+const STARTORD = ["SELECT", "INSERT", "UPDATE", "DELETE", "CREATE", "DROP", "ALTER", "WITH", "PRAGMA", "REPLACE", "BEGIN", "COMMIT", "VALUES"];
+const NORSKE_ORD = { VEL: "SELECT", VELG: "SELECT", HENT: "SELECT", VIS: "SELECT", "FRÅ": "FROM", FRA: "FROM", DER: "WHERE", HVOR: "WHERE", KVAR: "WHERE", SORTER: "ORDER BY",
+    OG: "AND", ELLER: "OR", IKKJE: "NOT", IKKE: "NOT", OPPDATER: "UPDATE", SLETT: "DELETE", LAG: "CREATE", SETT: "INSERT INTO", GRUPPER: "GROUP BY", TEL: "COUNT" };
+
+function avstand(a, b) {
+    a = a.toLowerCase(); b = b.toLowerCase();
+    const d = Array.from({ length: a.length + 1 }, (_, i) => [i]);
+    for (let j = 1; j <= b.length; j++) d[0][j] = j;
+    for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++)
+        d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    return d[a.length][b.length];
+}
+function naermast(ord, liste) {
+    let best = null, bd = Infinity;
+    for (const x of liste) { const d = avstand(ord, x); if (d < bd) { bd = d; best = x; } }
+    return best && bd > 0 && bd <= Math.max(1, Math.floor(ord.length / 3)) ? best : null;
+}
+const kd = s => "<code>" + esc(s) + "</code>";
+
+/* Tips som gjeld uansett resultat */
+function tipsAlltid(s) {
+    const t = [], r = utanKommentarar(s);
+    if (/(=|!=|<>)\s*NULL\b/i.test(r)) t.push("Ingenting er lik <code>NULL</code> – ikkje eingong NULL sjølv. Skriv <code>IS NULL</code> i staden for <code>= NULL</code>, og <code>IS NOT NULL</code> i staden for <code>&lt;&gt; NULL</code>.");
+    const s2 = skjema(), namn = new Set([...Object.keys(s2), ...Object.values(s2).flat()].map(x => String(x).toLowerCase()));
+    const dq = [...r.matchAll(/"([^"]*)"/g)].map(m => m[1]).filter(x => !namn.has(x.toLowerCase()));
+    if (dq.length && !/^\s*CREATE\b/i.test(r)) t.push(`Tekst skal stå i <b>enkle</b> hermeteikn: ${kd("'" + dq[0] + "'")}. Doble hermeteikn er for namn på tabellar og kolonnar. SQLite godtek det, men i PostgreSQL (Supabase) gir det feil.`);
+    const like = /\bLIKE\s+'([^'%_]*)'/i.exec(r);
+    if (like) t.push(`${kd("LIKE '" + like[1] + "'")} utan <code>%</code> fungerer berre som <code>=</code>. Vil du søkje etter delar av teksten, skriv ${kd("'%" + like[1] + "%'")}.`);
+    return t;
+}
+/* Tips når ei spørjing ikkje traff noko */
+function tipsIngenTreff(s) {
+    const t = [], r = utanKommentarar(s);
+    const lit = [...r.matchAll(/'((?:[^']|'')*)'/g)].map(m => m[1].replace(/''/g, "'")).filter(x => x && !/[%_]/.test(x));
+    const s2 = skjema();
+    for (const L of lit) {
+        const dato = /^(\d{1,2})\.(\d{1,2})\.(\d{4})$/.exec(L.trim());
+        if (dato) { t.push(`Datoar er lagra på forma <code>ÅÅÅÅ-MM-DD</code>. Skriv ${kd("'" + dato[3] + "-" + dato[2].padStart(2, "0") + "-" + dato[1].padStart(2, "0") + "'")} i staden for ${kd("'" + L + "'")}.`); break; }
+        let funne = null;
+        outer: for (const [tab, kolonnar] of Object.entries(s2)) for (const k of kolonnar) {
+            try {
+                const st = db.prepare(`SELECT "${k.replace(/"/g, '""')}" FROM "${tab.replace(/"/g, '""')}" WHERE typeof("${k.replace(/"/g, '""')}") = 'text' AND "${k.replace(/"/g, '""')}" <> ? AND lower(trim("${k.replace(/"/g, '""')}")) = lower(trim(?)) LIMIT 1`);
+                st.bind([L, L]);
+                if (st.step()) funne = { v: st.get()[0], tab, k };
+                st.free();
+                if (funne) break outer;
+            } catch (e) {}
+        }
+        if (funne) { t.push(`Ingen treff på ${kd("'" + L + "'")}, men ${kd(funne.tab + "." + funne.k)} inneheld ${kd("'" + funne.v + "'")}. Tekst må skrivast nøyaktig likt – store og små bokstavar og mellomrom tel.`); break; }
+    }
+    return t;
+}
+
+function feilBlokk(e, s, absPos, heile) {
+    const melding = String(e && e.message || e);
+    let linje = cm ? cm.posFromIndex(absPos).line : linjeAv(heile, absPos);
+    const { tekst, offset } = forklarFeil(melding, s);
+    if (offset >= 0) {
+        const lokal = forsteTeikn(s, 0);
+        const del = s.slice(lokal, offset);
+        linje += (del.match(/\n/g) || []).length;
+    }
+    merkLinje(linje);
+    return `<div class="blokk"><div class="stmt">${visSql(s)}</div>
+        <div class="melding feil">✖ Feil: ${esc(melding)}</div>${hjelpHtml(tekst + ` <span style="opacity:.7">(linje ${linje + 1})</span>`)}</div>`;
+}
+
+/* Omset feilmeldinga frå SQLite til ei forklaring på nynorsk. Returnerer { tekst, offset } der offset er posisjonen til feilen i s (eller -1). */
+function forklarFeil(m, s) {
+    const s2 = skjema(), tabellar = Object.keys(s2), kolonnar = [...new Set(Object.values(s2).flat())];
+    const finn = (ord, fra = 0) => { const re = new RegExp("(^|[^\\wæøåÆØÅ])" + ord.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "(?![\\wæøåÆØÅ])", "ig"); re.lastIndex = fra; const x = re.exec(s); return x ? x.index + x[1].length : -1; };
+    let x;
+    if ((x = /no such table: (?:main\.)?(\S+)/.exec(m))) {
+        const n = x[1], f = n.toLowerCase() === "elever" ? "elevar" : naermast(n, tabellar);
+        return { offset: finn(n), tekst: `Tabellen ${kd(n)} finst ikkje.` + (f ? ` Meinte du ${kd(f)}?` : "") + ` Tabellane i databasen er: ${tabellar.map(kd).join(", ")}.` };
+    }
+    if ((x = /no such column: (\S+)/.exec(m))) {
+        const n = x[1], kort = n.includes(".") ? n.split(".").pop() : n, f = naermast(kort, kolonnar);
+        const verdi = new RegExp("(=|<>|!=|<|>|\\bLIKE|\\bIN\\s*\\(|,)\\s*" + kort.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\b", "i").test(s);
+        if (n.includes(".") && !f && kolonnar.some(k => k.toLowerCase() === kort.toLowerCase()))
+            return { offset: finn(n), tekst: `Kolonnen ${kd(kort)} finst, men ikkje i tabellen ${kd(n.split(".")[0])}. Sjekk at du har brukt rett tabellnamn eller alias framfor punktumet.` };
+        if (verdi && !f) return { offset: finn(n), tekst: `SQLite trur ${kd(kort)} er namnet på ein kolonne. Er det meint som tekst? Då må det stå i enkle hermeteikn: ${kd("'" + kort + "'")}.` };
+        return { offset: finn(n), tekst: `Kolonnen ${kd(n)} finst ikkje.` + (f ? ` Meinte du ${kd(f)}?` : " Klikk på tabellnamna over editoren for å sjå kolonnane.") + (verdi && f ? ` Er det tekst, skal det stå i enkle hermeteikn: ${kd("'" + kort + "'")}.` : "") };
+    }
+    if ((x = /ambiguous column name: (\S+)/.exec(m)))
+        return { offset: finn(x[1]), tekst: `Fleire av tabellane har ein kolonne som heiter ${kd(x[1])}. Skriv tabellnamnet eller aliaset framfor, t.d. ${kd("e." + x[1])} eller ${kd("elevar." + x[1])}.` };
+    if ((x = /unrecognized token: "(.*)"/.exec(m))) {
+        const tok = x[1];
+        if (/^'/.test(tok)) return { offset: finn(tok), tekst: "Ein tekst er ikkje avslutta. Kvar <code>'</code> må ha ein <code>'</code> til slutt." };
+        if (/[‘’“”«»]/.test(tok)) return { offset: -1, tekst: "Bruk vanlege enkle hermeteikn <code>'</code>, ikkje typografiske (‘ ’ “ ” « »)." };
+        if (/^\d+[A-Za-zÆØÅæøå]/.test(tok)) return { offset: finn(tok), tekst: `${kd(tok)} er tekst, ikkje eit tal. Set enkle hermeteikn rundt: ${kd("'" + tok + "'")}.` };
+        return { offset: finn(tok), tekst: `SQLite forstår ikkje ${kd(tok)}. Sjekk stavinga og hermeteikna.` };
+    }
+    if (/incomplete input/.test(m)) {
+        const opne = (s.match(/\(/g) || []).length - (s.match(/\)/g) || []).length;
+        const hermet = (s.match(/'/g) || []).length % 2;
+        return { offset: -1, tekst: hermet ? "Spørjinga sluttar midt i ein tekst. Hugs <code>'</code> på slutten av teksten." : opne > 0 ? "Spørjinga sluttar før alle parentesane er lukka. Manglar du ein <code>)</code>?" : "Spørjinga sluttar for tidleg. Er det noko som manglar til slutt, t.d. eit tabellnamn eller ein verdi?" };
+    }
+    if ((x = /near "(.+?)": syntax error/.exec(m))) {
+        const tok = x[1], T = tok.toUpperCase(), pos = finn(tok), foran = pos > 0 ? s.slice(0, pos).replace(/\s+$/, "") : "";
+        if (NORSKE_ORD[T]) return { offset: pos, tekst: `SQL-kommandoane er på engelsk: skriv ${kd(NORSKE_ORD[T])} i staden for ${kd(tok)}.` };
+        const pos2 = STARTORD.includes(T) ? finn(tok, forsteTeikn(s, 0) + 1) : -1;
+        if (pos2 > 0) return { offset: pos2, tekst: `Her byrjar ei ny spørjing. Manglar du semikolon <code>;</code> på slutten av spørjinga før?` };
+        if (T === "FROM" && foran.endsWith(",")) return { offset: pos, tekst: "Det står eit komma for mykje rett før <code>FROM</code>. Det skal ikkje vere komma etter den siste kolonnen." };
+        if (T === "FROM" && /SELECT$/i.test(foran)) return { offset: pos, tekst: "Du må skrive kva kolonnar du vil ha mellom <code>SELECT</code> og <code>FROM</code>, t.d. <code>SELECT * FROM elevar</code>." };
+        if (T === "WHERE" && /\b(ORDER|GROUP|LIMIT|HAVING)\b/i.test(foran)) return { offset: pos, tekst: "<code>WHERE</code> må kome rett etter <code>FROM</code> (og eventuelle <code>JOIN</code>), før <code>GROUP BY</code>, <code>ORDER BY</code> og <code>LIMIT</code>." };
+        if (/^(WHERE|ORDER|GROUP|HAVING|LIMIT|FROM)$/.test(T)) return { offset: pos, tekst: `Noko er gale rett før ${kd(T)}. Rekkjefølgja skal vere <code>SELECT … FROM … WHERE … GROUP BY … HAVING … ORDER BY … LIMIT …</code>. Sjekk også komma og hermeteikn.` };
+        if (T === ")" || T === "(") return { offset: pos, tekst: "Sjekk parentesane: Kvar <code>(</code> må ha ein <code>)</code>, og det må vere komma mellom verdiane inne i parentesen." };
+        if (T === ",") return { offset: pos, tekst: "Det står eit komma der SQLite ikkje ventar det. Har du eit komma for mykje, eller manglar det noko mellom to komma?" };
+        if (/^[A-Za-zÆØÅæøå_][\wÆØÅæøå]*$/.test(tok) && !NOKKELORD.includes(T)) {
+            const f = naermast(tok, NOKKELORD);
+            if (f && (pos === forsteTeikn(s, 0) || !kolonnar.some(k => k.toLowerCase() === tok.toLowerCase()))) return { offset: pos, tekst: `Meinte du ${kd(f)}? SQLite kjenner ikkje ordet ${kd(tok)}.` };
+            if (/[\wæøå]$/i.test(foran)) return { offset: pos, tekst: `Manglar du eit komma før ${kd(tok)}? Kolonnar og verdiar skal ha komma mellom seg. Er ${kd(tok)} meint som tekst, skal det stå i enkle hermeteikn.` };
+        }
+        return { offset: pos, tekst: `SQLite skjønar ikkje koden ved ${kd(tok)}. Sjekk stavinga, komma og hermeteikn, og at delane kjem i rett rekkjefølgje: <code>SELECT … FROM … WHERE … ORDER BY …</code>.` };
+    }
+    if ((x = /UNIQUE constraint failed: (\S+)/.exec(m)))
+        return { offset: -1, tekst: `Det finst alt ei rad med same verdi i ${kd(x[1])}, og den kolonnen må vere unik. ${/\.id$/.test(x[1]) ? "Ta <code>id</code> ut av INSERT-en, så vel databasen eit ledig nummer sjølv." : "Vel ein annan verdi."}` };
+    if ((x = /NOT NULL constraint failed: (\S+)/.exec(m)))
+        return { offset: -1, tekst: `Kolonnen ${kd(x[1])} kan ikkje stå tom (NOT NULL). Ta han med i lista over kolonnar, og gi han ein verdi.` };
+    if (/FOREIGN KEY constraint failed/.test(m))
+        return { offset: -1, tekst: "Framandnøkkelen stoppa deg. Anten peikar du på ein <code>id</code> som ikkje finst (t.d. ein elev eller noko utstyr som ikkje er registrert), eller så prøver du å slette ei rad som andre rader peikar på (t.d. ein elev som har utlån). Slett eller endre dei andre radene først." };
+    if ((x = /table (\S+) already exists/.exec(m)))
+        return { offset: -1, tekst: `Tabellen ${kd(x[1])} finst alt. Vel eit anna namn, eller slett den gamle først med ${kd("DROP TABLE " + x[1] + ";")}` };
+    if ((x = /table (\S+) has (\d+) columns but (\d+) values were supplied/.exec(m)) || (x = /(\d+) values for (\d+) columns/.exec(m)))
+        return { offset: -1, tekst: "Talet på verdiar i <code>VALUES (…)</code> må vere det same som talet på kolonnar i parentesen etter tabellnamnet. Tel etter – og sjekk at det er komma mellom kvar verdi." };
+    if (/misuse of aggregate/.test(m))
+        return { offset: -1, tekst: "Funksjonar som <code>COUNT</code>, <code>SUM</code> og <code>MAX</code> kan ikkje stå i <code>WHERE</code>. Bruk <code>HAVING</code> etter <code>GROUP BY</code> i staden." };
+    if ((x = /no such function: (\S+)/.exec(m)))
+        return { offset: finn(x[1]), tekst: `Funksjonen ${kd(x[1])} finst ikkje i SQLite.` + (naermast(x[1], ["COUNT", "SUM", "AVG", "MIN", "MAX", "LOWER", "UPPER", "LENGTH", "ROUND", "COALESCE", "DATE"]) ? ` Meinte du ${kd(naermast(x[1], ["COUNT", "SUM", "AVG", "MIN", "MAX", "LOWER", "UPPER", "LENGTH", "ROUND", "COALESCE", "DATE"]))}?` : "") };
+    if (/wrong number of arguments/.test(m))
+        return { offset: -1, tekst: "Funksjonen har feil tal på argument (verdiane inne i parentesen). <code>COUNT(*)</code>, <code>MAX(kolonne)</code> og <code>ROUND(tal, 2)</code> er døme på rett bruk." };
+    if (/datatype mismatch/.test(m))
+        return { offset: -1, tekst: "Feil datatype. Ein <code>INTEGER PRIMARY KEY</code> må vere eit heiltal." };
+    if (/cannot start a transaction within a transaction|no transaction is active/.test(m))
+        return { offset: -1, tekst: "Her trengst ingen <code>BEGIN</code> eller <code>COMMIT</code> – kvar spørjing blir lagra med ein gong." };
+    return { offset: -1, tekst: "SQLite melde ein feil. Les meldinga over, og sjekk stavinga, komma og hermeteikn." };
+}
+
+/* ================== POSTGRESQL-EKSPORT (Supabase) ================== */
+function pgNamn(n) { return /^[a-z_][a-z0-9_]*$/.test(n) ? n : `"${String(n).replace(/"/g, '""')}"`; }
+function pgType(t) {
+    const u = String(t || "").toUpperCase();
+    if (/INT/.test(u)) return "bigint";
+    if (/BOOL/.test(u)) return "boolean";
+    if (/DATETIME|TIMESTAMP/.test(u)) return "timestamp";
+    if (/^DATE/.test(u)) return "date";
+    if (/^TIME/.test(u)) return "time";
+    if (/REAL|FLOA|DOUB/.test(u)) return "double precision";
+    if (/NUM|DEC/.test(u)) return "numeric";
+    return "text";
+}
+function pgVerdi(v, type) {
+    if (v === null || v === undefined) return "null";
+    if (type === "boolean") return v ? "true" : "false";
+    if (typeof v === "number") return /^(bigint|double precision|numeric)$/.test(type) ? nk(v) : `'${nk(v)}'`;
+    if (v instanceof Uint8Array) return "null";
+    return "'" + String(v).replace(/'/g, "''") + "'";
+}
+function lagPostgres() {
+    const s = skjema(), tabellar = Object.keys(s);
+    const fk = Object.fromEntries(tabellar.map(t => [t, kjor(db, `PRAGMA foreign_key_list("${t.replace(/"/g, '""')}")`).values]));
+    // Sorter så tabellar som blir peika på, kjem først
+    const ordna = [], ferdig = new Set();
+    const besok = (t, sti = new Set()) => { if (ferdig.has(t) || sti.has(t)) return; sti.add(t); for (const f of fk[t]) if (s[f[2]]) besok(f[2], sti); ferdig.add(t); ordna.push(t); };
+    tabellar.forEach(t => besok(t));
+    const ut = [`-- Skuledatabasen frå SQL 101, omsett til PostgreSQL for Supabase.`, `-- Laga ${datoTekst()}. Lim inn i SQL Editor i Supabase og trykk Run.`, ``];
+    for (const t of ordna) {
+        const info = kjor(db, `PRAGMA table_info("${t.replace(/"/g, '""')}")`).values;   // cid, name, type, notnull, dflt, pk
+        const pk = info.filter(r => r[5] > 0);
+        const identitet = pk.length === 1 && /INT/i.test(pk[0][2]) ? pk[0][1] : null;
+        const typar = {};
+        const def = info.map(r => {
+            const ty = pgType(r[2]); typar[r[1]] = ty;
+            if (r[1] === identitet) return `    ${pgNamn(r[1])} bigint generated by default as identity primary key`;
+            let d = `    ${pgNamn(r[1])} ${ty}`;
+            if (pk.length === 1 && r[5] > 0) d += " primary key";
+            if (r[3]) d += " not null";
+            if (r[4] !== null) d += ` default ${r[4]}`;
+            const f = fk[t].find(x => x[3] === r[1]);
+            if (f) d += ` references ${pgNamn(f[2])}(${pgNamn(f[4] || "id")})`;
+            return d;
+        });
+        if (pk.length > 1) def.push(`    primary key (${pk.sort((a, b) => a[5] - b[5]).map(r => pgNamn(r[1])).join(", ")})`);
+        ut.push(`create table ${pgNamn(t)} (\n${def.join(",\n")}\n);`);
+        const data = kjor(db, `SELECT * FROM "${t.replace(/"/g, '""')}"`);
+        if (data.values.length) {
+            ut.push(`insert into ${pgNamn(t)} (${data.columns.map(pgNamn).join(", ")}) values\n` +
+                data.values.map(r => "    (" + r.map((v, i) => pgVerdi(v, typar[data.columns[i]])).join(", ") + ")").join(",\n") + ";");
+        }
+        if (identitet) ut.push(`select setval(pg_get_serial_sequence('${pgNamn(t)}', '${identitet}'), coalesce((select max(${pgNamn(identitet)}) from ${pgNamn(t)}), 0) + 1, false);`);
+        ut.push(`alter table ${pgNamn(t)} enable row level security;`, ``);
+    }
+    ut.push(`-- RLS er slått på: API-et viser ingen rader før du lagar ein policy, t.d.:`,
+        `-- create policy "Alle kan lese utstyr" on utstyr for select using (true);`);
+    return ut.join("\n") + "\n";
+}
+document.getElementById("leksjon").addEventListener("click", async e => {
+    const b = e.target.closest("[data-handling]");
+    if (!b) return;
+    if (!db) { toast("SQLite lastar framleis – vent litt."); return; }
+    const sql = lagPostgres();
+    if (b.dataset.handling === "lastned") {
+        const url = URL.createObjectURL(new Blob([sql], { type: "application/sql" }));
+        const a = document.createElement("a");
+        a.href = url; a.download = "skule-supabase.sql";
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 2000);
+        toast("✔ skule-supabase.sql er lasta ned.");
+    } else {
+        try { await navigator.clipboard.writeText(sql); toast("✔ Koden er kopiert. Lim han inn i SQL Editor i Supabase."); }
+        catch (er) { toast("Klarte ikkje å kopiere. Bruk «Last ned» i staden."); }
+    }
+});
+
+/* ================== TILBAKESTILL DATABASE ================== */
+document.getElementById("knappDb").onclick = () => {
+    if (!SQL) return;
+    if (!confirm("Vil du tilbakestille databasen? Alle endringane du har gjort i tabellane, blir borte. Framdrifta i kurset blir ikkje sletta.")) return;
+    nyDatabase(); lagreDb(); teiknTabellar(); fjernMerke();
+    resultatEl.innerHTML = `<div class="melding ok">✔ Databasen er tilbakestilt til startdataa.</div>`;
+};
+
+/* ================== OPPSTART ================== */
+visLeksjon(aktivIndeks, false);
+(async () => {
+    try {
+        SQL = await lastSqlJs();
+        opneDatabase();
+        teiknTabellar();
+        knappKoyr.disabled = false;
+        document.getElementById("dbInfo").textContent = "SQLite " + tal(db, "SELECT sqlite_version()") + " i nettlesaren";
+        resultatEl.innerHTML = `<div class="melding ok">✔ Databasen er klar.</div><div class="melding info">Skriv ei spørjing i editoren og trykk <b>Køyr</b> (eller Ctrl + Enter). Klikk på eit tabellnamn for å sjå kolonnane.</div>`;
+    } catch (e) {
+        resultatEl.innerHTML = `<div class="melding feil">✖ Klarte ikkje å laste SQLite.</div>` +
+            hjelpHtml("Sjekk at du er kopla til Internett, og last sida på nytt. Skulenettet kan av og til blokkere <code>cdn.jsdelivr.net</code>.");
+    }
+})();
+</script>
+</body>
+</html>
