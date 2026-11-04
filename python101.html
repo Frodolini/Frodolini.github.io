@@ -140,11 +140,15 @@ details.laerar ul { padding-left: 20px; margin: 6px 0; }
 .bevisknappar button { padding: 7px 14px; font: inherit; border-radius: 6px; border: 1px solid var(--gron); background: #fff; color: var(--gron-mork); cursor: pointer; }
 .bevisknappar button.hoved { background: var(--gron); color: #fff; }
 @media print {
-    body * { visibility: hidden !important; }
-    #bevis, #bevis * { visibility: visible !important; }
-    #bevisbakgrunn { position: static; background: none; display: block; padding: 0; }
-    #bevisboks { box-shadow: none; max-height: none; overflow: visible; padding: 0; }
-    #bevis { position: absolute; left: 0; top: 0; width: 100%; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    @page { size: A4; margin: 15mm; }
+    /* display:none (ikkje visibility:hidden) – elles tek resten av sida plass og gir fleire tomme sider */
+    html, body { height: auto !important; min-height: 0 !important; overflow: visible !important; background: #fff !important; }
+    body { display: block !important; }
+    body > *:not(#bevisbakgrunn) { display: none !important; }
+    #bevisbakgrunn { position: static !important; inset: auto; background: none !important; display: block !important; padding: 0 !important; }
+    #bevisboks { box-shadow: none; max-width: none; max-height: none; overflow: visible; padding: 0; border-radius: 0; }
+    #bevisboks .namnrad, #bevisboks .bevisknappar { display: none !important; }
+    #bevis { break-inside: avoid; page-break-inside: avoid; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
 
 /* ---------- Felles 💡-hjelpetekst (bruk i simulatoren) ---------- */
