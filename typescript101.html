@@ -1,0 +1,1581 @@
+<!DOCTYPE html>
+<html lang="nn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TypeScript 101</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-darker.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
+<!-- Kode 101 – TypeScript. Bygd på felles mal for Kode 101-sidene. Ekte TypeScript-kompilator (frå CDN) i ein Web Worker. -->
+<style>
+:root {
+    --gron: #2e7d32;
+    --gron-mork: #1b5e20;
+    --gron-lys: #e8f5e9;
+    --bg: #eef3ef;
+    --kort: #ffffff;
+    --tekst: #24302a;
+    --grå: #5f6b64;
+    --linje: #dfe6e1;
+    --lenke: #0066cc;
+    --gul: #fff6d6;
+    --gul-kant: #e8c547;
+    --kode-bg: #f4f6f5;
+    --font: system-ui, "Segoe UI", Arial, sans-serif;
+    --mono: Consolas, "Cascadia Mono", "Cascadia Code", Menlo, monospace;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body { margin: 0; background: var(--bg); color: var(--tekst); font-family: var(--font); font-size: 15px; display: flex; flex-direction: column; }
+
+/* ---------- Grøn tittellinje ---------- */
+header.topp { background: var(--gron); color: #fff; padding: 10px 16px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; border-bottom: 3px solid var(--gron-mork); }
+header.topp .tilbake { color: #fff; text-decoration: none; font-size: 14px; padding: 4px 10px; border: 1px solid rgba(255,255,255,.5); border-radius: 14px; white-space: nowrap; }
+header.topp .tilbake:hover { background: var(--gron-mork); }
+header.topp .titlar { flex: 1 1 260px; min-width: 0; }
+header.topp h1 { margin: 0; font-size: 21px; line-height: 1.2; }
+header.topp .under { margin: 2px 0 0; font-size: 13px; opacity: .9; }
+header.topp .hogre { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.framdrift { font-size: 13px; min-width: 130px; }
+.framdrift .linje { height: 6px; background: rgba(255,255,255,.3); border-radius: 3px; margin-top: 4px; overflow: hidden; }
+.framdrift .linje div { height: 100%; width: 0; background: #fff; transition: width .4s; }
+header.topp button { background: transparent; color: #fff; border: 1px solid rgba(255,255,255,.6); border-radius: 6px; padding: 6px 12px; font: inherit; font-size: 13px; cursor: pointer; }
+header.topp button:hover { background: var(--gron-mork); }
+
+/* ---------- To kolonnar ---------- */
+main.oppsett { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(320px, 40%) 1fr; gap: 14px; padding: 14px; }
+.kort { background: var(--kort); border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,.1); }
+#leksjonspanel { overflow-y: auto; min-height: 0; padding: 0; display: flex; flex-direction: column; }
+#sim { min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
+@media (max-width: 900px) {
+    body { height: auto; display: block; }
+    main.oppsett { display: flex; flex-direction: column; padding: 10px; }
+    #leksjonspanel { overflow: visible; }
+    #sim { height: 78vh; min-height: 460px; }
+}
+
+/* ---------- Leksjonsliste ---------- */
+#leksjonsliste { list-style: none; margin: 0; padding: 8px; border-bottom: 1px solid var(--linje); display: flex; flex-direction: column; gap: 2px; }
+#leksjonsliste li button { width: 100%; text-align: left; background: none; border: none; font: inherit; font-size: 14px; padding: 5px 8px; border-radius: 6px; cursor: pointer; display: flex; gap: 8px; align-items: baseline; color: var(--tekst); }
+#leksjonsliste li button:hover { background: var(--gron-lys); }
+#leksjonsliste li.aktiv button { background: var(--gron); color: #fff; }
+#leksjonsliste .status { width: 1.2em; text-align: center; flex: none; }
+#leksjonsliste .sirkel { display: inline-block; width: 11px; height: 11px; border-radius: 50%; border: 2px solid currentColor; vertical-align: -1px; opacity: .75; }
+#leksjonsliste .sirkel.halv { background: linear-gradient(90deg, currentColor 50%, transparent 50%); opacity: 1; }
+@media (max-width: 600px) { #leksjon .eksempel pre { padding-right: 12px; padding-top: 34px; } }
+#leksjonsliste .nr { color: var(--grå); width: 1.6em; flex: none; }
+#leksjonsliste li.aktiv .nr { color: #dfeee0; }
+#leksjonsliste .tal { margin-left: auto; font-size: 12px; color: var(--grå); }
+#leksjonsliste li.aktiv .tal { color: #dfeee0; }
+#leksjonsliste .ferdig .status { color: var(--gron); }
+#leksjonsliste li.aktiv.ferdig .status { color: #fff; }
+
+/* ---------- Leksjonsinnhald ---------- */
+#leksjon { padding: 14px 18px 18px; line-height: 1.5; }
+#leksjon h2 { font-size: 20px; margin: 0 0 4px; padding-bottom: 6px; border-bottom: 2px solid var(--gron); }
+#leksjon .laerer { color: var(--grå); font-size: 14px; margin: 6px 0 12px; }
+#leksjon .laerer b { color: var(--gron-mork); }
+#leksjon p { margin: 8px 0; }
+#leksjon code { font-family: var(--mono); background: var(--kode-bg); padding: 1px 4px; border-radius: 3px; font-size: 13.5px; }
+#leksjon h3 { font-size: 15px; margin: 18px 0 6px; color: var(--gron-mork); }
+.eksempel { position: relative; margin: 8px 0 12px; }
+.eksempel pre { margin: 0; background: #1e1e1e; color: #e6e6e6; font-family: var(--mono); font-size: 13.5px; padding: 10px 12px; padding-right: 70px; border-radius: 6px; overflow-x: auto; line-height: 1.4; }
+.eksempel .prov { position: absolute; top: 6px; right: 6px; background: var(--gron); color: #fff; border: none; border-radius: 4px; padding: 3px 9px; font: inherit; font-size: 12.5px; cursor: pointer; }
+.eksempel .prov:hover { background: var(--gron-mork); }
+.tips { background: var(--gul); border-left: 4px solid var(--gul-kant); padding: 8px 12px; border-radius: 4px; margin: 10px 0; }
+table.juks { border-collapse: collapse; width: 100%; font-size: 13.5px; margin: 8px 0; }
+table.juks td, table.juks th { border-bottom: 1px solid var(--linje); padding: 4px 6px; text-align: left; vertical-align: top; }
+table.juks td:first-child { font-family: var(--mono); white-space: nowrap; }
+
+/* ---------- Oppgåver ---------- */
+.oppgaver { list-style: none; padding: 0; margin: 6px 0; display: flex; flex-direction: column; gap: 8px; }
+.oppgave { border: 1px solid var(--linje); border-radius: 8px; padding: 9px 12px; display: grid; grid-template-columns: 1.4em 1fr auto; gap: 4px 8px; align-items: start; transition: background .4s, border-color .4s; }
+.oppgave .ikon { font-size: 16px; line-height: 1.4; color: #9aa59f; }
+.oppgave.loyst { background: var(--gron-lys); border-color: #a5d6a7; }
+.oppgave.loyst .ikon { color: var(--gron); }
+.oppgave .hintknapp { background: #fff; border: 1px solid var(--linje); border-radius: 5px; padding: 2px 9px; font: inherit; font-size: 12.5px; cursor: pointer; color: var(--grå); }
+.oppgave .hintknapp:hover { border-color: var(--gron); color: var(--gron-mork); }
+.oppgave .hint { grid-column: 2 / 4; font-size: 13.5px; background: var(--gul); border-radius: 5px; padding: 5px 9px; }
+.oppgave .bra { grid-column: 2 / 4; color: var(--gron-mork); font-weight: bold; font-size: 14px; animation: bra 2.6s forwards; }
+@keyframes bra { 0% { opacity: 0; } 10% { opacity: 1; } 75% { opacity: 1; } 100% { opacity: 0; } }
+.fullfort { background: var(--gron); color: #fff; border-radius: 8px; padding: 10px 14px; margin: 14px 0 6px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.fullfort button { background: #fff; color: var(--gron-mork); border: none; border-radius: 5px; padding: 5px 12px; font: inherit; font-weight: bold; cursor: pointer; }
+.navknappar { display: flex; justify-content: space-between; margin: 18px 0 8px; }
+.navknappar button { background: #fff; border: 1px solid var(--gron); color: var(--gron-mork); border-radius: 6px; padding: 6px 14px; font: inherit; cursor: pointer; }
+.navknappar button:hover:not(:disabled) { background: var(--gron); color: #fff; }
+.navknappar button:disabled { opacity: .35; cursor: default; }
+details.laerar { margin: 16px 0 0; border: 1px solid var(--linje); border-radius: 8px; padding: 8px 12px; font-size: 14px; background: #fafcfb; }
+details.laerar summary { cursor: pointer; font-weight: bold; color: var(--grå); }
+details.laerar ul { padding-left: 20px; margin: 6px 0; }
+
+/* ---------- Toast ---------- */
+#toast { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%) translateY(20px); background: var(--gron-mork); color: #fff; padding: 9px 16px; border-radius: 8px; box-shadow: 0 4px 14px rgba(0,0,0,.25); opacity: 0; pointer-events: none; transition: opacity .3s, transform .3s; z-index: 50; max-width: 90vw; font-size: 14px; }
+#toast.vis { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ---------- Kursbevis ---------- */
+#bevisbakgrunn { position: fixed; inset: 0; background: rgba(0,0,0,.5); display: none; align-items: center; justify-content: center; z-index: 100; padding: 16px; }
+#bevisbakgrunn.vis { display: flex; }
+#bevisboks { background: #fff; border-radius: 10px; max-width: 640px; width: 100%; max-height: 92vh; overflow-y: auto; padding: 18px; }
+.namnrad { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; font-size: 14px; }
+.namnrad input { flex: 1; min-width: 160px; padding: 7px 10px; font: inherit; border: 1px solid #bbb; border-radius: 6px; }
+#bevis { border: 3px solid var(--gron); border-radius: 6px; padding: 0 22px 18px; position: relative; text-align: center; }
+#bevis .stripe { height: 14px; background: var(--gron); margin: 0 -22px 16px; }
+#bevis h2 { margin: 6px 0 2px; font-size: 26px; color: var(--gron-mork); letter-spacing: .02em; }
+#bevis .bnamn { font-size: 24px; margin: 14px 0 2px; font-family: Georgia, serif; border-bottom: 1px solid #999; display: inline-block; min-width: 60%; padding: 0 10px 2px; }
+#bevis .skule { color: var(--grå); font-size: 14px; }
+#bevis ul { list-style: none; padding: 0; text-align: left; margin: 14px auto 6px; max-width: 420px; font-size: 14px; }
+#bevis ul li { padding: 2px 0; }
+#bevis .sum { font-weight: bold; margin-top: 8px; }
+#bevis .segl { position: absolute; right: 14px; top: 26px; width: 84px; height: 84px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #ffe680, #d4a017 60%, #a87900); color: #5a3d00; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 13px; box-shadow: 0 0 0 4px #f3d36b, 0 2px 6px rgba(0,0,0,.3); transform: rotate(-12deg); }
+#bevis .delvis { position: absolute; right: 14px; top: 30px; border: 2px dashed var(--grå); color: var(--grå); border-radius: 6px; padding: 4px 8px; font-size: 13px; transform: rotate(-8deg); }
+#bevis .manglar { font-size: 13px; color: var(--grå); }
+.bevisknappar { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+.bevisknappar button { padding: 7px 14px; font: inherit; border-radius: 6px; border: 1px solid var(--gron); background: #fff; color: var(--gron-mork); cursor: pointer; }
+.bevisknappar button.hoved { background: var(--gron); color: #fff; }
+@media print {
+    @page { size: A4; margin: 15mm; }
+    /* display:none (ikkje visibility:hidden) – elles tek resten av sida plass og gir fleire tomme sider */
+    html, body { height: auto !important; min-height: 0 !important; overflow: visible !important; background: #fff !important; }
+    body { display: block !important; }
+    body > *:not(#bevisbakgrunn) { display: none !important; }
+    #bevisbakgrunn { position: static !important; inset: auto; background: none !important; display: block !important; padding: 0 !important; }
+    #bevisboks { box-shadow: none; max-width: none; max-height: none; overflow: visible; padding: 0; border-radius: 0; }
+    #bevisboks .namnrad, #bevisboks .bevisknappar { display: none !important; }
+    #bevis { break-inside: avoid; page-break-inside: avoid; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+
+/* ---------- Felles 💡-hjelpetekst (bruk i simulatoren) ---------- */
+.hjelp { color: #ffe9a8; font-family: var(--font); font-size: 14px; background: rgba(255, 214, 90, .08); border-left: 3px solid #f2c94c; padding: 4px 10px; margin: 4px 0 6px; white-space: pre-wrap; border-radius: 0 4px 4px 0; }
+
+/* ---------- TypeScript-simulator ---------- */
+#sim { background: #1e1e1e; color: #ddd; }
+.vtittel { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 7px 12px; background: #2b2b2b; border-bottom: 1px solid #111; font-size: 13.5px; color: #ddd; }
+.vtittel .tslogo { background: #3178c6; color: #fff; font-weight: bold; font-size: 11px; padding: 2px 4px; border-radius: 3px; font-family: var(--mono); }
+.vtittel .fnamn { font-family: var(--mono); }
+.vtittel .status { margin-left: auto; font-size: 12.5px; color: #9a9a9a; }
+.vtittel .status.koyrer { color: #7ee787; }
+.vtittel .status.feil { color: #ff7b72; }
+.verktoy { display: flex; gap: 8px; padding: 8px 10px; background: #252525; flex-wrap: wrap; align-items: center; }
+.verktoy button { background: #3a3a3a; color: #eee; border: 1px solid #4a4a4a; border-radius: 5px; padding: 6px 12px; font: inherit; font-size: 13.5px; cursor: pointer; }
+.verktoy button:hover:not(:disabled) { background: #474747; }
+.verktoy button:disabled { opacity: .45; cursor: default; }
+.verktoy #knappKoyr { background: var(--gron); border-color: var(--gron-mork); font-weight: bold; }
+.verktoy #knappKoyr:hover:not(:disabled) { background: var(--gron-mork); }
+.verktoy .snarveg { margin-left: auto; font-size: 12px; color: #8a8a8a; }
+#editorboks { flex: 3 1 0; min-height: 140px; overflow: hidden; }
+#editorboks .CodeMirror, #editorboks textarea { height: 100%; font-family: var(--mono); font-size: 14.5px; }
+#editorboks textarea { width: 100%; background: #212121; color: #eee; border: none; padding: 8px; resize: none; tab-size: 4; }
+.CodeMirror .feillinje { background: rgba(255, 70, 70, .28) !important; }
+.konsolltittel { font-size: 12px; color: #9a9a9a; padding: 4px 12px; background: #252525; letter-spacing: .05em; }
+#konsoll { flex: 2 1 0; min-height: 120px; overflow-y: auto; padding: 8px 12px; font-family: var(--mono); font-size: 14px; line-height: 1.45; background: #141414; white-space: pre-wrap; word-break: break-word; }
+#konsoll .tom { color: #6a6a6a; }
+#konsoll .info { color: #7a7a7a; font-style: italic; }
+#konsoll .err { color: #ff7b72; }
+#konsoll .warn { color: #f2cc60; }
+#konsoll .alert { border: 1px solid #555; border-radius: 4px; padding: 2px 8px; display: inline-block; background: #262626; }
+#konsoll .inrad { display: flex; align-items: baseline; }
+#konsoll .inrad input { flex: 1; background: transparent; border: none; border-bottom: 1px solid #5aa0ef; color: #fff; font: inherit; outline: none; padding: 0 2px; min-width: 60px; }
+#konsoll .inn { color: #8cc4ff; }
+@media (max-width: 900px) { .verktoy .snarveg { display: none; } }
+
+/* Typefeil, typelinje og hjelpeboble */
+.CodeMirror .tsfeil { text-decoration: underline wavy #ff6b6b; text-decoration-skip-ink: none; text-underline-offset: 3px; }
+.vtittel .tsstatus { font-size: 12.5px; color: #9a9a9a; padding: 1px 8px; border-radius: 10px; background: #333; white-space: nowrap; }
+.vtittel .tsstatus.ok { color: #7ee787; }
+.vtittel .tsstatus.feil { color: #ff7b72; }
+.vtittel .tsstatus.lastar { color: #f2cc60; }
+#typelinje { font-family: var(--mono); font-size: 13px; padding: 4px 12px; min-height: 26px; background: #252526; color: #d4d4d4; border-top: 1px solid #111; border-bottom: 3px solid #111; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#typelinje .svak { color: #7a7a7a; font-family: var(--font); font-style: italic; }
+#typelinje .feil { color: #ff8a80; }
+#typelinje .ti { color: #5aa0ef; }
+.tk { color: #c792ea; }
+.tt { color: #4ec9b0; }
+#tstipp { position: fixed; z-index: 60; display: none; max-width: min(520px, calc(100vw - 16px)); background: #252526; color: #d4d4d4; border: 1px solid #454545; border-radius: 6px; padding: 7px 10px; font-size: 13px; line-height: 1.45; box-shadow: 0 4px 14px rgba(0,0,0,.45); pointer-events: none; }
+#tstipp.vis { display: block; }
+#tstipp .type { font-family: var(--mono); white-space: pre-wrap; }
+#tstipp .doc { color: #aaa; margin-top: 4px; }
+#tstipp .tfeil { color: #ff8a80; font-family: var(--mono); white-space: pre-wrap; margin-top: 4px; }
+#tstipp .type + .tfeil { border-top: 1px solid #3a3a3a; padding-top: 5px; }
+#tstipp .nr { color: #888; }
+#tstipp .hjelp { margin: 4px 0 2px; }
+#konsoll .ok { color: #7ee787; }
+#konsoll .jskode { display: block; color: #d4d4d4; background: #1e1e1e; border-left: 3px solid #3178c6; padding: 6px 10px; margin: 2px 0 4px; }
+#konsoll code, .hjelp code { font-family: var(--mono); background: rgba(255,255,255,.08); padding: 0 3px; border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<header class="topp">
+    <a class="tilbake" href="index.html">← Sandkassa</a>
+    <div class="titlar">
+        <h1>TypeScript 101</h1>
+        <p class="under">JavaScript med typar – ekte TypeScript-kompilator som finn feila før koden køyrer</p>
+    </div>
+    <div class="hogre">
+        <div class="framdrift" title="Løyste oppgåver">
+            <span id="framdriftTekst">0 / 0 oppgåver</span>
+            <div class="linje"><div id="framdriftLinje"></div></div>
+        </div>
+        <button id="knappBevis" type="button">Kursbevis</button>
+        <button id="knappNullstill" type="button">Start på nytt</button>
+    </div>
+</header>
+
+<main class="oppsett">
+    <aside id="leksjonspanel" class="kort">
+        <ol id="leksjonsliste"></ol>
+        <div id="leksjon"></div>
+    </aside>
+    <section id="sim" class="kort">
+        <div class="vtittel"><span class="tslogo">TS</span><span class="fnamn">main.ts</span><span id="status" class="status">Klar</span><span id="tsstatus" class="tsstatus">⏳ Lastar TypeScript …</span></div>
+        <div class="verktoy">
+            <button type="button" id="knappKoyr" title="Ctrl+Enter">▶ Køyr</button>
+            <button type="button" id="knappStopp" disabled>■ Stopp</button>
+            <button type="button" id="knappJs" title="Sjå JavaScript-koden kompilatoren lagar">Vis JavaScript</button>
+            <button type="button" id="knappTom">Tøm utdata</button>
+            <button type="button" id="knappTilbake">Tilbakestill kode</button>
+            <span class="snarveg">Ctrl+Enter = køyr</span>
+        </div>
+        <div id="editorboks"><textarea id="kodefelt" spellcheck="false" aria-label="Kode"></textarea></div>
+        <div id="typelinje" aria-live="polite"><span class="svak">Lastar kompilatoren …</span></div>
+        <div class="konsolltittel">KONSOLL</div>
+        <div id="konsoll" aria-live="polite"><span class="tom">Utdata frå programmet ditt kjem her.</span></div>
+    </section>
+</main>
+
+<div id="tstipp" role="tooltip"></div>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<div id="bevisbakgrunn">
+    <div id="bevisboks" role="dialog" aria-modal="true" aria-label="Kursbevis">
+        <div class="namnrad">
+            <label for="bevisNamn">Fornamnet ditt:</label>
+            <input id="bevisNamn" type="text" maxlength="40" placeholder="Skriv fornamnet ditt">
+        </div>
+        <div id="bevis"></div>
+        <div class="bevisknappar">
+            <button type="button" id="bevisLukk">Lukk</button>
+            <button type="button" id="bevisSkriv" class="hoved">Skriv ut</button>
+        </div>
+    </div>
+</div>
+
+<script>
+"use strict";
+/* ================== KURSOPPSETT ================== */
+const KURS = {
+    namn: "TypeScript 101",
+    prefiks: "kode101-ts-",
+};
+
+/* Hjelparar for leksjonane (funksjonsdeklarasjonar, så dei finst før LEKSJONAR blir laga) */
+function htmlEsc(s) { return String(s).replace(/[&<>"]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch])); }
+function ex(kode) { return `<div class="eksempel"><pre>${htmlEsc(kode)}</pre></div>`; }
+function rein(k) { return String(k).replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:"'`\\])\/\/.*$/gm, "$1"); }
+function utLinjer(ctx) { return String(ctx.utdata || "").split("\n").map(s => s.trim()).filter(Boolean); }
+function harLinje(ctx, verdi) { return utLinjer(ctx).some(l => l === String(verdi) || l.split(/[\s:=,]+/).includes(String(verdi))); }
+/* ok = koden hadde ingen typefeil, vart køyrd og krasja ikkje */
+function ok(ctx) { return !!ctx.koyrt && !ctx.feil && !ctx.stoppa; }
+function tsFeil(ctx, ...kodar) { return (ctx.tsfeil || []).some(f => kodar.includes(f.kode)); }
+function tsMelding(ctx, re) { return (ctx.tsfeil || []).some(f => re.test(f.melding)); }
+function svarTekst(ctx) { return (ctx.input || []).filter(v => typeof v === "string"); }
+/* Eit eige interface (ikkje Elev frå eksempelet) og eit objekt med den typen */
+function eigeInterface(k) {
+    const namn = [...k.matchAll(/\binterface\s+([A-Za-zÆØÅæøå_]\w*)\s*\{/g)].map(m => m[1]).filter(n => n !== "Elev");
+    return namn.some(n => new RegExp(":\\s*" + n + "\\s*=\\s*\\{").test(k) && (k.match(new RegExp("\\binterface\\s+" + n + "\\s*\\{([^}]*)\\}")) || ["", ""])[1].split(/[;\n]/).filter(s => /\w\s*\??\s*:/.test(s)).length >= 3);
+}
+const UNION_SN = /:\s*(string\s*\|\s*number|number\s*\|\s*string)\b/;
+
+const LEKSJONAR = [
+{ id: "l1", tittel: "Kvifor TypeScript?", laerer: "kva TypeScript er, korleis kompilatoren finn feil <i>før</i> koden køyrer, og korleis TypeScript blir til JavaScript.",
+  start: `// TypeScript = JavaScript + typar
+function leggSaman(a: number, b: number) {
+    return a + b;
+}
+
+console.log("Hei, TypeScript!");
+console.log(leggSaman(5, 3));
+`,
+  html: `
+<p>I JavaScript 101 såg du at <code>"5" + 3</code> blir <code>"53"</code>. JavaScript seier ikkje frå – programmet køyrer og gir berre feil svar. <b>TypeScript</b> er JavaScript med <b>typar</b>: du skriv kva slags verdiar som er lov, og ein <b>kompilator</b> sjekkar koden <i>før</i> han køyrer.</p>
+${ex(`function leggSaman(a: number, b: number) {\n    return a + b;\n}\n\nconsole.log(leggSaman(5, 3));    // 8\nconsole.log(leggSaman("5", 3));  // ✖ typefeil!`)}
+<p><code>: number</code> etter parameteren betyr «dette må vere eit tal». Kallar du funksjonen med tekst, får du ein <b>typefeil</b> med ein raud bølgjestrek under – akkurat som i VS Code. Hald musa over streken (eller klikk på han) for å lese meldinga.</p>
+<h3>Frå TypeScript til JavaScript</h3>
+<p>Nettlesarar og Node.js køyrer eigentleg berre JavaScript. Når du trykkjer <b>▶ Køyr</b>, skjer to ting:</p>
+<ol>
+<li><b>Kompilatoren</b> (<code>tsc</code>) sjekkar typane. Finn han feil, blir ingenting køyrt.</li>
+<li>Typane blir fjerna, og den reine JavaScript-koden køyrer.</li>
+</ol>
+<p>Trykk <b>Vis JavaScript</b> for å sjå korleis koden ser ut etter at typane er fjerna.</p>
+<div class="tips">💡 Feilmeldingane frå TypeScript er på engelsk, som i ekte verktøy. Under kvar melding får du ei forklaring på nynorsk. Kvar feil har eit nummer, t.d. <code>TS2345</code>, som du kan søkje på.</div>`,
+  oppgaver: [
+    { id: "l1o1", tekst: "Køyr programmet og sjå at det skriv <code>Hei, TypeScript!</code> og <code>8</code>.", hint: ["Startkoden gjer dette allereie – trykk ▶ Køyr (eller Ctrl+Enter)."],
+      sjekk: c => ok(c) && /hei,?\s*typescript/i.test(c.utdata) },
+    { id: "l1o2", tekst: "Endre kallet til <code>leggSaman(\"5\", 3)</code> og køyr. Les feilmeldinga frå kompilatoren.", hint: ["Set hermeteikn rundt 5: <code>console.log(leggSaman(\"5\", 3));</code>", "Her er det meininga at det skal bli feil. Les både den engelske meldinga og 💡-forklaringa."],
+      sjekk: c => tsFeil(c, 2345) && /leggSaman\s*\(\s*["'`]/.test(rein(c.kode)) },
+    { id: "l1o3", tekst: "Trykk <b>Vis JavaScript</b> og sjå kva som har skjedd med <code>: number</code>.", hint: ["Knappen står over editoren, ved sida av ▶ Køyr."],
+      sjekk: c => !!c.visteJs },
+    { id: "l1o4", tekst: "Lag funksjonen <code>gonge(a: number, b: number)</code> som returnerer produktet, og skriv ut <code>gonge(6, 7)</code>.", hint: ["Kopier <code>leggSaman</code> og byt namn og <code>+</code> med <code>*</code>.", "<code>function gonge(a: number, b: number) {<br>&nbsp;&nbsp;&nbsp;&nbsp;return a * b;<br>}<br>console.log(gonge(6, 7));</code>"],
+      sjekk: c => ok(c) && /gonge\s*(=\s*)?\(\s*\w+\s*:\s*number\s*,\s*\w+\s*:\s*number\s*\)/.test(rein(c.kode)) && harLinje(c, 42) },
+  ]},
+
+{ id: "l2", tittel: "Typar og typeinferens", laerer: "grunntypane <code>string</code>, <code>number</code> og <code>boolean</code>, typeannotasjonar og korleis TypeScript gjettar typen sjølv.",
+  start: `let namn: string = "Kari";
+let alder: number = 17;
+let erElev: boolean = true;
+
+console.log(namn, alder, erElev);
+`,
+  html: `
+<p>Dei tre vanlegaste typane er:</p>
+<table class="juks">
+<tr><td>string</td><td>tekst, t.d. <code>"Kari"</code></td></tr>
+<tr><td>number</td><td>alle tal, t.d. <code>17</code> og <code>3.14</code></td></tr>
+<tr><td>boolean</td><td><code>true</code> eller <code>false</code></td></tr>
+</table>
+<p>Du skriv typen etter variabelnamnet med kolon. Det heiter ein <b>typeannotasjon</b>:</p>
+${ex(`let alder: number = 17;\nalder = 18;         // ✔ lov\nalder = "atten";    // ✖ Type 'string' is not assignable to type 'number'.`)}
+<p>Ein variabel kan aldri byte type. Det er heile poenget: har <code>alder</code> fått typen <code>number</code>, kan du stole på at han alltid er eit tal.</p>
+<h3>Typeinferens – TypeScript gjettar</h3>
+<p>Du treng ikkje alltid skrive typen. Gir du variabelen ein verdi med ein gong, finn TypeScript typen sjølv. Det heiter <b>typeinferens</b>:</p>
+${ex(`let by = "Stord";   // TypeScript skjønar: string\nby = 5410;          // ✖ Type 'number' is not assignable to type 'string'.`)}
+<p><b>Hald musa over</b> (eller klikk på) eit variabelnamn i editoren, så ser du typen i linja under koden. Prøv med <code>const</code> òg: då blir typen sjølve verdien, t.d. <code>const pi: 3.14</code>, fordi ein konstant aldri kan endrast.</p>
+<div class="tips">💡 Vanleg stil: la TypeScript gjette når verdien er openberr, og skriv typen når det gjer koden tydelegare – særleg på parametrar i funksjonar (neste leksjon).</div>`,
+  oppgaver: [
+    { id: "l2o1", tekst: "Lag tre variablar med typeannotasjon – éin <code>string</code>, éin <code>number</code> og éin <code>boolean</code> – og skriv dei ut.", hint: ["Startkoden har alt dette – køyr han, eller byt til dine eigne verdiar."],
+      sjekk: c => { const r = rein(c.kode); return ok(c) && /:\s*string\b/.test(r) && /:\s*number\b/.test(r) && /:\s*boolean\b/.test(r) && /\b(true|false)\b/.test(c.utdata); } },
+    { id: "l2o2", tekst: "Prøv å gi <code>alder</code> ein tekst, t.d. <code>alder = \"sytten\";</code>, og køyr.", hint: ["Skriv linja <code>alder = \"sytten\";</code> under <code>let alder: number = 17;</code>"],
+      sjekk: c => tsMelding(c, /Type 'string' is not assignable to type 'number'/) && /\balder\s*=\s*["'`]/.test(rein(c.kode)) },
+    { id: "l2o3", tekst: "Lag ein variabel <b>utan</b> typeannotasjon, t.d. <code>let by = \"Stord\";</code>, og gi han eit tal etterpå. Sjå at TypeScript har gjetta typen!", hint: ["Klikk på <code>by</code> og sjå typen i linja under koden.", "<code>let by = \"Stord\";</code><br><code>by = 5410;</code>"],
+      sjekk: c => tsMelding(c, /Type 'number' is not assignable to type 'string'/) && /\blet\s+\w+\s*=\s*["'`]/.test(rein(c.kode)) },
+    { id: "l2o4", tekst: "Rekn ut kor mange sekund det er i eitt døgn med <code>number</code>-variablar (t.d. timar, minutt, sekund), og skriv ut svaret.", hint: ["Eit døgn har 24 timar, ein time har 60 minutt og eit minutt har 60 sekund.", "<code>const timar: number = 24;</code> … og så <code>console.log(timar * minutt * sekund);</code>"],
+      sjekk: c => ok(c) && /:\s*number\b/.test(rein(c.kode)) && !/86400/.test(rein(c.kode)) && harLinje(c, 86400) },
+  ]},
+
+{ id: "l3", tittel: "Funksjonar med typar", laerer: "å gi parametrar og returverdi typar, og bruke <code>void</code>, valfrie parametrar med <code>?</code> og standardverdiar.",
+  start: `function areal(breidd: number, hogd: number): number {
+    return breidd * hogd;
+}
+
+console.log(areal(4, 5));
+`,
+  html: `
+<p>På funksjonar er typar ekstra nyttige. Du skriv typen på kvar parameter, og typen på svaret (<b>returtypen</b>) etter parentesen:</p>
+${ex(`function areal(breidd: number, hogd: number): number {\n    return breidd * hogd;\n}\nconsole.log(areal(4, 5));`)}
+<p>No veit både du, kompilatoren og VS Code kva funksjonen tek imot og gir tilbake. Kallar du han feil, får du beskjed:</p>
+${ex(`areal(4);          // ✖ Expected 2 arguments, but got 1.\nareal(4, "5");     // ✖ Argument of type 'string' is not assignable ...`)}
+<p>I <b>strict</b>-modus (som simulatoren brukar) må parametrar ha type. Utan type ville dei fått typen <code>any</code> («kva som helst»), og det godtek ikkje kompilatoren:</p>
+${ex(`function dobbel(x) {   // ✖ Parameter 'x' implicitly has an 'any' type.\n    return x * 2;\n}`)}
+<h3>void, valfrie parametrar og standardverdiar</h3>
+<p>Ein funksjon som ikkje returnerer noko, har returtypen <code>void</code>. Ein parameter med <code>?</code> er <b>valfri</b>, og ein parameter med <code>=</code> får ein <b>standardverdi</b>:</p>
+${ex(`function hels(namn: string, tittel?: string): void {\n    if (tittel) {\n        console.log("Hei, " + tittel + " " + namn);\n    } else {\n        console.log("Hei, " + namn);\n    }\n}\nhels("Kari");\nhels("Hansen", "lærar");\n\nfunction medMva(pris: number, sats: number = 0.25): number {\n    return pris * (1 + sats);\n}\nconsole.log(medMva(100));`)}
+<p>Pilfunksjonar får typar på same måte: <code>const dobbel = (x: number): number =&gt; x * 2;</code></p>`,
+  oppgaver: [
+    { id: "l3o1", tekst: "Skriv ein funksjon der parameteren manglar type, t.d. <code>function dobbel(x) { return x * 2; }</code>, og les feilen.", hint: ["Trykk «Prøv» på eksempelet med <code>dobbel</code> og køyr."],
+      sjekk: c => tsFeil(c, 7006) },
+    { id: "l3o2", tekst: "Lag funksjonen <code>tilFahrenheit(c: number): number</code> (F = C · 1.8 + 32) og skriv ut kva 100 °C er i Fahrenheit.", hint: ["<code>return c * 1.8 + 32;</code>", "<code>console.log(tilFahrenheit(100));</code> skal gi 212."],
+      sjekk: c => ok(c) && /\(\s*\w+\s*:\s*number\s*\)\s*:\s*number/.test(rein(c.kode)) && harLinje(c, 212) },
+    { id: "l3o3", tekst: "Kall ein funksjon med for få argument og sjå kva kompilatoren seier.", hint: ["T.d. <code>console.log(areal(4));</code>"],
+      sjekk: c => tsFeil(c, 2554, 2555) },
+    { id: "l3o4", tekst: "Lag ein funksjon med ein valfri parameter (<code>?</code>) og kall han både med og utan det valfrie argumentet.", hint: ["Sjå <code>hels</code> i eksempelet – trykk «Prøv».", "Den valfrie parameteren må stå sist: <code>(namn: string, tittel?: string)</code>"],
+      sjekk: c => ok(c) && /\(\s*[^)]*\w+\s*\?\s*:/.test(rein(c.kode)) && utLinjer(c).length >= 2 },
+  ]},
+
+{ id: "l4", tittel: "Tabellar og tuplar", laerer: "å gi tabellar (arrays) typar som <code>number[]</code>, bruke <code>filter</code> og <code>map</code>, og lage tuplar.",
+  start: `const karakterar: number[] = [4, 5, 3, 6];
+karakterar.push(5);
+
+console.log(karakterar);
+`,
+  html: `
+<p>Ein tabell der alle elementa er tal, har typen <code>number[]</code> («tabell av tal»). Ein tabell av tekst er <code>string[]</code>:</p>
+${ex(`const karakterar: number[] = [4, 5, 3, 6];\nconst fag: string[] = ["Norsk", "Matte", "IT"];`)}
+<p>No passar TypeScript på innhaldet. Du får ikkje leggje tekst i ein talltabell ved eit uhell:</p>
+${ex(`karakterar.push(5);       // ✔\nkarakterar.push("seks");  // ✖ Argument of type 'string' is not assignable to parameter of type 'number'.`)}
+<p>Gjennomsnitt med ei løkke, som i JavaScript:</p>
+${ex(`const karakterar: number[] = [4, 5, 3, 6];\nlet sum = 0;\nfor (const k of karakterar) {\n    sum += k;\n}\nconsole.log("Snitt:", sum / karakterar.length);`)}
+<h3>filter og map</h3>
+<p><code>filter</code> lagar ein ny tabell med elementa som oppfyller eit vilkår, og <code>map</code> gjer om kvart element. TypeScript skjønar typen på resultatet sjølv – klikk på <code>gode</code> og <code>tekstar</code>:</p>
+${ex(`const karakterar: number[] = [4, 5, 3, 6];\nconst gode = karakterar.filter(k => k >= 5);\nconst tekstar = karakterar.map(k => "Karakter " + k);\nconsole.log(gode);\nconsole.log(tekstar);`)}
+<h3>Tuplar</h3>
+<p>Ein <b>tuppel</b> er ein tabell med fast lengd der kvar plass har sin eigen type. Fint for par av verdiar:</p>
+${ex(`const elev: [string, number] = ["Kari", 17];\nconsole.log(elev[0] + " er " + elev[1] + " år");\n\nconst feil: [string, number] = [17, "Kari"];  // ✖`)}
+<div class="tips">💡 Du kan òg skrive <code>Array&lt;number&gt;</code> i staden for <code>number[]</code>. Det betyr det same – meir om <code>&lt; &gt;</code> i leksjonen om generics.</div>`,
+  oppgaver: [
+    { id: "l4o1", tekst: "Lag ein tabell av typen <code>number[]</code> med karakterane dine og skriv ut gjennomsnittet.", hint: ["Bruk løkka frå eksempelet – trykk «Prøv».", "Gjennomsnitt = summen delt på <code>karakterar.length</code>."],
+      sjekk: c => { const r = rein(c.kode); return ok(c) && /:\s*number\s*\[\s*\]/.test(r) && /\.length\b/.test(r) && /\d/.test(c.utdata); } },
+    { id: "l4o2", tekst: "Prøv å <code>push</code>-e ein tekst inn i talltabellen og les feilen.", hint: ["<code>karakterar.push(\"seks\");</code>"],
+      sjekk: c => tsFeil(c, 2345) && /\.push\s*\(\s*["'`]/.test(rein(c.kode)) },
+    { id: "l4o3", tekst: "Bruk <code>filter</code> til å lage ein ny tabell med berre karakterane som er 5 eller betre, og skriv han ut.", hint: ["<code>const gode = karakterar.filter(k => k >= 5);</code>", "<code>console.log(gode);</code>"],
+      sjekk: c => ok(c) && /\.filter\s*\(/.test(rein(c.kode)) && c.utdata.includes("[") },
+    { id: "l4o4", tekst: "Lag ein tuppel av typen <code>[string, number]</code> og skriv ut begge delane.", hint: ["<code>const elev: [string, number] = [\"Kari\", 17];</code>", "Hent delane med <code>elev[0]</code> og <code>elev[1]</code>."],
+      sjekk: c => ok(c) && /:\s*\[\s*string\s*,\s*number\s*\]/.test(rein(c.kode)) && c.utdata.trim() !== "" },
+  ]},
+
+{ id: "l5", tittel: "Objekt med interface", laerer: "å beskrive korleis eit objekt skal sjå ut med <code>interface</code>, og bruke valfrie og <code>readonly</code>-eigenskapar.",
+  start: `interface Elev {
+    namn: string;
+    alder: number;
+    klasse: string;
+}
+
+const kari: Elev = { namn: "Kari", alder: 17, klasse: "1IMA" };
+console.log(kari.namn + " går i " + kari.klasse);
+`,
+  html: `
+<p>Eit <b>interface</b> er ei «oppskrift» på eit objekt: kva eigenskapar det skal ha, og kva type kvar eigenskap har.</p>
+${ex(`interface Elev {\n    namn: string;\n    alder: number;\n    klasse: string;\n}\n\nconst kari: Elev = { namn: "Kari", alder: 17, klasse: "1IMA" };\nconsole.log(kari.namn);`)}
+<p>Kompilatoren sjekkar at objektet følgjer oppskrifta – at ingen eigenskapar manglar, og at ingen er feilstava:</p>
+${ex(`const ola: Elev = { namn: "Ola", alder: 16 };\n// ✖ Property 'klasse' is missing in type ...\n\nconst per: Elev = { namn: "Per", alder: 16, klase: "1IMB" };\n// ✖ Object literal may only specify known properties ...`)}
+<p>Bonus: skriv <code>kari.</code> i VS Code, så får du ei liste over alle eigenskapane. Det er ein av grunnane til at så mange brukar TypeScript.</p>
+<h3>Valfrie og readonly-eigenskapar</h3>
+${ex(`interface Brukar {\n    readonly id: number;   // kan ikkje endrast\n    brukarnamn: string;\n    epost?: string;        // valfri\n}\n\nconst b: Brukar = { id: 1, brukarnamn: "kari17" };\nb.brukarnamn = "kari_17";  // ✔\nb.id = 2;                  // ✖ Cannot assign to 'id' because it is a read-only property.`)}
+<h3>Tabell av objekt</h3>
+${ex(`interface Elev {\n    namn: string;\n    alder: number;\n    klasse: string;\n}\n\nconst klassa: Elev[] = [\n    { namn: "Kari", alder: 17, klasse: "1IMA" },\n    { namn: "Ola", alder: 16, klasse: "1IMA" },\n];\nfor (const e of klassa) {\n    console.log(e.namn + " (" + e.alder + ")");\n}`)}
+<div class="tips">💡 Du kan òg skrive <code>type Elev = { namn: string; alder: number; };</code> For objekt fungerer <code>type</code> og <code>interface</code> nesten likt. Med <code>type</code> kan du i tillegg gi namn til andre typar – det ser du i neste leksjon.</div>`,
+  oppgaver: [
+    { id: "l5o1", tekst: "Lag ditt eige <code>interface</code> (t.d. <code>Spel</code>, <code>Bil</code> eller <code>Datamaskin</code>) med minst tre eigenskapar. Lag eit objekt av typen og skriv ut ein eigenskap.", hint: ["Gjer som med <code>Elev</code>, men med eit anna namn og andre eigenskapar.", "<code>interface Spel { tittel: string; aar: number; flerspelar: boolean; }</code><br><code>const s: Spel = { tittel: \"Minecraft\", aar: 2011, flerspelar: true };</code>"],
+      sjekk: c => ok(c) && eigeInterface(rein(c.kode)) && c.utdata.trim() !== "" },
+    { id: "l5o2", tekst: "Lag eit objekt der ein påkravd eigenskap manglar, og les feilen.", hint: ["T.d. <code>const ola: Elev = { namn: \"Ola\", alder: 16 };</code>"],
+      sjekk: c => tsFeil(c, 2741, 2739) },
+    { id: "l5o3", tekst: "Lag ein tabell med minst to objekt av ein interface-type og skriv ut alle med ei løkke.", hint: ["Sjå eksempelet «Tabell av objekt» – trykk «Prøv».", "Typen på tabellen er <code>Elev[]</code> (eller <code>Spel[]</code> …)."],
+      sjekk: c => { const r = rein(c.kode); return ok(c) && /:\s*[A-ZÆØÅ]\w*\s*\[\s*\]\s*=/.test(r) && /\bfor\b|\.forEach\s*\(|\.map\s*\(/.test(r) && utLinjer(c).length >= 2; } },
+    { id: "l5o4", tekst: "Gjer ein eigenskap <code>readonly</code> og prøv å endre han.", hint: ["Sjå eksempelet med <code>Brukar</code>.", "<code>readonly id: number;</code> i interfacet, og så <code>b.id = 2;</code>"],
+      sjekk: c => tsFeil(c, 2540) },
+  ]},
+
+{ id: "l6", tittel: "Union- og literal-typar", laerer: "å seie at ein verdi kan vere <i>ein av fleire</i> typar med <code>|</code>, og å avgrense til nokre få lovlege verdiar med literal-typar.",
+  start: `type Val = "stein" | "saks" | "papir";
+
+let mittVal: Val = "stein";
+console.log("Eg vel " + mittVal);
+`,
+  html: `
+<p>Med <code>|</code> (les: «eller») lagar du ein <b>union-type</b>. Ein verdi av typen <code>string | number</code> kan vere tekst <i>eller</i> tal:</p>
+${ex(`let id: string | number;\nid = 42;        // ✔\nid = "A-42";    // ✔\nid = true;      // ✖`)}
+<h3>Literal-typar</h3>
+<p>Ein type kan òg vere ein <b>bestemt verdi</b>. Set du fleire saman, får du ei liste over lovlege verdiar – perfekt til stein, saks, papir:</p>
+${ex(`type Val = "stein" | "saks" | "papir";\n\nlet mittVal: Val = "saks";   // ✔\nmittVal = "brett";           // ✖ Type '"brett"' is not assignable to type 'Val'.`)}
+<p>Med <code>type</code> gir du typen eit namn, så du kan bruke han mange stader. Skriv du feil, t.d. <code>"stien"</code>, oppdagar kompilatoren det med ein gong.</p>
+<p>Fleire døme: <code>type Retning = "opp" | "ned" | "venstre" | "hogre";</code> eller <code>type Terning = 1 | 2 | 3 | 4 | 5 | 6;</code></p>
+<h3>Literal-typar i funksjonar</h3>
+${ex(`type Val = "stein" | "saks" | "papir";\n\nfunction slaar(a: Val, b: Val): boolean {\n    return (a === "stein" && b === "saks") ||\n           (a === "saks" && b === "papir") ||\n           (a === "papir" && b === "stein");\n}\nconsole.log(slaar("stein", "saks"));\nconsole.log(slaar("papir", "saks"));`)}
+<div class="tips">💡 Literal-typar er ofte betre enn vanleg <code>string</code>: kompilatoren fangar skrivefeil, og VS Code foreslår dei lovlege verdiane medan du skriv.</div>`,
+  oppgaver: [
+    { id: "l6o1", tekst: "Gi <code>mittVal</code> ein verdi som ikkje er lov, t.d. <code>\"brett\"</code>, og les feilen.", hint: ["<code>mittVal = \"brett\";</code>"],
+      sjekk: c => tsFeil(c, 2322, 2820) && /\btype\s+\w+\s*=\s*["']/.test(rein(c.kode)) },
+    { id: "l6o2", tekst: "Lag din eigen literal-type med minst tre verdiar (t.d. <code>Retning</code> eller <code>Terning</code>), og ein variabel av typen som du skriv ut.", hint: ["<code>type Retning = \"opp\" | \"ned\" | \"venstre\" | \"hogre\";</code>", "<code>let r: Retning = \"opp\";</code><br><code>console.log(r);</code>"],
+      sjekk: c => { const r = rein(c.kode); const lit = `(?:"[^"]*"|'[^']*'|-?\\d+)`; return ok(c) && [...r.matchAll(new RegExp(`\\btype\\s+(\\w+)\\s*=\\s*\\|?\\s*${lit}\\s*\\|\\s*${lit}\\s*\\|\\s*${lit}`, "g"))].some(m => m[1] !== "Val" && new RegExp(":\\s*" + m[1] + "\\b").test(r)) && c.utdata.trim() !== ""; } },
+    { id: "l6o3", tekst: "Lag funksjonen <code>slaar(a: Val, b: Val): boolean</code> og vis at han kan gi både <code>true</code> og <code>false</code>.", hint: ["Trykk «Prøv» på det siste eksempelet."],
+      sjekk: c => ok(c) && /\(\s*\w+\s*:\s*(\w+)\s*,\s*\w+\s*:\s*\1\s*\)\s*:\s*boolean/.test(rein(c.kode)) && harLinje(c, "true") && harLinje(c, "false") },
+    { id: "l6o4", tekst: "Lag ein variabel av typen <code>string | number</code>. Gi han først eit tal og så ein tekst, og skriv han ut begge gongene.", hint: ["<code>let id: string | number = 42;</code><br><code>console.log(id);</code><br><code>id = \"A-42\";</code><br><code>console.log(id);</code>"],
+      sjekk: c => ok(c) && UNION_SN.test(rein(c.kode)) && utLinjer(c).length >= 2 },
+  ]},
+
+{ id: "l7", tittel: "Narrowing og null", laerer: "korleis TypeScript «snevrar inn» typen med <code>typeof</code> og <code>if</code>, og korleis du handterer <code>null</code> trygt med <code>?.</code> og <code>??</code>.",
+  start: `const svar = prompt("Kva heiter du?");
+
+if (svar !== null) {
+    console.log("Hei, " + svar.toUpperCase() + "!");
+} else {
+    console.log("Du avbraut.");
+}
+`,
+  html: `
+<p>Har ein verdi ein union-type som <code>string | number</code>, kan du ikkje bruke tekstmetodar på han – han kan jo vere eit tal. Først må du sjekke typen. Då <b>snevrar TypeScript inn</b> typen (<i>narrowing</i>):</p>
+${ex(`function vis(id: string | number) {\n    if (typeof id === "string") {\n        console.log(id.toUpperCase());   // her er id ein string\n    } else {\n        console.log(id.toFixed(2));      // her er id ein number\n    }\n}\nvis("a-42");\nvis(42);`)}
+<p>Klikk på <code>id</code> inne i kvar blokk – typen er ulik!</p>
+<h3>null – «ingen verdi»</h3>
+<p><code>prompt</code> gir typen <code>string | null</code>: tekst om brukaren svarar, men <code>null</code> om brukaren trykkjer <b>Avbryt</b>. Prøver du å bruke svaret direkte, stoppar kompilatoren deg:</p>
+${ex(`const svar = prompt("Kva heiter du?");\nconsole.log(svar.toUpperCase());\n// ✖ 'svar' is possibly 'null'.`)}
+<p>I JavaScript ville programmet krasja med <code>TypeError</code> når nokon trykte Avbryt. TypeScript tvingar deg til å tenkje på det på førehand. Løysinga er å sjekke med <code>if</code>:</p>
+${ex(`const svar = prompt("Kva heiter du?");\nif (svar !== null) {\n    console.log("Hei, " + svar.toUpperCase() + "!");\n} else {\n    console.log("Du avbraut.");\n}`)}
+<p>I simulatoren svarar du i konsollen. Trykk <b>Esc</b> i staden for Enter for å «trykkje Avbryt» – då gir <code>prompt</code> <code>null</code>.</p>
+<h3>?. og ??</h3>
+<table class="juks">
+<tr><td>a?.b</td><td>hent <code>b</code> berre om <code>a</code> ikkje er <code>null</code>/<code>undefined</code> (elles blir svaret <code>undefined</code>)</td></tr>
+<tr><td>a ?? b</td><td>bruk <code>a</code> – men <code>b</code> om <code>a</code> er <code>null</code>/<code>undefined</code></td></tr>
+</table>
+${ex(`const svar = prompt("Kva heiter du?");\nconst namn = svar ?? "ukjend";\nconsole.log("Hei, " + namn);\nconsole.log("Lengd:", svar?.length);`)}
+<div class="tips">💡 Feilen <code>'x' is possibly 'null'</code> kjem av innstillinga <code>strictNullChecks</code>, som er på i strict-modus. Ho fangar ein av dei aller vanlegaste feila i JavaScript.</div>`,
+  oppgaver: [
+    { id: "l7o1", tekst: "Skriv <code>const svar = prompt(\"Namn?\");</code> og prøv <code>svar.toUpperCase()</code> utan sjekk. Les feilen.", hint: ["Trykk «Prøv» på det andre eksempelet."],
+      sjekk: c => tsFeil(c, 18047, 2531) },
+    { id: "l7o2", tekst: "Køyr startkoden to gonger: éin gong der du svarar, og éin gong der du trykkjer <b>Esc</b>.", hint: ["Når programmet spør, skriv namnet ditt og trykk Enter. Køyr så på nytt og trykk Esc."],
+      sjekk: (() => { let svart = false, avbrote = false; return c => { if (!ok(c) || !/prompt\s*\(/.test(c.kode) || !/null/.test(rein(c.kode))) return false; if (svarTekst(c).length) svart = true; if ((c.input || []).includes(null)) avbrote = true; return svart && avbrote; }; })() },
+    { id: "l7o3", tekst: "Bruk <code>??</code> til å gi ein standardverdi når brukaren avbryt, og test det med <b>Esc</b>.", hint: ["Trykk «Prøv» på det siste eksempelet, køyr og trykk Esc."],
+      sjekk: c => ok(c) && /\?\?/.test(rein(c.kode)) && (c.input || []).includes(null) },
+    { id: "l7o4", tekst: "Lag ein funksjon som tek inn <code>string | number</code> og brukar <code>typeof</code> til å gjere ulike ting for tekst og tal. Kall han med begge.", hint: ["Sjå det første eksempelet med <code>vis</code>.", "<code>if (typeof id === \"string\") { ... } else { ... }</code>"],
+      sjekk: c => { const r = rein(c.kode); return ok(c) && UNION_SN.test(r) && /typeof\s+\w+\s*===?\s*["'](string|number)["']/.test(r) && utLinjer(c).length >= 2; } },
+  ]},
+
+{ id: "l8", tittel: "any og unknown", laerer: "kvifor <code>any</code> slår av typesjekken, og kvifor <code>unknown</code> er det trygge alternativet.",
+  start: `let data: any = 42;
+console.log(data.toUpperCase());
+`,
+  html: `
+<p><code>any</code> betyr «kva som helst – ikkje sjekk». Med ein <code>any</code>-verdi kan du gjere alt, og kompilatoren seier ingenting. Det høyrest praktisk ut, men då er du tilbake i vanleg JavaScript – med feil som først viser seg når programmet køyrer:</p>
+${ex(`let data: any = 42;\nconsole.log(data.toUpperCase());\n// Kompilatoren: ingen feil\n// Køyring: TypeError: data.toUpperCase is not a function`)}
+<p><code>any</code> dukkar òg opp av seg sjølv, t.d. frå <code>JSON.parse</code>:</p>
+${ex(`const brukar = JSON.parse('{"namn": "Kari"}');\nconsole.log(brukar.nman);  // stavefeil – ingen typefeil, berre undefined`)}
+<h3>unknown – den trygge varianten</h3>
+<p><code>unknown</code> betyr òg «kan vere kva som helst», men du får <b>ikkje</b> bruke verdien før du har sjekka kva han er:</p>
+${ex(`let data: unknown = 42;\nconsole.log(data.toUpperCase());\n// ✖ 'data' is of type 'unknown'.`)}
+${ex(`let data: unknown = 42;\nif (typeof data === "string") {\n    console.log(data.toUpperCase());  // ✔ no veit vi at det er tekst\n} else if (typeof data === "number") {\n    console.log(data * 2);            // ✔ og her er det eit tal\n}`)}
+<div class="tips">💡 Tommelfingerregel: unngå <code>any</code>. Veit du ikkje typen, bruk <code>unknown</code> og sjekk med <code>typeof</code>. Mange utviklarteam har ein regel som forbyr <code>any</code> heilt.</div>`,
+  oppgaver: [
+    { id: "l8o1", tekst: "Køyr startkoden. Kompilatoren godtek han – men kva skjer når programmet køyrer?", hint: ["Trykk ▶ Køyr og les feilmeldinga i konsollen. Her er det meininga at det skal krasje."],
+      sjekk: c => !!c.koyrt && c.feiltype === "TypeError" && /:\s*any\b/.test(rein(c.kode)) },
+    { id: "l8o2", tekst: "Byt <code>any</code> med <code>unknown</code> og sjå at kompilatoren no stoppar deg før koden køyrer.", hint: ["<code>let data: unknown = 42;</code>"],
+      sjekk: c => tsFeil(c, 18046, 2571) && /:\s*unknown\b/.test(rein(c.kode)) },
+    { id: "l8o3", tekst: "Bruk <code>typeof</code> til å sjekke <code>unknown</code>-verdien før du brukar han, slik at programmet køyrer utan feil.", hint: ["Trykk «Prøv» på det siste eksempelet."],
+      sjekk: c => { const r = rein(c.kode); return ok(c) && /:\s*unknown\b/.test(r) && /typeof\s+\w+\s*===?/.test(r) && c.utdata.trim() !== ""; } },
+  ]},
+
+{ id: "l9", tittel: "Generics", laerer: "å lage funksjonar og typar som verkar for mange typar, med typeparametrar som <code>&lt;T&gt;</code>.",
+  start: `function forste<T>(liste: T[]): T | undefined {
+    return liste[0];
+}
+
+const tal = forste([10, 20, 30]);
+const ord = forste(["hei", "på", "deg"]);
+console.log(tal, ord);
+`,
+  html: `
+<p>Tenk deg at du vil lage ein funksjon som gir det første elementet i ein tabell – for alle slags tabellar. Med <code>any</code> mistar du typen. Med <b>generics</b> beheld du han:</p>
+${ex(`function forste<T>(liste: T[]): T | undefined {\n    return liste[0];\n}`)}
+<p><code>&lt;T&gt;</code> er ein <b>typeparameter</b> – ein plasshaldar for ein type, på same måte som ein vanleg parameter er ein plasshaldar for ein verdi. Når du kallar funksjonen, finn TypeScript ut kva <code>T</code> er:</p>
+${ex(`function forste<T>(liste: T[]): T | undefined {\n    return liste[0];\n}\nconst tal = forste([10, 20, 30]);          // T = number\nconst ord = forste(["hei", "på", "deg"]);  // T = string\nconsole.log(ord.toUpperCase());  // ✖ 'ord' is possibly 'undefined'.`)}
+<p>Klikk på <code>tal</code> og <code>ord</code> for å sjå typane. Returtypen er <code>T | undefined</code> fordi tabellen kan vere tom.</p>
+<h3>Generiske interface</h3>
+${ex(`interface Boks<T> {\n    innhald: T;\n    merkelapp: string;\n}\n\nconst a: Boks<string> = { innhald: "bøker", merkelapp: "Kjellar" };\nconst b: Boks<number> = { innhald: 42, merkelapp: "Svaret" };\nconsole.log(a.innhald, b.innhald);`)}
+<p>Du har alt brukt generics utan å vite det: <code>Array&lt;number&gt;</code> er det same som <code>number[]</code>. Og <code>new Map&lt;string, number&gt;()</code> lagar ein oppslagstabell frå tekst til tal:</p>
+${ex(`const poeng = new Map<string, number>();\npoeng.set("Kari", 12);\npoeng.set("Ola", 9);\nconsole.log(poeng.get("Kari"));`)}`,
+  oppgaver: [
+    { id: "l9o1", tekst: "Lag den generiske funksjonen <code>siste&lt;T&gt;(liste: T[]): T | undefined</code> som gir det <b>siste</b> elementet, og test han med ein tabell.", hint: ["Det siste elementet har indeksen <code>liste.length - 1</code>.", "<code>return liste[liste.length - 1];</code>"],
+      sjekk: c => ok(c) && /\bsiste\s*<\s*\w+\s*>\s*\(|\bsiste\s*=\s*<\s*\w+\s*,?\s*>/.test(rein(c.kode)) && /\bsiste\s*\(/.test(rein(c.kode)) && c.utdata.trim() !== "" },
+    { id: "l9o2", tekst: "Lag eit generisk <code>interface Boks&lt;T&gt;</code> og bruk det både som <code>Boks&lt;string&gt;</code> og <code>Boks&lt;number&gt;</code>.", hint: ["Trykk «Prøv» på eksempelet med <code>Boks</code>."],
+      sjekk: c => { const r = rein(c.kode); return ok(c) && /\binterface\s+\w+\s*<\s*\w+\s*>/.test(r) && /\w\s*<\s*string\s*>/.test(r) && /\w\s*<\s*number\s*>/.test(r); } },
+    { id: "l9o3", tekst: "Gi ein <code>Boks&lt;number&gt;</code> ein tekst som innhald og les feilen.", hint: ["<code>const c: Boks&lt;number&gt; = { innhald: \"tretti\", merkelapp: \"Feil\" };</code>"],
+      sjekk: c => { const r = rein(c.kode); return tsFeil(c, 2322) && /\binterface\s+\w+\s*</.test(r) && /<\s*number\s*>/.test(r); } },
+    { id: "l9o4", tekst: "Lag ein <code>Map&lt;string, number&gt;</code> med poeng for minst to personar, og skriv ut poenga til éin av dei.", hint: ["Trykk «Prøv» på det siste eksempelet og byt namna."],
+      sjekk: c => { const r = rein(c.kode); return ok(c) && /new\s+Map\s*<\s*string\s*,\s*number\s*>/.test(r) && (r.match(/\.set\s*\(/g) || []).length >= 2 && /\.get\s*\(/.test(r) && /\d/.test(c.utdata); } },
+  ]},
+
+{ id: "l10", tittel: "Prosjekt: karakterboka", laerer: "å setje saman alt du har lært – type, interface, tabellar, funksjonar og null-sjekk – i eitt program.",
+  start: `type Klasse = "1IMA" | "1IMB" | "2IMA";
+
+interface Elev {
+    namn: string;
+    klasse: Klasse;
+    karakterar: number[];
+}
+
+const elevar: Elev[] = [
+    { namn: "Kari", klasse: "1IMA", karakterar: [5, 4, 6] },
+    { namn: "Ola", klasse: "1IMB", karakterar: [3, 4, 4] },
+];
+
+function snitt(tal: number[]): number {
+    // Oppgåve 1: rekn ut gjennomsnittet her
+    return 0;
+}
+
+for (const elev of elevar) {
+    console.log(elev.namn + " (" + elev.klasse + "): " + snitt(elev.karakterar).toFixed(1));
+}
+`,
+  html: `
+<p>No skal du byggje ei lita karakterbok. Startkoden har ein literal-type, eit interface, ein tabell og ein funksjon som ikkje er ferdig. Løys oppgåvene éi etter éi, og la kompilatoren hjelpe deg undervegs.</p>
+<p>Køyr ofte. Får du ein raud bølgjestrek, les meldinga før du endrar noko.</p>
+<div class="tips">💡 Startkoden for leksjonen står i editoren. Har du rota det til, trykk <b>Tilbakestill kode</b>.</div>
+<h3>Byggjeklossar du kan få bruk for</h3>
+<p>Summere ein tabell:</p>
+${ex(`let sum = 0;\nfor (const k of tal) {\n    sum += k;\n}`)}
+<p>Valfri eigenskap og standardverdi:</p>
+${ex(`interface Elev {\n    namn: string;\n    kallenamn?: string;\n}\n// ...\nconsole.log(elev.kallenamn ?? elev.namn);`)}
+<p>Finne den største verdien:</p>
+${ex(`let beste: Elev | undefined = undefined;\nfor (const e of elevar) {\n    if (beste === undefined || snitt(e.karakterar) > snitt(beste.karakterar)) {\n        beste = e;\n    }\n}`)}`,
+  oppgaver: [
+    { id: "l10o1", tekst: "Gjer ferdig <code>snitt</code> slik at Kari får 5.0 og Ola 3.7.", hint: ["Summer tala med ei løkke og del på <code>tal.length</code>.", "<code>let sum = 0;<br>for (const k of tal) { sum += k; }<br>return sum / tal.length;</code>"],
+      sjekk: c => { const l = utLinjer(c); return ok(c) && l.some(x => /Kari/.test(x) && /(^|[^\d.])5(\.0+)?\s*$/.test(x)) && l.some(x => /Ola/.test(x) && /3\.(7|6{2,}7?)/.test(x)); } },
+    { id: "l10o2", tekst: "Legg til deg sjølv (eller ein oppdikta elev) i <code>elevar</code>. Prøv òg ein klasse som ikkje finst i <code>Klasse</code>, og sjå kva som skjer.", hint: ["Legg til ei ny linje i tabellen: <code>{ namn: \"Deg\", klasse: \"1IMA\", karakterar: [4, 5] },</code>"],
+      sjekk: c => ok(c) && (rein(c.kode).match(/\{\s*namn\s*:/g) || []).length >= 3 && utLinjer(c).length >= 3 },
+    { id: "l10o3", tekst: "Legg til den valfrie eigenskapen <code>kallenamn?: string</code> i <code>Elev</code>. Gi éin elev eit kallenamn, og skriv ut kallenamnet når det finst (bruk <code>??</code>).", hint: ["I interfacet: <code>kallenamn?: string;</code>", "I løkka: <code>console.log((elev.kallenamn ?? elev.namn) + ...);</code>"],
+      sjekk: c => { const r = rein(c.kode); return ok(c) && /kallenamn\s*\?\s*:\s*string/.test(r) && /\?\?/.test(r) && /kallenamn\s*:\s*["'`]/.test(r); } },
+    { id: "l10o4", tekst: "Lag funksjonen <code>beste(elevar: Elev[]): Elev | undefined</code> som finn eleven med høgast snitt, og skriv ut namnet.", hint: ["Sjå det siste byggjeklossen over.", "Til slutt: <code>console.log(\"Best:\", beste(elevar)?.namn);</code>"],
+      sjekk: c => { const r = rein(c.kode); return ok(c) && /\bbeste\s*\(\s*\w+\s*:\s*Elev\s*\[\s*\]\s*\)\s*:\s*(Elev\s*\|\s*undefined|undefined\s*\|\s*Elev)\b/.test(r) && /\bbeste\s*\(\s*\w+\s*\)/.test(r.replace(/function\s+beste\s*\([^)]*\)/, "")) && c.utdata.trim() !== ""; } },
+  ]},
+
+{ id: "l11", tittel: "Vidare til ekte TypeScript", laerer: "korleis du brukar TypeScript utan simulatoren – i VS Code, med <code>tsc</code> og i nettprosjekt.",
+  start: `// Fri leik! Prøv noko eige her.
+const melding: string = "Klar for ekte TypeScript!";
+console.log(melding);
+`,
+  html: `
+<p>Gratulerer – no kan du det viktigaste i TypeScript: typar, funksjonar, tabellar, interface, union-typar, narrowing og generics. Slik held du fram:</p>
+<h3>1. VS Code</h3>
+<p><b>VS Code</b> (code.visualstudio.com) har TypeScript innebygd. Lag ei fil <code>main.ts</code>, så får du dei same raude bølgjestrekane, typeinfo når du held musa over, og forslag medan du skriv. VS Code er sjølv skrive i TypeScript.</p>
+<h3>2. Kompilatoren tsc</h3>
+<p>Installer <b>Node.js</b> (nodejs.org) og så TypeScript i terminalen:</p>
+${ex(`npm install -g typescript\ntsc --init        # lagar tsconfig.json\ntsc main.ts       # sjekkar typane og lagar main.js\nnode main.js      # køyrer JavaScript-koden`)}
+<p>I <code>tsconfig.json</code> styrer du innstillingane. Simulatoren brukar <code>"strict": true</code> – bruk det i eigne prosjekt òg.</p>
+<h3>3. Køyr .ts-filer direkte</h3>
+<p>Nyare versjonar av Node.js kan køyre <code>.ts</code>-filer direkte med <code>node main.ts</code>. Då blir typane berre fjerna, ikkje <i>sjekka</i> – det gjer framleis <code>tsc</code> og VS Code.</p>
+<h3>4. TypeScript på nettsider</h3>
+<p>Nettlesaren forstår ikkje TypeScript direkte. I ekte prosjekt brukar ein verktøy som <b>Vite</b> (<code>npm create vite@latest</code>, vel «TypeScript»), som gjer om koden til JavaScript automatisk. Rammeverk som React, Angular og Vue blir nesten alltid brukte saman med TypeScript.</p>
+<h3>Skilnader frå simulatoren</h3>
+<ul>
+<li>Simulatoren har ikkje nettsida (<code>document</code>), og du kan ikkje <code>import</code>-ere andre filer.</li>
+<li><code>prompt</code> kjem i konsollen og kan ikkje brukast inne i eigne funksjonar.</li>
+<li>Simulatoren nektar å køyre kode med typefeil. Ekte <code>tsc</code> lagar JavaScript-fila likevel, med mindre du slår på <code>noEmitOnError</code> – men ta feila på alvor!</li>
+</ul>
+<h3>Jukselapp</h3>
+<table class="juks">
+<tr><td>let x: number = 5;</td><td>typeannotasjon</td></tr>
+<tr><td>string, number, boolean</td><td>grunntypar</td></tr>
+<tr><td>function f(a: number): string</td><td>parameter- og returtype</td></tr>
+<tr><td>(namn?: string)</td><td>valfri parameter</td></tr>
+<tr><td>: void</td><td>funksjonen returnerer ingenting</td></tr>
+<tr><td>number[]</td><td>tabell av tal</td></tr>
+<tr><td>[string, number]</td><td>tuppel</td></tr>
+<tr><td>interface Elev { namn: string; }</td><td>form på eit objekt</td></tr>
+<tr><td>readonly id: number</td><td>kan ikkje endrast</td></tr>
+<tr><td>type Val = "stein" | "saks"</td><td>literal-/union-type</td></tr>
+<tr><td>if (typeof x === "string")</td><td>narrowing</td></tr>
+<tr><td>a?.b &nbsp; a ?? b</td><td>trygg tilgang / standardverdi</td></tr>
+<tr><td>unknown</td><td>kva som helst – men må sjekkast</td></tr>
+<tr><td>function f&lt;T&gt;(x: T): T</td><td>generics</td></tr>
+</table>`,
+  oppgaver: [] },
+];
+
+const LAERAR_HTML = `<ul>
+<li><b>Ekte TypeScript:</b> simulatoren lastar den offisielle TypeScript-kompilatoren (versjon 5.9, frå cdn.jsdelivr.net eller unpkg.com) og sjekkar koden med <code>strict: true</code>. Feilmeldingane og TS-nummera er dei same som i VS Code og <code>tsc</code>, med nynorsk 💡-forklaring under.</li>
+<li><b>Første lasting:</b> kompilatoren er stor (nokre megabyte) og blir lasta i bakgrunnen når sida opnar. På trege maskinar kan det ta nokre sekund. Etterpå ligg han i hurtigminnet til nettlesaren. Blokkerer skulenettet desse CDN-ane, verkar ikkje simulatoren.</li>
+<li><b>Køyring:</b> kode med typefeil blir ikkje køyrd. Utan typefeil blir typane fjerna, og JavaScript-koden køyrer i ein Web Worker som i JavaScript 101.</li>
+<li><b>Simulert:</b> <code>prompt</code> og <code>alert</code> kjem i konsollen. <kbd>Esc</kbd> i staden for Enter svarar som «Avbryt» (<code>null</code>). <code>prompt</code> verkar ikkje inne i eigne funksjonar, og <code>document</code> finst ikkje.</li>
+<li><b>Føresetnad:</b> kurset byggjer på JavaScript 101 og forklarar ikkje variablar, vilkår og løkker på nytt.</li>
+<li><b>Lagring:</b> framdrift og kode blir berre lagra i nettlesaren til eleven (localStorage). Byter eleven maskin eller nettlesar, startar han/ho på nytt.</li>
+<li><b>I timen:</b> la elevane jobbe i sitt eige tempo, og bruk kursbeviset (Skriv ut / PDF) som dokumentasjon. Mange oppgåver går ut på å <i>lage</i> ein typefeil og lese meldinga – det er meininga.</li>
+</ul>`;
+
+
+
+/* ================== LAGRING ================== */
+const lager = {
+    hent(nokkel, standard) {
+        try { const v = localStorage.getItem(KURS.prefiks + nokkel); return v === null ? standard : JSON.parse(v); }
+        catch (e) { return standard; }
+    },
+    set(nokkel, verdi) { try { localStorage.setItem(KURS.prefiks + nokkel, JSON.stringify(verdi)); } catch (e) {} },
+    slettAlle() {
+        try {
+            const ut = [];
+            for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.startsWith(KURS.prefiks)) ut.push(k); }
+            ut.forEach(k => localStorage.removeItem(k));
+        } catch (e) {}
+    }
+};
+
+/* ================== TILSTAND ================== */
+let loyste = new Set(lager.hent("loyste", []));
+let besokt = new Set(lager.hent("besokt", []));
+let hintNiva = lager.hent("hint", {});
+let aktivIndeks = Math.min(Math.max(0, LEKSJONAR.findIndex(l => l.id === lager.hent("aktiv", LEKSJONAR[0].id))), LEKSJONAR.length - 1);
+const ALLE_OPPGAVER = LEKSJONAR.flatMap(l => l.oppgaver.map(o => ({ ...o, leksjon: l })));
+
+function lagreTilstand() {
+    lager.set("loyste", [...loyste]);
+    lager.set("besokt", [...besokt]);
+    lager.set("hint", hintNiva);
+    lager.set("aktiv", LEKSJONAR[aktivIndeks].id);
+}
+
+function leksjonStatus(l) {
+    const n = l.oppgaver.length, ok = l.oppgaver.filter(o => loyste.has(o.id)).length;
+    if (n === 0) return besokt.has(l.id) ? "ferdig" : "ny";
+    if (ok === n) return "ferdig";
+    if (ok > 0 || besokt.has(l.id)) return "igang";
+    return "ny";
+}
+const STATUSIKON = { ny: '<span class="sirkel"></span>', igang: '<span class="sirkel halv"></span>', ferdig: "✔" };
+
+/* ================== VISING ================== */
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+function oppdaterFramdrift() {
+    const n = ALLE_OPPGAVER.length, ok = ALLE_OPPGAVER.filter(o => loyste.has(o.id)).length;
+    document.getElementById("framdriftTekst").textContent = `${ok} / ${n} oppgåver`;
+    document.getElementById("framdriftLinje").style.width = (n ? 100 * ok / n : 0) + "%";
+}
+
+function teiknListe() {
+    const ol = document.getElementById("leksjonsliste");
+    ol.innerHTML = "";
+    LEKSJONAR.forEach((l, i) => {
+        const st = leksjonStatus(l);
+        const ok = l.oppgaver.filter(o => loyste.has(o.id)).length;
+        const li = document.createElement("li");
+        li.className = (i === aktivIndeks ? "aktiv " : "") + st;
+        li.innerHTML = `<button type="button"><span class="status" title="${st === "ferdig" ? "Ferdig" : st === "igang" ? "I gang" : "Ikkje starta"}">${STATUSIKON[st]}</span><span class="nr">${i + 1}.</span><span>${esc(l.tittel)}</span>${l.oppgaver.length ? `<span class="tal">${ok}/${l.oppgaver.length}</span>` : ""}</button>`;
+        li.querySelector("button").onclick = () => visLeksjon(i);
+        ol.appendChild(li);
+    });
+    oppdaterFramdrift();
+}
+
+function visLeksjon(i, rull = true) {
+    aktivIndeks = i;
+    const l = LEKSJONAR[i];
+    besokt.add(l.id);
+    lagreTilstand();
+    const el = document.getElementById("leksjon");
+    el.innerHTML = `
+        <h2>${i + 1}. ${esc(l.tittel)}</h2>
+        <p class="laerer"><b>Dette lærer du:</b> ${l.laerer}</p>
+        <div class="forklaring">${l.html}</div>
+        ${l.oppgaver.length ? `<h3>Oppgåver</h3><ul class="oppgaver"></ul>` : ""}
+        <div class="fullfortplass"></div>
+        <div class="navknappar">
+            <button type="button" class="forre" ${i === 0 ? "disabled" : ""}>◀ Førre</button>
+            <button type="button" class="neste" ${i === LEKSJONAR.length - 1 ? "disabled" : ""}>Neste ▶</button>
+        </div>
+        <details class="laerar"><summary>For læraren</summary>${LAERAR_HTML}</details>`;
+    el.querySelectorAll(".eksempel").forEach(ex => {
+        const pre = ex.querySelector("pre");
+        const b = document.createElement("button");
+        b.type = "button"; b.className = "prov"; b.textContent = "Prøv";
+        b.title = "Lim inn koden (du køyrer sjølv)";
+        b.onclick = () => { if (typeof simLim === "function") simLim(pre.dataset.kode ?? pre.textContent); };
+        ex.appendChild(b);
+    });
+    const ul = el.querySelector(".oppgaver");
+    if (ul) l.oppgaver.forEach(o => ul.appendChild(lagOppgaveEl(o)));
+    el.querySelector(".forre").onclick = () => visLeksjon(i - 1);
+    el.querySelector(".neste").onclick = () => visLeksjon(i + 1);
+    teiknFullfort();
+    teiknListe();
+    if (rull) document.getElementById("leksjonspanel").scrollTop = 0;
+    if (typeof simByttLeksjon === "function") simByttLeksjon(l);   // valfri krok (t.d. startkode i editoren)
+}
+
+function lagOppgaveEl(o) {
+    const li = document.createElement("li");
+    li.className = "oppgave" + (loyste.has(o.id) ? " loyst" : "");
+    li.dataset.id = o.id;
+    li.innerHTML = `<span class="ikon">${loyste.has(o.id) ? "✔" : "○"}</span><span class="tekst">${o.tekst}</span>` +
+        (o.hint && o.hint.length ? `<button type="button" class="hintknapp">Hint</button>` : "<span></span>");
+    const vis = () => {
+        li.querySelectorAll(".hint").forEach(h => h.remove());
+        const n = hintNiva[o.id] || 0;
+        for (let k = 0; k < n; k++) {
+            const d = document.createElement("div");
+            d.className = "hint"; d.innerHTML = "💡 " + o.hint[k];
+            li.appendChild(d);
+        }
+        const b = li.querySelector(".hintknapp");
+        if (b) { b.textContent = n === 0 ? "Hint" : n < o.hint.length ? "Meir hjelp" : "Hint"; b.disabled = n >= o.hint.length; b.style.opacity = n >= o.hint.length ? .4 : 1; }
+    };
+    const b = li.querySelector(".hintknapp");
+    if (b) b.onclick = () => { hintNiva[o.id] = Math.min((hintNiva[o.id] || 0) + 1, o.hint.length); lagreTilstand(); vis(); };
+    vis();
+    return li;
+}
+
+function teiknFullfort() {
+    const l = LEKSJONAR[aktivIndeks];
+    const plass = document.querySelector("#leksjon .fullfortplass");
+    if (!plass) return;
+    plass.innerHTML = "";
+    if (l.oppgaver.length && leksjonStatus(l) === "ferdig") {
+        const d = document.createElement("div");
+        d.className = "fullfort";
+        d.innerHTML = `<span>✔ Leksjon fullført!</span>` + (aktivIndeks < LEKSJONAR.length - 1 ? `<button type="button">Neste leksjon ▶</button>` : "");
+        const b = d.querySelector("button");
+        if (b) b.onclick = () => visLeksjon(aktivIndeks + 1);
+        plass.appendChild(d);
+    }
+}
+
+let toastTid = null;
+function toast(tekst) {
+    const t = document.getElementById("toast");
+    t.textContent = tekst; t.classList.add("vis");
+    clearTimeout(toastTid); toastTid = setTimeout(() => t.classList.remove("vis"), 3200);
+}
+
+/* ================== OPPGÅVESJEKK ================== */
+/* Kall etter KVAR kommando/køyring. Sjekkar alle oppgåver i alle leksjonar. */
+function sjekkOppgaver(ctx) {
+    const nye = [];
+    for (const o of ALLE_OPPGAVER) {
+        if (loyste.has(o.id)) continue;
+        let ok = false;
+        try { ok = !!o.sjekk(ctx); } catch (e) { ok = false; }
+        if (ok) { loyste.add(o.id); nye.push(o); }
+    }
+    if (!nye.length) return nye;
+    lagreTilstand();
+    const aktiv = LEKSJONAR[aktivIndeks];
+    for (const o of nye) {
+        const li = document.querySelector(`#leksjon .oppgave[data-id="${o.id}"]`);
+        if (li) {
+            li.classList.add("loyst");
+            li.querySelector(".ikon").textContent = "✔";
+            const bra = document.createElement("div");
+            bra.className = "bra"; bra.textContent = "✔ Bra!";
+            li.appendChild(bra);
+            setTimeout(() => bra.remove(), 2700);
+        }
+    }
+    const andre = nye.filter(o => o.leksjon !== aktiv);
+    if (andre.length) {
+        const o = andre[0];
+        toast(`✔ Bra! Du løyste ei oppgåve i leksjon ${LEKSJONAR.indexOf(o.leksjon) + 1}: ${o.leksjon.tittel}`);
+    }
+    teiknFullfort();
+    teiknListe();
+    return nye;
+}
+
+/* ================== KURSBEVIS ================== */
+function datoTekst(d = new Date()) {
+    return String(d.getDate()).padStart(2, "0") + "." + String(d.getMonth() + 1).padStart(2, "0") + "." + d.getFullYear();
+}
+function hentNamn() { try { return localStorage.getItem("kode101-namn") || ""; } catch (e) { return ""; } }
+function teiknBevis() {
+    const namn = document.getElementById("bevisNamn").value.trim();
+    const n = ALLE_OPPGAVER.length, ok = ALLE_OPPGAVER.filter(o => loyste.has(o.id)).length;
+    const alt = ok === n;
+    const leks = LEKSJONAR.filter(l => l.oppgaver.length);
+    const manglar = leks.filter(l => leksjonStatus(l) !== "ferdig");
+    document.getElementById("bevis").innerHTML = `
+        <div class="stripe"></div>
+        ${alt ? `<div class="segl">Fullført</div>` : `<div class="delvis">Delvis fullført</div>`}
+        <h2>Kursbevis – ${esc(KURS.namn)}</h2>
+        <div class="skule">Stord vidaregåande skule – IM</div>
+        <div class="bnamn">${namn ? esc(namn) : "&nbsp;"}</div>
+        <div class="skule">Dato: ${datoTekst()}</div>
+        <ul>${leks.map((l, i) => {
+            const lok = l.oppgaver.filter(o => loyste.has(o.id)).length;
+            return `<li>${lok === l.oppgaver.length ? "✔" : "○"} ${LEKSJONAR.indexOf(l) + 1}. ${esc(l.tittel)} <span style="color:#888">(${lok}/${l.oppgaver.length})</span></li>`;
+        }).join("")}</ul>
+        <div class="sum">${ok} av ${n} oppgåver</div>
+        ${alt ? "" : `<div class="manglar">Manglar: ${manglar.map(l => esc(l.tittel)).join(", ")}</div>`}`;
+}
+function opneBevis() {
+    document.getElementById("bevisNamn").value = hentNamn();
+    teiknBevis();
+    document.getElementById("bevisbakgrunn").classList.add("vis");
+    document.getElementById("bevisNamn").focus();
+}
+document.getElementById("bevisNamn").addEventListener("input", e => {
+    try { localStorage.setItem("kode101-namn", e.target.value.trim()); } catch (er) {}
+    teiknBevis();
+});
+document.getElementById("knappBevis").onclick = opneBevis;
+document.getElementById("bevisLukk").onclick = () => document.getElementById("bevisbakgrunn").classList.remove("vis");
+document.getElementById("bevisbakgrunn").addEventListener("click", e => { if (e.target.id === "bevisbakgrunn") e.target.classList.remove("vis"); });
+document.getElementById("bevisSkriv").onclick = () => window.print();
+document.addEventListener("keydown", e => { if (e.key === "Escape") document.getElementById("bevisbakgrunn").classList.remove("vis"); });
+
+/* ================== START PÅ NYTT ================== */
+document.getElementById("knappNullstill").onclick = () => {
+    if (!confirm("Vil du starte på nytt? All framdrift på denne sida blir sletta.")) return;
+    lager.slettAlle();
+    location.reload();
+};
+
+/* ================== TYPESCRIPT-SIMULATOR ================== */
+const STARTKODE = Object.fromEntries(LEKSJONAR.map(l => [l.id, l.start || ""]));
+const kodefelt = document.getElementById("kodefelt");
+const konsoll = document.getElementById("konsoll");
+const statusEl = document.getElementById("status");
+const tsStatusEl = document.getElementById("tsstatus");
+const typelinje = document.getElementById("typelinje");
+const tipp = document.getElementById("tstipp");
+const knappKoyr = document.getElementById("knappKoyr"), knappStopp = document.getElementById("knappStopp");
+let cm = null, aktivKodeId = null, feilLinje = null, lagreTid = null;
+
+if (window.CodeMirror) {
+    cm = CodeMirror.fromTextArea(kodefelt, {
+        mode: { name: "javascript", typescript: true }, theme: "material-darker", lineNumbers: true, indentUnit: 4, tabSize: 4,
+        indentWithTabs: false, matchBrackets: true, autoCloseBrackets: "()[]{}''\"\"``",
+        extraKeys: {
+            "Ctrl-Enter": () => koyr(), "Cmd-Enter": () => koyr(),
+            "Tab": c => c.somethingSelected() ? c.indentSelection("add") : c.replaceSelection("    "),
+        },
+    });
+    cm.on("change", () => { fjernFeilmerke(); planleggLagring(); planleggSjekk(); skjulTipp(); });
+    cm.on("cursorActivity", planleggTypelinje);
+} else {
+    kodefelt.addEventListener("keydown", e => {
+        if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); koyr(); }
+        else if (e.key === "Tab") { e.preventDefault(); kodefelt.setRangeText("    ", kodefelt.selectionStart, kodefelt.selectionEnd, "end"); }
+    });
+    kodefelt.addEventListener("input", () => { planleggLagring(); planleggSjekk(); });
+    kodefelt.addEventListener("click", planleggTypelinje);
+    kodefelt.addEventListener("keyup", planleggTypelinje);
+}
+function hentKode() { return cm ? cm.getValue() : kodefelt.value; }
+function settKode(t) { if (cm) { cm.setValue(t); cm.setCursor(cm.lineCount(), 0); } else kodefelt.value = t; planleggSjekk(0); }
+function markorIndeks() { return cm ? cm.indexFromPos(cm.getCursor()) : kodefelt.selectionStart; }
+function planleggLagring() { clearTimeout(lagreTid); lagreTid = setTimeout(lagreKode, 300); }
+function lagreKode() { if (aktivKodeId) lager.set("kode-" + aktivKodeId, hentKode()); }
+function fjernFeilmerke() { if (cm && feilLinje !== null) { cm.removeLineClass(feilLinje, "background", "feillinje"); } feilLinje = null; }
+function markerLinje(n) {
+    if (!cm || !(n >= 1 && n <= cm.lineCount())) return;
+    fjernFeilmerke(); feilLinje = n - 1;
+    cm.addLineClass(feilLinje, "background", "feillinje");
+    cm.scrollIntoView({ line: feilLinje, ch: 0 }, 60);
+}
+function simLim(t) { settKode(t); lagreKode(); if (cm) cm.focus(); else kodefelt.focus(); }
+function simByttLeksjon(l) {
+    if (aktivKodeId) lagreKode();
+    aktivKodeId = l.id;
+    settKode(lager.hent("kode-" + l.id, STARTKODE[l.id]));
+    if (cm) cm.clearHistory();
+    fjernFeilmerke();
+}
+document.getElementById("knappTilbake").onclick = () => { settKode(STARTKODE[aktivKodeId] || ""); lagreKode(); };
+document.getElementById("knappTom").onclick = () => { konsoll.innerHTML = '<span class="tom">Utdata frå programmet ditt kjem her.</span>'; };
+document.getElementById("knappJs").onclick = () => visJavaScript();
+knappKoyr.onclick = () => koyr();
+knappStopp.onclick = () => stopp();
+
+/* ---- Konsoll ---- */
+function skriv(tekst, klasse) {
+    const s = document.createElement("span");
+    if (klasse) s.className = klasse;
+    s.textContent = tekst;
+    konsoll.appendChild(s);
+    if (konsoll.textContent.length > 80000) { while (konsoll.childNodes.length > 1 && konsoll.textContent.length > 50000) konsoll.removeChild(konsoll.firstChild); }
+    konsoll.scrollTop = konsoll.scrollHeight;
+    return s;
+}
+function hjelp(tekst) {
+    const d = document.createElement("div");
+    d.className = "hjelp"; d.innerHTML = "💡 " + tekst;
+    konsoll.appendChild(d); konsoll.scrollTop = konsoll.scrollHeight;
+}
+function settStatus(t, k) { statusEl.textContent = t; statusEl.className = "status" + (k ? " " + k : ""); }
+function settTsStatus(t, k, tittel) { tsStatusEl.textContent = t; tsStatusEl.className = "tsstatus" + (k ? " " + k : ""); tsStatusEl.title = tittel || ""; }
+
+/* ================== KOMPILATOREN (TypeScript i ein eigen Web Worker) ================== */
+const TS_VERSJON = "5.9.3";
+const TS_KJELDER = [
+    `https://cdn.jsdelivr.net/npm/typescript@${TS_VERSJON}/lib/`,
+    `https://unpkg.com/typescript@${TS_VERSJON}/lib/`,
+];
+/* Berre dei standardbiblioteka simulatoren treng (ES2022-metodar på tabellar, strengar, Map, Set …) – ikkje DOM */
+const TS_LIBS = ["lib.es5.d.ts", "lib.es2015.core.d.ts", "lib.es2015.collection.d.ts", "lib.es2015.iterable.d.ts",
+    "lib.es2015.symbol.d.ts", "lib.es2015.symbol.wellknown.d.ts", "lib.es2015.promise.d.ts", "lib.es2016.array.include.d.ts",
+    "lib.es2017.object.d.ts", "lib.es2017.string.d.ts", "lib.es2019.array.d.ts", "lib.es2019.object.d.ts", "lib.es2019.string.d.ts",
+    "lib.es2021.string.d.ts", "lib.es2022.array.d.ts", "lib.es2022.string.d.ts"];
+/* Det som finst i simulatoren i staden for nettsida (lib.dom) */
+const SIM_DTS = `interface Console {
+    log(...data: any[]): void;
+    info(...data: any[]): void;
+    debug(...data: any[]): void;
+    warn(...data: any[]): void;
+    error(...data: any[]): void;
+    clear(): void;
+}
+declare var console: Console;
+/** Spør brukaren. Gir teksten brukaren skreiv, eller null om brukaren avbraut (Esc). */
+declare function prompt(message?: string): string | null;
+/** Viser ei melding. */
+declare function alert(message?: any): void;
+`;
+
+/* Denne funksjonen køyrer inne i workeren (blir gjort om til tekst) */
+function kompilatorWorker(KJELDER, LIBS, SIM_DTS) {
+    let ts = null, ls = null, kode = "", versjon = 0, base = null;
+    const filer = {};
+    async function hentTekst(sti) {
+        for (const b of [base, ...KJELDER.filter(k => k !== base)]) {
+            try { const r = await fetch(b + sti); if (r.ok) return await r.text(); } catch (e) {}
+        }
+        throw new Error("Klarte ikkje å hente " + sti);
+    }
+    async function start() {
+        for (const b of KJELDER) {
+            try { importScripts(b + "typescript.js"); if (self.ts && self.ts.createLanguageService) { ts = self.ts; base = b; break; } } catch (e) {}
+        }
+        if (!ts) throw new Error("Klarte ikkje å laste typescript.js");
+        const tekstar = await Promise.all(LIBS.map(hentTekst));
+        LIBS.forEach((l, i) => { filer["/" + l] = tekstar[i]; });
+        filer["/simulator.d.ts"] = SIM_DTS;
+        const opts = {
+            strict: true, target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.None, noLib: true,
+            sourceMap: true, noFallthroughCasesInSwitch: true, newLine: ts.NewLineKind.LineFeed,
+        };
+        const host = {
+            getScriptFileNames: () => [...Object.keys(filer), "/main.ts"],
+            getScriptVersion: f => f === "/main.ts" ? String(versjon) : "1",
+            getScriptSnapshot: f => { const t = f === "/main.ts" ? kode : filer[f]; return t === undefined ? undefined : ts.ScriptSnapshot.fromString(t); },
+            getCurrentDirectory: () => "/",
+            getCompilationSettings: () => opts,
+            getDefaultLibFileName: () => "/lib.es5.d.ts",
+            fileExists: f => f === "/main.ts" || f in filer,
+            readFile: f => f === "/main.ts" ? kode : filer[f],
+        };
+        ls = ts.createLanguageService(host, ts.createDocumentRegistry());
+        ls.getSemanticDiagnostics("/main.ts");   // varm opp (les inn standardbiblioteka)
+        postMessage({ t: "klar", versjon: ts.version });
+    }
+    function settKode(k) { if (typeof k === "string" && k !== kode) { kode = k; versjon++; } }
+    function diagnosar() {
+        const alle = [...ls.getSyntacticDiagnostics("/main.ts"), ...ls.getSemanticDiagnostics("/main.ts")];
+        return alle.filter(d => d.category === ts.DiagnosticCategory.Error && d.file && d.start !== undefined).map(d => {
+            const p = d.file.getLineAndCharacterOfPosition(d.start);
+            return { kode: d.code, melding: ts.flattenDiagnosticMessageText(d.messageText, "\n"), start: d.start, lengd: d.length || 0, linje: p.line + 1, kol: p.character + 1 };
+        }).sort((a, b) => a.start - b.start);
+    }
+    function info(pos) {
+        for (const p of [pos, pos - 1]) {
+            if (p < 0) continue;
+            const qi = ls.getQuickInfoAtPosition("/main.ts", p);
+            if (qi && qi.displayParts && qi.displayParts.length) {
+                return { tekst: ts.displayPartsToString(qi.displayParts), doc: ts.displayPartsToString(qi.documentation || []), start: qi.textSpan.start, lengd: qi.textSpan.length };
+            }
+        }
+        return null;
+    }
+    const klar = start().catch(e => { postMessage({ t: "lastfeil", melding: String(e && e.message || e) }); });
+    onmessage = async e => {
+        const m = e.data;
+        try {
+            await klar;
+            if (!ls) throw new Error("Kompilatoren er ikkje lasta");
+            settKode(m.kode);
+            if (m.t === "sjekk") {
+                const svar = { t: "svar", id: m.id, diag: diagnosar() };
+                if (m.emit) {
+                    const ut = ls.getEmitOutput("/main.ts").outputFiles;
+                    const js = ut.find(f => f.name.endsWith(".js")), kart = ut.find(f => f.name.endsWith(".map"));
+                    svar.js = js ? js.text : "";
+                    svar.kart = kart ? JSON.parse(kart.text).mappings : "";
+                }
+                postMessage(svar);
+            } else if (m.t === "info") {
+                postMessage({ t: "svar", id: m.id, info: info(m.pos) });
+            }
+        } catch (err) {
+            postMessage({ t: "svar", id: m.id, feil: String(err && err.message || err) });
+        }
+    };
+}
+
+let tsWorker = null, tsKlar = false, tsLastfeil = null, tsId = 0, ventarPaaKoyr = false;
+const tsVentar = new Map();
+function startKompilator() {
+    settTsStatus("⏳ Lastar TypeScript …", "lastar", "Kompilatoren blir lasta ned – første gong kan det ta litt tid");
+    const src = `(${kompilatorWorker.toString()})(${JSON.stringify(TS_KJELDER)}, ${JSON.stringify(TS_LIBS)}, ${JSON.stringify(SIM_DTS)});`;
+    const url = URL.createObjectURL(new Blob([src], { type: "text/javascript" }));
+    tsWorker = new Worker(url);
+    URL.revokeObjectURL(url);
+    tsWorker.onmessage = e => {
+        const d = e.data;
+        if (d.t === "klar") {
+            tsKlar = true;
+            settTsStatus("TypeScript " + d.versjon, "", "Kompilatoren er klar (strict-modus)");
+            typelinje.innerHTML = '<span class="svak">Klikk på eit namn i koden for å sjå typen.</span>';
+            livesjekk();
+            planleggTypelinje();
+            if (ventarPaaKoyr) { ventarPaaKoyr = false; koyr(); }
+        } else if (d.t === "lastfeil") {
+            tsLastfeil = d.melding;
+            settTsStatus("✖ Kompilatoren manglar", "feil", d.melding);
+            if (ventarPaaKoyr) { ventarPaaKoyr = false; settStatus("Klar"); visLastfeil(); }
+        } else if (d.t === "svar" && tsVentar.has(d.id)) {
+            const { ok, feil } = tsVentar.get(d.id);
+            tsVentar.delete(d.id);
+            if (d.feil) feil(new Error(d.feil)); else ok(d);
+        }
+    };
+    tsWorker.onerror = e => { e.preventDefault(); };
+}
+function tsSpor(melding) {
+    return new Promise((ok, feil) => {
+        if (!tsKlar) { feil(new Error("Kompilatoren er ikkje klar")); return; }
+        const id = ++tsId;
+        tsVentar.set(id, { ok, feil });
+        tsWorker.postMessage({ ...melding, id });
+    });
+}
+function visLastfeil() {
+    konsoll.innerHTML = "";
+    skriv("✖ Klarte ikkje å laste TypeScript-kompilatoren.\n", "err");
+    hjelp("Kompilatoren blir henta frå <code>cdn.jsdelivr.net</code> eller <code>unpkg.com</code>. Sjekk nettilkoplinga og last sida på nytt. På nokre skulenett er desse sidene blokkerte – spør læraren.");
+}
+
+/* ---- Direktesjekk medan du skriv: raude bølgjestrekar ---- */
+let diagnosar = [], merke = [], sjekkTid = null;
+function planleggSjekk(ms = 450) { clearTimeout(sjekkTid); sjekkTid = setTimeout(livesjekk, ms); }
+async function livesjekk() {
+    if (!tsKlar) return;
+    const kode = hentKode();
+    let svar;
+    try { svar = await tsSpor({ t: "sjekk", kode }); } catch (e) { return; }
+    if (kode !== hentKode()) return;   // koden er endra sidan – ny sjekk kjem
+    visDiagnosar(svar.diag);
+}
+function visDiagnosar(diag) {
+    diagnosar = diag;
+    merke.forEach(m => m.clear()); merke = [];
+    if (cm) {
+        const n = cm.getValue().length;
+        for (const d of diag) {
+            let fra = d.start, til = d.start + Math.max(d.lengd, 1);
+            if (til > n) { til = n; fra = Math.max(0, Math.min(fra, n - 1)); }
+            if (fra >= til) continue;
+            merke.push(cm.markText(cm.posFromIndex(fra), cm.posFromIndex(til), { className: "tsfeil" }));
+        }
+    }
+    if (diag.length) settTsStatus("✖ " + diag.length + " typefeil", "feil", "Hald musa over den raude streken for å lese feilen");
+    else settTsStatus("✔ Ingen typefeil", "ok", "Kompilatoren fann ingen feil");
+    planleggTypelinje();
+}
+
+/* ---- Typelinja under koden: typen der markøren står ---- */
+let typeTid = null;
+function planleggTypelinje() { clearTimeout(typeTid); typeTid = setTimeout(oppdaterTypelinje, 200); }
+async function oppdaterTypelinje() {
+    if (!tsKlar) { typelinje.innerHTML = '<span class="svak">Lastar kompilatoren …</span>'; return; }
+    const kode = hentKode(), pos = markorIndeks();
+    const feil = diagnosar.find(d => pos >= d.start && pos <= d.start + Math.max(d.lengd, 1));
+    if (feil) { typelinje.innerHTML = `<span class="feil">✖ TS${feil.kode}: ${esc(feil.melding.split("\n")[0])}</span>`; return; }
+    let svar = null;
+    try { svar = await tsSpor({ t: "info", kode, pos }); } catch (e) {}
+    if (kode !== hentKode() || pos !== markorIndeks()) return;
+    if (svar && svar.info) typelinje.innerHTML = `<span class="ti">ℹ</span> ${fargeType(svar.info.tekst)}`;
+    else typelinje.innerHTML = '<span class="svak">Klikk på eit namn i koden for å sjå typen.</span>';
+}
+/* Enkel farging av typeinfo, t.d. «let alder: number» */
+function fargeType(t) {
+    return esc(t).replace(/\b(let|const|var|function|interface|type|parameter|property|method|class|enum)\b/g, '<span class="tk">$1</span>')
+        .replace(/\b(string|number|boolean|null|undefined|void|any|unknown|never|true|false)\b/g, '<span class="tt">$1</span>');
+}
+
+/* ---- Hald musa over koden: typeinfo og feilmelding (som i VS Code) ---- */
+let hoverTid = null, tippPos = null;
+function skjulTipp() { tipp.classList.remove("vis"); tippPos = null; }
+if (cm) {
+    const w = cm.getWrapperElement();
+    w.addEventListener("mousemove", e => {
+        clearTimeout(hoverTid);
+        if (tippPos && Math.hypot(e.clientX - tippPos.x, e.clientY - tippPos.y) > 14) skjulTipp();
+        hoverTid = setTimeout(() => visTipp(e.clientX, e.clientY), 380);
+    });
+    w.addEventListener("mouseleave", () => { clearTimeout(hoverTid); skjulTipp(); });
+    w.addEventListener("mousedown", skjulTipp);
+    cm.on("scroll", skjulTipp);
+}
+async function visTipp(x, y) {
+    if (!cm || !tsKlar) return;
+    const pos = cm.coordsChar({ left: x, top: y }, "window");
+    const c = cm.charCoords(pos, "window");
+    if (x < c.left - 10 || x > c.right + 10 || y < c.top - 2 || y > c.bottom + 2) return;   // ikkje over tekst
+    const idx = cm.indexFromPos(pos), kode = hentKode();
+    const feil = diagnosar.filter(d => idx >= d.start && idx < d.start + Math.max(d.lengd, 1));
+    let svar = null;
+    try { svar = await tsSpor({ t: "info", kode, pos: idx }); } catch (e) {}
+    if (kode !== hentKode()) return;
+    const info = svar && svar.info && idx >= svar.info.start && idx <= svar.info.start + svar.info.lengd ? svar.info : null;
+    if (!info && !feil.length) return;
+    let html = "";
+    if (info) html += `<div class="type">${fargeType(info.tekst)}</div>` + (info.doc ? `<div class="doc">${esc(info.doc)}</div>` : "");
+    for (const f of feil) html += `<div class="tfeil">✖ ${esc(f.melding)} <span class="nr">TS${f.kode}</span></div><div class="hjelp">💡 ${hjelpTs(f.kode, f.melding)}</div>`;
+    tipp.innerHTML = html;
+    tipp.classList.add("vis");
+    const b = tipp.offsetWidth, h = tipp.offsetHeight;
+    let left = Math.min(x + 10, window.innerWidth - b - 8), top = c.bottom + 6;
+    if (top + h > window.innerHeight - 8) top = c.top - h - 6;
+    tipp.style.left = Math.max(8, left) + "px"; tipp.style.top = Math.max(8, top) + "px";
+    tippPos = { x, y };
+}
+
+/* ---- Nynorsk forklaring på dei vanlegaste TypeScript-feila ---- */
+function kt(s) { return "<code>" + htmlEsc(s) + "</code>"; }
+function hjelpTs(kode, melding) {
+    const m = String(melding).split("\n")[0];
+    let x;
+    switch (kode) {
+    case 2322: case 2820:
+        if ((x = m.match(/^Type '(.+?)' is not assignable to type '(.+)'\.(?: Did you mean '(.+)'\?)?$/))) {
+            const [, fra, til, forslag] = x;
+            if (forslag) return `Verdien ${kt(fra)} er ikkje lov i typen ${kt(til)}. Skrivefeil? TypeScript foreslår ${kt(forslag)}.`;
+            if (fra === "null" || fra === "undefined" || / \| (null|undefined)$/.test(fra)) return `Verdien kan vere ${kt(fra.includes("undefined") ? "undefined" : "null")}, men ${kt(til)} godtek ikkje det. Sjekk med <code>if</code> først, eller gi ein standardverdi med <code>??</code>.`;
+            if (/^(".*"|'.*'|-?\d[\d.]*)$/.test(fra) && !/^(string|number|boolean)$/.test(til)) return `Verdien ${kt(fra)} er ikkje ein av dei lovlege verdiane i typen ${kt(til)}.`;
+            return `Verdien har typen ${kt(fra)}, men her må han vere ${kt(til)}. Byt verdien – eller endre typen, om det er typen som er feil.`;
+        }
+        return "Verdien passar ikkje med typen. Samanlikn typen på verdien med typen han skal inn i.";
+    case 2345:
+        if ((x = m.match(/^Argument of type '(.+?)' is not assignable to parameter of type '(.+)'\.$/)))
+            return `Du sender inn ein verdi av typen ${kt(x[1])}, men funksjonen ventar ${kt(x[2])}. Sjekk kva du sender inn – tal skal t.d. stå utan hermeteikn.`;
+        return "Argumentet du sender inn, har feil type.";
+    case 2339:
+        if ((x = m.match(/^Property '(.+?)' does not exist on type '(.+)'\.$/)))
+            return `Typen ${kt(x[2])} har ingen eigenskap ${kt(x[1])}. Sjekk stavinga – store og små bokstavar er ulike – eller legg eigenskapen til i interfacet.`;
+        break;
+    case 2551:
+        if ((x = m.match(/^Property '(.+?)' does not exist on type '(.+?)'\. Did you mean '(.+?)'\?/)))
+            return `Skrivefeil? ${kt(x[1])} finst ikkje, men TypeScript foreslår ${kt(x[3])}. Hugs at store og små bokstavar er ulike.`;
+        break;
+    case 2304: case 2552:
+        if ((x = m.match(/^Cannot find name '(.+?)'\.(?: Did you mean '(.+?)'\?)?/))) {
+            const [, n, forslag] = x;
+            if (n === "print") return "I TypeScript (og JavaScript) skriv du ut med <code>console.log(...)</code>. <code>print</code> er Python.";
+            if (n === "input") return "Spør brukaren med <code>prompt(\"...\")</code>. <code>input</code> er Python.";
+            if (n === "Console") return "Det heiter <code>console.log</code> med liten <code>c</code>.";
+            return `Namnet ${kt(n)} finst ikkje.` + (forslag ? ` Meinte du ${kt(forslag)}?` : " Har du laga variabelen eller funksjonen? Sjekk stavinga. Skulle det vere tekst, manglar du hermeteikn.");
+        }
+        break;
+    case 2584: case 2580: case 2591:
+        if (/'(document|window|localStorage|setTimeout|fetch)'/.test(m)) return "Simulatoren har inga nettside, så denne finst ikkje her. Prøv det i eit ekte prosjekt (sjå siste leksjon).";
+        return "Dette finst ikkje i simulatoren.";
+    case 7006: case 7031:
+        if ((x = m.match(/^(?:Parameter|Binding element) '(.+?)' implicitly has an '(.+?)' type/)))
+            return `Parameteren ${kt(x[1])} har ingen type. I strict-modus må du skrive typen sjølv, t.d. ${kt("(" + x[1] + ": number)")} eller ${kt("(" + x[1] + ": string)")}.`;
+        break;
+    case 7005: case 7034: case 7008: case 7018:
+        return "TypeScript klarer ikkje å finne typen her, og vil ikkje gjette <code>any</code>. Skriv typen sjølv med <code>: type</code>.";
+    case 18047: case 18048: case 18049: case 2531: case 2532: case 2533: {
+        const n = (m.match(/^'(.+?)' is possibly/) || [])[1];
+        const kva = /undefined/.test(m) && !/null/.test(m) ? "undefined" : "null";
+        return `${n ? kt(n) : "Verdien"} kan vere ${kt(kva)}, og då ville programmet krasje. Sjekk først, t.d. ${kt("if (" + (n || "x") + " !== " + kva + ") { ... }")}, eller bruk ${kt("?.")} og ${kt("??")}.`;
+    }
+    case 18046: case 2571: {
+        const n = (m.match(/^'(.+?)' is of type 'unknown'/) || [])[1] || "x";
+        return `${kt(n)} har typen <code>unknown</code> – det kan vere kva som helst. Sjekk typen før du brukar verdien, t.d. ${kt("if (typeof " + n + " === \"string\") { ... }")}.`;
+    }
+    case 2554:
+        if ((x = m.match(/^Expected (.+?) arguments?, but got (\d+)/))) return `Funksjonen ventar ${x[1]} argument, men fekk ${x[2]}. Sjekk kallet – skal eit argument vere valfritt, kan parameteren få <code>?</code>.`;
+        break;
+    case 2555:
+        if ((x = m.match(/^Expected at least (\d+) arguments?, but got (\d+)/))) return `Funksjonen ventar minst ${x[1]} argument, men fekk ${x[2]}.`;
+        break;
+    case 2741:
+        if ((x = m.match(/^Property '(.+?)' is missing in type '.+' but required in type '(.+?)'/)))
+            return `Objektet manglar eigenskapen ${kt(x[1])}, som ${kt(x[2])} krev. Legg han til – eller gjer han valfri i interfacet med ${kt(x[1] + "?: ...")}.`;
+        break;
+    case 2739: case 2740:
+        if ((x = m.match(/missing the following properties from type '(.+?)': (.+)$/))) return `Objektet manglar fleire eigenskapar som ${kt(x[1])} krev: ${kt(x[2])}.`;
+        break;
+    case 2353: case 2561:
+        if ((x = m.match(/'(.+?)' does not exist in type '(.+?)'(?:\. Did you mean to write '(.+?)'\?)?/)))
+            return `${kt(x[2])} har ingen eigenskap ${kt(x[1])}.` + (x[3] ? ` Skrivefeil? Meinte du ${kt(x[3])}?` : " Skrivefeil? Elles må eigenskapen leggjast til i interfacet.");
+        break;
+    case 2540:
+        if ((x = m.match(/^Cannot assign to '(.+?)' because it is a read-only property/)))
+            return `${kt(x[1])} er <code>readonly</code> og kan berre få verdi når objektet blir laga. Fjern <code>readonly</code> om han skal kunne endrast.`;
+        break;
+    case 2588:
+        return "Ein <code>const</code> kan ikkje få ny verdi. Bruk <code>let</code> om verdien skal kunne endrast.";
+    case 2451:
+        return "Du har laga same variabel to gonger. Bruk <code>let</code>/<code>const</code> berre første gongen – etterpå skriv du berre <code>namn = ny verdi</code>.";
+    case 2448: case 2454: case 2450:
+        return "Variabelen blir brukt før han har fått ein verdi. Flytt linja der han blir laga, høgare opp.";
+    case 2367:
+        if ((x = m.match(/the types '(.+?)' and '(.+?)' have no overlap/))) return `Samanlikninga kan aldri bli sann: ${kt(x[1])} og ${kt(x[2])} har ingenting felles. Skrivefeil i verdien?`;
+        break;
+    case 2362: case 2363:
+        return "Du kan berre rekne med tal (<code>- * / %</code>). Gjer om tekst til tal med <code>Number(...)</code> først.";
+    case 2365:
+        return "Operatoren kan ikkje brukast på desse typane. Sjekk at begge sider er tal (eller begge tekst).";
+    case 2366:
+        return "Funksjonen lovar å returnere ein verdi, men ikkje alle vegar gjennom koden endar med <code>return</code>. Legg til ein <code>return</code> heilt til slutt.";
+    case 2355:
+        return "Funksjonen har ein returtype, men ingen <code>return</code>. Legg til <code>return ...</code> – eller bruk <code>: void</code> om han ikkje skal gi noko tilbake.";
+    case 2349:
+        return "Du prøver å kalle noko som ikkje er ein funksjon. Sjekk stavinga og parentesane.";
+    case 2769:
+        return "Ingen av variantane av funksjonen passar med argumenta du sender inn. Sjekk typane på argumenta.";
+    case 2693:
+        if ((x = m.match(/^'(.+?)' only refers to a type/))) return `${kt(x[1])} er ein type, ikkje ein verdi. Typar står etter kolon, t.d. ${kt("let a: " + x[1] + " = ...")}.`;
+        break;
+    case 2493:
+        return "Tuppelen har ikkje så mange plassar. Hugs at teljinga startar på 0.";
+    case 2678:
+        return "Denne <code>case</code>-verdien kan aldri treffe – typen tillèt han ikkje. Skrivefeil?";
+    case 7053:
+        return "Du kan ikkje slå opp med denne nøkkelen – TypeScript veit ikkje at han finst. Gi objektet ein type, eller bruk ein <code>Map</code>.";
+    case 2488: case 2495:
+        return "<code>for...of</code> må gå gjennom ein tabell, ein streng eller noko anna som kan gåast gjennom.";
+    case 2307: case 1148: case 2792:
+        return "Simulatoren har berre éi fil, så <code>import</code> og <code>export</code> verkar ikkje her.";
+    case 1308: case 1375: case 1378: case 1431: case 1432:
+        return "Du treng ikkje <code>await</code> framfor <code>prompt</code> i simulatoren – han ventar av seg sjølv. Fjern <code>await</code>.";
+    case 1005:
+        if ((x = m.match(/^'(.+?)' expected/))) return `TypeScript ventar ${kt(x[1])} her. Ofte manglar eit teikn rett før den understreka staden – eller på linja over.`;
+        break;
+    case 1002:
+        return "Teksten manglar sluttermeteikn. Tekst må starte og slutte med same hermeteikn, t.d. <code>\"Hei\"</code>.";
+    case 1160:
+        return "Malstrengen manglar den baklengse hermeteiknet <code>`</code> til slutt.";
+    case 1128:
+        return "Her står det noko TypeScript ikkje ventar. Ofte er det ein <code>}</code> for mykje, eller noko manglar like før.";
+    case 1109:
+        return "Her manglar ein verdi eller eit uttrykk – t.d. etter <code>=</code>, eit komma eller ein operator.";
+    case 1434: case 1435:
+        return "Noko står på feil plass. Ofte manglar eit <code>+</code>, komma eller hermeteikn – eller eit nøkkelord er feilstava.";
+    }
+    if (kode >= 1000 && kode < 2000) return "Dette er ein <b>syntaksfeil</b> – ein skrivefeil som gjer at TypeScript ikkje forstår koden. Sjå på den understreka staden og linja over. Manglar det ein <code>)</code>, <code>}</code> eller eit hermeteikn?";
+    return "Les meldinga frå kompilatoren og sjå på den understreka koden. Du kan òg søkje på feilnummeret (TS" + kode + ").";
+}
+
+/* ---- Vis JavaScript: koden etter at typane er fjerna ---- */
+async function visJavaScript() {
+    if (!tsKlar) { if (tsLastfeil) visLastfeil(); else toast("Vent litt – kompilatoren blir lasta …"); return; }
+    const kode = hentKode();
+    let svar;
+    try { svar = await tsSpor({ t: "sjekk", kode, emit: true }); } catch (e) { return; }
+    if (konsoll.querySelector(".tom")) konsoll.innerHTML = "";
+    skriv("\n▶ main.ts → main.js" + (svar.diag.length ? " (koden har typefeil, men slik blir han)" : "") + "\n", "info");
+    const js = svar.js.replace(/^"use strict";\n/, "").replace(/\n?\/\/# sourceMappingURL=.*\s*$/, "");
+    skriv(js.trimEnd() + "\n", "jskode");
+    hjelp("Typane er borte: det er dette nettlesaren eller Node.js faktisk køyrer. Typane finst berre for at kompilatoren skal kunne sjekke koden.");
+    sjekkOppgaver({ kode, visteJs: true, koyrt: false, tsfeil: svar.diag, utdata: "", input: [] });
+}
+
+/* ---- Source map: finn TypeScript-linja til ei JavaScript-linje ---- */
+function dekodKart(mappings) {
+    const B64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    const linjer = []; let srcLinje = 0;
+    for (const linje of String(mappings).split(";")) {
+        const seg = []; let kol = 0;
+        if (linje) for (const s of linje.split(",")) {
+            const v = []; let shift = 0, val = 0;
+            for (const ch of s) {
+                let d = B64.indexOf(ch); const vidare = d & 32; d &= 31;
+                val += d << shift;
+                if (vidare) shift += 5; else { v.push(val & 1 ? -(val >>> 1) : val >>> 1); val = 0; shift = 0; }
+            }
+            kol += v[0];
+            if (v.length >= 4) { srcLinje += v[2]; seg.push([kol, srcLinje]); }
+        }
+        linjer.push(seg);
+    }
+    return linjer;
+}
+function tsLinje(kart, jsLinje, kol) {
+    if (!kart || !(jsLinje >= 1)) return null;
+    for (let l = jsLinje; l >= 1 && l > jsLinje - 3; l--) {
+        const seg = kart[l - 1];
+        if (!seg || !seg.length) continue;
+        let best = seg[0];
+        if (l === jsLinje && kol) for (const s of seg) if (s[0] <= kol - 1) best = s;
+        return best[1] + 1;
+    }
+    return null;
+}
+
+/* ---- Koden som køyrer i workeren (preamble på éi linje, så linjenummera stemmer) ---- */
+const PREAMBLE = `
+var __buf = [], __sist = Date.now(), __tal = 0, __hoppa = 0, __svar = null;
+function __flush() { if (__buf.length) { postMessage({ t: "ut", l: __buf, h: __hoppa }); __buf = []; __hoppa = 0; } __sist = Date.now(); }
+function __fmt(v, d, inne) {
+  if (typeof v === "string") return inne ? "'" + v + "'" : v;
+  if (typeof v === "bigint") return v + "n";
+  if (v === null || typeof v !== "object" && typeof v !== "function") return Object.is(v, -0) ? "-0" : String(v);
+  if (typeof v === "function") return "[Function: " + (v.name || "(anonymous)") + "]";
+  if (v instanceof Error) return v.name + ": " + v.message;
+  if (v instanceof Date) return v.toISOString();
+  if (Array.isArray(v)) { if (d > 2) return "[Array]"; return v.length ? "[ " + v.map(function (x) { return __fmt(x, d + 1, true); }).join(", ") + " ]" : "[]"; }
+  if (d > 2) return "[Object]";
+  var k = Object.keys(v); return k.length ? "{ " + k.map(function (x) { return x + ": " + __fmt(v[x], d + 1, true); }).join(", ") + " }" : "{}";
+}
+function __ut(k, a) {
+  if (++__tal > 50000000) { __flush(); postMessage({ t: "formykje" }); throw new Error("__formykje"); }
+  __buf.push({ k: k, s: Array.prototype.map.call(a, function (x) { return __fmt(x, 0, false); }).join(" ") });
+  if (__buf.length > 400) { __buf.shift(); __hoppa++; } if (Date.now() - __sist > 40) __flush();
+}
+const console = { log: function () { __ut("log", arguments); }, info: function () { __ut("log", arguments); }, debug: function () { __ut("log", arguments); },
+  warn: function () { __ut("warn", arguments); }, error: function () { __ut("err", arguments); }, clear: function () { __buf = []; postMessage({ t: "clear" }); } };
+function prompt(q) { __flush(); postMessage({ t: "input", q: q === undefined ? "" : String(q) }); return new Promise(function (r) { __svar = r; }); }
+function alert(m) { __flush(); postMessage({ t: "alert", s: m === undefined ? "" : String(m) }); }
+onmessage = function (e) { if (e.data && e.data.t === "svar" && __svar) { var r = __svar; __svar = null; r(e.data.v); } };
+function __ferdig() { __flush(); postMessage({ t: "ferdig" }); }
+function __feil(e) { __flush(); if (e && e.message === "__formykje") return; postMessage({ t: "feil", namn: e && e.name || "Error", melding: e && e.message !== undefined ? String(e.message) : String(e), stack: e && e.stack || "" }); }
+`.replace(/\n\s*/g, " ");
+
+let worker = null, korer = false, kompilerer = false, kjoring = null;
+
+async function koyr() {
+    if (korer || kompilerer) return;
+    if (!tsKlar) {
+        if (tsLastfeil) { visLastfeil(); return; }
+        ventarPaaKoyr = true;
+        settStatus("Ventar på kompilatoren …", "koyrer");
+        return;
+    }
+    const kode = hentKode();
+    lagreKode();
+    fjernFeilmerke();
+    kompilerer = true; knappKoyr.disabled = true;
+    settStatus("Kompilerer …", "koyrer");
+    let svar;
+    try { svar = await tsSpor({ t: "sjekk", kode, emit: true }); }
+    catch (e) { kompilerer = false; knappKoyr.disabled = false; settStatus("Feil", "feil"); skriv("Intern feil i kompilatoren: " + e.message + "\n", "err"); return; }
+    kompilerer = false;
+    if (kode === hentKode()) visDiagnosar(svar.diag);
+    konsoll.innerHTML = "";
+    skriv("▶ tsc main.ts\n", "info");
+    if (svar.diag.length) {
+        const vis = svar.diag.slice(0, 8);
+        for (const d of vis) {
+            skriv(`main.ts:${d.linje}:${d.kol} - error TS${d.kode}: ${d.melding}\n`, "err");
+            hjelp(hjelpTs(d.kode, d.melding));
+        }
+        if (svar.diag.length > vis.length) skriv(`… og ${svar.diag.length - vis.length} feil til.\n`, "err");
+        skriv(`\nFann ${svar.diag.length} feil. Koden vart ikkje køyrd – rett opp feila først.\n`, "warn");
+        if (kode === hentKode()) markerLinje(svar.diag[0].linje);
+        knappKoyr.disabled = false;
+        settStatus("Typefeil – sjå konsollen", "feil");
+        sjekkOppgaver({ kode, utdata: "", input: [], feil: null, feiltype: null, stoppa: false, koyrt: false, tsfeil: svar.diag });
+        return;
+    }
+    skriv("✔ Ingen typefeil\n", "ok");
+    skriv("▶ node main.js\n", "info");
+    const js = svar.js.replace(/\n?\/\/# sourceMappingURL=.*\s*$/, "");
+    kjoring = { kode, kart: dekodKart(svar.kart), utdata: [], input: [], feil: null, feiltype: null, stoppa: false, jsLinjer: js.split("\n").length };
+    const kropp = js.replace(/(\bawait\s+)?\bprompt\s*\(/g, "await prompt(");
+    const src = PREAMBLE + "(async () => {\n" + kropp + "\n})().then(__ferdig, __feil);";
+    const url = URL.createObjectURL(new Blob([src], { type: "text/javascript" }));
+    worker = new Worker(url);
+    URL.revokeObjectURL(url);
+    korer = true;
+    knappStopp.disabled = false;
+    settStatus("Køyrer …", "koyrer");
+    worker.onmessage = e => handterMelding(e.data);
+    worker.onerror = e => {
+        e.preventDefault();
+        const melding = String(e.message || "Error").replace(/^Uncaught\s+/, "");
+        const m = melding.match(/^(\w*Error):\s*([\s\S]*)$/);
+        const namn = m ? m[1] : "Error", tekst = m ? m[2] : melding;
+        visFeil(namn, tekst, e.lineno ? e.lineno - 1 : null, e.colno);
+    };
+}
+
+function handterMelding(d) {
+    if (!kjoring) return;
+    if (d.t === "ut") {
+        const l = d.l;
+        if (d.h) skriv("… (" + d.h + " linjer hoppa over) …\n", "info");
+        for (const x of l) if (x.k === "log" && kjoring.utdata.length < 20000) kjoring.utdata.push(x.s);
+        let tekst = "", kl = null;
+        for (const x of l) {
+            const k = x.k === "log" ? "" : x.k;
+            if (kl !== null && k !== kl) { skriv(tekst, kl); tekst = ""; }
+            kl = k; tekst += x.s + "\n";
+        }
+        if (tekst) skriv(tekst, kl);
+    } else if (d.t === "clear") {
+        konsoll.innerHTML = "";
+    } else if (d.t === "alert") {
+        skriv(d.s, "alert"); skriv("\n"); kjoring.utdata.push(d.s);
+    } else if (d.t === "input") {
+        visInput(d.q);
+    } else if (d.t === "ferdig") {
+        avslutt("ferdig");
+    } else if (d.t === "formykje") {
+        skriv("\n■ Stoppa: programmet skreiv over 50 millionar linjer.\n", "warn");
+        hjelp("Har du ei evig løkke? Sjekk at vilkåret i <code>while</code>/<code>for</code> blir usant til slutt.");
+        kjoring.stoppa = true; avslutt("stoppa");
+    } else if (d.t === "feil") {
+        let linje = null, kol = null;
+        const m = String(d.stack).match(/blob:[^\s)]*:(\d+):(\d+)/);
+        if (m) { linje = Number(m[1]) - 1; kol = Number(m[2]); }
+        visFeil(d.namn, d.melding, linje, kol);
+    }
+}
+
+function visInput(q) {
+    settStatus("Ventar på svar …", "koyrer");
+    const rad = document.createElement("div");
+    rad.className = "inrad";
+    const s = document.createElement("span"); s.textContent = q ? q + " " : ""; rad.appendChild(s);
+    const inp = document.createElement("input");
+    inp.type = "text"; inp.autocomplete = "off"; inp.spellcheck = false; inp.setAttribute("aria-label", "Svar (Enter = OK, Esc = Avbryt)");
+    inp.placeholder = "Enter = OK · Esc = Avbryt";
+    rad.appendChild(inp);
+    konsoll.appendChild(rad); konsoll.scrollTop = konsoll.scrollHeight;
+    inp.focus({ preventScroll: true });
+    inp.addEventListener("keydown", e => {
+        if (e.key !== "Enter" && e.key !== "Escape") return;
+        e.preventDefault(); e.stopPropagation();
+        const v = e.key === "Escape" ? null : inp.value;
+        const svar = document.createElement("span");
+        svar.className = v === null ? "info" : "inn";
+        svar.textContent = v === null ? "(Avbryt → null)" : v;
+        inp.replaceWith(svar);
+        konsoll.appendChild(document.createTextNode("\n"));
+        if (kjoring) kjoring.input.push(v);
+        settStatus("Køyrer …", "koyrer");
+        if (worker) worker.postMessage({ t: "svar", v });
+    });
+}
+
+function visFeil(namn, melding, jsLinje, kol) {
+    if (!kjoring) return;
+    const linje = jsLinje && jsLinje <= kjoring.jsLinjer ? tsLinje(kjoring.kart, jsLinje, kol) : null;
+    skriv("Uncaught " + namn + ": " + melding + "\n", "err");
+    if (linje) { skriv("    at main.ts:" + linje + "\n", "err"); markerLinje(linje); }
+    hjelp(hjelpFor(namn, melding));
+    kjoring.feil = namn + ": " + melding; kjoring.feiltype = namn;
+    avslutt("feil");
+}
+
+function hjelpFor(namn, m) {
+    if (namn === "SyntaxError") {
+        if (/await is only valid|reserved word/.test(m)) return "I simulatoren kan <code>prompt</code> berre brukast utanfor eigne funksjonar. Hent svaret først, og send verdien inn i funksjonen som parameter.";
+        return "Ein syntaksfeil som kompilatoren ikkje fanga. Sjå på den raude linja.";
+    }
+    if (namn === "TypeError") {
+        if (/is not a function/.test(m)) return "Du prøver å kalle noko som ikkje er ein funksjon. Kompilatoren kunne ikkje åtvare deg, fordi verdien hadde typen <code>any</code> – då blir ingenting sjekka. Med ein ekte type (eller <code>unknown</code>) hadde feilen vorte oppdaga før køyring.";
+        if (/Cannot read properties of (undefined|null)/.test(m)) return "Du prøver å hente noko frå ein verdi som er <code>undefined</code> eller <code>null</code>. Sjekk verdien med <code>if</code> eller <code>?.</code> først. Er typen <code>any</code>, kan ikkje kompilatoren hjelpe deg.";
+    }
+    if (namn === "ReferenceError") return "Noko finst ikkje når programmet køyrer. Har du brukt <code>any</code> eller noko simulatoren ikkje har?";
+    if (namn === "RangeError" && /call stack/.test(m)) return "Funksjonen kallar seg sjølv om og om att utan å stoppe. Han treng eit vilkår som gjer at han sluttar.";
+    if (namn === "RangeError") return "Ein verdi er utanfor det lovlege området, t.d. eit negativt tal eller for mange desimalar.";
+    if (namn === "Error") return "Programmet kasta ein feil med <code>throw</code>.";
+    return "Programmet krasja medan det køyrde. Les feilmeldinga og sjå på den raude linja.";
+}
+
+function stopp() {
+    if (!korer || !kjoring) return;
+    skriv("\n■ Programmet vart stoppa.\n", "warn");
+    kjoring.stoppa = true;
+    avslutt("stoppa");
+}
+
+function avslutt(korleis) {
+    if (worker) { worker.terminate(); worker = null; }
+    konsoll.querySelectorAll(".inrad input").forEach(i => { i.disabled = true; });
+    korer = false;
+    knappKoyr.disabled = false; knappStopp.disabled = true;
+    const k = kjoring; kjoring = null;
+    if (!k) return;
+    const ut = k.utdata.join("\n");
+    if (korleis === "ferdig") {
+        skriv("\n— Programmet er ferdig —\n", "info");
+        settStatus("Ferdig");
+        if (/\bNaN\b/.test(ut)) hjelp("<code>NaN</code> betyr «Not a Number» – du har rekna med noko som ikkje er eit tal. Typen var <code>number</code>, men verdien var ugyldig (t.d. <code>Number(\"hei\")</code> eller deling 0/0).");
+    } else if (korleis === "stoppa") settStatus("Stoppa");
+    else settStatus("Feil – sjå konsollen", "feil");
+    sjekkOppgaver({ kode: k.kode, utdata: ut, input: k.input, feil: k.feil, feiltype: k.feiltype, stoppa: k.stoppa, koyrt: true, tsfeil: [] });
+}
+
+startKompilator();
+
+/* ================== OPPSTART ================== */
+visLeksjon(aktivIndeks, false);
+</script>
+</body>
+</html>
