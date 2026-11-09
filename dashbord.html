@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="nn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashbord – Frode si Sandkasse</title>
+<meta name="description" content="Levande oversikt over marknader, vêr, Brann, teknologi og nyheiter.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya:wght@500;700&family=Barlow:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --gron: #2e7d32;
+    --gron-mork: #1b5e20;
+    --fjord: #cfe3ea;
+    --papir: #fcfdf9;
+    --blekk: #1e2a25;
+    --dempa: #566660;
+    --linje: #d3dfda;
+    --hoh: #8a5a2b;
+    --regn: #2b7bb9;
+    --opp: #1f7a33;
+    --ned: #c0301c;
+    --brann: #c8102e;
+    --lenke: #0b5cad;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--fjord);
+    color: var(--blekk);
+    font: 400 16px/1.45 Barlow, Arial, sans-serif;
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+  a { color: var(--lenke); }
+  button { font: inherit; color: inherit; }
+  :focus-visible { outline: 3px solid #f2b705; outline-offset: 2px; }
+
+  /* Grøn tittellinje med dagens høgdekurver */
+  .topp { position: relative; background: var(--gron); color: #fff; overflow: hidden; }
+  .topp svg.kurver { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+  .topp-inni { position: relative; max-width: 1200px; margin: 0 auto; padding: 14px 20px 34px; }
+  .linje1 { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; flex-wrap: wrap; }
+  .linje1 a { color: #fff; font-weight: 500; }
+  .klokke { font-weight: 500; }
+  .klokke b { font-weight: 600; font-size: 1.25rem; margin-right: 8px; }
+  #briefing {
+    font: 500 clamp(1.65rem, 3.7vw, 3rem)/1.16 Alegreya, Georgia, serif;
+    max-width: 25em;
+    margin: 26px 0 0;
+    min-height: 3.5em;
+  }
+
+  main {
+    max-width: 1200px;
+    margin: -14px auto 0;
+    padding: 0 20px 24px;
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 14px;
+  }
+  .ark { background: var(--papir); border: 1px solid #b4cbc6; border-radius: 3px; padding: 16px 18px; min-width: 0; }
+  .ark h2 { font: 700 1.6rem/1.15 Alegreya, Georgia, serif; margin: 0; }
+  .arkhovud { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+  .status { font-size: .84rem; color: var(--dempa); }
+  .status.feil { color: var(--ned); }
+  .notat { font-size: .84rem; color: var(--dempa); margin: 10px 0 0; max-width: 72ch; }
+
+  #marknad { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 0 28px; }
+  #marknad > .arkhovud, #marknad > .notat { grid-column: 1 / -1; }
+  .gruppe { font-size: .84rem; font-weight: 600; color: var(--dempa); margin: 10px 0 2px; }
+  .gruppe:first-child { margin-top: 0; }
+  .rad {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 86px 62px 70px;
+    gap: 8px;
+    align-items: center;
+    width: 100%;
+    background: none;
+    border: 0;
+    border-left: 3px solid transparent;
+    border-bottom: 1px solid var(--linje);
+    padding: 5px 4px 5px 8px;
+    text-align: left;
+    cursor: pointer;
+  }
+  .rad:hover { background: #eef4ef; }
+  .rad[aria-pressed="true"] { border-left-color: var(--gron); background: #e8f2e9; font-weight: 600; }
+  .rad .pris, .rad .endr { text-align: right; }
+  .rad svg { display: block; width: 70px; height: 24px; }
+  .opp { color: var(--opp); }
+  .ned { color: var(--ned); }
+
+  .profilhovud { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+  .profilhovud h3 { font: 700 1.4rem/1.15 Alegreya, Georgia, serif; margin: 0; }
+  #profilVerdi { font-size: 1.05rem; }
+  #profilNotat { font-size: .84rem; color: var(--dempa); }
+  .brytarar { display: inline-flex; gap: 4px; }
+  .brytarar button {
+    background: none; border: 1px solid var(--gron); color: var(--gron-mork);
+    border-radius: 3px; padding: 3px 10px; font-size: .9rem; cursor: pointer;
+  }
+  .brytarar button[aria-pressed="true"] { background: var(--gron); color: #fff; }
+  .graf { position: relative; }
+  .graf svg { display: block; width: 100%; }
+  .graf text { font: 400 12px Barlow, Arial, sans-serif; fill: var(--dempa); }
+  .graf text.merk { fill: var(--blekk); font-weight: 600; }
+  .tips {
+    position: absolute; pointer-events: none; background: var(--blekk); color: #fff;
+    font-size: .84rem; padding: 3px 8px; border-radius: 3px; white-space: nowrap; display: none; z-index: 2;
+  }
+
+  #vaer { grid-column: span 8; }
+  .stader { display: grid; grid-template-columns: 1fr 1fr; gap: 0 26px; }
+  .stad h3 { font: 700 1.25rem/1.2 Alegreya, Georgia, serif; margin: 0; }
+  .no { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .temp { font: 700 2.5rem/1.1 Alegreya, Georgia, serif; }
+  .stadinfo { font-size: .9rem; color: var(--dempa); margin: 0 0 6px; min-height: 2.6em; }
+  .varsel { background: #fff3c4; border-left: 3px solid #d39e00; padding: 6px 10px; margin: 0 0 10px; font-size: .92rem; }
+  #nordlys { margin: 10px 0 0; padding-top: 8px; border-top: 1px solid var(--linje); font-size: .95rem; }
+
+  #brann { grid-column: span 4; padding: 0; overflow: hidden; }
+  #brann .bandet { background: var(--brann); color: #fff; padding: 12px 18px; }
+  #brann .bandet h2 { color: #fff; }
+  #brann .bandet .status { color: #fde3e7; }
+  #brann .bandet .status.feil { color: #fff; font-weight: 600; }
+  #brann .inni { padding: 12px 18px 16px; }
+  #nesteKamp { font: 700 1.3rem/1.2 Alegreya, Georgia, serif; margin: 0; }
+  #nesteTid { margin: 2px 0 10px; color: var(--dempa); }
+  .form { display: flex; gap: 4px; align-items: center; margin: 0 0 10px; font-size: .9rem; color: var(--dempa); }
+  .form span {
+    display: inline-block; width: 24px; line-height: 24px; text-align: center; border-radius: 3px;
+    font-weight: 600; color: #fff;
+  }
+  .form .S { background: var(--opp); }
+  .form .U { background: #7c8a85; }
+  .form .T { background: var(--ned); }
+  table { border-collapse: collapse; width: 100%; font-size: .95rem; }
+  th { text-align: right; font-weight: 500; font-size: .84rem; color: var(--dempa); padding: 2px 4px; }
+  td { padding: 3px 4px; border-top: 1px solid var(--linje); text-align: right; }
+  th:nth-child(2), td:nth-child(2) { text-align: left; width: 100%; }
+  tr.vaar td { font-weight: 600; background: #fdecee; }
+  tr.hopp td { color: var(--dempa); text-align: center; border-top: 1px solid var(--linje); padding: 0; line-height: 1; }
+  #pl { margin: 12px 0 0; padding-top: 8px; border-top: 1px solid var(--linje); font-size: .95rem; }
+
+  #tek { grid-column: span 7; }
+  #nytt { grid-column: span 5; }
+  .faner { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 6px; }
+  ol.liste, ul.liste { list-style: none; margin: 0; padding: 0; }
+  .liste li { padding: 7px 0; border-bottom: 1px solid var(--linje); }
+  .liste li:last-child { border-bottom: 0; }
+  .liste a.t { font-weight: 500; text-decoration: none; }
+  .liste a.t:hover { text-decoration: underline; }
+  .liste small { display: block; font-size: .84rem; color: var(--dempa); }
+  .liste small a { color: inherit; }
+  #nytt h3, #buss h3 { font: 700 1.15rem/1.2 Alegreya, Georgia, serif; margin: 12px 0 2px; }
+  #nytt h3:first-of-type { margin-top: 0; }
+
+  #buss { grid-column: span 7; }
+  #historie { grid-column: span 5; }
+  .avgangar { display: grid; grid-template-columns: 3fr 2fr; gap: 0 24px; }
+  .avg { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; gap: 8px; padding: 4px 0; border-top: 1px solid var(--linje); }
+  .avg b { font-weight: 600; }
+  .avg .snart { color: var(--dempa); font-size: .9rem; text-align: right; }
+  .avg .sann::before { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--opp); margin-right: 5px; vertical-align: 1px; }
+  #hendinga { font: 500 1.2rem/1.3 Alegreya, Georgia, serif; margin: 0 0 6px; }
+
+  footer { max-width: 1200px; margin: 0 auto; padding: 0 20px 28px; font-size: .88rem; color: #33504a; }
+  footer p { margin: 4px 0; max-width: 95ch; }
+  footer a { color: inherit; }
+  #oppdaterNo { margin-left: 10px; background: none; border: 1px solid rgba(255,255,255,.65); color: #fff; border-radius: 3px; padding: 2px 10px; cursor: pointer; font-size: .9rem; }
+  #oppdaterNo:hover { background: var(--gron-mork); }
+
+  @media (max-width: 960px) {
+    #marknad { grid-template-columns: 1fr; }
+    #profil { margin-top: 18px; order: 3; }
+    #vaer, #brann, #tek, #nytt, #buss, #historie { grid-column: 1 / -1; }
+  }
+  @media (max-width: 620px) {
+    .topp-inni, main, footer { padding-left: 16px; padding-right: 16px; }
+    .stader, .avgangar { grid-template-columns: 1fr; }
+    .stad + .stad { margin-top: 14px; }
+    .avgangar > div + div { margin-top: 12px; }
+    .rad { grid-template-columns: minmax(0, 1fr) 80px 58px; }
+    .rad svg { display: none; }
+    .stadinfo { min-height: 0; }
+  }
+</style>
+</head>
+<body>
+
+<header class="topp">
+  <svg class="kurver" id="kurver" viewBox="0 0 1200 320" preserveAspectRatio="xMaxYMid slice" aria-hidden="true"></svg>
+  <div class="topp-inni">
+    <div class="linje1">
+      <a href="index.html">Til Sandkassa</a>
+      <span class="klokke"><b id="klokka">--:--</b><span id="dato"></span> <button id="oppdaterNo" type="button">Oppdater no</button></span>
+    </div>
+    <p id="briefing"></p>
+  </div>
+</header>
+
+<main>
+  <section class="ark" id="marknad" aria-labelledby="h-marknad">
+    <div class="arkhovud">
+      <h2 id="h-marknad">Marknad</h2>
+      <span class="status" data-status="marknad">Hentar kursar</span>
+    </div>
+    <div id="kursliste"></div>
+    <div id="profil">
+      <div class="profilhovud">
+        <div>
+          <h3 id="profilNamn"></h3>
+          <div id="profilVerdi"></div>
+          <div id="profilNotat"></div>
+        </div>
+        <div class="brytarar" id="periodar" role="group" aria-label="Periode">
+          <button type="button" data-d="7">7 d</button>
+          <button type="button" data-d="30">30 d</button>
+          <button type="button" data-d="90">90 d</button>
+        </div>
+      </div>
+      <div class="graf" id="profilGraf"></div>
+    </div>
+    <p class="notat">Aksjar, indeksar og råvarer er kontinuerlege kontraktar på Hyperliquid som følgjer marknaden døgnet rundt, så tala kan vike litt frå offisiell sluttkurs. Valuta er ECB sine dagskursar.</p>
+  </section>
+
+  <section class="ark" id="vaer" aria-labelledby="h-vaer">
+    <div class="arkhovud">
+      <h2 id="h-vaer">Vêret dei neste 48 timane</h2>
+      <span class="status" data-status="vaer">Hentar varsel</span>
+    </div>
+    <div id="farevarsel"></div>
+    <div class="stader">
+      <div class="stad" id="stad-stord"></div>
+      <div class="stad" id="stad-gol"></div>
+    </div>
+    <p id="nordlys"></p>
+  </section>
+
+  <section class="ark" id="brann" aria-labelledby="h-brann">
+    <div class="bandet">
+      <h2 id="h-brann">Brann</h2>
+      <span class="status" data-status="brann">Hentar kampar</span>
+    </div>
+    <div class="inni">
+      <p id="nesteKamp"></p>
+      <p id="nesteTid"></p>
+      <div class="form" id="form"></div>
+      <div id="tabell"></div>
+      <p id="pl"></p>
+    </div>
+  </section>
+
+  <section class="ark" id="tek" aria-labelledby="h-tek">
+    <div class="arkhovud">
+      <h2 id="h-tek">Teknologi</h2>
+      <span class="status" data-status="tek">Hentar saker</span>
+    </div>
+    <div class="faner brytarar" id="tekfaner" role="group" aria-label="Vel emne">
+      <button type="button" data-f="fram">Hacker News i dag</button>
+      <button type="button" data-f="drift">Drift og sikkerheit</button>
+      <button type="button" data-f="ki">KI og pengane</button>
+    </div>
+    <ol class="liste" id="tekliste"></ol>
+  </section>
+
+  <section class="ark" id="nytt" aria-labelledby="h-nytt">
+    <div class="arkhovud">
+      <h2 id="h-nytt">Nytt frå NRK</h2>
+      <span class="status" data-status="nytt">Hentar saker</span>
+    </div>
+    <h3>Vestland</h3>
+    <ul class="liste" id="nrkVestland"></ul>
+    <h3>Heile landet</h3>
+    <ul class="liste" id="nrkTopp"></ul>
+  </section>
+
+  <section class="ark" id="buss" aria-labelledby="h-buss">
+    <div class="arkhovud">
+      <h2 id="h-buss">Avgangar på Stord</h2>
+      <span class="status" data-status="buss">Hentar avgangar</span>
+    </div>
+    <div class="avgangar">
+      <div><h3>Leirvik terminal</h3><div id="avgLeirvik"></div></div>
+      <div><h3>Sandvikvåg ferjekai</h3><div id="avgFerje"></div></div>
+    </div>
+  </section>
+
+  <section class="ark" id="historie" aria-labelledby="h-historie">
+    <div class="arkhovud">
+      <h2 id="h-historie">Denne dagen i historia</h2>
+      <span class="status" data-status="historie">Hentar</span>
+    </div>
+    <p id="hendinga" lang="en"></p>
+    <p class="status" id="hendingaKjelde"></p>
+  </section>
+</main>
+
+<footer>
+  <p>Vidare: <a href="radio.html">Indieradio</a>, <a href="ping.html">Ping til verda</a>, <a href="pod1.html">Rente på tvers</a>, <a href="https://github.com/Frodolini/Flyradar-Android">Flyradar for Android</a>.</p>
+  <p>Data: <a href="https://api.met.no">MET Norge</a> (CC BY 4.0), <a href="https://www.swpc.noaa.gov">NOAA SWPC</a>, <a href="https://hyperliquid.xyz">Hyperliquid</a>, <a href="https://frankfurter.dev">Frankfurter/ECB</a>, ESPN, <a href="https://hn.algolia.com">Hacker News</a>, <a href="https://www.nrk.no">NRK</a>, <a href="https://entur.no">Entur</a> og <a href="https://www.wikipedia.org">Wikipedia</a>.</p>
+</footer>
+
+<script>
+'use strict';
+/* ---------- Hjelparar ---------- */
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function trygg(u) { try { const x = new URL(u); return /^https?:$/.test(x.protocol) ? x.href : '#'; } catch { return '#'; } }
+const lagre = (k, v) => { try { localStorage.setItem('dashbord.' + k, v); } catch {} };
+const hent = k => { try { return localStorage.getItem('dashbord.' + k); } catch { return null; } };
+
+const TZ = 'Europe/Oslo';
+const VEKEDAGAR = ['sundag','måndag','tysdag','onsdag','torsdag','fredag','laurdag'];
+const MANADER = ['januar','februar','mars','april','mai','juni','juli','august','september','oktober','november','desember'];
+function oslo(d) {
+  const p = {};
+  new Intl.DateTimeFormat('en-GB', {timeZone: TZ, year:'numeric', month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit', hourCycle:'h23'})
+    .formatToParts(d).forEach(x => p[x.type] = +x.value);
+  p.dag = new Date(Date.UTC(p.year, p.month - 1, p.day));
+  p.ukedag = p.dag.getUTCDay();
+  return p;
+}
+const klokke = d => { const p = oslo(d); return String(p.hour).padStart(2,'0') + ':' + String(p.minute).padStart(2,'0'); };
+const kortDato = d => { const p = oslo(d); return p.day + '. ' + MANADER[p.month-1].slice(0,3); };
+const dagarTil = d => Math.round((oslo(d).dag - oslo(new Date()).dag) / 864e5);
+function dagTekst(d) {
+  const n = dagarTil(d), p = oslo(d);
+  if (n === 0) return 'i dag';
+  if (n === 1) return 'i morgon';
+  return VEKEDAGAR[p.ukedag] + ' ' + p.day + '. ' + MANADER[p.month-1];
+}
+function sidan(d) {
+  const m = Math.round((Date.now() - d) / 6e4);
+  if (m < 60) return 'for ' + Math.max(m, 1) + ' min sidan';
+  if (m < 60 * 24) return 'for ' + Math.round(m / 60) + ' t sidan';
+  return 'for ' + Math.round(m / 1440) + ' d sidan';
+}
+function vekenr(d) {
+  const x = new Date(oslo(d).dag); const dn = (x.getUTCDay() + 6) % 7;
+  x.setUTCDate(x.getUTCDate() - dn + 3);
+  const f = new Date(Date.UTC(x.getUTCFullYear(), 0, 4));
+  return 1 + Math.round(((x - f) / 864e5 - 3 + ((f.getUTCDay() + 6) % 7)) / 7);
+}
+const tal = (x, des) => new Intl.NumberFormat('nb-NO', {minimumFractionDigits: des, maximumFractionDigits: des}).format(x);
+const pris = x => tal(x, x >= 1000 ? 0 : x >= 20 ? 2 : 3);
+const pst = x => (x > 0 ? '+' : '') + tal(x, 1) + ' %';
+const retning = x => x > 0.05 ? 'opp' : x < -0.05 ? 'ned' : '';
+
+async function json(url, opt = {}) {
+  const c = new AbortController(); const t = setTimeout(() => c.abort(), 15000);
+  try {
+    const r = await fetch(url, {...opt, signal: c.signal});
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return await r.json();
+  } finally { clearTimeout(t); }
+}
+async function rss(url, n) {
+  const c = new AbortController(); const t = setTimeout(() => c.abort(), 15000);
+  try {
+    const r = await fetch(url, {signal: c.signal});
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const x = new DOMParser().parseFromString(await r.text(), 'text/xml');
+    return [...x.querySelectorAll('item')].slice(0, n).map(i => ({
+      tittel: i.querySelector('title')?.textContent ?? '',
+      lenke: i.querySelector('link')?.textContent ?? '#',
+      tid: new Date(i.querySelector('pubDate')?.textContent ?? Date.now())
+    }));
+  } finally { clearTimeout(t); }
+}
+
+/* ---------- Oppdateringsmotor: kvar del har sitt eige intervall ---------- */
+const MIN = 6e4;
+const delar = [];
+function del(namn, statusId, kvar, kjelde, last) { delar.push({namn, statusId, kvar, kjelde, last, neste: 0, travel: false, sist: 0}); }
+function status(d, ok) {
+  const el = document.querySelector(`[data-status="${d.statusId}"]`); if (!el) return;
+  el.classList.toggle('feil', !ok);
+  el.textContent = ok ? 'Oppdatert ' + klokke(new Date())
+    : `Fekk ikkje kontakt med ${d.kjelde}. Prøver igjen ${klokke(new Date(d.neste))}`;
+}
+async function kjor(d) {
+  if (d.travel) return; d.travel = true;
+  try { await d.last(); d.sist = Date.now(); d.neste = d.sist + d.kvar; status(d, true); }
+  catch (e) { console.warn(d.namn, e); d.neste = Date.now() + Math.min(d.kvar, 5 * MIN); status(d, false); }
+  finally { d.travel = false; briefing(); }
+}
+function tikk() { if (document.hidden) return; const n = Date.now(); delar.forEach(d => { if (n >= d.neste) kjor(d); }); }
+document.addEventListener('visibilitychange', tikk);
+$('oppdaterNo').addEventListener('click', () => delar.forEach(kjor));
+
+/* ---------- Tilstand til briefinga ---------- */
+const S = {vaer: null, kurs: {}, brann: null};
+const SYMBOL = [['clearsky','klårvêr'],['fair','lettskya'],['partlycloudy','delvis skya'],['cloudy','skya'],['fog','tåke'],
+  ['heavyrainshowers','kraftige regnbyer'],['lightrainshowers','lette regnbyer'],['rainshowers','regnbyer'],
+  ['heavysleetshowers','kraftige sluddbyer'],['lightsleetshowers','lette sluddbyer'],['sleetshowers','sluddbyer'],
+  ['heavysnowshowers','kraftige snøbyer'],['lightsnowshowers','lette snøbyer'],['snowshowers','snøbyer'],
+  ['heavyrain','kraftig regn'],['lightrain','lett regn'],['rain','regn'],
+  ['heavysleet','kraftig sludd'],['lightsleet','lett sludd'],['sleet','sludd'],
+  ['heavysnow','kraftig snø'],['lightsnow','lett snø'],['snow','snø']];
+function symbolTekst(k) {
+  if (!k) return '';
+  const r = k.replace(/_(day|night|polartwilight)$/, '');
+  const b = r.replace(/andthunder$/, '');
+  const t = SYMBOL.find(x => x[0] === b)?.[1] ?? '';
+  return r !== b ? t + ' og torevêr' : t;
+}
+function endringOrd(n, x) {
+  if (x == null) return '';
+  const a = Math.abs(x);
+  if (a < 0.05) return `${n} er uendra`;
+  return `${n} er ${x > 0 ? 'opp' : 'ned'} ${tal(a, 1)} %`;
+}
+function briefing() {
+  const n = new Date(), t = oslo(n).hour;
+  const helsing = t < 5 ? 'God natt' : t < 10 ? 'God morgon' : t < 12 ? 'God føremiddag' : t < 18 ? 'God ettermiddag' : t < 23 ? 'God kveld' : 'God natt';
+  const b = [helsing + ', Frode.'];
+  if (S.vaer) {
+    const g = Math.round(S.vaer.temp);
+    b.push(`På Stord er det ${tal(g, 0)} ${Math.abs(g) === 1 ? 'grad' : 'grader'}${S.vaer.tekst ? ' og ' + S.vaer.tekst : ''}.`);
+  }
+  const m = [endringOrd('bitcoin', S.kurs.BTC?.endr), endringOrd('S&P 500', S.kurs['xyz:SP500']?.endr)].filter(Boolean);
+  if (m.length) { let s = m.join(' og '); b.push(s[0].toUpperCase() + s.slice(1) + ' det siste døgnet.'); }
+  if (S.brann) b.push(S.brann);
+  $('briefing').textContent = b.join(' ');
+}
+
+/* ---------- Dagens høgdekurver i tittellinja ---------- */
+(function kurver() {
+  const d = oslo(new Date()); let s = (d.year * 372 + d.month * 31 + d.day) >>> 0;
+  const r = () => { s = (s + 0x6D2B79F5) >>> 0; let t = s; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  const p = [r()*6.28, r()*6.28, r()*6.28], cx = 930 + r()*120, cy = 110 + r()*90;
+  let ut = '<defs><linearGradient id="kg" x1="0" x2="1"><stop offset=".22" stop-color="#fff" stop-opacity="0"/><stop offset=".72" stop-color="#fff"/></linearGradient><mask id="km"><rect width="1200" height="320" fill="url(#kg)"/></mask></defs><g mask="url(#km)" fill="none" stroke="#fff">';
+  for (let k = 1; k <= 30; k++) {
+    const R = k * 27, a = [];
+    for (let i = 0; i < 90; i++) {
+      const v = i / 90 * 6.2832;
+      const g = 1 + .17*Math.sin(3*v + p[0]) + .09*Math.sin(5*v + p[1] + k*.04) + .04*Math.sin(9*v + p[2] + k*.07);
+      a.push((cx + Math.cos(v)*R*g).toFixed(1) + ',' + (cy + Math.sin(v)*R*g*.86).toFixed(1));
+    }
+    ut += `<polygon points="${a.join(' ')}" stroke-opacity="${k % 5 ? .17 : .34}" stroke-width="${k % 5 ? 1 : 1.5}"/>`;
+  }
+  $('kurver').innerHTML = ut + '</g>';
+})();
+function klokkeTikk() {
+  const n = new Date(), p = oslo(n);
+  $('klokka').textContent = klokke(n);
+  $('dato').textContent = `${VEKEDAGAR[p.ukedag]} ${p.day}. ${MANADER[p.month-1]}, veke ${vekenr(n)}`;
+}
+klokkeTikk(); setInterval(klokkeTikk, 10000);
+
+/* ---------- Grafar ---------- */
+function tips(graf, x, y, tekst) {
+  let t = graf.querySelector('.tips');
+  if (!t) { t = document.createElement('div'); t.className = 'tips'; graf.appendChild(t); }
+  t.textContent = tekst; t.style.display = 'block';
+  const b = graf.clientWidth, w = t.offsetWidth;
+  t.style.left = Math.max(0, Math.min(b - w, x - w / 2)) + 'px';
+  t.style.top = Math.max(0, y - 34) + 'px';
+}
+function fin(min, max, n) {
+  const steg0 = (max - min) / n, mag = 10 ** Math.floor(Math.log10(steg0)), r = steg0 / mag;
+  const steg = (r < 1.5 ? 1 : r < 3 ? 2 : r < 7 ? 5 : 10) * mag, ut = [];
+  for (let v = Math.ceil(min / steg) * steg; v <= max + steg * 1e-6; v += steg) ut.push(+v.toFixed(10));
+  return ut;
+}
+function profilGraf(el, data, fmt) {
+  const stor = innerWidth > 960, rom = $('kursliste').offsetHeight - document.querySelector('.profilhovud').offsetHeight - 10;
+  const W = Math.max(300, el.clientWidth), H = stor ? Math.max(260, rom) : 250, L = 4, R = 62, T = 22, B = 24;
+  if (data.length < 2) { el.innerHTML = ''; return; }
+  const vs = data.map(d => d.v), lo = Math.min(...vs), hi = Math.max(...vs), pad = (hi - lo || hi * .01) * .14;
+  const y0 = lo - pad, y1 = hi + pad, t0 = data[0].t, t1 = data[data.length-1].t;
+  const X = t => L + (t - t0) / (t1 - t0) * (W - L - R), Y = v => T + (y1 - v) / (y1 - y0) * (H - T - B);
+  let s = '';
+  for (const v of fin(y0, y1, 4)) s += `<line x1="${L}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}" stroke="#d3dfda"/><text x="${W-R+6}" y="${Y(v)+4}">${esc(fmt(v))}</text>`;
+  const nx = W < 460 ? 3 : 5;
+  for (let i = 0; i < nx; i++) {
+    const t = t0 + (t1 - t0) * i / (nx - 1), a = i === 0 ? 'start' : i === nx - 1 ? 'end' : 'middle';
+    s += `<text x="${X(t)}" y="${H-6}" text-anchor="${a}">${esc(kortDato(new Date(t)))}</text>`;
+  }
+  const line = data.map(d => X(d.t).toFixed(1) + ',' + Y(d.v).toFixed(1)).join(' ');
+  s += `<polyline points="${line}" fill="none" stroke="#1b5e20" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+  const merk = (d, over, ord) => {
+    const x = X(d.t), y = Y(d.v), a = x < 70 ? 'start' : x > W - R - 60 ? 'end' : 'middle';
+    return `<circle cx="${x}" cy="${y}" r="4" fill="${over ? '#8a5a2b' : '#2b7bb9'}" stroke="#fcfdf9" stroke-width="2"/><text class="merk" x="${x}" y="${over ? y-9 : y+17}" text-anchor="${a}">${esc(ord + ' ' + fmt(d.v))}</text>`;
+  };
+  s += merk(data[vs.indexOf(hi)], true, 'Topp') + merk(data[vs.indexOf(lo)], false, 'Botn');
+  s += `<g class="hk" style="display:none"><line y1="${T}" y2="${H-B}" stroke="#566660"/><circle r="4" fill="#1b5e20" stroke="#fcfdf9" stroke-width="2"/></g>`;
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" height="${H}" role="img" aria-label="Kursutvikling frå ${esc(fmt(data[0].v))} til ${esc(fmt(vs[vs.length-1]))}, høgaste ${esc(fmt(hi))}, lågaste ${esc(fmt(lo))}">${s}</svg>`;
+  const svg = el.querySelector('svg'), hk = svg.querySelector('.hk');
+  svg.onpointermove = e => {
+    const r = svg.getBoundingClientRect(), mx = (e.clientX - r.left) * W / r.width;
+    let d = data[0]; for (const q of data) if (Math.abs(X(q.t) - mx) < Math.abs(X(d.t) - mx)) d = q;
+    hk.style.display = ''; const l = hk.querySelector('line'), c = hk.querySelector('circle');
+    l.setAttribute('x1', X(d.t)); l.setAttribute('x2', X(d.t)); c.setAttribute('cx', X(d.t)); c.setAttribute('cy', Y(d.v));
+    tips(el, X(d.t) * r.width / W, Y(d.v) * r.height / H, kortDato(new Date(d.t)) + ': ' + fmt(d.v));
+  };
+  svg.onpointerleave = () => { hk.style.display = 'none'; const t = el.querySelector('.tips'); if (t) t.style.display = 'none'; };
+}
+function spark(vs) {
+  if (vs.length < 2) return '';
+  const lo = Math.min(...vs), hi = Math.max(...vs), W = 70, H = 24;
+  const x = i => 1 + i / (vs.length - 1) * (W - 5), y = v => 3 + (hi - v) / (hi - lo || 1) * (H - 6);
+  const n = vs.length - 1;
+  return `<svg viewBox="0 0 ${W} ${H}" aria-hidden="true"><polyline points="${vs.map((v,i) => x(i).toFixed(1)+','+y(v).toFixed(1)).join(' ')}" fill="none" stroke="#566660" stroke-width="1.5" stroke-linejoin="round"/><circle cx="${x(n)}" cy="${y(vs[n])}" r="2.5" fill="#1b5e20"/></svg>`;
+}
+function vaerGraf(el, rader) {
+  const W = Math.max(280, el.clientWidth), H = 176, L = 30, R = 6, T = 10, TB = 92, PT = 112, PB = 152;
+  const ts = rader.map(r => r.temp), lo0 = Math.min(...ts), hi0 = Math.max(...ts);
+  const lo = Math.floor(lo0 - 1), hi = Math.ceil(hi0 + 1), pmax = Math.max(2, ...rader.map(r => r.regn));
+  const X = i => L + i / (rader.length - 1) * (W - L - R), Y = v => T + (hi - v) / (hi - lo) * (TB - T), P = v => (PB - PT) * v / pmax;
+  const bar = Math.max(2, (W - L - R) / rader.length - 2);
+  let s = '';
+  for (const v of fin(lo, hi, 3)) s += `<line x1="${L}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}" stroke="${v === 0 ? '#566660' : '#d3dfda'}"${v === 0 ? ' stroke-dasharray="3 3"' : ''}/><text x="${L-5}" y="${Y(v)+4}" text-anchor="end">${esc(tal(v,0))}°</text>`;
+  s += `<line x1="${L}" x2="${W-R}" y1="${PB}" y2="${PB}" stroke="#b4cbc6"/><text x="${L-5}" y="${PT+9}" text-anchor="end">${esc(tal(pmax,0))}</text><text x="${L-5}" y="${PB}" text-anchor="end">mm</text>`;
+  rader.forEach((r, i) => {
+    if (r.regn > 0) { const h = Math.max(1.5, P(r.regn)); s += `<rect x="${X(i)-bar/2}" y="${PB-h}" width="${bar}" height="${h}" rx="1" fill="#2b7bb9"/>`; }
+    const p = oslo(r.t);
+    if (p.hour === 0 || p.hour === 12) {
+      s += `<line x1="${X(i)}" x2="${X(i)}" y1="${T}" y2="${PB}" stroke="#e6ece9"/><text x="${X(i)}" y="${H-6}" text-anchor="middle">${p.hour === 0 ? esc(VEKEDAGAR[p.ukedag].slice(0,3)) : 'kl. 12'}</text>`;
+    }
+  });
+  s += `<polyline points="${rader.map((r,i) => X(i).toFixed(1)+','+Y(r.temp).toFixed(1)).join(' ')}" fill="none" stroke="#8a5a2b" stroke-width="2" stroke-linejoin="round"/>`;
+  s += `<g class="hk" style="display:none"><line y1="${T}" y2="${PB}" stroke="#566660"/></g>`;
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" height="${H}" role="img" aria-label="Temperatur frå ${esc(tal(lo0,0))} til ${esc(tal(hi0,0))} grader dei neste 48 timane">${s}</svg>`;
+  const svg = el.querySelector('svg'), hk = svg.querySelector('.hk'), ln = hk.querySelector('line');
+  svg.onpointermove = e => {
+    const b = svg.getBoundingClientRect(), mx = (e.clientX - b.left) * W / b.width;
+    const i = Math.max(0, Math.min(rader.length - 1, Math.round((mx - L) / (W - L - R) * (rader.length - 1)))), r = rader[i];
+    hk.style.display = ''; ln.setAttribute('x1', X(i)); ln.setAttribute('x2', X(i));
+    tips(el, X(i) * b.width / W, 20, `${VEKEDAGAR[oslo(r.t).ukedag].slice(0,3)} ${klokke(r.t)}: ${tal(r.temp,1)}°, ${tal(r.regn,1)} mm`);
+  };
+  svg.onpointerleave = () => { hk.style.display = 'none'; const t = el.querySelector('.tips'); if (t) t.style.display = 'none'; };
+}
+
+/* ---------- Marknad ---------- */
+const AKTIVA = [
+  {id:'xyz:SP500', namn:'S&P 500', gr:'Aksjar og renter'},
+  {id:'xyz:XYZ100', namn:'Nasdaq 100', gr:'Aksjar og renter'},
+  {id:'xyz:NVDA', namn:'Nvidia', gr:'Aksjar og renter'},
+  {id:'xyz:TLT', namn:'TLT (lang USA-rente)', gr:'Aksjar og renter', notat:'Fond med amerikanske statsobligasjonar over 20 år. Stig når langrenta fell.'},
+  {id:'BTC', namn:'Bitcoin', gr:'Krypto'},
+  {id:'ETH', namn:'Ethereum', gr:'Krypto'},
+  {id:'HYPE', namn:'Hyperliquid', gr:'Krypto'},
+  {id:'xyz:GOLD', namn:'Gull', gr:'Råvarer'},
+  {id:'xyz:BRENTOIL', namn:'Brent-olje', gr:'Råvarer'},
+  {id:'USD', namn:'USD/NOK', gr:'Valuta', fx:true, notat:'Dagskurs frå ECB. Endringa er frå førre bankdag.'},
+  {id:'EUR', namn:'EUR/NOK', gr:'Valuta', fx:true, notat:'Dagskurs frå ECB. Endringa er frå førre bankdag.'}
+];
+const HL = 'https://api.hyperliquid.xyz/info';
+const hl = body => json(HL, {method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify(body)});
+let valt = AKTIVA.some(a => a.id === hent('aktiva')) ? hent('aktiva') : 'BTC';
+let periode = [7,30,90].includes(+hent('periode')) ? +hent('periode') : 30;
+const rader = {};
+(function byggListe() {
+  let gr = '', html = '';
+  AKTIVA.forEach(a => {
+    if (a.gr !== gr) { gr = a.gr; html += `<div class="gruppe">${esc(gr)}</div>`; }
+    html += `<button type="button" class="rad" data-id="${esc(a.id)}"><span>${esc(a.namn)}</span><span class="pris">–</span><span class="endr"></span><span class="sp"></span></button>`;
+  });
+  $('kursliste').innerHTML = html;
+  $('kursliste').querySelectorAll('.rad').forEach(b => {
+    rader[b.dataset.id] = b;
+    b.onclick = () => { valt = b.dataset.id; lagre('aktiva', valt); teiknMarknad(); };
+  });
+})();
+$('periodar').querySelectorAll('button').forEach(b => b.onclick = () => { periode = +b.dataset.d; lagre('periode', periode); teiknMarknad(); });
+const hist = {};
+let histTid = 0;
+function serie(a) {
+  const h = hist[a.id] ?? [], k = S.kurs[a.id];
+  if (a.fx || !k || !h.length) return h;
+  return [...h.slice(0, -1), {t: Date.now(), v: k.pris}];
+}
+const kursFmt = a => v => (a.fx ? '' : '$') + pris(v) + (a.fx ? ' kr' : '');
+function teiknMarknad() {
+  AKTIVA.forEach(a => {
+    const r = rader[a.id], k = S.kurs[a.id]; if (!r) return;
+    r.setAttribute('aria-pressed', a.id === valt);
+    if (!k) return;
+    r.children[1].textContent = kursFmt(a)(k.pris);
+    r.children[2].textContent = pst(k.endr); r.children[2].className = 'endr ' + retning(k.endr);
+    r.children[3].innerHTML = spark(serie(a).slice(-30).map(p => p.v));
+  });
+  $('periodar').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', +b.dataset.d === periode));
+  const a = AKTIVA.find(x => x.id === valt), k = S.kurs[valt], d = serie(a).slice(-(periode + 1));
+  $('profilNamn').textContent = a.namn;
+  if (k) {
+    const usd = S.kurs.USD?.pris, nok = !a.fx && usd ? ` (om lag ${tal(k.pris * usd, 0)} kr)` : '';
+    const start = d[0]?.v, per = start ? (k.pris / start - 1) * 100 : null;
+    $('profilVerdi').innerHTML = `<b>${esc(kursFmt(a)(k.pris))}</b>${esc(nok)}` + (per == null ? '' : `, <span class="${retning(per)}">${esc(pst(per))}</span> på ${periode} dagar`);
+  }
+  $('profilNotat').textContent = a.notat ?? '';
+  profilGraf($('profilGraf'), d, kursFmt(a));
+}
+function isoDag(d) { return d.toISOString().slice(0, 10); }
+del('marknad', 'marknad', MIN, 'Hyperliquid', async () => {
+  const [krypto, tradfi] = await Promise.all([hl({type:'metaAndAssetCtxs'}), hl({type:'metaAndAssetCtxs', dex:'xyz'})]);
+  for (const [meta, ctxs] of [krypto, tradfi]) meta.universe.forEach((u, i) => {
+    if (!AKTIVA.some(a => a.id === u.name)) return;
+    const c = ctxs[i], p = +(c.midPx ?? c.markPx);
+    S.kurs[u.name] = {pris: p, endr: (p / +c.prevDayPx - 1) * 100};
+  });
+  if (Date.now() - histTid > 15 * MIN) {
+    const end = Date.now(), start = end - 100 * 864e5;
+    await Promise.all(AKTIVA.filter(a => !a.fx).map(async a => {
+      const c = await hl({type:'candleSnapshot', req:{coin:a.id, interval:'1d', startTime:start, endTime:end}});
+      hist[a.id] = c.map(x => ({t: x.T, v: +x.c}));
+    }));
+    histTid = Date.now();
+  }
+  teiknMarknad();
+});
+del('valuta', 'marknad', 3 * 60 * MIN, 'Frankfurter', async () => {
+  const fra = isoDag(new Date(Date.now() - 135 * 864e5));
+  await Promise.all(AKTIVA.filter(a => a.fx).map(async a => {
+    const r = await json(`https://api.frankfurter.dev/v1/${fra}..?base=${a.id}&symbols=NOK`);
+    const d = Object.keys(r.rates).sort().map(k => ({t: Date.parse(k + 'T15:00:00Z'), v: r.rates[k].NOK}));
+    hist[a.id] = d;
+    const n = d[d.length-1].v, f = d[d.length-2].v;
+    S.kurs[a.id] = {pris: n, endr: (n / f - 1) * 100};
+  }));
+  teiknMarknad();
+});
+
+/* ---------- Vêr ---------- */
+const STADER = [
+  {id:'stad-stord', namn:'Stord', lat:59.78, lon:5.5},
+  {id:'stad-gol', namn:'Golsfjellet', lat:60.827, lon:9.137}
+];
+const ORETNING = ['nord','nordaust','aust','søraust','sør','sørvest','vest','nordvest'];
+const vaerCache = {};
+del('vaer', 'vaer', 30 * MIN, 'MET Norge', async () => {
+  const dato = isoDag(oslo(new Date()).dag);
+  const res = await Promise.all(STADER.map(async s => {
+    const [f, sol, al] = await Promise.all([
+      json(`https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=${s.lat}&lon=${s.lon}`),
+      json(`https://api.met.no/weatherapi/sunrise/3.0/sun?lat=${s.lat}&lon=${s.lon}&date=${dato}&offset=%2B01:00`).catch(() => null),
+      json(`https://api.met.no/weatherapi/metalerts/2.0/current.json?lat=${s.lat}&lon=${s.lon}`).catch(() => null)
+    ]);
+    return {s, f, sol, al};
+  }));
+  const varsel = new Map();
+  res.forEach(({s, f, sol, al}) => {
+    const ts = f.properties.timeseries.filter(x => Date.parse(x.time) > Date.now() - 36e5).slice(0, 48);
+    const rad = ts.map(x => ({t: new Date(x.time), temp: x.data.instant.details.air_temperature, regn: x.data.next_1_hours?.details?.precipitation_amount ?? 0}));
+    const no = ts[0].data, d = no.instant.details, tekst = symbolTekst(no.next_1_hours?.summary?.symbol_code);
+    const v = ORETNING[Math.round(d.wind_from_direction / 45) % 8];
+    const sum = rad.reduce((a, r) => a + r.regn, 0);
+    let dagslys = '';
+    if (sol?.properties?.sunrise?.time && sol?.properties?.sunset?.time)
+      dagslys = `Sol ${klokke(new Date(sol.properties.sunrise.time))} til ${klokke(new Date(sol.properties.sunset.time))}. `;
+    const el = $(s.id);
+    el.innerHTML = `<h3>${esc(s.namn)}</h3><div class="no"><span class="temp">${esc(tal(Math.round(d.air_temperature),0))}°</span><span>${esc(tekst)}</span></div>
+      <p class="stadinfo">${esc(tal(d.wind_speed,0))} m/s frå ${esc(v)}. ${esc(tal(sum,0))} mm dei neste 48 t. ${esc(dagslys)}</p><div class="graf"></div>`;
+    vaerCache[s.id] = rad;
+    vaerGraf(el.querySelector('.graf'), rad);
+    if (s.namn === 'Stord') S.vaer = {temp: d.air_temperature, tekst};
+    (al?.features ?? []).forEach(a => varsel.set(a.properties?.id ?? a.properties?.title, {...a.properties, til: a.when?.interval?.[1]}));
+  });
+  $('farevarsel').innerHTML = [...varsel.values()].map(p =>
+    `<p class="varsel"><b>Farevarsel:</b> ${esc((p.title ?? p.eventAwarenessName ?? '').replace(/,\s*\d{4}-\d\d-\d\dT[^,]*/g, ''))}.${p.til ? ' Gjeld til ' + esc(dagTekst(new Date(p.til))) + ' kl. ' + esc(klokke(new Date(p.til))) + '.' : ''}</p>`).join('');
+});
+del('nordlys', 'vaer', 30 * MIN, 'NOAA', async () => {
+  const d = await json('https://services.swpc.noaa.gov/products/noaa-planetary-k-index.json');
+  const k = +d[d.length-1].Kp;
+  const t = k >= 6 ? 'Sterk aktivitet. Gå ut om himmelen er klar.'
+    : k >= 4 ? 'Verdt å kikke nordover frå fjellet ved klar himmel.'
+    : k >= 3 ? 'I grenselandet. Må truleg ha kamera og mørk himmel mot nord.'
+    : 'For svakt til å sjå så langt sør.';
+  $('nordlys').innerHTML = `<b>Nordlys:</b> Kp ${esc(tal(k,0))}. ${esc(t)}`;
+});
+
+/* ---------- Brann og Premier League ---------- */
+const BRANN = '620';
+const ESPN = 'https://site.web.api.espn.com/apis';  /* site.api.espn.com sluppar ikkje nettlesarar inn (CORS) */
+const LAGNAMN = {'Bodo/Glimt':'Bodø/Glimt','Tromso':'Tromsø','Valerenga':'Vålerenga','Lillestrom':'Lillestrøm','Stromsgodset':'Strømsgodset','SK Brann':'Brann','Viking FK':'Viking','Kristiansund BK':'Kristiansund','Sarpsborg FK':'Sarpsborg 08','Fredrikstad FK':'Fredrikstad','KFUM Oslo':'KFUM','Hamarkameratene':'HamKam','Molde FK':'Molde'};
+const lag = n => LAGNAMN[n] ?? n;
+function kampInfo(e) {
+  const c = e.competitions[0];
+  const v = c.competitors.find(x => x.team.id === BRANN), m = c.competitors.find(x => x.team.id !== BRANN);
+  const scr = x => +(x.score?.value ?? x.score?.displayValue ?? x.score);
+  return {tid: new Date(e.date), heime: v.homeAway === 'home', mot: lag(m.team.displayName), v: scr(v), m: scr(m),
+    state: c.status?.type?.state ?? e.status?.type?.state, ferdig: c.status?.type?.completed ?? e.status?.type?.completed};
+}
+del('brann', 'brann', 20 * MIN, 'ESPN', async () => {
+  const [sp, fx, st] = await Promise.all([
+    json(`${ESPN}/site/v2/sports/soccer/nor.1/teams/${BRANN}/schedule`),
+    json(`${ESPN}/site/v2/sports/soccer/nor.1/teams/${BRANN}/schedule?fixture=true`),
+    json(`${ESPN}/v2/sports/soccer/nor.1/standings`)
+  ]);
+  const spelt = sp.events.map(kampInfo).filter(k => k.ferdig).sort((a, b) => a.tid - b.tid);
+  const framme = fx.events.map(kampInfo).filter(k => !k.ferdig).sort((a, b) => a.tid - b.tid);
+  const n = framme[0];
+  if (n) {
+    const motstand = n.heime ? `Brann – ${n.mot}` : `${n.mot} – Brann`;
+    $('nesteKamp').textContent = n.state === 'in' ? `${motstand}: ${n.heime ? n.v + '–' + n.m : n.m + '–' + n.v}` : motstand;
+    const om = dagarTil(n.tid);
+    $('nesteTid').textContent = n.state === 'in' ? 'Kampen er i gang' :
+      `${dagTekst(n.tid)[0].toUpperCase() + dagTekst(n.tid).slice(1)} kl. ${klokke(n.tid)}${om > 1 ? ', om ' + om + ' dagar' : ''}`;
+    S.brann = n.state === 'in' ? 'Brann spelar akkurat no.' :
+      om === 0 ? `Brann spelar ${n.heime ? 'heime' : 'borte'} mot ${n.mot} i kveld kl. ${klokke(n.tid)}.`.replace('i kveld', oslo(n.tid).hour < 17 ? 'i dag' : 'i kveld') :
+      om === 1 ? `Brann spelar ${n.heime ? 'heime' : 'borte'} mot ${n.mot} i morgon.` :
+      `Brann spelar ${n.heime ? 'heime' : 'borte'} mot ${n.mot} om ${om} dagar.`;
+  } else { $('nesteKamp').textContent = 'Ingen kampar sette opp'; $('nesteTid').textContent = ''; S.brann = null; }
+  const siste = spelt.slice(-5);
+  $('form').innerHTML = siste.length ? 'Siste kampar: ' + siste.map(k => {
+    const b = k.v > k.m ? 'S' : k.v < k.m ? 'T' : 'U';
+    const tt = `${k.heime ? 'Heime' : 'Borte'} mot ${k.mot}, ${k.v}–${k.m}, ${kortDato(k.tid)}`;
+    return `<span class="${b}" title="${esc(tt)}" aria-label="${esc(tt)}">${b}</span>`;
+  }).join('') : '';
+  const rows = st.children[0].standings.entries.map(r => {
+    const g = n => r.stats.find(s => s.name === n)?.displayValue ?? '';
+    return {id: r.team.id, namn: lag(r.team.displayName), rank: +g('rank'), k: g('gamesPlayed'), md: g('pointDifferential'), p: g('points')};
+  }).sort((a, b) => a.rank - b.rank);
+  const bi = rows.findIndex(r => r.id === BRANN), vis = new Set([0, 1, 2]);
+  for (let i = bi - 1; i <= bi + 1; i++) if (i >= 0 && i < rows.length) vis.add(i);
+  let html = '<table><thead><tr><th></th><th>Lag</th><th>K</th><th>MF</th><th>P</th></tr></thead><tbody>', forrige = -1;
+  rows.forEach((r, i) => {
+    if (!vis.has(i)) return;
+    if (i !== forrige + 1) html += '<tr class="hopp"><td colspan="5">…</td></tr>';
+    forrige = i;
+    html += `<tr${r.id === BRANN ? ' class="vaar"' : ''}><td>${r.rank}</td><td>${esc(r.namn)}</td><td>${esc(r.k)}</td><td>${esc(r.md)}</td><td>${esc(r.p)}</td></tr>`;
+  });
+  $('tabell').innerHTML = html + '</tbody></table>';
+});
+del('pl', 'brann', 2 * 60 * MIN, 'ESPN', async () => {
+  const dagStr = d => { const p = oslo(d); return `${p.year}${String(p.month).padStart(2,'0')}${String(p.day).padStart(2,'0')}`; };
+  const dagKampar = d => json(`${ESPN}/site/v2/sports/soccer/eng.1/scoreboard?dates=${dagStr(d)}`).then(r => r.events ?? []);
+  for (let i = 0; i < 21; i++) {
+    const d = new Date(Date.now() + i * 864e5);
+    const ev = (await dagKampar(d)).filter(e => e.status.type.state === 'pre').sort((a, b) => Date.parse(a.date) - Date.parse(b.date));
+    if (!ev.length) continue;
+    const e = ev[0], t = new Date(e.date), c = e.competitions[0].competitors;
+    const h = c.find(x => x.homeAway === 'home').team.shortDisplayName, b = c.find(x => x.homeAway === 'away').team.shortDisplayName;
+    const [f1, f2] = await Promise.all([1, 2].map(k => dagKampar(new Date(t.getTime() - k * 864e5))));
+    const nyRunde = !f1.length && !f2.length;
+    const frist = new Date(t.getTime() - 90 * MIN);
+    $('pl').innerHTML = `<b>Premier League:</b> ${esc(h)} – ${esc(b)} ${esc(dagTekst(t))} kl. ${esc(klokke(t))}.` +
+      (nyRunde ? ` <a href="https://fantasy.premierleague.com">FPL-fristen</a> er truleg kl. ${esc(klokke(frist))} same dag.` : ` <a href="https://fantasy.premierleague.com">Opne FPL</a>.`);
+    return;
+  }
+  $('pl').innerHTML = '<b>Premier League:</b> ingen kampar dei neste tre vekene.';
+});
+
+/* ---------- Teknologi ---------- */
+const ALG = 'https://hn.algolia.com/api/v1/search';
+const EMNE = {
+  drift: 'linux proxmox ubiquiti unifi cisco vlan wireguard passkey vulnerability ransomware windows kernel',
+  ki: 'nvidia hyperscaler datacenter capex openai anthropic bubble semiconductor tsmc'
+};
+const tekData = {};
+let tekFane = ['fram','drift','ki'].includes(hent('tek')) ? hent('tek') : 'fram';
+function teiknTek() {
+  $('tekfaner').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b.dataset.f === tekFane));
+  $('tekliste').innerHTML = (tekData[tekFane] ?? []).map(h => {
+    const disk = 'https://news.ycombinator.com/item?id=' + encodeURIComponent(h.objectID);
+    const url = trygg(h.url || disk);
+    let vert = 'news.ycombinator.com'; try { vert = new URL(url).hostname.replace(/^www\./, ''); } catch {}
+    return `<li><a class="t" lang="en" href="${esc(url)}">${esc(h.title)}</a><small>${esc(vert)}, ${esc(sidan(h.created_at_i * 1000))}, <a href="${esc(disk)}">${h.points} poeng og ${h.num_comments ?? 0} kommentarar</a></small></li>`;
+  }).join('') || '<li>Ingen saker akkurat no.</li>';
+}
+$('tekfaner').querySelectorAll('button').forEach(b => b.onclick = () => { tekFane = b.dataset.f; lagre('tek', tekFane); teiknTek(); });
+del('tek', 'tek', 10 * MIN, 'Hacker News', async () => {
+  const veke = Math.floor(Date.now() / 1000) - 7 * 86400;
+  const emne = o => json(`${ALG}?tags=story&hitsPerPage=40&restrictSearchableAttributes=title&numericFilters=created_at_i>${veke},points>40&query=${encodeURIComponent(o)}&optionalWords=${encodeURIComponent(o)}`);
+  const [f, d, k] = await Promise.all([json(`${ALG}?tags=front_page&hitsPerPage=30`), emne(EMNE.drift), emne(EMNE.ki)]);
+  const topp = r => r.hits.filter(h => h.title).sort((a, b) => b.points - a.points).slice(0, 10);
+  tekData.fram = topp(f); tekData.drift = topp(d); tekData.ki = topp(k);
+  teiknTek();
+});
+
+/* ---------- NRK ---------- */
+const nrkLi = a => a.map(s => `<li><a class="t" href="${esc(trygg(s.lenke))}">${esc(s.tittel)}</a><small>${esc(sidan(s.tid))}</small></li>`).join('');
+del('nytt', 'nytt', 5 * MIN, 'NRK', async () => {
+  const [v0, t0] = await Promise.all([rss('https://www.nrk.no/vestland/toppsaker.rss', 12), rss('https://www.nrk.no/toppsaker.rss', 16)]);
+  const sett = new Set();
+  const unike = (a, n) => a.filter(s => !sett.has(s.tittel) && sett.add(s.tittel)).slice(0, n);
+  $('nrkVestland').innerHTML = nrkLi(unike(v0, 4)); $('nrkTopp').innerHTML = nrkLi(unike(t0, 4));
+});
+
+/* ---------- Kollektiv ---------- */
+const avgLi = a => a.map(c => {
+  const t = new Date(c.expectedDepartureTime), m = Math.round((t - Date.now()) / MIN);
+  const line = c.serviceJourney.line.publicCode ?? '';
+  return `<div class="avg"><b>${esc(klokke(t))}</b><span>${esc(line)} ${esc(c.destinationDisplay.frontText)}</span><span class="snart${c.realtime ? ' sann' : ''}">${m < 1 ? 'no' : m < 60 ? 'om ' + m + ' min' : ''}</span></div>`;
+}).join('') || '<p class="status">Ingen avgangar det neste døgnet.</p>';
+del('buss', 'buss', MIN, 'Entur', async () => {
+  const q = `{l:stopPlace(id:"NSR:StopPlace:29823"){estimatedCalls(numberOfDepartures:6,timeRange:86400){...f}}
+    s:stopPlace(id:"NSR:StopPlace:58462"){estimatedCalls(numberOfDepartures:6,timeRange:86400){...f}}}
+    fragment f on EstimatedCall{expectedDepartureTime realtime destinationDisplay{frontText} serviceJourney{line{publicCode transportMode}}}`;
+  const r = await json('https://api.entur.io/journey-planner/v3/graphql', {method:'POST', headers:{'content-type':'application/json','ET-Client-Name':'frodolini-dashbord'}, body: JSON.stringify({query:q})});
+  $('avgLeirvik').innerHTML = avgLi(r.data.l.estimatedCalls);
+  $('avgFerje').innerHTML = avgLi(r.data.s.estimatedCalls.filter(c => c.serviceJourney.line.transportMode === 'water').slice(0, 4));
+});
+
+/* ---------- Denne dagen i historia ---------- */
+del('historie', 'historie', 6 * 60 * MIN, 'Wikipedia', async () => {
+  const p = oslo(new Date()), mm = String(p.month).padStart(2,'0'), dd = String(p.day).padStart(2,'0');
+  const r = await json(`https://api.wikimedia.org/feed/v1/wikipedia/en/onthisday/events/${mm}/${dd}`);
+  const e = r.events.filter(x => x.text);
+  const val = e.find(x => /norw|oslo|bergen|nordic|scandinav/i.test(x.text))
+    ?? e.find(x => x.year >= 1939 && x.year <= 1945)
+    ?? e[(p.day * p.month) % e.length];
+  $('hendinga').textContent = `${val.year}: ${val.text}`;
+  const side = val.pages?.[0]?.content_urls?.desktop?.page;
+  $('hendingaKjelde').innerHTML = side ? `<a href="${esc(trygg(side))}">Les meir på Wikipedia</a>` : '';
+});
+
+/* ---------- Start ---------- */
+briefing();
+teiknMarknad();
+teiknTek();
+tikk();
+setInterval(tikk, 5000);
+let rz;
+addEventListener('resize', () => {
+  clearTimeout(rz);
+  rz = setTimeout(() => {
+    teiknMarknad();
+    STADER.forEach(s => { const g = $(s.id).querySelector('.graf'); if (g && vaerCache[s.id]) vaerGraf(g, vaerCache[s.id]); });
+  }, 150);
+});
+</script>
+</body>
+</html>
