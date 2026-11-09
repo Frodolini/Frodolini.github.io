@@ -422,8 +422,9 @@ function briefing() {
     const g = Math.round(S.vaer.temp);
     b.push(`På Stord er det ${tal(g, 0)} ${Math.abs(g) === 1 ? 'grad' : 'grader'}${S.vaer.tekst ? ' og ' + S.vaer.tekst : ''}.`);
   }
-  const m = [endringOrd('bitcoin', S.kurs.BTC?.endr), endringOrd('S&P 500', S.kurs['xyz:SP500']?.endr)].filter(Boolean);
-  if (m.length) { let s = m.join(' og '); b.push(s[0].toUpperCase() + s.slice(1) + ' det siste døgnet.'); }
+  const sp = endringOrd('S&P 500', S.kurs['xyz:SP500']?.endr);
+  if (sp) b.push(sp + ' det siste døgnet.');
+  if (S.kurs.USD) b.push(`Ein dollar kostar ${tal(S.kurs.USD.pris, 2)} kroner.`);
   if (S.brann) b.push(S.brann);
   $('briefing').textContent = b.join(' ');
 }
@@ -542,17 +543,15 @@ const AKTIVA = [
   {id:'xyz:XYZ100', namn:'Nasdaq 100', gr:'Aksjar og renter'},
   {id:'xyz:NVDA', namn:'Nvidia', gr:'Aksjar og renter'},
   {id:'xyz:TLT', namn:'TLT (lang USA-rente)', gr:'Aksjar og renter', notat:'Fond med amerikanske statsobligasjonar over 20 år. Stig når langrenta fell.'},
-  {id:'BTC', namn:'Bitcoin', gr:'Krypto'},
-  {id:'ETH', namn:'Ethereum', gr:'Krypto'},
-  {id:'HYPE', namn:'Hyperliquid', gr:'Krypto'},
   {id:'xyz:GOLD', namn:'Gull', gr:'Råvarer'},
   {id:'xyz:BRENTOIL', namn:'Brent-olje', gr:'Råvarer'},
   {id:'USD', namn:'USD/NOK', gr:'Valuta', fx:true, notat:'Dagskurs frå ECB. Endringa er frå førre bankdag.'},
-  {id:'EUR', namn:'EUR/NOK', gr:'Valuta', fx:true, notat:'Dagskurs frå ECB. Endringa er frå førre bankdag.'}
+  {id:'EUR', namn:'EUR/NOK', gr:'Valuta', fx:true, notat:'Dagskurs frå ECB. Endringa er frå førre bankdag.'},
+  {id:'BTC', namn:'Bitcoin', gr:'Anna'}
 ];
 const HL = 'https://api.hyperliquid.xyz/info';
 const hl = body => json(HL, {method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify(body)});
-let valt = AKTIVA.some(a => a.id === hent('aktiva')) ? hent('aktiva') : 'BTC';
+let valt = AKTIVA.some(a => a.id === hent('kurs')) ? hent('kurs') : 'xyz:SP500';
 let periode = [7,30,90].includes(+hent('periode')) ? +hent('periode') : 30;
 const rader = {};
 (function byggListe() {
@@ -564,7 +563,7 @@ const rader = {};
   $('kursliste').innerHTML = html;
   $('kursliste').querySelectorAll('.rad').forEach(b => {
     rader[b.dataset.id] = b;
-    b.onclick = () => { valt = b.dataset.id; lagre('aktiva', valt); teiknMarknad(); };
+    b.onclick = () => { valt = b.dataset.id; lagre('kurs', valt); teiknMarknad(); };
   });
 })();
 $('periodar').querySelectorAll('button').forEach(b => b.onclick = () => { periode = +b.dataset.d; lagre('periode', periode); teiknMarknad(); });
