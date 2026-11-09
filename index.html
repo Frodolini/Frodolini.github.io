@@ -3,150 +3,208 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Frode si sandkasse: kurs, verktøy og spel til IT-undervisninga på Stord vidaregåande skule.">
+    <meta name="theme-color" content="#2e7d32">
     <title>Frode si Sandkasse</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&display=swap" rel="stylesheet">
     <style>
         :root {
             --gron: #2e7d32;
             --gron-mork: #1b5e20;
-            --lenke: #0066cc;
-            --grå: #666;
-            --linje: #e3e3e3;
+            --bakgrunn: #f3f7f1;
+            --flate: #ffffff;
+            --blekk: #16231a;
+            --dempa: #56635a;
+            --linje: #d5ded3;
+            --lenke: #1b5e20;
+            --sol: #ffd54a;
+            --sol-tekst: #4a3800;
+            --treff: #fff0a8;
+            --overskrift: "Bricolage Grotesque", "Trebuchet MS", "Segoe UI", sans-serif;
+            --tekst: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+        }
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bakgrunn: #111a13;
+                --flate: #19241c;
+                --blekk: #e7eee7;
+                --dempa: #a3b1a6;
+                --linje: #2d3b30;
+                --lenke: #93dc98;
+                --treff: #5d5200;
+            }
         }
         * { box-sizing: border-box; }
+        html { scroll-behavior: smooth; scroll-padding-top: 16px; }
         body {
-            background-color: powderblue;
-            font-family: Arial, sans-serif;
-            color: #333;
+            margin: 0;
+            background: var(--bakgrunn);
+            color: var(--blekk);
+            font-family: var(--tekst);
+            font-size: 16px;
+            line-height: 1.45;
+        }
+        .innhald { max-width: 1120px; margin: 0 auto; padding-left: 20px; padding-right: 20px; }
+        a { color: var(--lenke); }
+        :focus-visible { outline: 3px solid var(--sol); outline-offset: 2px; border-radius: 4px; }
+        .hopp {
+            position: absolute; left: -999px; top: 8px;
+            background: var(--sol); color: var(--sol-tekst);
+            padding: 8px 12px; border-radius: 6px; font-weight: 600;
+        }
+        .hopp:focus { left: 8px; z-index: 10; }
+
+        /* Grøn tittellinje – varemerket */
+        header { background: var(--gron); color: #fff; }
+        header .innhald { padding-top: 34px; padding-bottom: 26px; }
+        h1 {
+            font-family: var(--overskrift);
+            font-weight: 800;
+            font-size: clamp(38px, 7.5vw, 76px);
+            line-height: .95;
+            letter-spacing: -.025em;
             margin: 0;
         }
-
-        /* Grøn tittellinje */
-        header {
-            background: var(--gron);
-            color: white;
-            padding: 18px 16px 14px;
-        }
-        .innhald { max-width: 1000px; margin: 0 auto; }
-        header h1 { margin: 0; font-size: 26px; }
-        header p { margin: 4px 0 12px; opacity: .9; font-size: 15px; }
+        .ingress { margin: 14px 0 22px; max-width: 34em; font-size: 18px; color: #e6f3e6; }
+        .sokefelt { position: relative; max-width: 620px; }
         #sok {
             width: 100%;
-            max-width: 420px;
-            padding: 9px 12px;
-            font-size: 15px;
-            border: none;
-            border-radius: 6px;
+            font: inherit;
+            font-size: 18px;
+            padding: 15px 52px 15px 18px;
+            border: 0;
+            border-radius: 12px;
+            background: #fff;
+            color: #16231a;
+            box-shadow: 0 6px 0 var(--gron-mork);
         }
-        nav {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            margin-top: 12px;
+        #sok::placeholder { color: #66736a; }
+        .sokefelt kbd {
+            position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+            font: 600 13px var(--tekst);
+            color: #56635a; border: 1px solid #c3cdc4; border-radius: 5px; padding: 2px 8px;
+            pointer-events: none;
         }
-        nav a {
-            color: white;
-            text-decoration: none;
-            font-size: 13px;
-            padding: 4px 10px;
-            border: 1px solid rgba(255,255,255,.5);
-            border-radius: 14px;
-        }
-        nav a:hover { background: var(--gron-mork); }
+        @media (hover: none) { .sokefelt kbd { display: none; } #sok { padding-right: 18px; } }
+        #status { min-height: 1.45em; margin: 16px 0 0; font-size: 14px; color: #e6f3e6; }
 
-        main {
-            padding: 20px 16px;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 16px;
-            align-items: start;
-        }
-        section {
-            background: white;
+        nav { background: var(--gron-mork); }
+        nav .innhald { display: flex; gap: 4px; overflow-x: auto; padding-top: 8px; padding-bottom: 8px; scrollbar-width: thin; }
+        nav a {
+            flex: none;
+            color: #fff;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 6px 12px;
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,.1);
-            padding: 14px 18px 8px;
         }
+        nav a:hover { background: rgba(255,255,255,.16); }
+        nav a span { font-weight: 400; opacity: .75; margin-left: 5px; }
+        nav a.tom { opacity: .4; }
+
+        main { padding-top: 8px; padding-bottom: 40px; }
+        section { padding: 30px 0 26px; border-bottom: 1px solid var(--linje); }
+        section:last-of-type { border-bottom: 0; }
         h2 {
-            font-size: 17px;
-            margin: 0 0 6px;
-            padding-bottom: 6px;
-            border-bottom: 2px solid var(--gron);
+            font-family: var(--overskrift);
+            font-weight: 700;
+            font-size: 27px;
+            line-height: 1.1;
+            letter-spacing: -.01em;
+            margin: 0 0 12px;
         }
-        ul { list-style: none; margin: 0; padding: 0; }
-        li { padding: 7px 0; border-bottom: 1px solid var(--linje); }
-        li:last-child { border-bottom: none; }
-        li > a, .tittel {
-            color: var(--lenke);
-            text-decoration: none;
-            font-weight: bold;
-            font-size: 15px;
+        h3 { font-size: 14px; font-weight: 600; color: var(--dempa); margin: 18px 0 0; }
+        h2 + h3 { margin-top: 0; }
+        ul {
+            list-style: none; margin: 0; padding: 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+            column-gap: 28px;
         }
-        .tittel { color: #333; }
-        li > a:hover { text-decoration: underline; }
-        .forklaring {
-            display: block;
-            color: var(--grå);
-            font-size: 13px;
-            margin-top: 2px;
-            line-height: 1.35;
-        }
-        .utgaver { display: inline-flex; gap: 4px; margin-left: 6px; vertical-align: middle; }
+        li { position: relative; padding: 11px 8px 12px; margin: 0 -8px; border-radius: 8px; }
+        li:hover { background: color-mix(in srgb, var(--gron) 9%, transparent); }
+        li > a, .tittel { font-weight: 700; font-size: 17px; color: var(--lenke); text-decoration: none; }
+        .tittel { color: var(--blekk); }
+        li > a::after { content: ""; position: absolute; inset: 0; border-radius: 8px; }
+        li:hover > a { text-decoration: underline; text-underline-offset: 3px; }
+        .forklaring { display: block; color: var(--dempa); font-size: 14.5px; margin-top: 2px; }
+        .utgaver { display: inline-flex; gap: 5px; margin-left: 8px; vertical-align: 2px; }
         .utgaver a {
-            font-size: 12px;
-            font-weight: bold;
-            color: var(--gron-mork);
-            text-decoration: none;
-            border: 1px solid var(--gron);
-            border-radius: 4px;
-            padding: 1px 7px;
+            font-size: 13px; font-weight: 700; text-decoration: none;
+            color: var(--lenke);
+            border: 1.5px solid currentColor; border-radius: 6px;
+            padding: 1px 9px; min-width: 30px; text-align: center;
         }
-        .utgaver a:hover { background: var(--gron); color: white; }
+        .utgaver a:hover { background: var(--gron); border-color: var(--gron); color: #fff; }
         .merke {
-            font-size: 11px;
-            background: #fff3c4;
-            color: #7a5b00;
-            border-radius: 4px;
-            padding: 1px 5px;
-            margin-left: 4px;
-            vertical-align: middle;
+            position: relative;
+            font-size: 12px; font-weight: 700;
+            background: var(--sol); color: var(--sol-tekst);
+            border-radius: 5px; padding: 1px 7px; margin-left: 8px; vertical-align: 2px;
         }
-        h3 {
-            font-size: 13px;
-            text-transform: uppercase;
-            letter-spacing: .04em;
-            color: var(--grå);
-            margin: 10px 0 2px;
+        mark { background: var(--treff); color: inherit; border-radius: 3px; }
+
+        /* Kode 101: kursa er hovudsaka, og får eigne fliser */
+        .kurs ul { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
+        .kurs li {
+            margin: 0; padding: 16px 16px 15px;
+            background: var(--flate);
+            border: 1px solid var(--linje);
+            border-left: 6px solid var(--gron);
+            border-radius: 10px;
         }
-        #ingen { display: none; grid-column: 1 / -1; text-align: center; color: #333; }
-        footer {
-            text-align: center;
-            font-size: 13px;
-            color: #446;
-            padding: 0 16px 24px;
+        .kurs li:hover { background: var(--flate); border-color: var(--gron); }
+        .kurs li > a { font-family: var(--overskrift); font-size: 22px; letter-spacing: -.01em; }
+        .kurs li > a::after { border-radius: 10px; }
+
+        @media (min-width: 900px) {
+            section { display: grid; grid-template-columns: 210px 1fr; column-gap: 36px; align-items: start; }
+            section > h2 { grid-column: 1; grid-row: 1 / span 20; margin: 8px 0 0; position: sticky; top: 16px; }
+            section > :not(h2) { grid-column: 2; }
         }
+
+        #ingen { display: none; padding: 40px 0; font-size: 18px; }
+        #ingen button {
+            font: inherit; color: var(--lenke); background: none; border: 0; padding: 0;
+            text-decoration: underline; cursor: pointer;
+        }
+        footer { border-top: 1px solid var(--linje); color: var(--dempa); font-size: 14px; }
+        footer .innhald { display: flex; flex-wrap: wrap; gap: 6px 24px; justify-content: space-between; padding-top: 18px; padding-bottom: 28px; }
         .skjult { display: none !important; }
+        @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
     </style>
 </head>
 <body>
+<a class="hopp" href="#innhald">Hopp til innhaldet</a>
 
 <header>
     <div class="innhald">
-        <h1>Frode si Sandkasse</h1>
-        <p>IT, programmering og litt leik. Her samlar eg ting eg lagar – ofte til undervisninga på Stord vgs.</p>
-        <input id="sok" type="search" placeholder="Søk, t.d. «passord» eller «piano» …" aria-label="Søk på sida">
-        <nav>
-            <a href="#laering">Læring</a>
-            <a href="#kode101">Kode 101</a>
-            <a href="#krypto">Kryptografi</a>
-            <a href="#innlogging">Innlogging og tillit</a>
-            <a href="#verktoy">Verktøy</a>
-            <a href="#anna">Programvare og lyd</a>
-            <a href="#spel">Spel</a>
-        </nav>
+        <h1>Frode si sandkasse</h1>
+        <p class="ingress">Kurs, verktøy og spel eg lagar til IT-undervisninga på Stord vgs – og litt berre for moro skuld.</p>
+        <div class="sokefelt">
+            <input id="sok" type="search" placeholder="Søk, t.d. passord eller piano" aria-label="Søk i sandkassa" autocomplete="off">
+            <kbd title="Trykk / for å søkje">/</kbd>
+        </div>
+        <p id="status" aria-live="polite"></p>
     </div>
 </header>
 
-<main class="innhald">
+<nav aria-label="Kategoriar">
+    <div class="innhald">
+        <a href="#laering">Læring</a>
+        <a href="#kode101">Kode 101</a>
+        <a href="#krypto">Kryptografi</a>
+        <a href="#innlogging">Innlogging og tillit</a>
+        <a href="#verktoy">Verktøy</a>
+        <a href="#anna">Programvare og lyd</a>
+        <a href="#spel">Spel</a>
+    </div>
+</nav>
+
+<main class="innhald" id="innhald">
 
     <section id="laering">
         <h2>Læring</h2>
@@ -170,7 +228,7 @@
         </ul>
     </section>
 
-    <section id="kode101">
+    <section id="kode101" class="kurs">
         <h2>Kode 101</h2>
         <ul>
             <li><a href="cmd101.html">CMD 101</a>
@@ -302,35 +360,80 @@
         </ul>
     </section>
 
-    <p id="ingen">Fann ingenting som passa søket.</p>
+    <p id="ingen">Fann ingenting som passa søket. Prøv eit kortare ord, eller <button type="button" id="nullstill">vis alt</button>.</p>
 </main>
 
 <footer>
-    <a href="https://www.stord.vgs.no">Stord vidaregåande skule</a> · Sist oppdatert: 09.11.2026
+    <div class="innhald">
+        <a href="https://www.stord.vgs.no">Stord vidaregåande skule</a>
+        <span>Sist oppdatert 09.11.2026</span>
+    </div>
 </footer>
 
 <script>
     const sok = document.getElementById('sok');
-    sok.addEventListener('input', () => {
+    const status = document.getElementById('status');
+    const ingen = document.getElementById('ingen');
+    const seksjonar = [...document.querySelectorAll('main section')];
+    const totalt = document.querySelectorAll('main li').length;
+
+    // Tal på ting i kvar kategori, vist i menyen
+    const menyTal = {};
+    seksjonar.forEach(s => {
+        const lenke = document.querySelector('nav a[href="#' + s.id + '"]');
+        if (!lenke) return;
+        const tal = document.createElement('span');
+        lenke.append(tal);
+        menyTal[s.id] = { lenke, tal };
+    });
+
+    // Marker søkjeordet i titlar og forklaringar
+    const felt = [...document.querySelectorAll('main li > a, main .tittel, main .forklaring')];
+    felt.forEach(f => f.dataset.tekst = f.textContent);
+    function marker(ord) {
+        felt.forEach(f => {
+            const tekst = f.dataset.tekst;
+            const i = ord ? tekst.toLowerCase().indexOf(ord) : -1;
+            if (i < 0) { f.textContent = tekst; return; }
+            const m = document.createElement('mark');
+            m.textContent = tekst.slice(i, i + ord.length);
+            f.replaceChildren(tekst.slice(0, i), m, tekst.slice(i + ord.length));
+        });
+    }
+
+    function filtrer() {
         const ord = sok.value.trim().toLowerCase();
         let treff = 0;
-        document.querySelectorAll('main section').forEach(seksjon => {
+        seksjonar.forEach(seksjon => {
+            const heileSeksjonen = seksjon.querySelector('h2').textContent.toLowerCase().includes(ord);
             let synlege = 0;
             seksjon.querySelectorAll('li').forEach(li => {
-                const passar = !ord || li.textContent.toLowerCase().includes(ord)
-                    || seksjon.querySelector('h2').textContent.toLowerCase().includes(ord);
+                const passar = !ord || heileSeksjonen || li.textContent.toLowerCase().includes(ord);
                 li.classList.toggle('skjult', !passar);
                 if (passar) synlege++;
             });
             seksjon.querySelectorAll('h3').forEach(h3 => {
-                const liste = h3.nextElementSibling;
-                h3.classList.toggle('skjult', !liste.querySelector('li:not(.skjult)'));
+                h3.classList.toggle('skjult', !h3.nextElementSibling.querySelector('li:not(.skjult)'));
             });
             seksjon.classList.toggle('skjult', synlege === 0);
+            const m = menyTal[seksjon.id];
+            if (m) { m.tal.textContent = synlege; m.lenke.classList.toggle('tom', synlege === 0); }
             treff += synlege;
         });
-        document.getElementById('ingen').style.display = treff ? 'none' : 'block';
+        marker(ord);
+        ingen.style.display = treff ? 'none' : 'block';
+        status.textContent = ord
+            ? (treff === 1 ? '1 treff' : treff + ' treff') + ' av ' + totalt
+            : totalt + ' ting å utforske';
+    }
+
+    sok.addEventListener('input', filtrer);
+    document.getElementById('nullstill').addEventListener('click', () => { sok.value = ''; filtrer(); sok.focus(); });
+    document.addEventListener('keydown', e => {
+        if (e.key === '/' && document.activeElement !== sok) { e.preventDefault(); sok.focus(); sok.select(); }
+        else if (e.key === 'Escape' && document.activeElement === sok && sok.value) { sok.value = ''; filtrer(); }
     });
+    filtrer();
 </script>
 </body>
 </html>
