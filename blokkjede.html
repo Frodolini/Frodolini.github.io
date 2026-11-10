@@ -46,59 +46,77 @@
     }
 }
 * { box-sizing: border-box; }
-html { scroll-behavior: smooth; scroll-padding-top: 10px; }
 body {
     margin: 0;
     background: var(--bg);
     color: var(--text);
     font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-    line-height: 1.5;
+    font-size: 17px;
+    line-height: 1.55;
 }
 a { color: var(--accent); }
 :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+h2:focus { outline: none; }
 
-/* Grøn tittellinje, med ein ekte SHA-256-hash som fargestrek */
-.tittellinje { background: var(--gron); color: #fff; padding: 16px 16px 14px; }
-.tittellinje .inni, main { max-width: 800px; margin: 0 auto; }
+/* Grøn tittellinje, med ein ekte hash som fargestrek under */
+.tittellinje { background: var(--gron); color: #fff; padding: 14px 16px 14px; }
+.tittellinje .inni, main, footer { max-width: 760px; margin: 0 auto; }
 .tittellinje a { color: #fff; }
+.tittellinje :focus-visible { outline-color: #fff; }
 .tilbake { font-size: 14px; }
-.tittellinje h1 { margin: 6px 0 2px; font-size: 34px; line-height: 1.15; }
-.tittellinje p { margin: 0 0 12px; font-size: 17px; max-width: 62ch; }
+.tittellinje h1 { margin: 4px 0 2px; font-size: 32px; line-height: 1.15; }
+.tittellinje p { margin: 0 0 12px; max-width: 58ch; }
 .steg-nav { display: flex; flex-wrap: wrap; gap: 6px; }
 .steg-nav a {
-    text-decoration: none; font-size: 13px; padding: 3px 10px;
-    border: 1px solid rgba(255,255,255,.55); border-radius: 14px;
+    display: flex; align-items: center; gap: 6px;
+    text-decoration: none; font-size: 14px; padding: 3px 11px 3px 4px;
+    border: 1px solid rgba(255,255,255,.55); border-radius: 999px;
 }
 .steg-nav a:hover { background: var(--gron-mork); }
+.steg-nav .nr {
+    display: inline-grid; place-items: center; width: 24px; height: 24px;
+    border-radius: 50%; background: rgba(255,255,255,.22); font-weight: 700; font-size: 13px;
+}
+.steg-nav a.ferdig .nr { background: #fff; color: var(--gron-mork); }
+.steg-nav a[aria-current] { background: #fff; color: var(--gron-mork); border-color: #fff; font-weight: 700; }
+.steg-nav a[aria-current] .nr { background: var(--gron); color: #fff; }
 #toppstrek { height: 12px; }
 
 main { padding: 16px; }
+.steg-topp { font-size: 14px; color: var(--muted); font-weight: 600; margin: 0 0 2px; text-transform: uppercase; letter-spacing: .04em; }
 .card {
     background: var(--panel); border: 1px solid var(--border);
-    border-radius: 10px; padding: 16px; margin-bottom: 16px;
+    border-radius: 10px; padding: 18px; margin-bottom: 14px;
 }
-.card h2 { margin: 0 0 8px; font-size: 21px; line-height: 1.25; }
-.card h3 { margin: 16px 0 6px; font-size: 16px; }
-.card p { margin: 0 0 10px; max-width: 68ch; }
+.card h2 { margin: 0 0 8px; font-size: 25px; line-height: 1.2; }
+.card h3 { margin: 18px 0 6px; font-size: 17px; }
+.card p { margin: 0 0 10px; max-width: 62ch; }
 .card > :last-child { margin-bottom: 0; }
 .small { font-size: 14px; color: var(--muted); }
 .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-label { display: block; font-weight: 600; margin: 10px 0 4px; font-size: 15px; }
+label, .etikett { display: block; font-weight: 600; margin: 12px 0 4px; font-size: 15px; }
 input[type=text], input[type=number] {
-    width: 100%; padding: 8px 10px; font: inherit;
+    width: 100%; padding: 9px 10px; font: inherit;
     border: 1px solid var(--border); border-radius: 8px;
     background: var(--panel2); color: var(--text);
 }
-input[type=range] { width: 100%; accent-color: var(--accent); }
 .btn {
     border: 1px solid var(--border); background: var(--panel2); color: var(--text);
-    padding: 8px 14px; border-radius: 8px; font: inherit; font-size: 15px; cursor: pointer;
-    min-height: 40px;
+    padding: 8px 14px; border-radius: 8px; font: inherit; font-size: 16px; cursor: pointer;
+    min-height: 42px; text-decoration: none; display: inline-flex; align-items: center;
 }
 .btn:hover:not(:disabled) { border-color: var(--accent); }
 .btn.primary { background: var(--gron); border-color: var(--gron); color: #fff; font-weight: 600; }
 .btn.danger { border-color: var(--bad); color: var(--bad); }
 .btn:disabled { opacity: .5; cursor: default; }
+.seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.seg button {
+    border: 0; border-right: 1px solid var(--border); background: var(--panel2); color: var(--text);
+    padding: 8px 15px; font: inherit; font-size: 16px; cursor: pointer; min-height: 42px;
+}
+.seg button:last-child { border-right: 0; }
+.seg button[aria-pressed=true] { background: var(--gron); color: #fff; font-weight: 700; }
+.seg button:disabled { cursor: default; opacity: .6; }
 code, .mono { font-family: ui-monospace, Menlo, Consolas, monospace; }
 .out {
     font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 15px;
@@ -114,26 +132,37 @@ code, .mono { font-family: ui-monospace, Menlo, Consolas, monospace; }
 .badge.ok { background: var(--okbg); color: var(--ok); }
 .badge.bad { background: var(--badbg); color: var(--bad); }
 .badge.warn { background: var(--warnbg); color: var(--warn); }
-.oppdrag { border-left: 4px solid var(--gron); background: var(--accent-soft); padding: 9px 12px; margin: 12px 0; border-radius: 0 8px 8px 0; }
-.oppdrag b:first-child { margin-right: 4px; }
-table { border-collapse: collapse; width: 100%; font-size: 15px; }
+
+/* Oppdraget: det eleven skal gjere. Dette lærte du: kjem fram når oppdraget er løyst. */
+.oppdrag { border: 2px solid var(--gron); border-radius: 10px; padding: 10px 14px; margin: 14px 0; }
+.oppdrag .tittel { display: block; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--accent); }
+.oppdrag ol { margin: 4px 0 0; padding-left: 22px; }
+.laert { background: var(--okbg); border-radius: 10px; padding: 12px 14px; margin-top: 14px; animation: inn .35s ease-out; }
+.laert .tittel { display: block; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--ok); }
+.laert p { margin: 2px 0 0; }
+.laert p + p { margin-top: 8px; }
+@keyframes inn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.fagord { font-size: 15px; color: var(--muted); border-top: 1px solid var(--border); padding-top: 10px; margin-top: 14px; }
+.fagord b { color: var(--text); }
+
+table { border-collapse: collapse; width: 100%; font-size: 16px; }
 td, th { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
 th { font-size: 13px; color: var(--muted); font-weight: 600; }
 td.tal, th.tal { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 tr.sum td { font-weight: 700; border-bottom: 0; }
-td.endra { background: var(--hl); font-weight: 700; }
+td.endra { background: var(--hl); }
 .tabellrull { overflow-x: auto; }
-.formel { background: var(--panel2); border-radius: 8px; padding: 8px 12px; margin: 10px 0; font-size: 15px; }
-details { background: var(--panel2); border-radius: 8px; padding: 8px 12px; margin: 6px 0; }
+details { background: var(--panel2); border-radius: 8px; padding: 9px 12px; margin: 6px 0; }
 details summary { cursor: pointer; font-weight: 600; }
 details p { margin: 6px 0 2px; }
-footer { font-size: 13px; color: var(--muted); max-width: 800px; margin: 0 auto; padding: 0 16px 24px; }
-footer ul { margin: 4px 0 10px; padding-left: 18px; }
+dl { margin: 0; }
+dt { font-weight: 700; margin-top: 8px; }
+dd { margin: 0; }
 
-/* Fargestreken: ein hash vist som åtte fargefelt */
+/* Fargestreken: eit fingeravtrykk vist som åtte fargefelt */
 .strek { height: 14px; background: var(--border); }
-.strekrad { display: grid; grid-template-columns: 100px 1fr auto; gap: 8px; align-items: center; margin-top: 6px; font-size: 14px; }
-.strekrad .strek { border-radius: 4px; }
+.strekrad { display: grid; grid-template-columns: 60px 1fr 62px; gap: 8px; align-items: center; margin-top: 6px; font-size: 15px; }
+.strekrad .strek { border-radius: 4px; height: 20px; }
 
 /* Blokker og ledd */
 .kjede { margin-top: 12px; }
@@ -142,75 +171,81 @@ footer ul { margin: 4px 0 10px; padding-left: 18px; }
 .blokk[data-st=brot], .blokk[data-st=ugyldig] { border-color: var(--bad); }
 .blokk[data-st=folgje] { border-color: var(--warn); }
 .blokk-kropp { padding: 8px 12px 10px; }
-.blokk-topp { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 4px; }
-.felt { display: grid; grid-template-columns: 82px 1fr; gap: 8px; align-items: center; margin: 3px 0; font-size: 14px; font-weight: 400; }
-.felt .fn { color: var(--muted); }
+.blokk-topp { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 2px; }
+.felt { display: block; margin: 5px 0; font-size: 15px; font-weight: 400; }
+.felt .fn { display: block; color: var(--muted); font-size: 13px; }
 .felt code { word-break: break-all; }
-.felt input { padding: 6px 8px; }
-.fiks { margin-top: 6px; }
+.felt input { padding: 6px 8px; margin-top: 2px; }
+.fiks { margin-top: 8px; }
 .fiks:empty { display: none; }
-.null-ok { color: var(--ok); font-weight: 700; }
-.null-feil { color: var(--bad); font-weight: 700; }
 .ledd { display: flex; flex-direction: column; align-items: center; }
 .ledd i { display: block; width: 72px; height: 12px; }
 .ledd .brot-tekst {
     display: block; max-height: 0; overflow: hidden; opacity: 0;
     transition: max-height .25s, opacity .25s, padding .25s;
-    color: var(--bad); font-size: 14px; font-weight: 600; text-align: center;
+    color: var(--bad); font-size: 15px; font-weight: 600; text-align: center;
 }
-.ledd.brot .brot-tekst { max-height: 80px; opacity: 1; padding: 6px 0; }
+.ledd.brot .brot-tekst { max-height: 90px; opacity: 1; padding: 6px 0; }
 .ledd.brot .a { border-radius: 0 0 6px 6px; }
 .ledd.brot .b { border-radius: 6px 6px 0 0; }
 
 .hashvis { font-size: 16px; }
 .hashvis .z-ok { background: var(--okbg); color: var(--ok); font-weight: 700; }
 .hashvis .z-feil { background: var(--badbg); color: var(--bad); font-weight: 700; }
-.nokkeltal { display: flex; flex-wrap: wrap; gap: 6px 24px; margin-top: 8px; font-size: 15px; }
+.nokkeltal { display: flex; flex-wrap: wrap; gap: 6px 24px; margin-top: 8px; font-size: 16px; }
 .nokkeltal b { font-variant-numeric: tabular-nums; }
 
 /* Nettverket */
-.node { display: grid; grid-template-columns: 96px 1fr auto; gap: 8px 10px; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--border); }
+.node { display: grid; grid-template-columns: 92px 1fr auto; gap: 8px 10px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
 .node:last-child { border-bottom: 0; }
 .node-namn b { display: block; }
 .chips { display: flex; flex-wrap: wrap; gap: 4px; }
 .chip {
-    font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 13px;
-    border-left: 8px solid var(--c, var(--border)); background: var(--panel2);
-    padding: 1px 6px 1px 5px; border-radius: 4px;
+    display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 6px;
+    background: var(--c, var(--border)); color: #fff; font-weight: 700; font-size: 14px;
+    text-shadow: 0 0 3px rgba(0,0,0,.7);
 }
-.chip.endra { outline: 2px solid var(--bad); outline-offset: -1px; font-weight: 700; }
+.chip.endra { outline: 3px solid var(--bad); outline-offset: 1px; }
 .chip.ny { animation: ny .5s ease-out; }
-@keyframes ny { from { transform: scale(1.35); background: var(--hl); } to { transform: none; } }
+@keyframes ny { from { transform: scale(1.5); } to { transform: none; } }
 
-/* Kappløpet */
-.bane { display: grid; grid-template-columns: 100px 1fr; gap: 8px; align-items: center; margin-top: 8px; font-size: 14px; }
-.bane-blokker { display: flex; flex-wrap: wrap; gap: 3px; min-height: 18px; }
-.bane-blokker s { display: block; width: 15px; height: 15px; border-radius: 3px; background: var(--gron); }
-#bane-kare s { background: var(--bad); }
-
-/* Case og quiz */
-.sak { padding: 10px 0; border-bottom: 1px solid var(--border); }
+/* Saker og quiz */
+.sak { padding: 12px 0; border-bottom: 1px solid var(--border); }
 .sak:last-child { border-bottom: 0; }
 .sak p { margin-bottom: 6px; }
-.sporsmal { padding: 10px 0; border-bottom: 1px solid var(--border); }
+.sporsmal { padding: 12px 0; border-bottom: 1px solid var(--border); }
 .sporsmal:last-of-type { border-bottom: 0; }
 .sporsmal p { font-weight: 600; margin-bottom: 6px; }
 .val { display: grid; gap: 6px; }
 .val .btn { text-align: left; }
 .val .btn.rett { background: var(--okbg); border-color: var(--ok); color: var(--ok); font-weight: 600; opacity: 1; }
 .val .btn.feil { background: var(--badbg); border-color: var(--bad); color: var(--bad); opacity: 1; }
+.kort-liste { margin: 0; padding-left: 22px; }
+.kort-liste li { margin: 4px 0; }
 
-@media (max-width: 520px) {
-    .tittellinje h1 { font-size: 29px; }
-    .card { padding: 12px; }
+/* Førre og neste */
+.vidare { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 20px; }
+.vidare .midt { font-size: 14px; color: var(--muted); }
+.vidare .btn[hidden] { display: none; }
+.vidare .tom { width: 1px; }
+
+footer { font-size: 13px; color: var(--muted); padding: 0 16px 24px; }
+footer ul { margin: 4px 0 10px; padding-left: 18px; }
+footer button { font: inherit; color: var(--accent); background: none; border: 0; padding: 0; text-decoration: underline; cursor: pointer; }
+
+@media (max-width: 560px) {
+    body { font-size: 16px; }
+    .tittellinje h1 { font-size: 27px; }
+    .card { padding: 14px; }
+    .card h2 { font-size: 22px; }
+    .steg-nav a { padding: 3px; }
+    .steg-nav a .namn { display: none; }
+    .steg-nav a[aria-current] { padding-right: 11px; }
+    .steg-nav a[aria-current] .namn { display: inline; }
     .node { grid-template-columns: 1fr auto; }
     .node .chips { grid-column: 1 / -1; grid-row: 2; }
-    .strekrad { grid-template-columns: 74px 1fr auto; }
-    .felt { grid-template-columns: 70px 1fr; }
-    .bane { grid-template-columns: 76px 1fr; }
 }
 @media (prefers-reduced-motion: reduce) {
-    html { scroll-behavior: auto; }
     * { transition: none !important; animation: none !important; }
 }
 </style>
@@ -222,17 +257,16 @@ footer ul { margin: 4px 0 10px; padding-left: 18px; }
         <div class="inni">
             <a class="tilbake" href="index.html">← Frode si Sandkasse</a>
             <h1>Blokkjeder</h1>
-            <p>Ei rekneskapsbok som alle har ein kopi av, og som det er nesten umogleg å jukse i. Prøv sjølv å jukse.</p>
-            <nav class="steg-nav" aria-label="Steg på sida">
-                <a href="#problemet">Problemet</a>
-                <a href="#steg1">1 Fingeravtrykk</a>
-                <a href="#steg2">2 Kjeda</a>
-                <a href="#steg3">3 Utvinning</a>
-                <a href="#steg4">4 Juks</a>
-                <a href="#steg5">5 Nettverket</a>
-                <a href="#steg6">6 Kappløpet</a>
-                <a href="#steg7">7 Kvar passar det?</a>
-                <a href="#test">Test deg sjølv</a>
+            <p>Ei bok som alle har ein kopi av, og som det er nesten umogleg å jukse i. Prøv å jukse sjølv.</p>
+            <nav class="steg-nav" aria-label="Stega på sida">
+                <a href="#steg1"><span class="nr">1</span><span class="namn">Problemet</span></a>
+                <a href="#steg2"><span class="nr">2</span><span class="namn">Fingeravtrykk</span></a>
+                <a href="#steg3"><span class="nr">3</span><span class="namn">Kjeda</span></a>
+                <a href="#steg4"><span class="nr">4</span><span class="namn">Tungt arbeid</span></a>
+                <a href="#steg5"><span class="nr">5</span><span class="namn">Juks ein gong til</span></a>
+                <a href="#steg6"><span class="nr">6</span><span class="namn">Alle har kopi</span></a>
+                <a href="#steg7"><span class="nr">7</span><span class="namn">Kva passar det til?</span></a>
+                <a href="#steg8"><span class="nr">8</span><span class="namn">Test deg sjølv</span></a>
             </nav>
         </div>
     </div>
@@ -241,9 +275,12 @@ footer ul { margin: 4px 0 10px; padding-left: 18px; }
 
 <main>
 
-<section class="card" id="problemet">
-    <h2>Problemet: Kåre og klassekassa</h2>
-    <p>Klassen sparer til klassetur. Kåre er kasserar og fører alt i eit rekneark. Alle stolar på Kåre, heilt til reknearket ein dag ser litt annleis ut.</p>
+<!-- 1 -->
+<section class="steg" id="steg1">
+<div class="card">
+    <p class="steg-topp">Steg 1 av 8</p>
+    <h2 tabindex="-1">Kåre og klassekassa</h2>
+    <p>Klassen sparer til klassetur. Kåre er kasserar. Han skriv opp kven som har betalt i eit rekneark, og alle stolar på Kåre.</p>
     <table style="max-width:340px">
         <thead><tr><th>Kven</th><th class="tal">Betalt inn</th></tr></thead>
         <tbody>
@@ -253,75 +290,122 @@ footer ul { margin: 4px 0 10px; padding-left: 18px; }
             <tr class="sum"><td>Sum</td><td class="tal" id="kare-sum">300 kr</td></tr>
         </tbody>
     </table>
-    <div class="row" style="margin-top:10px"><button class="btn primary" id="kare-knapp">Endre reknearket som Kåre</button></div>
-    <div class="msg bad" id="kare-msg" hidden aria-live="polite">Ferdig. Ingenting i reknearket viser at noko er endra, og no kan Kåre påstå at han alltid har betalt 1000 kr.</div>
-    <p style="margin-top:12px">Klassen treng ei bok der <b>alle ser det med ein gong</b> om noko er endra, der det er <b>svært dyrt å endre</b> noko, og der <b>ingen åleine eig boka</b>. Det er dette ei blokkjede er. Her byggjer du ei, steg for steg.</p>
+    <div class="oppdrag"><span class="tittel">Oppdrag</span>Du er Kåre. Trykk på knappen og sjå kor lett det er å jukse.</div>
+    <div class="row"><button class="btn primary" id="kare-knapp">Endre reknearket</button></div>
+    <div class="msg bad" id="kare-msg" hidden aria-live="polite">Ferdig. Ingenting viser at talet er endra. No kan Kåre seie at han har betalt 1000 kr heile tida.</div>
+    <div class="laert" id="laert1" hidden>
+        <span class="tittel">Dette lærte du</span>
+        <p>Den som passar på boka, kan endre ho utan at nokon ser det.</p>
+        <p>Klassen treng ei bok der <b>juks blir oppdaga</b>, der <b>juks er tungt arbeid</b>, og som <b>ingen eig åleine</b>. Ei slik bok heiter ei <b>blokkjede</b>. No skal du byggje ei.</p>
+    </div>
+</div>
 </section>
 
-<section class="card" id="steg1">
-    <h2>1. Fingeravtrykket</h2>
-    <p>Ein <b>hashfunksjon</b> gjer om all slags tekst til ein kode med 64 teikn. Same tekst gir alltid same hash, men den minste endringa gir ein heilt annan hash. Det er eit fingeravtrykk for data. Vil du vite meir, sjå <a href="hash.html">Hashfunksjonar</a>.</p>
-    <label for="h-inn">Skriv noko</label>
+<!-- 2 -->
+<section class="steg" id="steg2">
+<div class="card">
+    <p class="steg-topp">Steg 2 av 8</p>
+    <h2 tabindex="-1">Fingeravtrykket</h2>
+    <p>Datamaskina kan lage eit <b>fingeravtrykk</b> av kva tekst som helst. Det er ein kode på 64 teikn. Same tekst gir alltid same fingeravtrykk.</p>
+    <label for="h-inn">Skriv noko her</label>
     <input type="text" id="h-inn" value="Kari betaler inn 100 kr" autocomplete="off">
-    <label>SHA-256-hashen av teksten</label>
-    <div class="out" id="h-ut"></div>
-    <div class="strekrad"><span>Då du starta</span><div class="strek" id="h-strek0"></div><span></span></div>
+    <span class="etikett">Fingeravtrykket til teksten</span>
+    <div class="out" id="h-ut" aria-live="off"></div>
+    <p class="small" style="margin-top:10px">Lange kodar er vanskelege å samanlikne. Difor viser sida det same fingeravtrykket som ei fargestripe òg.</p>
+    <div class="strekrad"><span>Før</span><div class="strek" id="h-strek0"></div><span></span></div>
     <div class="strekrad"><span>No</span><div class="strek" id="h-strek1"></div><span class="badge ok" id="h-lik">Like</span></div>
-    <p class="small" style="margin-top:6px">Fargestreken er den same hashen vist som farge, slik at du lett ser om to hashar er like. Han kjem att i resten av demoen.</p>
-    <div class="oppdrag"><b>Oppdrag:</b> Endre 100 til 101. Hugs at det berre er eitt teikn. <span id="h-diff"></span></div>
+    <div class="oppdrag"><span class="tittel">Oppdrag</span>Endre 100 til 101. Det er berre eitt teikn. Kor mykje endrar fingeravtrykket seg?</div>
+    <div class="msg info" id="h-diff" hidden aria-live="polite"></div>
+    <div class="laert" id="laert2" hidden>
+        <span class="tittel">Dette lærte du</span>
+        <p>Den minste endringa i teksten gir eit heilt nytt fingeravtrykk. Difor kan vi bruke fingeravtrykk til å sjekke om noko er endra.</p>
+    </div>
+    <p class="fagord"><b>Fagord:</b> Fingeravtrykket heiter ein <b>hash</b>. Oppskrifta som lagar det, heiter ein <b>hashfunksjon</b>. Vil du vite meir, sjå <a href="hash.html">Hashfunksjonar</a>.</p>
+</div>
 </section>
 
-<section class="card" id="steg2">
-    <h2>2. Kjeda</h2>
-    <p>Ei <b>blokk</b> er ei side i boka. Ho inneheld eit nummer, litt innhald og <b>hashen til blokka før</b>. Hashen av alt dette blir blokka sitt eige fingeravtrykk. Sidan kvar blokk peikar på fingeravtrykket til den førre, heng blokkene saman som ledd i ei kjede. Sjå korleis fargestreken nedst i ei blokk går att øvst i neste.</p>
-    <div class="formel"><b>Hash</b> = SHA-256(nummer + førre hash + innhald)</div>
-    <div class="oppdrag"><b>Oppdrag:</b> Du er Kåre. Endre 100 kr til 1000 kr i blokk 1 og sjå kva som skjer. Kan du få kjeda til å henge saman att?</div>
+<!-- 3 -->
+<section class="steg" id="steg3">
+<div class="card">
+    <p class="steg-topp">Steg 3 av 8</p>
+    <h2 tabindex="-1">Kjeda</h2>
+    <p>No lagar vi boka. Kvar side i boka heiter ei <b>blokk</b>. I blokka står det kva som har skjedd, og <b>fingeravtrykket til blokka før</b>.</p>
+    <p>Slik heng blokkene saman, som ledd i ei kjede. Sjå på fargestripene: Stripa nedst i ei blokk er lik stripa øvst i neste.</p>
+    <div class="oppdrag"><span class="tittel">Oppdrag</span>
+        <ol>
+            <li>Du er Kåre. Endre 100 kr til 1000 kr i blokk 1. Kva skjer med kjeda?</li>
+            <li>Klarer du å reparere kjeda, slik at ingen ser juksen?</li>
+        </ol>
+    </div>
     <div class="kjede" id="kjede-enkel"></div>
     <div class="msg info" id="kjede-enkel-msg" aria-live="polite"></div>
     <div class="row" style="margin-top:8px"><button class="btn" id="kjede-enkel-nullstill">Start kjeda på nytt</button></div>
+    <div class="laert" id="laert3" hidden>
+        <span class="tittel">Dette lærte du</span>
+        <p>Juksen blir oppdaga med ein gong, fordi neste blokk hugsar det gamle fingeravtrykket.</p>
+        <p>Men kjeda var lett å reparere. Det tok berre nokre klikk. Fingeravtrykk åleine er ikkje nok til å stoppe Kåre.</p>
+    </div>
+</div>
 </section>
 
-<section class="card" id="steg3">
-    <h2>3. Utvinning: gjer det dyrt å jukse</h2>
-    <p>I steg 2 var juksen avslørt med ein gong, men han var òg lett å reparere. Løysinga er å gjere det <b>dyrt</b> å lage ei godkjend blokk. Regelen er at hashen må starte med eit visst tal nullar.</p>
-    <p>Du kan ikkje styre kva ein hash blir, så det finst berre éin måte å få det til på: legg eit tal i blokka, sjekk hashen, prøv neste tal. Dette talet heiter ein <b>nonce</b>, og jobben heiter <b>utvinning</b> (mining).</p>
+<!-- 4 -->
+<section class="steg" id="steg4">
+<div class="card">
+    <p class="steg-topp">Steg 4 av 8</p>
+    <h2 tabindex="-1">Gjer det til tungt arbeid</h2>
+    <p>For å stoppe Kåre lagar vi ein regel: Ei blokk er berre godkjend når fingeravtrykket <b>startar med fleire nullar</b>.</p>
+    <p>Du kan ikkje bestemme korleis eit fingeravtrykk blir. Du må leggje eit tal i blokka og prøve deg fram: 0, 1, 2, 3 og så vidare, heilt til fingeravtrykket tilfeldigvis startar med nok nullar. Det er som å kaste terningar til du får mange seksarar på rad.</p>
 
     <label for="u-tekst">Innhald i blokka</label>
     <input type="text" id="u-tekst" value="Kari betaler inn 100 kr" autocomplete="off">
-    <label for="u-vanske">Krav: hashen må starte med <span id="u-vanske-tal">1 null</span></label>
-    <input type="range" id="u-vanske" min="1" max="6" value="1">
-    <label for="u-nonce">Nonce</label>
+    <span class="etikett" id="u-krav-etikett">Regel: Fingeravtrykket må starte med så mange nullar</span>
+    <div class="seg" id="u-vanske" role="group" aria-labelledby="u-krav-etikett">
+        <button aria-pressed="true">1</button><button aria-pressed="false">2</button><button aria-pressed="false">3</button><button aria-pressed="false">4</button><button aria-pressed="false">5</button>
+    </div>
+    <label for="u-nonce">Talet du prøver</label>
     <input type="number" id="u-nonce" value="0" min="0" style="max-width:180px">
     <div class="row" style="margin-top:8px">
         <button class="btn" id="u-neste">Prøv neste tal</button>
         <button class="btn primary" id="u-auto">La maskina prøve</button>
         <button class="btn danger" id="u-stopp" disabled>Stopp</button>
     </div>
-    <label>Hash</label>
+    <span class="etikett">Fingeravtrykket til innhaldet og talet</span>
     <div class="out hashvis" id="u-hash"></div>
     <div class="msg" id="u-msg" aria-live="polite"></div>
-    <div class="nokkeltal">
-        <span>Forsøk: <b id="u-forsok">0</b></span>
-        <span>Forventa: om lag <b id="u-forventa">16</b></span>
-        <span>Maskina di: <b id="u-fart">–</b> hash per sekund</span>
-    </div>
-    <div class="oppdrag"><b>Oppdrag:</b> Finn ein gyldig nonce for hand med éin null. Gå så opp til to, tre og fem nullar og la maskina prøve. Kor mykje lenger tek det for kvar null?</div>
+    <div class="nokkeltal"><span>Forsøk: <b id="u-forsok">0</b></span></div>
 
-    <h3>Kvar null gjer jobben 16 gonger større</h3>
+    <div class="oppdrag"><span class="tittel">Oppdrag</span>
+        <ol>
+            <li>Vel 1 null. Trykk «Prøv neste tal» til du finn eit tal som passar.</li>
+            <li>Vel 3 nullar og la maskina prøve.</li>
+            <li>Vel 5 nullar. Kor mange forsøk trong maskina no?</li>
+        </ol>
+    </div>
+
+    <h3>Kvar ekstra null gjer jobben 16 gonger større</h3>
     <div class="tabellrull">
     <table>
-        <thead><tr><th>Krav</th><th class="tal">Forsøk i snitt</th><th class="tal">Tid på di maskin</th></tr></thead>
+        <thead><tr><th>Regel</th><th class="tal">Forsøk, om lag</th><th class="tal">Tid på maskina di</th></tr></thead>
         <tbody id="u-tabell"></tbody>
     </table>
     </div>
-    <p class="small" style="margin-top:6px">Til samanlikning er universet om lag 13,8 milliardar år gamalt. Bitcoin klarer det likevel på om lag 10 minutt, fordi utvinnarane til saman reknar nesten ein trilliard hashar i sekundet.</p>
+    <p class="small" style="margin-top:6px">Eit teikn i fingeravtrykket kan vere eitt av 16: tala 0–9 og bokstavane a–f. Berre eitt av dei er null.</p>
+    <div class="laert" id="laert4" hidden>
+        <span class="tittel">Dette lærte du</span>
+        <p>Å finne eit tal som passar, er tungt arbeid. Å sjekke at det passar, er lett: Alle ser nullane med ein gong.</p>
+        <p>Slik kostar det noko å lage ei blokk.</p>
+    </div>
+    <p class="fagord"><b>Fagord:</b> Talet du leitar etter, heiter ein <b>nonce</b>. Jobben med å leite heiter <b>utvinning</b>, eller <i>mining</i> på engelsk.</p>
+</div>
 </section>
 
-<section class="card" id="steg4">
-    <h2>4. Prøv å jukse no</h2>
-    <p>Same kjede som i steg 2, men no må kvar hash starte med fem nullar. Alle blokkene er alt utvunne. Nonce er med i utrekninga.</p>
-    <div class="formel"><b>Hash</b> = SHA-256(nummer + førre hash + innhald + nonce)</div>
-    <div class="oppdrag"><b>Oppdrag:</b> Endre beløpet til Kåre i blokk 1, og utvinn alle blokkene på nytt. Følg med på kor mange forsøk det kostar.</div>
+<!-- 5 -->
+<section class="steg" id="steg5">
+<div class="card">
+    <p class="steg-topp">Steg 5 av 8</p>
+    <h2 tabindex="-1">Prøv å jukse ein gong til</h2>
+    <p>Dette er same kjede som i steg 3. No har kvar blokk òg eit tal, og fingeravtrykket må starte med <b>fem nullar</b>. Nokon har alt gjort det tunge arbeidet for alle blokkene.</p>
+    <div class="oppdrag"><span class="tittel">Oppdrag</span>Du er Kåre att. Endre 100 kr til 1000 kr i blokk 1, og reparer heile kjeda. Følg med på kor mange forsøk det kostar.</div>
     <div class="kjede" id="kjede-pow"></div>
     <div class="msg info" id="kjede-pow-msg" aria-live="polite"></div>
     <div class="nokkeltal"><span>Forsøk brukt på juksen: <b id="pow-forsok">0</b></span></div>
@@ -329,119 +413,182 @@ footer ul { margin: 4px 0 10px; padding-left: 18px; }
         <button class="btn danger" id="pow-stopp" disabled>Stopp</button>
         <button class="btn" id="kjede-pow-nullstill">Start kjeda på nytt</button>
     </div>
+    <div class="laert" id="laert5" hidden>
+        <span class="tittel">Dette lærte du</span>
+        <p>Kåre må gjere det tunge arbeidet på nytt, både for blokka han endra og for <b>alle blokkene etter</b>.</p>
+        <p>Her tok det nokre sekund. I Bitcoin er regelen så streng at maskina di ville ha trunge om lag <b id="btc-tid"></b> på éi blokk. Og medan Kåre reknar, lagar alle dei andre nye blokker.</p>
+    </div>
+</div>
 </section>
 
-<section class="card" id="steg5">
-    <h2>5. Alle har ein kopi</h2>
-    <p>Det siste trikset er det viktigaste. Boka ligg ikkje hos Kåre, men hos <b>alle</b>. Kvar maskin i nettverket (ein <b>node</b>) har sin eigen kopi og sjekkar alt som kjem inn. Fargen på kvar brikke er hashen til blokka.</p>
-    <div class="oppdrag"><b>Oppdrag:</b> La Kåre jukse i kopien sin. Kva skjer? La så to til jukse med han.</div>
+<!-- 6 -->
+<section class="steg" id="steg6">
+<div class="card">
+    <p class="steg-topp">Steg 6 av 8</p>
+    <h2 tabindex="-1">Alle har ein kopi</h2>
+    <p>Det siste trikset er det viktigaste. Boka ligg ikkje hos Kåre. <b>Alle</b> har sin eigen kopi, og maskinene samanliknar kopiane heile tida.</p>
+    <p class="small">Kvar firkant er ei blokk. Fargen er fingeravtrykket til blokka.</p>
+    <div class="oppdrag"><span class="tittel">Oppdrag</span>
+        <ol>
+            <li>La Kåre jukse i kopien sin. Kva skjer?</li>
+            <li>La to til jukse saman med Kåre. Kva skjer no?</li>
+        </ol>
+    </div>
     <div id="nodar"></div>
     <div class="msg info" id="nodar-msg" aria-live="polite"></div>
-    <label for="ny-tekst">Ny blokk til alle i nettverket</label>
+    <label for="ny-tekst">Lag ei ny blokk og send ho til alle</label>
     <input type="text" id="ny-tekst" value="Klassen kjøper pizza for 150 kr" autocomplete="off">
     <div class="row" style="margin-top:8px">
         <button class="btn primary" id="send-alle">Send til alle</button>
-        <button class="btn" id="nodar-nullstill">Start nettverket på nytt</button>
+        <button class="btn" id="nodar-nullstill">Start på nytt</button>
     </div>
+    <div class="laert" id="laert6" hidden>
+        <span class="tittel">Dette lærte du</span>
+        <p>Den som juksar åleine, blir berre avvist. Skal juksen lukkast, må over halvparten vere med. Ei blokkjede er trygg så lenge dei fleste er ærlege.</p>
+        <p>I Bitcoin tel ikkje talet på maskiner, men kor mykje tungt arbeid dei gjer. Elles kunne Kåre berre ha starta tusen falske maskiner.</p>
+    </div>
+    <p class="fagord"><b>Fagord:</b> Ei maskin som har ein kopi av boka, heiter ein <b>node</b>. Når juksemakarar har over halvparten av krafta, heiter det eit <b>51 %-angrep</b>.</p>
+</div>
 </section>
 
-<section class="card" id="steg6">
-    <h2>6. Kappløpet: 51 %-angrepet</h2>
-    <p>I steg 5 var det talet på maskiner som avgjorde. Det ville vore lett å lure: Kåre kunne starte tusen falske nodar. I Bitcoin vinn difor <b>kjeda med mest arbeid bak seg</b>, altså i praksis den lengste. Skal Kåre få gjennom ei falsk historie, må han starte frå blokka han vil endre, utvinne i løynd og ta att alle dei andre.</p>
-    <label for="l-del">Kåre har <span id="l-del-tal">30</span> % av reknekrafta i nettverket</label>
-    <input type="range" id="l-del" min="5" max="60" step="5" value="30">
-    <label for="l-forsprang">Dei ærlege har <span id="l-forsprang-tal">3</span> blokker forsprang</label>
-    <input type="range" id="l-forsprang" min="1" max="6" value="3">
-    <div class="bane"><span>Dei ærlege</span><div class="bane-blokker" id="bane-aerleg"></div></div>
-    <div class="bane"><span>Kåre</span><div class="bane-blokker" id="bane-kare"></div></div>
-    <div class="msg info" id="l-msg" aria-live="polite">Trykk «Køyr eitt kappløp» for å sjå kven som vinn.</div>
-    <div class="row" style="margin-top:8px">
-        <button class="btn primary" id="l-start">Køyr eitt kappløp</button>
-        <button class="btn" id="l-mange">Køyr 10 000 kappløp</button>
-    </div>
-    <div id="l-logg-boks" hidden>
-        <h3>Resultata dine</h3>
-        <table style="max-width:460px">
-            <thead><tr><th class="tal">Reknekraft</th><th class="tal">Forsprang</th><th class="tal">Kåre vann</th></tr></thead>
-            <tbody id="l-logg"></tbody>
-        </table>
-    </div>
-    <div class="oppdrag"><b>Oppdrag:</b> Køyr 10 000 kappløp med 10 %, 30 %, 45 % og 55 % reknekraft. Kvar snur det? Kva skjer med sjansane til Kåre når forspranget aukar?</div>
-    <p class="small">Difor ventar ein gjerne på nokre stadfestingar før ein stolar på ei betaling. Kvar nye blokk gjer det vanskelegare å skrive om historia.</p>
-</section>
-
-<section class="card" id="steg7">
-    <h2>7. Kvar passar det å bruke blokkjede?</h2>
-    <p>Ei blokkjede er treg, dyr og umogleg å rette i. Det er berre verdt det når det ikkje finst nokon alle stolar på. Fire spørsmål kan hjelpe:</p>
-    <ol>
-        <li>Må fleire partar skrive i same register?</li>
-        <li>Stolar dei ikkje på kvarandre?</li>
-        <li>Er det umogleg å finne ein felles part alle godtek?</li>
-        <li>Er det greitt at alt blir liggande hos alle, for alltid?</li>
-    </ol>
-    <p>Svarar du nei på eitt av dei, er ein vanleg database nesten alltid betre. Kva meiner du om desse?</p>
+<!-- 7 -->
+<section class="steg" id="steg7">
+<div class="card">
+    <p class="steg-topp">Steg 7 av 8</p>
+    <h2 tabindex="-1">Kva passar ei blokkjede til?</h2>
+    <p>Ei blokkjede er treg, ho brukar mykje straum, og det går ikkje an å rette feil i ho. Ein vanleg database er nesten alltid betre.</p>
+    <p>Blokkjeda er berre lur når <b>folk som ikkje stolar på kvarandre</b> skal dele ei bok, og det <b>ikkje finst nokon alle stolar på</b>, som ein bank, ein lærar eller staten.</p>
+    <div class="oppdrag"><span class="tittel">Oppdrag</span>Kva meiner du om desse fem? Snakk gjerne med den som sit ved sida av deg før du svarar.</div>
     <div id="saker"></div>
-    <div class="oppdrag"><b>Hugs:</b> Blokkjeda garanterer at det som er skrive, ikkje er endra etterpå. Ho garanterer ikkje at det var sant då det blei skrive.</div>
-
-    <h3>Frå demo til røynd</h3>
-    <div class="tabellrull">
-    <table>
-        <thead><tr><th></th><th>I denne demoen</th><th>I Bitcoin</th></tr></thead>
-        <tbody>
-            <tr><td>Innhald i ei blokk</td><td>Éi setning</td><td>Tusenvis av transaksjonar</td></tr>
-            <tr><td>Krav til hashen</td><td>Fem nullar</td><td>Om lag 19–20 nullar (2026). Justert kvar 2016. blokk, slik at det tek om lag 10 minutt å finne ei blokk</td></tr>
-            <tr><td>Forsøk per blokk</td><td>Om lag 1 million</td><td>Om lag 5 × 10<sup>23</sup></td></tr>
-            <tr><td>Kven reknar</td><td>Nettlesaren din</td><td>Spesialmaskiner (ASIC) i store anlegg</td></tr>
-            <tr><td>Løn for jobben</td><td>Ei god kjensle</td><td>3,125 bitcoin per blokk, pluss gebyr</td></tr>
-            <tr><td>Straum</td><td>Litt batteri</td><td>Om lag 138 TWh i året (Cambridge, 2025). Heile Noreg brukte 138 TWh i 2025</td></tr>
-        </tbody>
-    </table>
+    <div class="laert" id="laert7" hidden>
+        <span class="tittel">Dette lærte du</span>
+        <p>Spør alltid: Finst det nokon alle stolar på? Viss ja, treng du ikkje blokkjede.</p>
+        <p>Hugs òg at blokkjeda berre lovar at det som er skrive, ikkje er endra etterpå. Ho lovar ikkje at det var sant då det blei skrive.</p>
     </div>
+</div>
 </section>
 
-<section class="card" id="test">
-    <h2>Test deg sjølv</h2>
-    <div id="quiz"></div>
+<!-- 8 -->
+<section class="steg" id="steg8">
+<div class="card">
+    <p class="steg-topp">Steg 8 av 8</p>
+    <h2 tabindex="-1">Test deg sjølv</h2>
+    <p>Ei blokkjede på fire linjer:</p>
+    <ol class="kort-liste">
+        <li>Kvar blokk har eit <b>fingeravtrykk</b> (hash) som endrar seg om innhaldet blir endra.</li>
+        <li>Kvar blokk hugsar fingeravtrykket til blokka før. Difor blir <b>juks oppdaga</b>.</li>
+        <li>Å lage ei godkjend blokk er <b>tungt arbeid</b>. Difor er juks dyrt.</li>
+        <li><b>Alle har ein kopi</b>. Difor må over halvparten vere med på juksen.</li>
+    </ol>
+    <div id="quiz" style="margin-top:10px"></div>
     <div class="msg ok" id="quiz-sum" hidden aria-live="polite"></div>
     <div class="row" style="margin-top:8px"><button class="btn" id="quiz-nullstill">Ta testen på nytt</button></div>
+</div>
+
+<div class="card">
+    <h2>Vil du vite meir?</h2>
+    <details><summary>Kan eg angre ei betaling?</summary>
+        <p>Nei, og det er her mange blir lurte. Det finst ingen bank å ringe. Lovar nokon på Snap eller TikTok å doble pengane dine i krypto, er det svindel. Blokkjeda kan ikkje hindre at du sender pengar til ein svindlar. Ho sørgjer berre for at det står der for alltid.</p></details>
+    <details><summary>Er Bitcoin anonymt?</summary>
+        <p>Nei. Du brukar ei adresse i staden for namnet ditt, men alle betalingar er opne for alle. Blir adressa kopla til deg, kan heile historia di sporast.</p></details>
+    <details><summary>Kven kan eigentleg skrive «Kari betaler»?</summary>
+        <p>På denne sida kan alle skrive kva som helst. I ei ekte blokkjede må Kari signere betalinga med ein hemmeleg nøkkel som berre ho har. Sjå <a href="asymmetrisk.html">Asymmetrisk kryptering</a>.</p></details>
+    <details><summary>Kvifor brukar Bitcoin så mykje straum?</summary>
+        <p>Det tunge arbeidet frå steg 4 blir gjort av spesialmaskiner over heile verda, heile døgnet. Til saman brukar dei om lag like mykje straum som heile Noreg. Det går an å klare seg utan: Blokkjeda Ethereum bytte i 2022 til ein metode der ein set pengar i pant i staden for å rekne. Då gjekk straumbruken ned med over 99 %.</p></details>
+    <h3>Fagorda på sida</h3>
+    <dl>
+        <dt>Hash</dt><dd>Fingeravtrykket til ein tekst. Ein kode på 64 teikn.</dd>
+        <dt>Blokk</dt><dd>Ei side i boka. Ho inneheld innhald, eit tal og hashen til blokka før.</dd>
+        <dt>Blokkjede</dt><dd>Mange blokker som heng saman, og som alle har ein kopi av. <i>Blockchain</i> på engelsk.</dd>
+        <dt>Nonce</dt><dd>Talet ein må prøve seg fram til for at hashen skal starte med nok nullar.</dd>
+        <dt>Utvinning</dt><dd>Jobben med å finne ein nonce som passar. <i>Mining</i> på engelsk.</dd>
+        <dt>Node</dt><dd>Ei maskin som har ein kopi av blokkjeda.</dd>
+        <dt>Bitcoin</dt><dd>Dei mest kjende digitale pengane. Dei er bygde på ei blokkjede.</dd>
+    </dl>
+</div>
 </section>
 
-<section class="card">
-    <h2>Til ettertanke</h2>
-    <details><summary>Kven kan eigentleg skrive «Kari betaler»?</summary>
-        <p>I demoen kan alle skrive kva som helst. I ei ekte blokkjede må Kari signere betalinga med sin private nøkkel, og alle kan sjekke signaturen med den offentlege nøkkelen hennar. Sjå <a href="asymmetrisk.html">Asymmetrisk kryptering</a>.</p></details>
-    <details><summary>Kan ein angre ei betaling?</summary>
-        <p>Nei, og det er her mange blir lurte. Det finst ingen bank å ringe. Lovar nokon på Snap eller TikTok å doble pengane dine i krypto, er det svindel. Blokkjeda kan ikkje hindre at du sender pengar til ein svindlar, ho berre sørgjer for at det står der for alltid.</p></details>
-    <details><summary>Er Bitcoin anonymt?</summary>
-        <p>Nei, det er pseudonymt. Du opptrer under ei adresse i staden for namnet ditt, men alle transaksjonar er opne for alle. Blir adressa kopla til deg, til dømes hos ein kryptobørs, kan heile historia di sporast.</p></details>
-    <details><summary>Kan blokkjeder bli hacka?</summary>
-        <p>Sjølve Bitcoin-kjeda er svært vanskeleg å angripe, men mindre kjeder med lite reknekraft har vore utsette for 51 %-angrep, til dømes Bitcoin Gold og Ethereum Classic. Oftast er det likevel børsar, lommebøker og folk som blir hacka, ikkje kjeda.</p></details>
-    <details><summary>Er det verkeleg ingen som bestemmer?</summary>
-        <p>Det er meir samla enn det høyrest ut. Midt i 2026 sto tre utvinningsgrupper (poolar) saman for over halvparten av blokkene i Bitcoin. Ein pool er mange utvinnarar som deler arbeid og løn, men makta er ikkje så spreidd som teorien seier.</p></details>
-    <details><summary>Går det an å klare seg utan all straumen?</summary>
-        <p>Ja. Ethereum gjekk i 2022 over frå utvinning til <i>proof of stake</i>. I staden for å rekne set ein pengar i pant, og juksar du, mistar du dei. Straumforbruket gjekk ned med over 99 %.</p></details>
-    <details><summary>Bør utvinning av krypto vere lov i Noreg?</summary>
-        <p>I mars 2026 bad Stortinget regjeringa kome med forslag om forbod mot å etablere datasenter for utvinning av kryptovaluta. Dei som er for, peikar på at utvinning brukar mykje straum og gir få arbeidsplassar. Dei som er imot, meiner at staten ikkje bør velje kva lovleg bruk av straum som er god nok, og at utvinning kan bruke overskotskraft der det elles ikkje er marknad. Kva meiner du?</p></details>
-</section>
+<nav class="vidare" aria-label="Førre og neste steg">
+    <a class="btn" id="forre" href="#steg1">← Førre</a>
+    <span class="tom" id="forre-tom" hidden></span>
+    <span class="midt" id="vidare-midt"></span>
+    <a class="btn" id="neste" href="#steg2">Neste →</a>
+    <span class="tom" id="neste-tom" hidden></span>
+</nav>
 
 </main>
 
 <footer>
-    Kjelder til tala:
+    Kjelder til tala om straum:
     <ul>
         <li><a href="https://www.jbs.cam.ac.uk/2025/cambridge-study-sustainable-energy-rising-in-bitcoin-mining/">Cambridge Judge Business School (2025): straumbruk i Bitcoin</a></li>
         <li><a href="https://publikasjoner.nve.no/rapport/2026/rapport2026_17.pdf">NVE, rapport 17/2026: kraftforbruk i Noreg</a></li>
-        <li><a href="https://d-central.tech/reports/state-of-bitcoin-mining-2026-h1/">D-Central (2026): vanskegrad og utvinningsgrupper</a></li>
-        <li><a href="https://schjodt.com/news/new-resolutions-on-data-centres-from-the-norwegian-parliament">Schjødt (2026): vedtak i Stortinget om datasenter</a></li>
     </ul>
-    Frode, IM-Stord. All utrekning skjer i nettlesaren din. Ingenting du skriv blir sendt nokon stad.
+    Frode, IM-Stord. All utrekning skjer i nettlesaren din. Ingenting du skriv, blir sendt nokon stad.
+    <button id="nullstill-alt">Start heile sida på nytt</button>
 </footer>
 
 <script>
 const $ = id => document.getElementById(id);
 const NULLHASH = "0".repeat(64);
+const TAL_STEG = 8;
 
-/* SHA-256 skriven ut, sidan han må vere synkron og rask nok til utvinning. */
+/* ---------- Stega: eitt om gongen, og hugs kva som er løyst ---------- */
+const LAGER = "blokkjede-ferdig";
+let ferdige = new Set();
+try { ferdige = new Set(JSON.parse(localStorage.getItem(LAGER) || "[]")); } catch (e) {}
+const navLenker = [...document.querySelectorAll(".steg-nav a")];
+let aktivt = 1;
+
+function stegFraaAdresse() {
+    const m = /^#steg(\d)$/.exec(location.hash);
+    const n = m ? +m[1] : 1;
+    return n >= 1 && n <= TAL_STEG ? n : 1;
+}
+function visSteg(n, flyttFokus) {
+    aktivt = n;
+    for (let i = 1; i <= TAL_STEG; i++) $("steg" + i).hidden = i !== n;
+    navLenker.forEach((a, i) => {
+        if (i + 1 === n) a.setAttribute("aria-current", "step"); else a.removeAttribute("aria-current");
+    });
+    $("forre").hidden = n === 1; $("forre-tom").hidden = n !== 1;
+    $("neste").hidden = n === TAL_STEG; $("neste-tom").hidden = n !== TAL_STEG;
+    $("forre").href = "#steg" + Math.max(1, n - 1);
+    $("neste").href = "#steg" + Math.min(TAL_STEG, n + 1);
+    $("vidare-midt").textContent = `Steg ${n} av ${TAL_STEG}`;
+    oppdaterNeste();
+    if (flyttFokus) {
+        document.querySelector("main").scrollIntoView();
+        $("steg" + n).querySelector("h2").focus({ preventScroll: true });
+    }
+}
+function oppdaterNeste() {
+    $("neste").classList.toggle("primary", ferdige.has(aktivt));
+}
+function visFerdige() {
+    navLenker.forEach((a, i) => {
+        const f = ferdige.has(i + 1);
+        a.classList.toggle("ferdig", f);
+        a.querySelector(".nr").textContent = f ? "✓" : i + 1;
+        a.setAttribute("aria-label", `Steg ${i + 1}: ${a.querySelector(".namn").textContent}${f ? " (løyst)" : ""}`);
+    });
+    for (let i = 1; i <= TAL_STEG; i++) { const l = $("laert" + i); if (l) l.hidden = !ferdige.has(i); }
+    oppdaterNeste();
+}
+function ferdig(n) {
+    if (ferdige.has(n)) return;
+    ferdige.add(n);
+    try { localStorage.setItem(LAGER, JSON.stringify([...ferdige])); } catch (e) {}
+    visFerdige();
+}
+window.addEventListener("hashchange", () => visSteg(stegFraaAdresse(), true));
+$("nullstill-alt").onclick = () => {
+    try { localStorage.removeItem(LAGER); } catch (e) {}
+    location.hash = "#steg1";
+    location.reload();
+};
+
+/* ---------- SHA-256 skriven ut, sidan han må vere synkron og rask nok til utvinning ---------- */
 const sha256 = (() => {
     const K = new Uint32Array(64), H0 = new Uint32Array(8);
     for (let p = 2, n = 0; n < 64; p++) {
@@ -484,13 +631,14 @@ const sha256 = (() => {
     };
 })();
 
-/* Hjelparar for visning */
+/* ---------- Hjelparar for visning ---------- */
 function fmt(v, d = 0) {
     const [heil, des] = v.toFixed(d).split(".");
-    const t = heil.replace(/\B(?=(\d{3})+$)/g, "\u00a0");
+    const t = heil.replace(/\B(?=(\d{3})+$)/g, " ");
     return des && +des ? t + "," + des : t;
 }
 const talTekst = n => fmt(Math.round(n));
+const nullOrd = n => n + (n === 1 ? " null" : " nullar");
 function farge(hash, i) {
     return `hsl(${Math.round(parseInt(hash.substr(i * 8 + 5, 3), 16) / 4095 * 360)} 72% ${36 + parseInt(hash[i * 8 + 4], 16) * 1.6}%)`;
 }
@@ -526,6 +674,9 @@ function maalFart() {
     while (performance.now() - start < 25) { sha256("fart" + n); n++; }
     fart = n / ((performance.now() - start) / 1000);
 }
+/* Bitcoin krev om lag 19 nullar (2026), det vil seie om lag 5 × 10^23 forsøk per blokk */
+const BITCOIN_FORSOK = 5.4e23;
+function visBitcoinTid() { $("btc-tid").textContent = tidTekst(BITCOIN_FORSOK / fart); }
 
 /* Utvinning i små porsjonar, så sida ikkje frys */
 async function letEtter(start, nullar, hashAv, kvarRunde) {
@@ -550,17 +701,19 @@ async function letEtter(start, nullar, hashAv, kvarRunde) {
     }
 }
 
-/* Problemet: reknearket */
+/* ---------- Steg 1: reknearket ---------- */
 let kareEndra = false;
 $("kare-knapp").onclick = () => {
     kareEndra = !kareEndra;
     $("kare-belop").textContent = kareEndra ? "1000 kr" : "100 kr";
+    $("kare-belop").classList.toggle("endra", kareEndra);
     $("kare-sum").textContent = kareEndra ? "1200 kr" : "300 kr";
     $("kare-msg").hidden = !kareEndra;
-    $("kare-knapp").textContent = kareEndra ? "Set reknearket tilbake" : "Endre reknearket som Kåre";
+    $("kare-knapp").textContent = kareEndra ? "Set reknearket tilbake" : "Endre reknearket";
+    if (kareEndra) ferdig(1);
 };
 
-/* Steg 1: fingeravtrykket */
+/* ---------- Steg 2: fingeravtrykket ---------- */
 const hStart = sha256($("h-inn").value);
 teiknStrek($("h-strek0"), hStart);
 function oppdaterHash() {
@@ -572,13 +725,16 @@ function oppdaterHash() {
     $("h-lik").className = "badge " + (lik ? "ok" : "bad");
     let ulike = 0;
     for (let i = 0; i < 64; i++) if (h[i] !== hStart[i]) ulike++;
-    $("h-diff").textContent = lik ? "" : `No er ${ulike} av 64 teikn i hashen ulike.`;
+    $("h-diff").hidden = lik;
+    $("h-diff").textContent = `No er ${ulike} av dei 64 teikna i fingeravtrykket annleis enn då du starta.`;
+    if (!lik) ferdig(2);
 }
 $("h-inn").oninput = oppdaterHash;
 oppdaterHash();
 teiknStrek($("toppstrek"), sha256("Blokkjeder"));
 
-/* Steg 2 og 4: kjeda. Hashen blir alltid rekna ut på nytt, men «førre hash» er lagra i blokka. */
+/* ---------- Steg 3 og 5: kjeda ----------
+   Hashen blir alltid rekna ut på nytt, men «førre hash» er lagra i blokka. */
 function lagKjede(rot, innst) {
     const { vanske, tekstar, noncar, tekstStart, tekstBrot, tekstFiksa, meldEl } = innst;
     const nullar = "0".repeat(vanske);
@@ -605,10 +761,10 @@ function lagKjede(rot, innst) {
             <div class="strek forre-strek"></div>
             <div class="blokk-kropp">
                 <div class="blokk-topp"><b>Blokk ${i}</b><span class="badge"></span></div>
-                <div class="felt"><span class="fn">Førre hash</span><code class="forre"></code></div>
+                <div class="felt"><span class="fn">Fingeravtrykket til blokka før</span><code class="forre"></code></div>
                 <label class="felt"><span class="fn">Innhald</span><input type="text" autocomplete="off"></label>
-                ${brukNonce ? '<div class="felt"><span class="fn">Nonce</span><code class="nonce"></code></div>' : ""}
-                <div class="felt"><span class="fn">Hash</span><code class="hash hashvis"></code></div>
+                ${brukNonce ? '<div class="felt"><span class="fn">Tal (nonce)</span><code class="nonce"></code></div>' : ""}
+                <div class="felt"><span class="fn">Fingeravtrykket til denne blokka</span><code class="hash hashvis"></code></div>
                 <div class="fiks"></div>
             </div>
             <div class="strek hash-strek"></div>`;
@@ -622,7 +778,6 @@ function lagKjede(rot, innst) {
         }
         const inp = el.querySelector("input");
         inp.value = tekstar[i];
-        inp.setAttribute("aria-label", `Innhald i blokk ${i}`);
         inp.oninput = () => { blokker[i].tekst = inp.value; oppdater(); };
         return { el, ledd, inp, q: s => el.querySelector(s) };
     });
@@ -642,8 +797,8 @@ function lagKjede(rot, innst) {
             d.el.dataset.st = st;
             const badge = d.q(".badge");
             badge.className = "badge " + (st === "ok" ? "ok" : st === "folgje" ? "warn" : "bad");
-            badge.textContent = { ok: "Stemmer", brot: "Brot i kjeda", ugyldig: "For få nullar", folgje: "Byggjer på eit brot" }[st];
-            d.q(".forre").textContent = kort(b.forre);
+            badge.textContent = { ok: "Stemmer", brot: "Brot i kjeda", ugyldig: "For få nullar", folgje: "Kjem etter eit brot" }[st];
+            d.q(".forre").textContent = i === 0 && b.forre === NULLHASH ? "(det finst inga blokk før denne)" : kort(b.forre);
             if (brukNonce) d.q(".nonce").textContent = fmt(b.nonce);
             if (brukNonce) d.q(".hash").innerHTML = hashMedNullar(h.slice(0, 20), vanske) + "…";
             else d.q(".hash").textContent = kort(h);
@@ -655,7 +810,7 @@ function lagKjede(rot, innst) {
                 teiknStrek(a, h); teiknStrek(bb, neste.forre);
                 const brot = neste.forre !== h;
                 d.ledd.classList.toggle("brot", brot);
-                d.ledd.querySelector(".brot-tekst").textContent = brot ? `Blokk ${i + 1} hugsar ein annan hash enn den blokk ${i} har no` : "";
+                d.ledd.querySelector(".brot-tekst").textContent = brot ? `Blokk ${i + 1} hugsar eit anna fingeravtrykk enn det blokk ${i} har no` : "";
             }
             const fiks = d.q(".fiks");
             if (st === "brot" || st === "ugyldig") {
@@ -663,7 +818,7 @@ function lagKjede(rot, innst) {
                     fiks.innerHTML = "";
                     const k = document.createElement("button");
                     k.className = "btn primary";
-                    k.textContent = brukNonce ? "Utvinn blokka på nytt" : "Skriv inn ny førre hash";
+                    k.textContent = brukNonce ? "Reparer: finn eit nytt tal" : "Reparer: skriv inn det nye fingeravtrykket";
                     k.onclick = () => fiksBlokk(i);
                     fiks.appendChild(k);
                     fiks.dataset.for = st;
@@ -676,7 +831,10 @@ function lagKjede(rot, innst) {
         const endra = blokker.some((b, i) => b.tekst !== tekstar[i]);
         if (opptatt) return;
         if (brotVed >= 0) melding(meldEl, "bad", tekstBrot(brotVed));
-        else if (endra) melding(meldEl, "warn", tekstFiksa({ klikk, forsok: forsokTotalt, tid: tidTotalt }));
+        else if (endra) {
+            melding(meldEl, "warn", tekstFiksa({ klikk, forsok: forsokTotalt, tid: tidTotalt }));
+            if (innst.ferdig) innst.ferdig();
+        }
         else melding(meldEl, "info", tekstStart);
     }
 
@@ -688,7 +846,7 @@ function lagKjede(rot, innst) {
             opptatt = true; stopp = false;
             if (innst.stoppKnapp) innst.stoppKnapp.disabled = false;
             oppdater();
-            melding(meldEl, "info", `Utvinn blokk ${i} på nytt …`);
+            melding(meldEl, "info", `Leitar etter eit nytt tal til blokk ${i} …`);
             const start = forsokTotalt;
             const r = await letEtter(0, nullar, n => hashAv(i, b, n), (n, f) => {
                 forsokTotalt = start + f;
@@ -715,18 +873,19 @@ function lagKjede(rot, innst) {
         oppdater();
     }
     oppdater();
-    return { nullstill, avbryt: () => { stopp = true; }, hent: () => blokker };
+    return { nullstill, avbryt: () => { stopp = true; } };
 }
 
 const GRUNNTEKST = ["Klassekassa er opna", "Kåre betaler inn 100 kr", "Kari betaler inn 100 kr", "Ola betaler inn 100 kr"];
 
 const kjedeEnkel = lagKjede($("kjede-enkel"), {
     vanske: 0,
-    tekstar: [...GRUNNTEKST, "Klassen kjøper pizza for 150 kr"],
+    tekstar: GRUNNTEKST,
     meldEl: $("kjede-enkel-msg"),
-    tekstStart: "Alle ledda passar. Endre innhaldet i ei blokk og sjå kva som skjer.",
-    tekstBrot: i => `Avslørt! Hashen til blokk ${i - 1} er endra, men blokk ${i} hugsar den gamle. Legg merke til at det er blokka etter som avslører juksen.`,
-    tekstFiksa: s => `Kjeda heng saman att, og det tok berre ${s.klikk} klikk. Du har skrive om historia, og ingen ser det. Hashar åleine er altså ikkje nok.`
+    ferdig: () => ferdig(3),
+    tekstStart: "Alle ledda passar. Endre innhaldet i blokk 1 og sjå kva som skjer.",
+    tekstBrot: i => `Avslørt! Blokk ${i - 1} har fått nytt fingeravtrykk, men blokk ${i} hugsar det gamle. Trykk på den grøne knappen for å reparere.`,
+    tekstFiksa: s => `Kjeda heng saman att, og det tok berre ${s.klikk} klikk. Du har endra historia, og ingen ser det.`
 });
 $("kjede-enkel-nullstill").onclick = kjedeEnkel.nullstill;
 
@@ -736,84 +895,93 @@ const kjedePow = lagKjede($("kjede-pow"), {
     noncar: [1683418, 369951, 1799017, 680088],
     meldEl: $("kjede-pow-msg"),
     stoppKnapp: $("pow-stopp"),
+    ferdig: () => { visBitcoinTid(); ferdig(5); },
     visForsok: f => $("pow-forsok").textContent = talTekst(f),
-    tekstStart: "Alle blokkene er utvunne. Prøv å endre innhaldet i blokk 1.",
-    tekstBrot: i => `Blokk ${i} er ikkje gyldig. Ho må utvinnast på nytt, og det same må alle blokkene etter.`,
-    tekstFiksa: s => `Du klarte det, men det kosta ${talTekst(s.forsok)} forsøk og ${tidTekst(s.tid)}. Her krevst berre fem nullar. Bitcoin krev om lag 19–20, og medan du reknar, legg alle dei andre til nye blokker.`
+    tekstStart: "Alle blokkene er godkjende. Prøv å endre innhaldet i blokk 1.",
+    tekstBrot: i => `Blokk ${i} er ikkje godkjend lenger. Ho treng eit nytt tal, og det same gjer alle blokkene etter.`,
+    tekstFiksa: s => `Du klarte det, men det kosta ${talTekst(s.forsok)} forsøk og ${tidTekst(s.tid)}.`
 });
 $("pow-stopp").onclick = kjedePow.avbryt;
 $("kjede-pow-nullstill").onclick = kjedePow.nullstill;
 
-/* Steg 3: utvinning */
-let uForsok = 0, uOpptatt = false, uStopp = false;
-const uVanske = () => +$("u-vanske").value;
+/* ---------- Steg 4: utvinning ---------- */
+let uForsok = 0, uV = 1, uStopp = false;
+const uKnappar = [...$("u-vanske").querySelectorAll("button")];
 const uHashAv = n => sha256($("u-tekst").value + n);
+const uTal = () => Math.max(0, Math.floor(+$("u-nonce").value || 0));
 function uTabell() {
-    const rader = [1, 2, 3, 4, 5, 6, 8, 12].map(n => {
-        const f = 16 ** n;
-        return `<tr><td>${n} ${n === 1 ? "null" : "nullar"}</td><td class="tal">${n <= 8 ? talTekst(f) : "om lag 3 × 10<sup>14</sup>"}</td><td class="tal">${tidTekst(f / fart)}</td></tr>`;
-    });
-    rader.push(`<tr><td><b>Bitcoin</b> (om lag 19–20 nullar)</td><td class="tal">om lag 5 × 10<sup>23</sup></td><td class="tal"><b>${tidTekst(5.4e23 / fart)}</b></td></tr>`);
+    const rader = [1, 2, 3, 4, 5].map(n =>
+        `<tr><td>${nullOrd(n)}</td><td class="tal">${talTekst(16 ** n)}</td><td class="tal">${tidTekst(16 ** n / fart)}</td></tr>`);
+    rader.push(`<tr><td><b>Bitcoin</b>: om lag 19 nullar</td><td class="tal">500 000 trillionar</td><td class="tal"><b>${tidTekst(BITCOIN_FORSOK / fart)}</b></td></tr>`);
     $("u-tabell").innerHTML = rader.join("");
-    $("u-fart").textContent = talTekst(fart);
+    visBitcoinTid();
 }
 function uVis() {
-    const v = uVanske();
-    const n = Math.max(0, Math.floor(+$("u-nonce").value || 0));
-    const h = uHashAv(n);
-    $("u-vanske-tal").textContent = v + (v === 1 ? " null" : " nullar");
-    $("u-forventa").textContent = talTekst(16 ** v);
+    const n = uTal(), h = uHashAv(n);
+    uKnappar.forEach((k, i) => k.setAttribute("aria-pressed", i + 1 === uV));
     $("u-forsok").textContent = talTekst(uForsok);
-    $("u-hash").innerHTML = hashMedNullar(h, v);
-    if (h.startsWith("0".repeat(v))) melding($("u-msg"), "ok", `Funne! Nonce ${fmt(n)} gir ein hash som startar med ${v} ${v === 1 ? "null" : "nullar"}.`);
-    else melding($("u-msg"), "bad", `Hashen startar ikkje med ${v} ${v === 1 ? "null" : "nullar"}. Prøv eit anna tal.`);
+    $("u-hash").innerHTML = hashMedNullar(h, uV);
+    if (h.startsWith("0".repeat(uV))) melding($("u-msg"), "ok", `Funne! Talet ${fmt(n)} gir eit fingeravtrykk som startar med ${nullOrd(uV)}.`);
+    else melding($("u-msg"), "bad", `Fingeravtrykket startar ikkje med ${nullOrd(uV)}. Prøv eit anna tal.`);
 }
-function uLaas(på) {
-    uOpptatt = på;
-    ["u-neste", "u-auto", "u-tekst", "u-vanske", "u-nonce"].forEach(id => $(id).disabled = på);
-    $("u-stopp").disabled = !på;
+function uLaas(paa) {
+    ["u-neste", "u-auto", "u-tekst", "u-nonce"].forEach(id => $(id).disabled = paa);
+    uKnappar.forEach(k => k.disabled = paa);
+    $("u-stopp").disabled = !paa;
 }
-function uNullstill() { uForsok = 0; uVis(); }
+function uNullstill() { uForsok = 0; $("u-nonce").value = 0; uVis(); }
+uKnappar.forEach((k, i) => k.setAttribute("aria-label", nullOrd(i + 1)));
+uKnappar.forEach((k, i) => k.onclick = () => { uV = i + 1; uNullstill(); });
 $("u-tekst").oninput = uNullstill;
-$("u-vanske").oninput = uNullstill;
 $("u-nonce").oninput = () => { uForsok++; uVis(); };
-$("u-neste").onclick = () => { $("u-nonce").value = Math.max(0, Math.floor(+$("u-nonce").value || 0)) + 1; uForsok++; uVis(); };
+$("u-neste").onclick = () => { $("u-nonce").value = uTal() + 1; uForsok++; uVis(); };
 $("u-stopp").onclick = () => { uStopp = true; };
 $("u-auto").onclick = async () => {
     uLaas(true); uStopp = false;
-    const v = uVanske(), start = uForsok;
-    const r = await letEtter(Math.max(0, Math.floor(+$("u-nonce").value || 0)), "0".repeat(v), uHashAv, (n, f) => {
+    const v = uV, start = uForsok;
+    const r = await letEtter(uTal(), "0".repeat(v), uHashAv, (n, f) => {
         uForsok = start + f;
         $("u-nonce").value = n;
         $("u-forsok").textContent = talTekst(uForsok);
         $("u-hash").innerHTML = hashMedNullar(uHashAv(n), v);
-        melding($("u-msg"), "info", "Prøver …");
+        melding($("u-msg"), "info", "Maskina prøver …");
         return !uStopp;
     });
     uForsok = start + r.forsok;
     $("u-nonce").value = r.n;
     uLaas(false);
     uVis();
-    if (!r.funne) melding($("u-msg"), "warn", `Stoppa etter ${talTekst(r.forsok)} forsøk utan treff.`);
-    else if (r.forsok > 1) melding($("u-msg"), "ok", `Funne! Nonce ${fmt(r.n)} gir ein gyldig hash etter ${talTekst(r.forsok)} forsøk og ${tidTekst(r.sek)}.`);
+    if (!r.funne) melding($("u-msg"), "warn", `Stoppa etter ${talTekst(r.forsok)} forsøk utan å finne noko.`);
+    else {
+        if (r.forsok > 1) melding($("u-msg"), "ok", `Funne! Talet ${fmt(r.n)} passar. Maskina trong ${talTekst(r.forsok)} forsøk og ${tidTekst(r.sek)}.`);
+        if (v >= 3) ferdig(4);
+    }
     uTabell();
 };
 maalFart();
 uVis();
 uTabell();
 
-/* Steg 5: nettverket */
+/* ---------- Steg 6: nettverket ---------- */
 const NODE_NAMN = ["Kari", "Ola", "Kåre", "Sara", "Nils"];
 const JUKS_TEKST = "Kåre betaler inn 1000 kr";
-let nodar, nodarOpptatt = false, nyttFrå = -1;
+let nodar, nodarOpptatt = false, nyttFraa = -1;
 function nullstillNodar() {
     nodar = NODE_NAMN.map(namn => ({ namn, kopi: [...GRUNNTEKST], juks: false }));
-    nyttFrå = -1;
+    nyttFraa = -1;
     teiknNodar();
 }
 function kjedeHashar(kopi) {
     let h = NULLHASH;
     return kopi.map((t, i) => (h = sha256(i + h + t)));
+}
+function lagChip(hash, i, tekst, ekstra) {
+    const c = document.createElement("span");
+    c.className = "chip" + ekstra;
+    c.style.setProperty("--c", farge(hash, 0));
+    c.textContent = i;
+    c.title = tekst;
+    return c;
 }
 function teiknNodar() {
     const med = nodar.map(n => ({ n, hashar: kjedeHashar(n.kopi) }));
@@ -835,23 +1003,17 @@ function teiknNodar() {
         namn.innerHTML = `<b>${m.n.namn}</b><span class="badge ${iFleirtal ? "ok" : "bad"}">${iFleirtal ? "Godkjend" : "Avvist"}</span>`;
         const chips = document.createElement("div");
         chips.className = "chips";
-        m.hashar.forEach((h, i) => {
-            const c = document.createElement("span");
-            c.className = "chip" + (m.n.kopi[i] === JUKS_TEKST ? " endra" : "") + (i === nyttFrå ? " ny" : "");
-            c.style.setProperty("--c", farge(h, 0));
-            c.textContent = `${i}: ${h.slice(0, 4)}`;
-            c.title = m.n.kopi[i];
-            chips.appendChild(c);
-        });
+        m.hashar.forEach((h, i) => chips.appendChild(
+            lagChip(h, i, m.n.kopi[i], (m.n.kopi[i] === JUKS_TEKST ? " endra" : "") + (i === nyttFraa ? " ny" : ""))));
         const k = document.createElement("button");
         k.className = "btn" + (m.n.juks ? "" : " danger");
-        k.textContent = m.n.juks ? "Angre juksen" : "Jukse i kopien";
+        k.textContent = m.n.juks ? "Angre juksen" : "Jukse";
         k.disabled = nodarOpptatt;
         k.setAttribute("aria-label", `${k.textContent}: ${m.n.namn}`);
         k.onclick = () => {
             m.n.juks = !m.n.juks;
             m.n.kopi[1] = m.n.juks ? JUKS_TEKST : GRUNNTEKST[1];
-            nyttFrå = -1;
+            nyttFraa = -1;
             teiknNodar();
         };
         rad.append(namn, chips, k);
@@ -862,12 +1024,13 @@ function teiknNodar() {
     const namnJ = juksarar.map(n => n.namn).join(", ").replace(/, ([^,]*)$/, " og $1");
     const el = $("nodar-msg");
     if (nJ === 0) melding(el, "info", "Alle fem har nøyaktig same kopi.");
-    else if (nJ === 5) melding(el, "bad", "Alle juksar, og då er det ingen att som kan avsløre det. Ei blokkjede er berre trygg så lenge dei fleste er ærlege.");
-    else if (nJ < nA) melding(el, "ok", `${namnJ} har ein annan kopi enn fleirtalet, sjølv om hashane i kopien stemmer. ${nA} av 5 er einige, og den falske kopien blir avvist.`);
-    else melding(el, "bad", `No er juksemakarane i fleirtal, og den falske historia blir «sanninga». Dei ærlege blir avviste. Dette blir kalla eit 51 %-angrep.`);
+    else if (nJ === 5) melding(el, "bad", "Alle juksar, og då er det ingen att som kan avsløre det.");
+    else if (nJ < nA) melding(el, "ok", `${namnJ} har ei blokk med ein annan farge enn dei andre. ${nA} av 5 er einige, så den falske kopien blir avvist.`);
+    else melding(el, "bad", "No er juksemakarane flest. Den falske historia blir «sanninga», og dei ærlege blir avviste.");
+    if (nJ >= 3) ferdig(6);
     const fullt = nodar[0].kopi.length >= 9;
     $("send-alle").disabled = nodarOpptatt || fullt;
-    $("send-alle").textContent = fullt ? "Kjeda er full i denne demoen" : "Send til alle";
+    $("send-alle").textContent = fullt ? "Kjeda er full på denne sida" : "Send til alle";
 }
 $("send-alle").onclick = () => {
     const tekst = $("ny-tekst").value.trim();
@@ -876,7 +1039,7 @@ $("send-alle").onclick = () => {
     const i = nodar[0].kopi.length;
     nodar.forEach((n, nr) => setTimeout(() => {
         n.kopi.push(tekst);
-        nyttFrå = i;
+        nyttFraa = i;
         if (nr === nodar.length - 1) nodarOpptatt = false;
         teiknNodarDelvis();
     }, nr * 140));
@@ -885,93 +1048,37 @@ $("send-alle").onclick = () => {
 function teiknNodarDelvis() {
     const lengst = Math.max(...nodar.map(n => n.kopi.length));
     if (nodar.every(n => n.kopi.length === lengst)) { teiknNodar(); return; }
-    const mellom = nodar.map(n => n.kopi);
     $("nodar").querySelectorAll(".node").forEach((rad, r) => {
         const chips = rad.querySelector(".chips");
-        const hashar = kjedeHashar(mellom[r]);
+        const hashar = kjedeHashar(nodar[r].kopi);
         if (chips.children.length < hashar.length) {
-            const i = hashar.length - 1, c = document.createElement("span");
-            c.className = "chip ny";
-            c.style.setProperty("--c", farge(hashar[i], 0));
-            c.textContent = `${i}: ${hashar[i].slice(0, 4)}`;
-            c.title = mellom[r][i];
-            chips.appendChild(c);
+            const i = hashar.length - 1;
+            chips.appendChild(lagChip(hashar[i], i, nodar[r].kopi[i], " ny"));
         }
     });
-    melding($("nodar-msg"), "info", "Blokka spreier seg frå node til node …");
+    melding($("nodar-msg"), "info", "Blokka spreier seg frå maskin til maskin …");
 }
 $("nodar-nullstill").onclick = () => { if (!nodarOpptatt) nullstillNodar(); };
 nullstillNodar();
 
-/* Steg 6: kappløpet */
-let loepTimer = null;
-const logg = new Map();
-function lDel() { return +$("l-del").value; }
-function lFor() { return +$("l-forsprang").value; }
-function teiknBane(id, n) { $(id).innerHTML = "<s></s>".repeat(n); }
-function lVisInnst() {
-    $("l-del-tal").textContent = lDel();
-    $("l-forsprang-tal").textContent = lFor();
-    if (!loepTimer) { teiknBane("bane-aerleg", lFor()); teiknBane("bane-kare", 0); }
-}
-$("l-del").oninput = $("l-forsprang").oninput = lVisInnst;
-lVisInnst();
-$("l-start").onclick = () => {
-    if (loepTimer) { clearInterval(loepTimer); loepTimer = null; }
-    const q = lDel() / 100;
-    let aerleg = lFor(), kare = 0, runde = 0;
-    teiknBane("bane-aerleg", aerleg); teiknBane("bane-kare", kare);
-    melding($("l-msg"), "info", "Kappløpet er i gang …");
-    $("l-start").textContent = "Start på nytt";
-    loepTimer = setInterval(() => {
-        runde++;
-        if (Math.random() < q) kare++; else aerleg++;
-        teiknBane("bane-aerleg", aerleg); teiknBane("bane-kare", kare);
-        const slutt = t => { clearInterval(loepTimer); loepTimer = null; $("l-start").textContent = "Køyr eitt kappløp"; t(); };
-        if (kare > aerleg) slutt(() => melding($("l-msg"), "bad", `Kåre vann etter ${runde} blokker. Kjeda hans er lengst, og nettverket godtek den falske historia.`));
-        else if (aerleg - kare >= 12 || runde >= 60) slutt(() => melding($("l-msg"), "ok", `Kåre gav opp etter ${runde} blokker. Dei ærlege er ${aerleg - kare} blokker framfor, og straumrekninga hans er stor.`));
-    }, 220);
-};
-function kapplop(q, forsprang) {
-    let leiing = forsprang;
-    for (let r = 0; r < 1000; r++) {
-        leiing += Math.random() < q ? -1 : 1;
-        if (leiing < 0) return true;
-        if (leiing > 40) return false;
-    }
-    return false;
-}
-$("l-mange").onclick = () => {
-    const q = lDel() / 100, z = lFor();
-    let vann = 0;
-    for (let i = 0; i < 10000; i++) if (kapplop(q, z)) vann++;
-    const pst = vann / 100;
-    logg.set(lDel() * 100 + z, { del: lDel(), z, pst });
-    $("l-logg").innerHTML = [...logg.values()].sort((a, b) => a.del - b.del || a.z - b.z)
-        .map(r => `<tr><td class="tal">${r.del} %</td><td class="tal">${r.z}</td><td class="tal">${r.pst.toFixed(2).replace(".", ",")} %</td></tr>`).join("");
-    $("l-logg-boks").hidden = false;
-    melding($("l-msg"), pst >= 50 ? "bad" : "info", `Kåre vann ${talTekst(vann)} av 10 000 kappløp med ${lDel()} % av reknekrafta.`);
-};
-
-/* Steg 7: passar det? */
+/* ---------- Steg 7: passar det? ---------- */
 const SAKER = [
     { t: "Klassekassa", d: "25 elevar som kjenner kvarandre, skal halde styr på pengane til klasseturen.", s: "nei",
-      f: "Her finst det ein felles part: kontaktlæraren. Eit delt rekneark med endringslogg gjer jobben gratis." },
+      f: "Her finst det nokon alle stolar på: kontaktlæraren. Eit delt rekneark som viser kven som har endra kva, gjer jobben gratis." },
     { t: "Bitcoin", d: "Folk over heile verda som ikkje kjenner kvarandre, vil sende pengar utan bank.", s: "ja",
-      f: "Dette er problemet blokkjeda blei laga for: ingen felles part, ingen tillit og opne data." },
-    { t: "Vitnemålet ditt", d: "Karakterane dine skal lagrast slik at arbeidsgjevarar kan stole på dei.", s: "nei",
-      f: "Alle stolar alt på éin part: skulen og styresmaktene. Då er vanlege databasar med tilgangsstyring betre." },
-    { t: "Pasientjournalar", d: "Helseopplysningar skal delast mellom sjukehus.", s: "nei",
-      f: "Feil må kunne rettast, og opplysningane skal ikkje ligge hos alle. Personvernreglane (GDPR) gir deg dessutan rett til sletting. Det er nesten motsetnaden av ei blokkjede." },
+      f: "Dette er problemet blokkjeda blei laga for: Ingen kjenner kvarandre, og det finst ingen alle stolar på." },
+    { t: "Vitnemålet ditt", d: "Karakterane dine skal lagrast slik at ein arbeidsgjevar kan stole på dei.", s: "nei",
+      f: "Alle stolar alt på skulen og staten. Då er ein vanleg database betre." },
+    { t: "Pasientjournalen din", d: "Opplysningar om helsa di skal delast mellom legen og sjukehuset.", s: "nei",
+      f: "Feil må kunne rettast, og opplysningane skal ikkje ligge hos alle. Du har dessutan rett til å få sletta opplysningar om deg sjølv. I ei blokkjede kan ingenting slettast." },
     { t: "Sporing av laks", d: "Oppdrettar, transportør og butikk skal dele kvar laksen har vore på veg frå merd til disk.", s: "kanskje",
-      f: "Fleire selskap som ikkje heilt stolar på kvarandre, passar bra. Men blokkjeda kan ikkje sjå om det faktisk er den laksen i kassa. Skriv nokon feil inn, blir feilen liggande for alltid." },
-    { t: "Val til elevrådet", d: "Elevane skal stemme digitalt.", s: "nei",
-      f: "Stemmer skal vere hemmelege, medan ei blokkjede er open. Og skulen er alt ein part alle godtek til å telje." }
+      f: "Fleire firma som ikkje heilt stolar på kvarandre, passar bra. Men blokkjeda kan ikkje sjå om det faktisk er den laksen som ligg i kassa. Skriv nokon inn feil, blir feilen ståande for alltid." }
 ];
-SAKER.forEach(sak => {
+const svarte = new Set();
+SAKER.forEach((sak, nr) => {
     const el = document.createElement("div");
     el.className = "sak";
-    el.innerHTML = `<p><b>${sak.t}.</b> ${sak.d}</p><div class="row"></div><div class="msg" hidden></div>`;
+    el.innerHTML = `<p><b>${sak.t}.</b> ${sak.d}</p><div class="row"></div><div class="msg" hidden aria-live="polite"></div>`;
     const rad = el.querySelector(".row"), msg = el.querySelector(".msg");
     [["ja", "Passar"], ["kanskje", "Kanskje"], ["nei", "Passar ikkje"]].forEach(([v, namn]) => {
         const k = document.createElement("button");
@@ -983,28 +1090,30 @@ SAKER.forEach(sak => {
             const rett = v === sak.s;
             msg.className = "msg " + (rett ? "ok" : "warn");
             msg.textContent = (rett ? "Einig. " : "Tenk ein gong til. ") + sak.f;
+            svarte.add(nr);
+            if (svarte.size === SAKER.length) ferdig(7);
         };
         rad.appendChild(k);
     });
     $("saker").appendChild(el);
 });
 
-/* Quiz */
+/* ---------- Steg 8: quiz ---------- */
 const QUIZ = [
-    { q: "Kva er hashen til ei blokk?", v: ["Passordet til eigaren av blokka", "Eit fingeravtrykk rekna ut frå innhaldet i blokka", "Eit tilfeldig tal", "Adressa til maskina som laga blokka"], r: 1,
-      f: "Hashen blir rekna ut frå alt i blokka, òg hashen til blokka før." },
-    { q: "Blokk 1 blir endra. Kvifor passar ikkje blokk 2 lenger?", v: ["Blokk 2 har lagra den gamle hashen til blokk 1", "Blokk 2 blir sletta", "Innhaldet i blokk 2 blir òg endra", "Blokk 2 er kryptert med blokk 1"], r: 0,
-      f: "Hashen til blokk 1 er ny, men «førre hash» i blokk 2 er den gamle." },
-    { q: "Kva er ein nonce?", v: ["Ein privat nøkkel", "Namnet på ein utvinnar", "Eit gebyr", "Eit tal utvinnaren prøver seg fram med"], r: 3,
-      f: "Nonce blir endra heilt til hashen startar med nok nullar." },
-    { q: "Kva skjer med arbeidet når kravet aukar med éin heksadesimal null?", v: ["Det blir dobbelt så mykje", "Det blir 16 gonger så mykje", "Det blir 10 gonger så mykje", "Det endrar seg ikkje"], r: 1,
-      f: "Kvart teikn kan ha 16 verdiar, og berre éin av dei er 0." },
-    { q: "Kvifor hjelper det ikkje Kåre å endre sin eigen kopi?", v: ["Kopien blir låst", "Hashane blir alltid feil", "Dei andre har ein annan kopi og godtek ikkje hans", "Banken stoppar det"], r: 2,
-      f: "Sjølv ein kopi der alle hashane stemmer, blir avvist når han ikkje samsvarar med resten av nettverket." },
-    { q: "Kva garanterer ei blokkjede?", v: ["At det som er skrive, ikkje er endra etterpå", "At alt som er skrive, er sant", "At ingen kan bli svindla", "At alt er hemmeleg"], r: 0,
-      f: "Søppel inn, søppel ut: blokkjeda veit ikkje om det som blei skrive inn, var sant." },
-    { q: "Kva er eit 51 %-angrep?", v: ["Å stele 51 % av alle bitcoin", "Å kontrollere meir enn halvparten av reknekrafta og skrive om historia", "Å knekke 51 % av alle hashar", "At 51 % av brukarane stemmer for ei endring"], r: 1,
-      f: "Med over halvparten av reknekrafta vil ei falsk kjede til slutt kunne ta att den ærlege." }
+    { q: "Kva er ein hash?", v: ["Passordet til den som eig blokka", "Eit fingeravtrykk som blir rekna ut frå innhaldet", "Eit tilfeldig tal", "Namnet på ei maskin"], r: 1,
+      f: "Same innhald gir alltid same hash." },
+    { q: "Du endrar eitt teikn i ein tekst. Kva skjer med hashen?", v: ["Han endrar seg litt", "Ingenting", "Han blir heilt annleis", "Han blir lengre"], r: 2,
+      f: "Den minste endringa gir eit heilt nytt fingeravtrykk." },
+    { q: "Nokon endrar blokk 1. Korleis blir det oppdaga?", v: ["Blokk 2 hugsar den gamle hashen til blokk 1", "Blokk 1 blir sletta", "Læraren får ei melding", "Blokk 2 blir endra av seg sjølv"], r: 0,
+      f: "Blokk 1 får ny hash, men blokk 2 har lagra den gamle. Då passar ikkje ledda lenger." },
+    { q: "Kvifor må hashen starte med mange nullar?", v: ["For at han skal bli kortare", "For at det skal sjå fint ut", "For at blokka skal bli hemmeleg", "For at det skal vere tungt arbeid å lage og endre blokker"], r: 3,
+      f: "Den som vil jukse, må gjere alt det tunge arbeidet på nytt." },
+    { q: "Kvifor hjelper det ikkje Kåre å endre sin eigen kopi?", v: ["Kopien hans blir låst", "Dei andre har kopiar som ikkje er endra, og godtek ikkje hans", "Banken stoppar han", "Maskina hans er for treg"], r: 1,
+      f: "Kopien til Kåre er annleis enn dei andre sine, og då blir han avvist." },
+    { q: "Kva lovar ei blokkjede?", v: ["At det som er skrive, ikkje er endra etterpå", "At alt som er skrive, er sant", "At ingen kan bli svindla", "At alt er hemmeleg"], r: 0,
+      f: "Blokkjeda veit ikkje om det som blei skrive inn, var sant." },
+    { q: "Når er ei blokkjede lur å bruke?", v: ["Alltid, ho er best til alt", "Når noko må gå fort", "Når folk som ikkje stolar på kvarandre skal dele ei bok", "Når noko skal vere lett å rette"], r: 2,
+      f: "Finst det nokon alle stolar på, er ein vanleg database betre." }
 ];
 let quizRett, quizSvar;
 function byggQuiz() {
@@ -1029,10 +1138,11 @@ function byggQuiz() {
                 quizSvar++;
                 msg.hidden = false;
                 msg.className = "msg info";
-                msg.textContent = s.f;
+                msg.textContent = (i === s.r ? "Rett. " : "Ikkje heilt. ") + s.f;
                 if (quizSvar === QUIZ.length) {
                     $("quiz-sum").hidden = false;
-                    $("quiz-sum").textContent = `Du fekk ${quizRett} av ${QUIZ.length} rette.` + (quizRett === QUIZ.length ? " Kåre tør ikkje å jukse når du er i klassen." : " Gå tilbake til steg 2–6 og prøv ein gong til.");
+                    $("quiz-sum").textContent = `Du fekk ${quizRett} av ${QUIZ.length} rette.` + (quizRett === QUIZ.length ? " Kåre tør ikkje å jukse når du er i klassen." : " Gå tilbake til stega du var usikker på, og prøv ein gong til.");
+                    ferdig(8);
                 }
             };
             val.appendChild(k);
@@ -1042,6 +1152,10 @@ function byggQuiz() {
 }
 $("quiz-nullstill").onclick = byggQuiz;
 byggQuiz();
+
+/* ---------- Start ---------- */
+visFerdige();
+visSteg(stegFraaAdresse(), false);
 </script>
 </body>
 </html>
