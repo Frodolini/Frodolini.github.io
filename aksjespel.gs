@@ -12,6 +12,8 @@
  *  4. Opne fana «Oppsett» og set spelnamn, startdato, sluttdato, startsum og påmeldingskode.
  *     Sjå over fana «Selskap»: står det eit tal i kolonnen «Kurs» på alle radene?
  *     Rader utan tal blir ikkje viste i spelet. Du kan leggje til og fjerne rader fritt.
+ *     Kursane i New York kjem frå formelen GOOGLEFINANCE i arket. Google Finance har ikkje
+ *     Oslo Børs, så rader som startar med OSL: blir henta frå Yahoo Finance kvart tiande minutt.
  *  5. Distribuer → Ny distribusjon → type «Nettapp».
  *     Køyr som: Meg.  Kven har tilgang: Alle.
  *  6. Kopier adressa som sluttar på /exec, og lim ho inn som API_URL i aksjespel.html.
@@ -84,7 +86,7 @@ const STANDARD_SELSKAP = [
   ["NYSE:SPOT", "Spotify", "New York", "USD"],
   ["NYSE:RBLX", "Roblox", "New York", "USD"],
   ["NYSE:UBER", "Uber", "New York", "USD"],
-  ["NYSE:WMT", "Walmart", "New York", "USD"],
+  ["NASDAQ:WMT", "Walmart", "New York", "USD"],
   ["NYSE:XOM", "ExxonMobil", "New York", "USD"],
   ["NYSE:BA", "Boeing", "New York", "USD"]
 ];
@@ -124,21 +126,30 @@ function oppsett() {
     ark = bok.insertSheet(A_SELSKAP);
     hovud(ark, K_SELSKAP);
     ark.getRange(2, 1, STANDARD_SELSKAP.length, 4).setValues(STANDARD_SELSKAP);
-    // Kursen blir henta av Google Finance, og er som regel nokre minutt forseinka
-    for (let rad = 2; rad < STANDARD_SELSKAP.length + 2; rad++) {
-      ark.getRange(rad, 5).setFormula("=GOOGLEFINANCE(A" + rad + ")");
-    }
+    // New York: kursen blir henta av Google Finance, og er som regel nokre minutt forseinka.
+    // Oslo Børs: Google Finance har han ikkje, så hentKursar() fyller inn frå Yahoo Finance.
+    STANDARD_SELSKAP.forEach((r, i) => {
+      if (!yahooSymbol(r[0])) ark.getRange(i + 2, 5).setFormula("=GOOGLEFINANCE(A" + (i + 2) + ")");
+    });
     ark.autoResizeColumns(1, 4);
+  } else {
+    // Walmart flytta frå NYSE til Nasdaq
+    ark.getDataRange().getValues().forEach((r, i) => {
+      if (String(r[0]).trim() === "NYSE:WMT") ark.getRange(i + 1, 1).setValue("NASDAQ:WMT");
+    });
   }
 
   if (!bok.getSheetByName(A_SPELARAR)) hovud(bok.insertSheet(A_SPELARAR), K_SPELARAR);
   if (!bok.getSheetByName(A_HANDLAR)) hovud(bok.insertSheet(A_HANDLAR), K_HANDLAR);
 
-  // Éin gong i timen: ta startkursar når spelet startar, og frys kursane når det er slutt
+  // Éin gong i timen: ta startkursar når spelet startar, og frys kursane når det er slutt.
+  // Kvart tiande minutt: hent kursane frå Oslo Børs.
   ScriptApp.getProjectTriggers().forEach(t => {
-    if (t.getHandlerFunction() === "kvarTime") ScriptApp.deleteTrigger(t);
+    if (["kvarTime", "hentKursar"].indexOf(t.getHandlerFunction()) >= 0) ScriptApp.deleteTrigger(t);
   });
   ScriptApp.newTrigger("kvarTime").timeBased().everyHours(1).create();
+  ScriptApp.newTrigger("hentKursar").timeBased().everyMinutes(10).create();
+  hentKursar();
 }
 
 function hovud(ark, kolonnar) {
@@ -163,9 +174,47 @@ function nullstill() {
 }
 
 function kvarTime() {
+  hentKursar();
   const las = LockService.getScriptLock();
   las.waitLock(20000);
   try { sjekkFase(lesOppsett()); } finally { las.releaseLock(); }
+}
+
+/* ---------- Kursar frå Oslo Børs ---------- */
+
+// "OSL:EQNR" → "EQNR.OL" slik Yahoo Finance skriv det. Andre børsar brukar GOOGLEFINANCE i arket.
+function yahooSymbol(id) {
+  const m = String(id).trim().match(/^OSL:(.+)$/i);
+  return m ? m[1].toUpperCase() + ".OL" : "";
+}
+
+// Hentar siste kurs for alle OSL:-radene og skriv han i kolonnen «Kurs».
+// Feilar hentinga, blir den førre kursen ståande.
+function hentKursar() {
+  const a = ark(A_SELSKAP);
+  const rader = [];
+  a.getDataRange().getValues().forEach((r, i) => {
+    const symbol = yahooSymbol(r[0]);
+    if (i > 0 && symbol) rader.push({ rad: i + 1, symbol: symbol });
+  });
+  if (lesOppsett().frosne) return;
+  for (let i = 0; i < rader.length; i += 15) {
+    const bolk = rader.slice(i, i + 15);
+    try {
+      const adresse = "https://query1.finance.yahoo.com/v8/finance/spark?range=1d&interval=1d&symbols="
+        + bolk.map(x => encodeURIComponent(x.symbol)).join(",");
+      const svar = UrlFetchApp.fetch(adresse, { muteHttpExceptions: true, headers: { "User-Agent": "Mozilla/5.0" } });
+      if (svar.getResponseCode() !== 200) continue;
+      const data = JSON.parse(svar.getContentText());
+      bolk.forEach(x => {
+        const d = data[x.symbol];
+        const sluttar = d && d.close ? d.close.filter(v => typeof v === "number" && v > 0) : [];
+        if (sluttar.length) a.getRange(x.rad, 5).setValue(sluttar[sluttar.length - 1]);
+      });
+    } catch (feil) {}
+  }
+  SpreadsheetApp.flush();
+  CacheService.getScriptCache().remove("status");
 }
 
 /* ---------- Nettappen ---------- */
@@ -231,7 +280,8 @@ function status() {
     ok: true,
     spel: { namn: o.namn, start: o.start, slutt: o.slutt, startsum: o.startsum, kurtasje: o.kurtasje, fase: o.fase, kode: !!o.kode },
     usdnok: o.usdnok,
-    selskap: selskap.filter(s => s.kurs > 0),
+    selskap: selskap.filter(s => s.kurs > 0)
+      .map(s => ({ id: s.id, namn: s.namn, bors: s.bors, valuta: s.valuta, kurs: s.kurs, start: s.start })),
     toppliste: liste,
     oppdatert: new Date().toISOString()
   };
