@@ -4,219 +4,165 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Ping til verda</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ctext y=%22.9em%22 font-size=%2290%22%3E%F0%9F%8C%8D%3C/text%3E%3C/svg%3E">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <style>
 :root {
-    --bg: #eef2f6;
+    --bg: #e7efe9;
     --panel: #ffffff;
-    --panel2: #f2f5f9;
-    --border: #d3dae3;
-    --text: #1b2230;
-    --muted: #5b6577;
-    --accent: #0f766e;
-    --accent-soft: #d5f0ec;
-    --ok: #15803d;
-    --okbg: #dcfce7;
-    --bad: #b91c1c;
-    --badbg: #fee2e2;
-    --warn: #a16207;
-    --warnbg: #fef3c7;
-    --c1: #2563eb;
-    --c2: #c2410c;
-    --c3: #7c3aed;
-    --term: #0f172a;
-    --termtext: #d1fae5;
+    --panel2: #f0f5f1;
+    --border: #cbd8ce;
+    --text: #17231c;
+    --muted: #536157;
+    --gron: #2e7d32;
+    --gron-mork: #1b5e20;
+    --accent: #2e7d32;
+    --accent-soft: #dcefdd;
+    --bad: #b71c1c;
+    --badbg: #fde3e1;
+    --warn: #8a5a00;
+    --warnbg: #fdf0c9;
     color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
     :root {
-        --bg: #171c26;
-        --panel: #222936;
-        --panel2: #2a3242;
-        --border: #3a4356;
-        --text: #e5e8ee;
-        --muted: #9aa3b4;
-        --accent: #2dd4bf;
-        --accent-soft: #134e4a;
-        --ok: #4ade80;
-        --okbg: #14391f;
-        --bad: #f87171;
-        --badbg: #4a1d22;
-        --warn: #fbbf24;
-        --warnbg: #3d3012;
-        --c1: #60a5fa;
-        --c2: #fb923c;
-        --c3: #a78bfa;
-        --term: #0b1020;
-        --termtext: #bbf7d0;
+        --bg: #121a15;
+        --panel: #1c2620;
+        --panel2: #25312a;
+        --border: #3a4a40;
+        --text: #e6efe8;
+        --muted: #a0b0a5;
+        --accent: #6fce76;
+        --accent-soft: #1f4426;
+        --bad: #ff9a92;
+        --badbg: #4a1f1f;
+        --warn: #f6c85f;
+        --warnbg: #40330f;
         color-scheme: dark;
     }
 }
 * { box-sizing: border-box; }
 body {
-    margin: 0;
-    background: var(--bg);
-    color: var(--text);
+    margin: 0; background: var(--bg); color: var(--text);
     font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-    line-height: 1.5;
-    padding: 16px;
+    font-size: 16px; line-height: 1.5;
 }
-main { max-width: 900px; margin: 0 auto; }
 a { color: var(--accent); }
-nav.top {
-    display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center;
-    justify-content: space-between; font-size: 14px; margin-bottom: 10px;
-}
-h1 { margin: 4px 0 4px; font-size: 27px; }
-.lead { color: var(--muted); margin: 0 0 16px; font-size: 17px; }
-.card {
-    background: var(--panel); border: 1px solid var(--border);
-    border-radius: 10px; padding: 16px; margin-bottom: 16px;
-}
-.card h2 { margin: 0 0 8px; font-size: 19px; }
-.card h3 { margin: 14px 0 6px; font-size: 16px; }
-.card p { margin: 0 0 10px; }
-.card > :last-child { margin-bottom: 0; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+.tittellinje { background: var(--gron); color: #fff; padding: 12px 16px 14px; }
+.tittellinje .inni, main, footer { max-width: 1040px; margin: 0 auto; }
+.tittellinje a { color: #fff; font-size: 14px; }
+.tittellinje h1 { margin: 2px 0 0; font-size: 30px; line-height: 1.15; }
+.tittellinje p { margin: 2px 0 0; }
+
+main { padding: 14px 16px 6px; }
+.card { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 14px; }
+.card h2 { margin: 0 0 2px; font-size: 20px; }
 .small { font-size: 14px; color: var(--muted); }
-.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
-label { display: block; font-weight: 600; margin: 10px 0 4px; font-size: 15px; }
+
+/* Kontrollinja */
+.styring { display: grid; grid-template-columns: 1fr 190px auto; gap: 10px; align-items: end; }
+label { display: block; font-weight: 600; font-size: 14px; margin-bottom: 3px; }
 input[type=text], select {
-    width: 100%; padding: 8px 10px; font: inherit;
-    border: 1px solid var(--border); border-radius: 8px;
-    background: var(--panel2); color: var(--text);
+    width: 100%; height: 44px; padding: 8px 10px; font: inherit;
+    border: 1px solid var(--border); border-radius: 8px; background: var(--panel2); color: var(--text);
 }
 .btn {
-    border: 1px solid var(--border); background: var(--panel2); color: var(--text);
-    padding: 8px 14px; border-radius: 8px; font: inherit; font-size: 15px; cursor: pointer;
+    height: 44px; padding: 0 20px; border-radius: 8px; font: inherit; font-weight: 700; cursor: pointer;
+    border: 1px solid var(--gron); background: var(--gron); color: #fff; white-space: nowrap;
 }
-.btn:hover { border-color: var(--accent); }
-.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--panel); font-weight: 600; }
-.btn:disabled { opacity: .5; cursor: default; }
+.btn:hover:not(:disabled) { background: var(--gron-mork); }
+.btn:disabled { opacity: .55; cursor: default; }
+.under { display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: center; margin-top: 8px; }
 .chip {
-    border: 1px solid var(--border); background: var(--panel); color: var(--text);
-    padding: 3px 10px; border-radius: 999px; font: inherit; font-size: 14px; cursor: pointer;
+    font: inherit; font-size: 14px; padding: 3px 11px; border-radius: 999px; cursor: pointer;
+    border: 1px solid var(--border); background: var(--panel2); color: var(--text);
 }
-.chip:hover { border-color: var(--accent); color: var(--accent); }
-.seg { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
-.seg button {
-    border: 0; background: var(--panel2); color: var(--text);
-    padding: 6px 12px; font: inherit; font-size: 14px; cursor: pointer;
-    border-right: 1px solid var(--border);
-}
-.seg button:last-child { border-right: 0; }
-.seg button.on { background: var(--accent); color: var(--panel); font-weight: 600; }
-.mono, code { font-family: ui-monospace, Menlo, Consolas, monospace; }
-code { background: var(--panel2); padding: 1px 5px; border-radius: 4px; font-size: .92em; }
-.term {
-    font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 13px;
-    background: var(--term); color: var(--termtext); border-radius: 8px;
-    padding: 10px 12px; margin: 8px 0 0; white-space: pre; overflow-x: auto; line-height: 1.45;
-}
-.msg { margin-top: 8px; padding: 8px 12px; border-radius: 8px; }
-.msg.ok { background: var(--okbg); color: var(--ok); font-weight: 600; }
-.msg.bad { background: var(--badbg); color: var(--bad); font-weight: 600; }
-.msg.warn { background: var(--warnbg); color: var(--text); }
-.msg.info { background: var(--accent-soft); color: var(--text); }
-.note { background: var(--accent-soft); border-radius: 8px; padding: 10px 12px; margin: 10px 0; }
-.note b:first-child { display: block; margin-bottom: 2px; }
-.badge { display: inline-block; font-size: 12px; font-weight: 700; padding: 1px 8px; border-radius: 999px; white-space: nowrap; }
-.badge.ok { background: var(--okbg); color: var(--ok); }
-.badge.bad { background: var(--badbg); color: var(--bad); }
-.badge.warn { background: var(--warnbg); color: var(--warn); }
-.badge.info { background: var(--accent-soft); color: var(--accent); }
-.tablewrap { overflow-x: auto; margin-top: 8px; }
-.tablewrap table { min-width: 540px; }
-table { border-collapse: collapse; width: 100%; font-size: 14px; }
-td, th { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
-th { font-size: 12px; color: var(--muted); font-weight: 600; white-space: nowrap; }
-td.num, th.num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
-tr.nytt td { border-top: 2px solid var(--accent); }
-tr.stille td { color: var(--muted); }
-details { background: var(--panel2); border-radius: 8px; padding: 8px 12px; margin: 6px 0; }
-details summary { cursor: pointer; font-weight: 600; }
-details p, details ul { margin: 6px 0 2px; }
-details ul { padding-left: 20px; }
-footer { font-size: 13px; color: var(--muted); text-align: center; margin: 8px 0 20px; }
+.chip:hover { border-color: var(--accent); }
+#kvote { margin-left: auto; }
 
-#kart { height: 380px; border-radius: 8px; border: 1px solid var(--border); margin-top: 6px; z-index: 0; }
-.leaflet-container { font: inherit; font-size: 13px; }
-.leaflet-tooltip.rtt { font-weight: 700; font-size: 12px; padding: 1px 6px; }
-.kartlegende { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; color: var(--muted); margin-top: 6px; }
-.kartlegende span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; background: var(--dot); }
+/* Kartet */
+#kart { height: clamp(320px, 56vh, 560px); border-radius: 10px; border: 1px solid var(--border); margin-bottom: 14px; z-index: 0; }
+.leaflet-tooltip.rtt { font-weight: 700; font-size: 13px; padding: 2px 6px; }
 
-.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin: 10px 0; }
-.tile { background: var(--panel2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; }
-.tile .k { font-size: 12px; color: var(--muted); font-weight: 600; }
-.tile .v { font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.2; }
-.tile .v small { font-size: 14px; font-weight: 600; color: var(--muted); }
-.tile .f { font-size: 12px; color: var(--muted); }
-
-.pakkar { display: flex; align-items: flex-end; gap: 3px; height: 54px; margin: 6px 0 2px; }
-.pakkar div { flex: 1; max-width: 26px; background: var(--accent); border-radius: 3px 3px 0 0; min-height: 3px; }
-.pakkar div.tapt { background: var(--bad); height: 54px !important; opacity: .35; }
-
-.bar { height: 9px; border-radius: 5px; background: var(--accent); }
-.bar.lys { background: var(--accent-soft); border: 1px solid var(--accent); }
-.barcell { min-width: 140px; }
-.barcell .bar { margin: 3px 0; }
-
-.status { display: flex; align-items: center; gap: 8px; font-size: 15px; margin: 4px 0 8px; }
-.spinner { width: 16px; height: 16px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; flex: none; }
+/* Status og oppsummering */
+#status { display: flex; align-items: center; gap: 10px; font-size: 18px; margin: 0 2px 14px; min-height: 28px; }
+#status b { font-variant-numeric: tabular-nums; }
+#status.feil { background: var(--badbg); color: var(--bad); font-weight: 600; padding: 10px 12px; border-radius: 8px; font-size: 16px; }
+.spinner { width: 18px; height: 18px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; flex: none; }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+.resultat { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 14px; align-items: start; }
+.resultat .card { margin-bottom: 0; }
+
+/* Ping: stort tal og éi søyle per pakke */
+.stortal { font-size: 54px; font-weight: 800; line-height: 1.05; font-variant-numeric: tabular-nums; margin-top: 6px; }
+.stortal small { font-size: 22px; font-weight: 700; color: var(--muted); }
+.pakkar { display: grid; grid-template-columns: repeat(10, 1fr); gap: 5px; align-items: end; height: 150px; margin-top: 14px; border-bottom: 2px solid var(--border); }
+.pakke { display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; min-width: 0; }
+.pakke .ms { font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; margin-bottom: 2px; }
+.pakke .soyle { width: 100%; border-radius: 4px 4px 0 0; min-height: 4px; transition: height .3s; }
+.pakke.ventar .soyle { height: 4px; background: var(--border); }
+.pakke.tapt .soyle { height: 100%; background: repeating-linear-gradient(45deg, var(--badbg), var(--badbg) 5px, transparent 5px, transparent 10px); border: 1px dashed var(--bad); border-bottom: 0; }
+.pakke.tapt .ms { color: var(--bad); }
+.pakkenr { display: grid; grid-template-columns: repeat(10, 1fr); gap: 5px; font-size: 12px; color: var(--muted); text-align: center; margin-top: 3px; }
+
+/* Traceroute: éi stripe per ruter */
+.trapp { margin-top: 10px; }
+.hopp { display: grid; grid-template-columns: 22px minmax(0, 1fr) 58px; gap: 8px; align-items: center; padding: 4px 0; }
+.hopp .nr { font-size: 13px; color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
+.hopp .midt { min-width: 0; }
+.hopp .spor { height: 12px; background: var(--panel2); border-radius: 6px; overflow: hidden; }
+.hopp .stripe { height: 100%; border-radius: 6px; min-width: 6px; }
+.hopp .kven { font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
+.hopp .kven b { color: var(--text); font-weight: 600; }
+.hopp .tid { font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; font-size: 15px; white-space: nowrap; }
+.hopp.stille .spor { background: none; border-top: 2px dashed var(--border); height: 0; margin: 5px 0; }
+.hopp.stille .tid { color: var(--muted); font-weight: 400; }
+.hopp.mal .kven b::after { content: " ← målet"; color: var(--accent); }
+.nyttnett { font-size: 12px; font-weight: 700; color: var(--accent); margin: 8px 0 0 30px; text-transform: uppercase; letter-spacing: .04em; }
+.merknad { background: var(--warnbg); color: var(--warn); border-radius: 8px; padding: 8px 12px; margin-top: 10px; font-size: 15px; }
+.forklaring { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; color: var(--muted); margin-top: 10px; }
+.forklaring span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--dot); margin-right: 5px; }
+.tom { color: var(--muted); margin: 10px 0 0; }
 .hidden { display: none !important; }
-.tek { display: none; }
-body.tekmode .tek { display: block; }
-body.tekmode tr.tek, body.tekmode th.tek, body.tekmode td.tek { display: table-cell; }
-body.tekmode tr.tek { display: table-row; }
-body.tekmode span.tek { display: inline; }
-.tekhead { font-size: 12px; font-weight: 700; color: var(--c3); text-transform: uppercase; letter-spacing: .04em; margin: 12px 0 2px; }
-dl.info { display: grid; grid-template-columns: max-content 1fr; gap: 3px 12px; margin: 6px 0 0; font-size: 14px; }
-dl.info dt { color: var(--muted); }
-dl.info dd { margin: 0; word-break: break-word; }
-.dnsliste { margin-top: 6px; }
-.dnsrad { padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 14px; word-break: break-all; }
-.dnsrad .pil { color: var(--muted); }
-.tekttl { display: none; margin-left: 4px; }
-body.tekmode .tekttl { display: inline; }
-.who { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin-bottom: 2px; }
-@media (max-width: 480px) {
-    body { padding: 12px; }
-    h1 { font-size: 23px; }
-    .card { padding: 12px; }
-    #kart { height: 300px; }
-    .tile .v { font-size: 21px; }
+
+footer { font-size: 13px; color: var(--muted); padding: 8px 16px 24px; }
+
+@media (max-width: 760px) {
+    .styring { grid-template-columns: 1fr 1fr; }
+    .styring > :first-child { grid-column: 1 / -1; }
+    .resultat { grid-template-columns: minmax(0, 1fr); }
+    .tittellinje h1 { font-size: 26px; }
+    #status { font-size: 16px; }
+    #kvote { margin-left: 0; width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .spinner { animation-duration: 2.4s; }
+    .pakke .soyle { transition: none; }
 }
 </style>
 </head>
 <body>
+
+<header class="tittellinje">
+    <div class="inni">
+        <a href="index.html">← Frode si Sandkasse</a>
+        <h1>Ping til verda</h1>
+        <p>Send ekte pakkar til ein server ein annan stad på jorda. Sjå kor lang tid dei brukar, og kva veg dei tek.</p>
+    </div>
+</header>
+
 <main>
-<nav class="top"><a href="index.html">← Frode</a>
-    <span class="row"><span class="small">Visning:</span>
-    <span class="seg" id="modus"><button data-m="enkel" class="on">Enkel</button><button data-m="tek">Meir teknisk</button></span></span>
-</nav>
-<h1>Ping til verda</h1>
-<p class="lead">Send ekte ping-pakkar til ein server på andre sida av jorda, sjå kor lang tid dei brukar, og følg vegen dei tek gjennom ruterar og nettverk. Alle tal på denne sida er målte akkurat no.</p>
 
 <section class="card">
-    <h2>1. Vel mål</h2>
-    <p class="small">Trykk på ein prikk i kartet. Prikkane er testserverar som står i den byen. Du kan òg skrive inn eit eige mål.</p>
-    <div id="kart"></div>
-    <div class="grid2">
+    <div class="styring">
         <div>
-            <label for="mal">Mål (domenenamn eller IP-adresse)</label>
+            <label for="mal">Kvar skal pakkane? Trykk på ein by i kartet, eller skriv ei adresse</label>
             <input type="text" id="mal" value="hnd-jp-ping.vultr.com" autocomplete="off" spellcheck="false">
-            <div class="row" style="margin-top:6px">
-                <span class="small">Prøv òg:</span>
-                <button class="chip" data-mal="vg.no">vg.no</button>
-                <button class="chip" data-mal="www.nhk.or.jp">www.nhk.or.jp</button>
-                <button class="chip" data-mal="1.1.1.1">1.1.1.1</button>
-                <button class="chip" data-mal="www.stord.vgs.no">www.stord.vgs.no</button>
-            </div>
         </div>
         <div>
-            <label for="fra">Ping frå ein målestasjon i</label>
+            <label for="fra">Send frå</label>
             <select id="fra">
                 <option value="Norway">Noreg</option>
                 <option value="Germany">Tyskland</option>
@@ -227,70 +173,45 @@ body.tekmode .tekttl { display: inline; }
                 <option value="Japan">Japan</option>
                 <option value="Australia">Australia</option>
             </select>
-            <p class="small" style="margin:6px 0 0">Nettlesaren kan ikkje sende ping sjølv. Difor ber vi ein målestasjon i <a href="https://globalping.io" target="_blank" rel="noopener">Globalping</a>-nettverket gjere det for oss.</p>
         </div>
+        <button class="btn" id="send">Send pakkane</button>
     </div>
-    <div class="row" style="margin-top:12px">
-        <button class="btn primary" id="kjorPing">Ping og traceroute</button>
-        <button class="btn" id="kjorVerda">Ping frå heile verda</button>
+    <div class="under">
+        <span class="small">Prøv òg:</span>
+        <button class="chip" data-mal="vg.no">vg.no</button>
+        <button class="chip" data-mal="www.nhk.or.jp">www.nhk.or.jp</button>
+        <button class="chip" data-mal="1.1.1.1">1.1.1.1</button>
+        <span class="small" id="kvote"></span>
     </div>
-    <div class="msg info small" id="kvote" style="margin-top:10px">Hentar kvote …</div>
 </section>
 
-<section class="card hidden" id="resKort">
-    <h2>2. Svar frå pinget</h2>
-    <div class="status" id="pingStatus"></div>
-    <div id="pingRes"></div>
-</section>
+<div id="kart"></div>
 
-<section class="card hidden" id="ruteKort">
-    <h2>3. Vegen pakken tok (traceroute)</h2>
-    <div class="status" id="ruteStatus"></div>
-    <div id="ruteRes"></div>
-</section>
+<div id="status" aria-live="polite">Vel eit mål og trykk «Send pakkane».</div>
 
-<section class="card hidden" id="verdaKort">
-    <h2>2. Ping frå heile verda</h2>
-    <div class="status" id="verdaStatus"></div>
-    <div id="verdaRes"></div>
-</section>
+<div class="resultat hidden" id="resultat">
+    <section class="card">
+        <h2>Ping</h2>
+        <div class="small" id="pingUnder">Tida ein pakke brukar fram og tilbake</div>
+        <div class="stortal" id="pingTal">–</div>
+        <div class="small" id="pingTap"></div>
+        <div class="pakkar" id="pakkar"></div>
+        <div class="pakkenr" id="pakkenr"></div>
+        <div class="small" style="margin-top:6px">Kvar søyle er éin pakke. Høg søyle = lang tid.</div>
+    </section>
+    <section class="card">
+        <h2>Traceroute</h2>
+        <div class="small" id="ruteUnder">Ruterane pakken var innom på vegen</div>
+        <div id="trapp" class="trapp"></div>
+        <div class="forklaring hidden" id="forklaring">
+            <span style="--dot:#16a34a">under 20 ms</span><span style="--dot:#65a30d">20–80</span><span style="--dot:#ca8a04">80–150</span><span style="--dot:#ea580c">150–250</span><span style="--dot:#dc2626">over 250 ms</span>
+        </div>
+    </section>
+</div>
 
-<section class="card hidden" id="infoKort">
-    <h2>4. DNS, IP-adresse og nettverk</h2>
-    <div id="infoRes"></div>
-</section>
-
-<section class="card">
-    <h2>5. Mål frå klasserommet</h2>
-    <p>Pinga over kjem frå ein målestasjon i eit datasenter. Her måler nettlesaren din sjølv, over skulenettet eller mobilnettet du sit på. Han kan ikkje sende ICMP, så han sender små HTTPS-førespurnader og tek tida.</p>
-    <button class="btn primary" id="kjorLokal">Mål frå nettlesaren min</button>
-    <div id="lokalRes"></div>
-</section>
-
-<section class="card">
-    <h2>Ord og omgrep</h2>
-    <details><summary>Ping og ICMP</summary>
-        <p><code>ping</code> sender ein ICMP <i>Echo Request</i> (type 8) og ventar på ein <i>Echo Reply</i> (type 0). ICMP ligg på nettverkslaget (lag 3) saman med IP, så det finst ingen portnummer. Mange brannmurar stoppar ICMP, så at ein maskin ikkje svarar på ping betyr ikkje at han er nede.</p></details>
-    <details><summary>RTT – rundturstid</summary>
-        <p>Tida frå pakken blir send til svaret kjem tilbake, målt i millisekund (ms). Ho er summen av reisetid i kabel og luft, tid i kø i ruterane og tida mottakaren brukar på å svare.</p></details>
-    <details><summary>Kvifor kan pakken ikkje vere raskare enn lyset?</summary>
-        <p>Lyset går om lag 200 000 km/s i ein glasfiber, altså 200 km per millisekund. Ein rundtur på 1 ms rekk difor maks 100 km kvar veg. Kablane går heller aldri i rett line, så verkelegheita er alltid tregare enn dette minimumet.</p></details>
-    <details><summary>TTL – Time To Live</summary>
-        <p>Eit tal i IP-hovudet. Kvar ruter trekkjer frå 1. Når talet blir 0, blir pakken kasta og ruteren sender tilbake ICMP <i>Time Exceeded</i> (type 11). Det hindrar at pakkar sirklar for alltid. Linux startar ofte på 64, Windows på 128 og nettverksutstyr på 255.</p></details>
-    <details><summary>Traceroute</summary>
-        <p>Sender pakkar med TTL 1, 2, 3 … Kvar ruter på vegen kastar «sin» pakke og avslører seg med ein Time Exceeded-melding. Slik får vi lista over hopp. I Windows heiter kommandoen <code>tracert</code>, i Linux og macOS <code>traceroute</code>. Denne sida brukar <code>mtr</code>, som gjer traceroute fleire gonger og reknar ut snitt og tap.</p></details>
-    <details><summary>Jitter og pakketap</summary>
-        <p>Jitter er kor mykje RTT varierer frå pakke til pakke. Pakketap er kor mange prosent som aldri kom tilbake. Begge er viktige for Teams, spel og IP-telefoni: litt forseinking går fint, men ujamn forseinking og tapte pakkar gir hakking.</p></details>
-    <details><summary>ASN – autonome system</summary>
-        <p>Internett er tusenvis av sjølvstendige nett som kvar har eit AS-nummer, til dømes AS224 (Sikt, forskingsnettet i Noreg) eller AS1299 (Arelion, eit av dei største stamnetta i verda). Nettverka utvekslar ruter med protokollen BGP. Der AS-nummeret skiftar i traceroute, går pakken over grensa til ein ny operatør.</p></details>
-    <details><summary>Anycast og CDN</summary>
-        <p>Store tenester har kopiar av innhaldet sitt rundt om i verda (CDN). Med anycast annonserer mange serverar <em>same</em> IP-adresse, og BGP sender deg til den næraste. Difor svarar 1.1.1.1 på få millisekund same kvar du er.</p></details>
-    <details><summary>NAT</summary>
-        <p>Alle maskinene på skulenettet har private adresser (til dømes 10.x.x.x). Ruteren byter dei ut med éi felles offentleg adresse på veg ut. Difor deler heile klassen kvoten for målingar på denne sida.</p></details>
-</section>
-
-<footer>Måledata: <a href="https://globalping.io" target="_blank" rel="noopener">Globalping</a> · IP- og nettverksdata: <a href="https://stat.ripe.net" target="_blank" rel="noopener">RIPEstat</a> · DNS: Google Public DNS · Testserverar: Vultr · Kart: © OpenStreetMap</footer>
 </main>
+
+<footer>Målingane blir gjorde av <a href="https://globalping.io" target="_blank" rel="noopener">Globalping</a>, sidan ein nettlesar ikkje kan sende ping sjølv. Nettverk og plassering: <a href="https://stat.ripe.net" target="_blank" rel="noopener">RIPEstat</a>. Testserverar: Vultr. Kart: © OpenStreetMap. Frode, IM-Stord.</footer>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
@@ -301,6 +222,7 @@ const GP = "https://api.globalping.io/v1";
 const RIPE = "https://stat.ripe.net/data";
 const RIPE_APP = "sourceapp=frodolini-ping";
 const FIBER_KM_PER_MS = 200; // lysfart i fiber, km per ms (éin veg)
+const PAKKAR = 10;
 
 // Testserverar med kjend plassering (Vultr sine eigne ping-serverar)
 const MAL = [
@@ -348,7 +270,7 @@ const BYKODAR = {
     ams: ["Amsterdam", 52.37, 4.90], bru: ["Brussel", 50.85, 4.35],
     ldn: ["London", 51.51, -0.13], lon: ["London", 51.51, -0.13], lhr: ["London", 51.51, -0.13],
     prs: ["Paris", 48.86, 2.35], par: ["Paris", 48.86, 2.35], cdg: ["Paris", 48.86, 2.35],
-    mrs: ["Marseille", 43.30, 5.37], mad: ["Madrid", 40.42, -3.70], mil: ["Milano", 45.46, 9.19],
+    mrs: ["Marseille", 43.30, 5.37], mei: ["Marseille", 43.30, 5.37], mad: ["Madrid", 40.42, -3.70], mil: ["Milano", 45.46, 9.19],
     vie: ["Wien", 48.21, 16.37], waw: ["Warszawa", 52.23, 21.01], prg: ["Praha", 50.08, 14.44],
     zrh: ["Zürich", 47.38, 8.54],
     nyk: ["New York", 40.71, -74.01], nyc: ["New York", 40.71, -74.01], jfk: ["New York", 40.71, -74.01],
@@ -370,32 +292,28 @@ const BYKODAR = {
 };
 
 const LAND = { NO: "Noreg", SE: "Sverige", DK: "Danmark", FI: "Finland", DE: "Tyskland", NL: "Nederland", GB: "Storbritannia", FR: "Frankrike", ES: "Spania", IT: "Italia", PL: "Polen", US: "USA", CA: "Canada", BR: "Brasil", CL: "Chile", MX: "Mexico", ZA: "Sør-Afrika", IN: "India", SG: "Singapore", JP: "Japan", KR: "Sør-Korea", AU: "Australia", NZ: "New Zealand", HK: "Hongkong", CN: "Kina", IL: "Israel", IE: "Irland", CH: "Sveits", AT: "Austerrike", BE: "Belgia", RU: "Russland", AR: "Argentina", TW: "Taiwan", AE: "Emirata", IS: "Island", EE: "Estland", CZ: "Tsjekkia" };
-const KONTINENT = { EU: "Europa", NA: "Nord-Amerika", SA: "Sør-Amerika", AF: "Afrika", AS: "Asia", OC: "Oseania", AN: "Antarktis" };
 const landNamn = c => LAND[c] || c || "?";
 
 /* ---------- Småhjelparar ---------- */
 const $ = id => document.getElementById(id);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-const fmt = (x, d = 1) => (x == null || isNaN(x)) ? "–" : Number(x).toLocaleString("nb-NO", { minimumFractionDigits: d, maximumFractionDigits: d });
-const fmtKm = km => Math.round(km).toLocaleString("nb-NO");
-function status(el, tekst, spin) {
-    el.innerHTML = (spin ? '<div class="spinner"></div>' : "") + "<span>" + tekst + "</span>";
-}
+const fmt = (x, d = 0) => (x == null || isNaN(x)) ? "–" : Number(x).toLocaleString("nb-NO", { minimumFractionDigits: d, maximumFractionDigits: d });
+const ms = x => fmt(x, x < 10 ? 1 : 0); // 3,4 ms eller 248 ms
+const roleg = matchMedia("(prefers-reduced-motion: reduce)").matches;
 function avstand(a, b) { // haversine, km
     const R = 6371, r = Math.PI / 180;
     const dLat = (b.lat - a.lat) * r, dLon = (b.lon - a.lon) * r;
     const h = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(dLon / 2) ** 2;
     return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)));
 }
-const minRtt = km => 2 * km / FIBER_KM_PER_MS; // teoretisk minste RTT i ms
+const minRtt = km => 2 * km / FIBER_KM_PER_MS; // minste moglege tur-retur i ms
 function erPrivat(ip) {
     if (!ip) return false;
     if (ip.includes(":")) return /^(fc|fd|fe80)/i.test(ip);
     const [a, b] = ip.split(".").map(Number);
     return a === 10 || a === 127 || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168) || (a === 100 && b >= 64 && b <= 127) || (a === 169 && b === 254);
 }
-const erIp = s => /^\d{1,3}(\.\d{1,3}){3}$/.test(s) || /^[0-9a-f:]+:[0-9a-f:]*$/i.test(s);
 function reinsMal(s) {
     s = String(s || "").trim().toLowerCase();
     s = s.replace(/^[a-z]+:\/\//, "").replace(/[\/?#].*$/, "");
@@ -408,15 +326,19 @@ async function jsonFetch(url, opt) {
     try { d = await r.json(); } catch (e) { }
     return { r, d };
 }
-
-/* ---------- Visningsmodus ---------- */
-function setModus(m) {
-    document.body.classList.toggle("tekmode", m === "tek");
-    document.querySelectorAll("#modus button").forEach(b => b.classList.toggle("on", b.dataset.m === m));
-    try { localStorage.setItem("pingModus", m); } catch (e) { }
+function rttFarge(t) {
+    if (t == null) return "#94a3b8";
+    if (t < 20) return "#16a34a";
+    if (t < 80) return "#65a30d";
+    if (t < 150) return "#ca8a04";
+    if (t < 250) return "#ea580c";
+    return "#dc2626";
 }
-document.querySelectorAll("#modus button").forEach(b => b.addEventListener("click", () => setModus(b.dataset.m)));
-try { if (localStorage.getItem("pingModus") === "tek") setModus("tek"); } catch (e) { }
+function status(html, spin) {
+    $("status").className = "";
+    $("status").innerHTML = (spin ? '<div class="spinner"></div>' : "") + "<span>" + html + "</span>";
+}
+function feil(tekst) { $("status").className = "feil"; $("status").textContent = tekst; }
 
 /* ---------- Kart ---------- */
 const kart = L.map("kart", { worldCopyJump: true, minZoom: 1 }).setView([30, 15], 2);
@@ -432,28 +354,29 @@ function malMarkorar() {
     const valt = reinsMal($("mal").value);
     MAL.forEach(m => {
         const p = L.circleMarker([m.lat, m.lon], {
-            radius: m.host === valt ? 8 : 6, weight: 2,
-            color: m.host === valt ? "#b91c1c" : "#0f766e", fillColor: m.host === valt ? "#ef4444" : "#14b8a6",
-            fillOpacity: dempa ? .25 : .9, opacity: dempa ? .3 : 1
+            radius: m.host === valt ? 9 : 6, weight: 2,
+            color: m.host === valt ? "#b91c1c" : "#1b5e20", fillColor: m.host === valt ? "#ef4444" : "#4caf50",
+            fillOpacity: dempa ? .2 : .9, opacity: dempa ? .25 : 1
         }).addTo(malLag);
         p.bindTooltip(m.by);
-        p.on("click", () => { $("mal").value = m.host; dempa = false; malMarkorar(); });
+        p.on("click", () => { $("mal").value = m.host; dempa = false; malMarkorar(); $("send").focus(); });
     });
 }
 malMarkorar();
 $("mal").addEventListener("change", () => { dempa = false; malMarkorar(); });
+$("mal").addEventListener("keydown", e => { if (e.key === "Enter") kjor(); });
 document.querySelectorAll(".chip[data-mal]").forEach(b => b.addEventListener("click", () => { $("mal").value = b.dataset.mal; dempa = false; malMarkorar(); }));
 
 // Punkt langs storsirkelen mellom a og b (kortaste veg på ei kule)
 function storsirkel(a, b, n = 40) {
     const r = Math.PI / 180, d = avstand(a, b) / 6371;
     if (d < 1e-6) return [[a.lat, a.lon]];
-    const φ1 = a.lat * r, λ1 = a.lon * r, φ2 = b.lat * r, λ2 = b.lon * r, ut = [];
+    const f1 = a.lat * r, l1 = a.lon * r, f2 = b.lat * r, l2 = b.lon * r, ut = [];
     for (let i = 0; i <= n; i++) {
         const f = i / n, A = Math.sin((1 - f) * d) / Math.sin(d), B = Math.sin(f * d) / Math.sin(d);
-        const x = A * Math.cos(φ1) * Math.cos(λ1) + B * Math.cos(φ2) * Math.cos(λ2);
-        const y = A * Math.cos(φ1) * Math.sin(λ1) + B * Math.cos(φ2) * Math.sin(λ2);
-        const z = A * Math.sin(φ1) + B * Math.sin(φ2);
+        const x = A * Math.cos(f1) * Math.cos(l1) + B * Math.cos(f2) * Math.cos(l2);
+        const y = A * Math.cos(f1) * Math.sin(l1) + B * Math.cos(f2) * Math.sin(l2);
+        const z = A * Math.sin(f1) + B * Math.sin(f2);
         ut.push([Math.atan2(z, Math.hypot(x, y)) / r, Math.atan2(y, x) / r]);
     }
     return ut;
@@ -467,25 +390,29 @@ function pakkUt(pts) {
         return [la, lo];
     });
 }
-function rttFarge(ms) {
-    if (ms == null) return "#94a3b8";
-    if (ms < 20) return "#16a34a";
-    if (ms < 80) return "#65a30d";
-    if (ms < 150) return "#ca8a04";
-    if (ms < 250) return "#ea580c";
-    return "#dc2626";
+
+// Ein prikk som reiser fram og tilbake langs ruta, slik pingpakken gjer
+let pakkeAnim = 0;
+function animerPakke(bane, rundar = 3) {
+    const mi = ++pakkeAnim;
+    if (roleg || bane.length < 2) return;
+    const prikk = L.circleMarker(bane[0], { radius: 7, color: "#fff", weight: 2, fillColor: "#111", fillOpacity: 1, interactive: false }).addTo(ruteLag);
+    const VEG = 1700, t0 = performance.now();
+    (function steg(no) {
+        if (mi !== pakkeAnim) return;
+        const t = (no - t0) / VEG;
+        if (t >= rundar * 2) { ruteLag.removeLayer(prikk); return; }
+        const fase = t % 2, f = fase < 1 ? fase : 2 - fase;
+        const x = f * (bane.length - 1), i = Math.min(bane.length - 2, Math.floor(x)), d = x - i;
+        prikk.setLatLng([bane[i][0] + (bane[i + 1][0] - bane[i][0]) * d, bane[i][1] + (bane[i + 1][1] - bane[i][1]) * d]);
+        requestAnimationFrame(steg);
+    })(t0);
 }
 
 /* ---------- Globalping ---------- */
 let kvote = null;
 function visKvote() {
-    const el = $("kvote");
-    if (!kvote) { el.textContent = "Klarte ikkje å hente kvoten akkurat no."; return; }
-    const min = Math.ceil(kvote.reset / 60);
-    el.innerHTML = `<b>${kvote.remaining} av ${kvote.limit}</b> gratis målingar att i denne timen${kvote.remaining < kvote.limit && min > 0 ? ` (full kvote igjen om ${min} min)` : ""}. ` +
-        `«Ping og traceroute» brukar 2, «Ping frå heile verda» brukar 6. ` +
-        `<span class="small">Kvoten gjeld per offentleg IP-adresse, så heile klassen bak same NAT deler han.</span>`;
-    el.className = "msg small " + (kvote.remaining < 10 ? "warn" : "info");
+    $("kvote").textContent = kvote ? `${kvote.remaining} av ${kvote.limit} målingar att denne timen. Kvar sending brukar 2, og heile klassen deler kvoten.` : "";
 }
 async function hentKvote() {
     try {
@@ -507,7 +434,7 @@ async function gpStart(body) {
     if (!r.ok) {
         const p = d && d.error && d.error.params ? Object.values(d.error.params).join(" ") : "";
         if (/private/i.test(p)) throw new Error("Målet er ei privat adresse. Private adresser (10.x, 192.168.x …) kan ikkje nåast frå internett.");
-        if (/no suitable probes|probes/i.test(d && d.error && d.error.message || "")) throw new Error("Fann ingen ledig målestasjon der akkurat no. Vel ein annan stad.");
+        if (/no suitable probes|probes/i.test(d && d.error && d.error.message || "")) throw new Error("Fann ingen ledig målestasjon der akkurat no. Vel ein annan stad å sende frå.");
         throw new Error("Målinga vart avvist: " + (p || (d && d.error && d.error.message) || r.status));
     }
     return d.id;
@@ -518,13 +445,13 @@ async function gpVent(id, kvarTikk) {
         const { d } = await jsonFetch(GP + "/measurements/" + id);
         if (d && kvarTikk) kvarTikk(d);
         if (d && d.status !== "in-progress") return d;
-        if (Date.now() - t0 > 90000) throw new Error("Målinga tok for lang tid.");
+        if (Date.now() - t0 > 90000) throw new Error("Målinga tok for lang tid. Prøv ein gong til.");
         await sleep(i < 6 ? 400 : 900);
     }
 }
 
 /* ---------- RIPEstat: plassering og nettverk ---------- */
-const geoCache = new Map(), pfxCache = new Map(), asCache = new Map();
+const geoCache = new Map(), asCache = new Map();
 function geoIp(ip) {
     if (!geoCache.has(ip)) geoCache.set(ip, (async () => {
         try {
@@ -536,17 +463,6 @@ function geoIp(ip) {
     })());
     return geoCache.get(ip);
 }
-function prefiks(ip) {
-    if (!pfxCache.has(ip)) pfxCache.set(ip, (async () => {
-        try {
-            const { d } = await jsonFetch(`${RIPE}/prefix-overview/data.json?resource=${encodeURIComponent(ip)}&${RIPE_APP}`);
-            const x = d.data;
-            const rir = (x.block && x.block.desc || "").split(" (")[0];
-            return { prefiks: x.resource, asns: x.asns || [], rir };
-        } catch (e) { return null; }
-    })());
-    return pfxCache.get(ip);
-}
 function asNamn(asn) {
     if (!asCache.has(asn)) asCache.set(asn, (async () => {
         try {
@@ -556,557 +472,231 @@ function asNamn(asn) {
     })());
     return asCache.get(asn);
 }
-// Kortar «TWELVE99 Arelion Sweden AB» o.l. litt ned
+// «TWELVE99 - Arelion Sweden AB» blir «Arelion Sweden AB»
 const kortAs = h => (h || "").replace(/^[A-Z0-9_-]+ - /, "").replace(/^AS-[A-Z0-9_-]+ - /, "");
 
 function bykodFraNamn(namn) {
     if (!namn) return null;
     const delar = namn.toLowerCase().split(/[.\-_]/).map(t => t.replace(/\d+$/, ""));
     for (const t of delar.slice(0, -2)) { // hopp over domenet til slutt (twelve99.net)
-        if (BYKODAR[t]) { const [by, lat, lon] = BYKODAR[t]; return { by, lat, lon, kode: t }; }
+        if (BYKODAR[t]) { const [by, lat, lon] = BYKODAR[t]; return { by, lat, lon }; }
     }
     return null;
 }
 
-/* ---------- Ping + traceroute ---------- */
-let sistePing = null;
+/* ---------- Ping: stort tal og søyler ---------- */
+function teiknPakkar(timings, ferdig, tapte = 0) {
+    const maks = Math.max(...timings.map(t => t.rtt || 0), 1);
+    let html = "";
+    for (let i = 0; i < PAKKAR; i++) {
+        const t = timings[i];
+        if (t && t.rtt != null) html += `<div class="pakke"><span class="ms">${ms(t.rtt)}</span><div class="soyle" style="height:${Math.max(4, 78 * t.rtt / maks)}%;background:${rttFarge(t.rtt)}"></div></div>`;
+        else if (ferdig && i < timings.length + tapte) html += `<div class="pakke tapt"><span class="ms">tapt</span><div class="soyle"></div></div>`;
+        else html += `<div class="pakke ventar"><div class="soyle"></div></div>`;
+    }
+    $("pakkar").innerHTML = html;
+}
+$("pakkenr").innerHTML = Array.from({ length: PAKKAR }, (_, i) => `<span>${i + 1}</span>`).join("");
 
-$("kjorPing").addEventListener("click", kjorPingOgRute);
-$("kjorVerda").addEventListener("click", kjorVerda);
+/* ---------- Køyr ping og traceroute ---------- */
+let koyring = 0;
+$("send").addEventListener("click", kjor);
 
-function knappar(av) { ["kjorPing", "kjorVerda"].forEach(id => $(id).disabled = av); }
-
-async function kjorPingOgRute() {
+async function kjor() {
     const mal = reinsMal($("mal").value);
     if (!mal) { $("mal").focus(); return; }
+    if ($("send").disabled) return;
+    const mi = ++koyring;
     $("mal").value = mal; dempa = true; malMarkorar();
     const fra = $("fra").value, fraTekst = $("fra").selectedOptions[0].textContent;
-    knappar(true);
-    ["resKort", "ruteKort", "infoKort"].forEach(id => $(id).classList.remove("hidden"));
-    $("verdaKort").classList.add("hidden");
-    $("pingRes").innerHTML = ""; $("ruteRes").innerHTML = ""; $("infoRes").innerHTML = "";
+    $("send").disabled = true;
+    pakkeAnim++;
     ruteLag.clearLayers();
-    status($("pingStatus"), `Ber ein målestasjon i ${esc(fraTekst)} om å pinge ${esc(mal)} …`, true);
-    status($("ruteStatus"), "Ventar på pinget …", true);
-    $("resKort").scrollIntoView({ behavior: "smooth", block: "start" });
+    $("resultat").classList.remove("hidden");
+    $("pingTal").textContent = "–"; $("pingTap").textContent = "";
+    $("pingUnder").textContent = "Tida ein pakke brukar fram og tilbake";
+    $("ruteUnder").textContent = "Ruterane pakken var innom på vegen";
+    $("trapp").innerHTML = '<p class="tom">Ventar på pinget …</p>';
+    $("forklaring").classList.add("hidden");
+    teiknPakkar([], false);
+    status(`Ber ein målestasjon i ${esc(fraTekst)} sende ${PAKKAR} pakkar til <b>${esc(mal)}</b> …`, true);
 
-    const dnsP = dnsOppslag(mal);
-    let ping;
+    let ping = null;
     try {
-        const pingId = await gpStart({ type: "ping", target: mal, locations: [{ magic: fra, limit: 1 }], measurementOptions: { packets: 10 } });
+        const pingId = await gpStart({ type: "ping", target: mal, locations: [{ magic: fra, limit: 1 }], measurementOptions: { packets: PAKKAR } });
         let ruteId = null, ruteFeil = null;
         try {
             ruteId = await gpStart({ type: "mtr", target: mal, locations: pingId, measurementOptions: { packets: 3, protocol: "ICMP" } });
         } catch (e) { ruteFeil = e; }
-        status($("ruteStatus"), "Sporar vegen hopp for hopp. Det tek gjerne 10–20 sekund …", true);
-        ping = await gpVent(pingId, d => visPingLive(d));
-        visPing(ping, mal);
-        const infoP = visInfo(mal, ping, dnsP);
+
+        let startTeikna = false;
+        ping = await gpVent(pingId, d => {
+            const r = d.results && d.results[0];
+            if (!r) return;
+            const t = (r.result && r.result.timings) || [];
+            teiknPakkar(t, false);
+            if (!startTeikna && r.probe && r.probe.latitude != null) { startTeikna = true; teiknStart(r.probe); }
+            status(`Målestasjonen i ${esc(r.probe.city)} sender pakkar … ${t.length} av ${PAKKAR} er komne tilbake`, true);
+        });
+        const ok = await visPing(ping, mal);
+        if (!ok) { $("trapp").innerHTML = '<p class="tom">Ingen rute å vise.</p>'; return; }
         if (ruteFeil) throw ruteFeil;
+        $("trapp").innerHTML = '<p class="tom">Sporar vegen ruter for ruter. Det tek gjerne 10–20 sekund …</p>';
         const rute = await gpVent(ruteId);
-        await visRute(rute, ping, mal);
-        await infoP;
+        if (mi === koyring) await visRute(rute, ping, mal);
     } catch (e) {
-        const el = ping ? $("ruteStatus") : $("pingStatus");
-        el.innerHTML = `<div class="msg bad">${esc(e.message)}</div>`;
-        if (!ping) { $("ruteKort").classList.add("hidden"); $("infoKort").classList.add("hidden"); }
+        feil(e.message);
+        if (ping) $("trapp").innerHTML = '<p class="tom">Klarte ikkje å spore vegen denne gongen.</p>';
+        else $("resultat").classList.add("hidden");
     } finally {
-        knappar(false);
+        $("send").disabled = false;
     }
 }
 
-function visPingLive(d) {
-    const r = d.results && d.results[0];
-    if (!r) return;
-    const p = r.probe, t = (r.result && r.result.timings) || [];
-    status($("pingStatus"), `Målestasjon: ${esc(p.city)}, ${esc(landNamn(p.country))} · ${t.length} av 10 svar mottekne …`, true);
+function teiknStart(p) {
+    L.circleMarker([p.latitude, p.longitude], { radius: 9, color: "#1d4ed8", fillColor: "#3b82f6", fillOpacity: 1, weight: 2 })
+        .addTo(ruteLag).bindTooltip(`Start: ${esc(p.city)}`, { permanent: true, direction: "top", className: "rtt" });
+    kart.setView([p.latitude, p.longitude], Math.max(kart.getZoom(), 3));
 }
 
-function pingStats(timings) {
-    const rtt = timings.map(t => t.rtt).filter(x => x != null);
-    if (!rtt.length) return null;
-    const snitt = rtt.reduce((a, b) => a + b, 0) / rtt.length;
-    const sd = Math.sqrt(rtt.reduce((a, b) => a + (b - snitt) ** 2, 0) / rtt.length);
-    let jit = 0;
-    for (let i = 1; i < rtt.length; i++) jit += Math.abs(rtt[i] - rtt[i - 1]);
-    jit = rtt.length > 1 ? jit / (rtt.length - 1) : 0;
-    return { snitt, sd, jit, min: Math.min(...rtt), max: Math.max(...rtt) };
-}
-
-function ttlStart(ttl) {
-    for (const s of [32, 64, 128, 255]) if (ttl <= s) return s;
-    return 255;
-}
-
+let oppsummering = "";
 async function visPing(d, mal) {
     const r = d.results[0], p = r.probe, res = r.result;
-    const fraStad = `${p.city}, ${landNamn(p.country)}`;
     if (res.status !== "finished" || !res.timings || !res.timings.length) {
-        status($("pingStatus"), `Målestasjon: ${esc(fraStad)}`, false);
-        let kvifor = "Målet svarte ikkje på ping.";
-        if (/unknown host|not known|resolve|NXDOMAIN|ENOTFOUND|no address/i.test(res.rawOutput || "")) kvifor = "Domenenamnet finst ikkje (DNS-oppslaget feila).";
-        else if (res.stats && res.stats.loss === 100) kvifor = "Alle pakkane gjekk tapt. Anten er maskina nede, eller så stoppar ein brannmur ICMP.";
-        $("pingRes").innerHTML = `<div class="msg bad">${kvifor}</div><div class="term">${esc(res.rawOutput || "")}</div>`;
-        sistePing = null;
-        return;
+        teiknPakkar([], true, PAKKAR);
+        $("pingTap").textContent = `0 av ${PAKKAR} pakkar kom tilbake`;
+        if (/unknown host|not known|resolve|NXDOMAIN|ENOTFOUND|no address/i.test(res.rawOutput || "")) feil(`Adressa «${mal}» finst ikkje. Sjekk at ho er rett skriven.`);
+        else feil("Ingen pakkar kom tilbake. Anten er maskina nede, eller så slepp ho ikkje ping gjennom brannmuren.");
+        return false;
     }
-    const s = pingStats(res.timings), st = res.stats;
-    const ttl = res.timings[0].ttl, start = ttlStart(ttl), hoppTilbake = start - ttl;
-    sistePing = { mal, ip: res.resolvedAddress, snitt: st.avg, min: st.min, fraStad, probe: p };
-    status($("pingStatus"), `Frå målestasjonen i <b>${esc(fraStad)}</b> til <b>${esc(mal)}</b> (${esc(res.resolvedAddress)})`, false);
-
-    const maks = Math.max(...res.timings.map(t => t.rtt || 0), 1);
-    const sendt = st.total, tapt = st.drop;
-    let soyler = res.timings.map(t => `<div style="height:${Math.max(6, 54 * t.rtt / maks)}px" title="${fmt(t.rtt, 2)} ms"></div>`).join("");
-    for (let i = 0; i < tapt; i++) soyler += `<div class="tapt" title="tapt"></div>`;
-
-    $("pingRes").innerHTML = `
-    <div class="tiles">
-        <div class="tile"><div class="k">Rundturstid (snitt)</div><div class="v">${fmt(st.avg)} <small>ms</small></div><div class="f">min ${fmt(st.min)} · maks ${fmt(st.max)}</div></div>
-        <div class="tile"><div class="k">Pakketap</div><div class="v">${fmt(st.loss, 0)} <small>%</small></div><div class="f">${st.rcv} av ${sendt} kom tilbake</div></div>
-        <div class="tile"><div class="k">Jitter</div><div class="v">${fmt(s.jit, s.jit < 1 ? 2 : 1)} <small>ms</small></div><div class="f">variasjon frå pakke til pakke</div></div>
-        <div class="tile"><div class="k">TTL i svaret</div><div class="v">${ttl}</div><div class="f">truleg ${hoppTilbake} hopp tilbake</div></div>
-    </div>
-    <div class="small">Kvar søyle er éi pakke (høgare = tregare):</div>
-    <div class="pakkar">${soyler}</div>
-    <div id="pingForklar" style="margin-top:10px"></div>
-    <div class="tek">
-        <div class="tekhead">Slik såg det ut i terminalen på målestasjonen (Linux)</div>
-        <div class="term">${esc(res.rawOutput)}</div>
-        <p class="small" style="margin-top:6px">Same måling sjølv: <code>ping -n 10 ${esc(mal)}</code> i Windows, eller <code>ping -c 10 ${esc(mal)}</code> i Linux og macOS. <code>mdev</code> er standardavviket, det same som <code>stddev</code> på Mac.</p>
-        <div class="tekhead">Kva TTL-en fortel</div>
-        <p>Svaret kom med TTL ${ttl}. Vanlege startverdiar er 64 (Linux, macOS, mange ruterar og lastbalanserarar), 128 (Windows) og 255 (nettverksutstyr). Næraste startverdi over ${ttl} er ${start}, så svaret har truleg passert <b>${hoppTilbake} ruterar</b> på veg tilbake. Vegen tilbake treng ikkje vere den same som vegen bort, så talet kan avvike frå traceroute.</p>
-        <div class="tekhead">Statistikk</div>
-        <p>Standardavvik: ${fmt(s.sd, 2)} ms · Jitter (snitt av endringa mellom to pakkar på rad, slik RFC 3550 tenkjer): ${fmt(s.jit, 2)} ms · ICMP-pakken var 56 byte data + 8 byte ICMP-hovud + 20 byte IP-hovud = 84 byte.</p>
-    </div>`;
-
-    // Enkel forklaring med avstand
-    const geo = res.resolvedAddress ? await geoIp(res.resolvedAddress) : null;
-    const el = $("pingForklar");
-    let t = `Ein pakke brukte i snitt <b>${fmt(st.avg)} ms</b> frå ${esc(p.city)} til målet og tilbake. `;
-    if (st.loss === 0) t += "Ingen pakkar gjekk tapt. ";
-    else if (st.loss < 10) t += `${fmt(st.loss, 0)} % av pakkane gjekk tapt, noko som kan merkast i spel og videosamtalar. `;
-    else t += `Heile ${fmt(st.loss, 0)} % gjekk tapt. Det er mykje, og tyder på eit problem på vegen eller at målet avgrensar ICMP. `;
-    let cdn = "";
-    if (geo) {
-        const km = avstand({ lat: p.latitude, lon: p.longitude }, geo);
-        const teori = minRtt(km);
-        sistePing.geo = geo; sistePing.km = km;
-        if (km > 150 && st.min < teori * 0.85) {
-            cdn = `<div class="msg warn"><b>Raskare enn lyset?</b> IP-adressa er registrert i ${esc(landNamn(geo.land))}, ${fmtKm(km)} km unna. Lyset i ein fiber treng minst ${fmt(teori, 0)} ms tur-retur på den avstanden, men svaret kom på ${fmt(st.min)} ms. Det går ikkje. Forklaringa er at ${esc(mal)} har ein server mykje nærare målestasjonen, til dømes i eit innhaldsnettverk (CDN) eller med anycast. Den registrerte plasseringa gjeld berre selskapet som eig adresseblokka.</div>`;
-        } else if (km > 50) {
-            const faktor = st.min / teori;
-            t += `Målet står om lag <b>${fmtKm(km)} km</b> unna i luftlinje${geo.by ? ` (${esc(geo.by)}, ${esc(landNamn(geo.land))})` : ` (${esc(landNamn(geo.land))})`}. Lyset i fiber ville klart turen på ${fmt(teori, 0)} ms. Den raskaste pakken brukte ${fmt(faktor, 1)} gonger så lang tid, fordi kablane ikkje går i rett line og kvar ruter brukar litt tid.`;
-        } else {
-            t += `Målet står i nærleiken av målestasjonen${geo.by ? ` (${esc(geo.by)})` : ""}, så nesten all tida går med i ruterar og serverar, ikkje i kabel.`;
-        }
-    }
-    const tld = mal.split(".").pop().toUpperCase();
-    if (geo && !cdn && !erIp(mal) && tld.length === 2 && geo.land && (tld === "UK" ? "GB" : tld) !== geo.land) {
-        t += ` <b>Merk:</b> domenet sluttar på .${esc(tld.toLowerCase())}, men serveren som svarte står i ${esc(landNamn(geo.land))}. Store nettstader har ofte kopiar av innhaldet sitt nær brukarane (CDN).`;
-    }
-    el.innerHTML = "<p>" + t + "</p>" + (cdn || "");
+    const st = res.stats;
+    teiknPakkar(res.timings, true, st.drop || 0);
+    $("pingTal").innerHTML = `${ms(st.avg)} <small>ms i snitt</small>`;
+    $("pingTal").style.color = rttFarge(st.avg);
+    $("pingTap").textContent = `${st.rcv} av ${st.total} pakkar kom tilbake` + (st.drop ? ` · ${st.drop} gjekk tapt` : "") + ` · raskaste ${ms(st.min)} ms · tregaste ${ms(st.max)} ms`;
+    $("pingUnder").textContent = `Tida ein pakke brukar frå ${p.city} til ${mal} og tilbake`;
+    oppsummering = `Frå <b>${esc(p.city)}</b> til <b>${esc(mal)}</b> og tilbake: <b style="color:${rttFarge(st.avg)}">${ms(st.avg)} ms</b>.`;
+    status(oppsummering + " Sporar vegen …", true);
+    return true;
 }
 
 async function visRute(d, ping, mal) {
     const r = d.results[0], res = r.result, p = r.probe;
     const start = { lat: p.latitude, lon: p.longitude };
     if (res.status !== "finished" || !res.hops || !res.hops.length) {
-        status($("ruteStatus"), "Traceroute gav ikkje noko resultat.", false);
-        $("ruteRes").innerHTML = `<div class="term">${esc(res.rawOutput || "")}</div>`;
+        $("trapp").innerHTML = '<p class="tom">Traceroute gav ikkje noko resultat denne gongen.</p>';
+        status(oppsummering, false);
         return;
     }
-    status($("ruteStatus"), "Slår opp nettverk og plassering for kvart hopp …", true);
     const hopp = res.hops.map((h, i) => ({
         nr: i + 1, ip: h.resolvedAddress, namn: h.resolvedHostname && h.resolvedHostname !== h.resolvedAddress ? h.resolvedHostname : null,
         asn: (h.asn || [])[0], st: h.stats || {}, stille: !h.resolvedAddress || !h.stats || h.stats.rcv === 0,
     }));
-    // Nettverk og plassering
+
+    // Nettverk og plassering for kvart hopp
     await Promise.all(hopp.map(async h => {
         if (h.stille) return;
         if (h.asn) h.asNamn = kortAs(await asNamn(h.asn));
-        if (erPrivat(h.ip)) { h.stad = { ...start, by: "privat nett", kjelde: "privat" }; return; }
+        if (erPrivat(h.ip)) { h.stad = { ...start, by: "lokalt nett", kjelde: "privat" }; return; }
         const minMs = h.st.min ?? h.st.avg;
         const muleg = loc => loc && (minMs == null || minRtt(avstand(start, loc)) <= minMs * 1.05 + 1);
         const kode = bykodFraNamn(h.namn);
         if (kode && muleg(kode)) { h.stad = { ...kode, kjelde: "namn" }; return; }
         const g = await geoIp(h.ip);
-        if (g && muleg(g)) { h.stad = { ...g, kjelde: "geoip" }; return; }
-        if (g) h.umogleg = g;
+        if (g && muleg(g)) h.stad = { ...g, kjelde: "geoip" };
     }));
-
-    // Fjern geo-IP-plasseringar som gir ein stor omveg (t.d. tilbake til hovudkontoret)
+    // Fjern plasseringar frå databasen som gir ein stor omveg (t.d. tilbake til hovudkontoret)
     for (let runde = 0; runde < 3; runde++) {
         const plassert = [{ stad: start }, ...hopp.filter(h => h.stad)];
         for (let i = 1; i < plassert.length - 1; i++) {
             const h = plassert[i];
             if (h.stad.kjelde !== "geoip") continue;
             const a = plassert[i - 1].stad, b = plassert[i + 1].stad;
-            if (avstand(a, h.stad) + avstand(h.stad, b) > 1.5 * avstand(a, b) + 800) { h.umogleg = h.stad; h.omveg = true; delete h.stad; break; }
+            if (avstand(a, h.stad) + avstand(h.stad, b) > 1.5 * avstand(a, b) + 800) { delete h.stad; break; }
         }
     }
 
-    // Siste hopp = målet
     const siste = hopp.filter(h => !h.stille).pop();
-    const malNadd = siste && ping && siste.ip === (ping.results[0].result.resolvedAddress);
+    const malNadd = siste && siste.ip === ping.results[0].result.resolvedAddress;
+    const maks = Math.max(...hopp.filter(h => !h.stille).map(h => h.st.avg || 0), 1);
 
-    let forrigeAs = null;
-    const rader = hopp.map(h => {
-        if (h.stille) return `<tr class="stille"><td class="num">${h.nr}</td><td class="num">–</td><td colspan="2">* * * &nbsp;ruteren svarar ikkje</td><td class="tek">–</td><td class="num tek">–</td><td class="num tek">–</td></tr>`;
-        const nytt = forrigeAs != null && h.asn && h.asn !== forrigeAs;
-        if (h.asn) forrigeAs = h.asn;
-        let stadTxt = "–";
-        if (h.stad) {
-            stadTxt = esc(h.stad.kjelde === "privat" ? "privat nett" : (h.stad.by || landNamn(h.stad.land)));
-            if (h.stad.kjelde === "namn") stadTxt += ` <span class="badge info" title="Bykoden «${esc(h.stad.kode)}» står i DNS-namnet">frå namnet</span>`;
-            else if (h.stad.kjelde === "geoip") stadTxt += h.stad.by ? `, ${esc(h.stad.land)}` : "";
-        } else if (h.umogleg) {
-            stadTxt = `<span class="badge warn" title="Databasen seier ${esc(h.umogleg.by || landNamn(h.umogleg.land))}, men ${h.omveg ? "det ville gitt ein urimeleg omveg" : "det er for langt unna for så kort RTT"}">usikker</span>`;
+    // Trappa: éi stripe per ruter, lengda er tida dit og tilbake
+    let forrigeAs = null, html = "";
+    hopp.forEach(h => {
+        if (h.stille) {
+            html += `<div class="hopp stille"><span class="nr">${h.nr}</span><div class="midt"><div class="spor"></div><div class="kven">Denne ruteren svarar ikkje</div></div><span class="tid">–</span></div>`;
+            return;
         }
-        const adr = h.namn ? `${esc(h.namn)}<br><span class="small mono">${esc(h.ip)}</span>` : `<span class="mono">${esc(h.ip)}</span>`;
-        const nett = h.asn ? `AS${h.asn}${h.asNamn ? `<br><span class="small">${esc(h.asNamn)}</span>` : ""}` : (erPrivat(h.ip) ? '<span class="small">privat adresse</span>' : "–");
-        return `<tr class="${nytt ? "nytt" : ""}"><td class="num">${h.nr}</td><td class="num"><span style="color:${rttFarge(h.st.avg)};font-weight:700">${fmt(h.st.avg)}</span> ms</td>` +
-            `<td style="word-break:break-all">${adr}${nytt ? ' <span class="badge ok">nytt nettverk</span>' : ""}</td><td>${nett}</td><td class="tek">${stadTxt}</td>` +
-            `<td class="num tek">${fmt(h.st.loss, 0)} %</td><td class="num tek">${fmt(h.st.jAvg)}</td></tr>`;
-    }).join("");
+        if (h.asn && h.asn !== forrigeAs) {
+            html += `<div class="nyttnett">${forrigeAs == null ? "Nettverk" : "Nytt nettverk"}: ${esc(h.asNamn || "AS" + h.asn)}</div>`;
+            forrigeAs = h.asn;
+        }
+        const stad = h.stad ? (h.stad.by || landNamn(h.stad.land)) : "Ukjend stad";
+        const erMal = h === siste && malNadd;
+        html += `<div class="hopp${erMal ? " mal" : ""}" title="${esc(h.namn || h.ip)}"><span class="nr">${h.nr}</span>` +
+            `<div class="midt"><div class="spor"><div class="stripe" style="width:${100 * (h.st.avg || 0) / maks}%;background:${rttFarge(h.st.avg)}"></div></div>` +
+            `<div class="kven"><b>${esc(stad)}</b> · ${esc(h.namn || h.ip)}</div></div>` +
+            `<span class="tid" style="color:${rttFarge(h.st.avg)}">${ms(h.st.avg)} ms</span></div>`;
+    });
 
-    const tallNett = new Set(hopp.filter(h => h.asn).map(h => h.asn)).size;
-    const tallStille = hopp.filter(h => h.stille).length;
-    const asListe = [...new Map(hopp.filter(h => h.asn).map(h => [h.asn, h])).values()].map(h => `AS${h.asn}${h.asNamn ? " " + esc(h.asNamn) : ""}`);
-
-    // Uventa sprang i RTT
+    // Det største spranget i tid: som regel ein lang kabel
     let sprang = null;
     for (let i = 1; i < hopp.length; i++) {
         const a = hopp[i - 1], b = hopp[i];
         if (a.stille || b.stille || a.st.avg == null || b.st.avg == null) continue;
         const diff = b.st.avg - a.st.avg;
-        if (!sprang || diff > sprang.diff) sprang = { diff, a, b, i };
+        if (!sprang || diff > sprang.diff) sprang = { diff, a, b };
     }
-    function sprangTekst(sp) {
-        let A = null;
-        for (let k = sp.i - 1; k >= 0 && !A; k--) if (hopp[k].stad && hopp[k].st.avg != null && hopp[k].st.avg <= sp.a.st.avg + 5) A = hopp[k].stad;
-        const B = sp.b.stad;
-        if (A && B && minRtt(avstand(A, B)) < sp.diff / 4) {
-            return `Men ${esc(A.by || landNamn(A.land))} og ${esc(B.by || landNamn(B.land))} ligg berre ${fmtKm(avstand(A, B))} km frå kvarandre, og det forklarer ikkje ${fmt(sp.diff, 0)} ms. Truleg tek <i>svaret</i> frå ruteren ein mykje lengre veg tilbake enn pakken tok bort. Det heiter asymmetrisk ruting, og traceroute kan berre sjå vegen bort.`;
+    if (sprang && sprang.diff > 60) {
+        const A = sprang.a.stad, B = sprang.b.stad;
+        const forKort = A && B && minRtt(avstand(A, B)) < sprang.diff / 4;
+        if (!forKort) {
+            const kvar = A && B && A.by && B.by && A.by !== B.by ? ` mellom ${esc(A.by)} og ${esc(B.by)}` : "";
+            html += `<div class="merknad">Frå ruter ${sprang.a.nr} til ruter ${sprang.b.nr} aukar tida med ${fmt(sprang.diff)} ms. Der går pakken truleg gjennom ein lang sjøkabel${kvar}.</div>`;
         }
-        return sp.diff > 60 ? "Så mykje på eitt hopp betyr nesten alltid ein lang kabel, ofte ein sjøkabel under eit hav." : "Det er truleg ein lang kabelstrekning.";
     }
-    let rart = null;
-    for (let i = 0; i < hopp.length - 1; i++) {
-        const h = hopp[i];
-        if (h.stille || h.st.avg == null || !siste) continue;
-        if (h.st.avg > siste.st.avg * 1.3 + 10) { rart = h; break; }
-    }
+    $("trapp").innerHTML = html;
+    $("forklaring").classList.remove("hidden");
+    $("ruteUnder").textContent = "Kvar stripe er ein ruter. Lang stripe = lang tid dit og tilbake.";
 
-    status($("ruteStatus"), `<b>${hopp.length} hopp</b> frå ${esc(p.city)} til ${esc(mal)} gjennom <b>${tallNett} ulike nettverk</b>.`, false);
-    $("ruteRes").innerHTML = `
-    <p><button class="btn" id="tilKart">↑ Sjå ruta i kartet</button></p>
-    <p>Kvar rad er ein ruter som pakken passerte. Tida er rundturen frå målestasjonen til den ruteren og tilbake. Der det står <span class="badge ok">nytt nettverk</span>, går pakken over til ein ny operatør.</p>
-    <div class="tablewrap"><table>
-        <thead><tr><th class="num">Hopp</th><th class="num">RTT</th><th>Ruter (DNS-namn og IP)</th><th>Nettverk (AS)</th><th class="tek">Stad</th><th class="num tek">Tap</th><th class="num tek">Jitter</th></tr></thead>
-        <tbody>${rader}</tbody>
-    </table></div>
-    <div class="kartlegende" style="margin-top:8px"><span style="--dot:#16a34a">under 20 ms</span><span style="--dot:#65a30d">20–80</span><span style="--dot:#ca8a04">80–150</span><span style="--dot:#ea580c">150–250</span><span style="--dot:#dc2626">over 250 ms</span></div>
-    ${sprang && sprang.diff > 30 ? `<div class="note"><b>Største hoppet i tid</b>Mellom hopp ${sprang.a.nr} og ${sprang.b.nr} auka tida med ${fmt(sprang.diff, 0)} ms. ${sprangTekst(sprang)}${sprang.a.stad && sprang.b.stad && sprang.a.stad.by && sprang.b.stad.by && sprang.a.stad.by !== sprang.b.stad.by && !/asymmetrisk/.test(sprangTekst(sprang)) ? ` Her går pakken frå ${esc(sprang.a.stad.by)} til ${esc(sprang.b.stad.by)}.` : ""}</div>` : ""}
-    <p>${tallStille ? `${tallStille} ruterar svarte ikkje (* * *). Dei sender pakken vidare, men er sette opp til ikkje å svare på traceroute. ` : ""}${malNadd ? "Siste hopp er målet sjølv." : "Traceroute nådde ikkje heilt fram til målet. Mange serverar og brannmurar sluttar å svare dei siste stega."}</p>
-    <div class="tek">
-        ${rart ? `<div class="tekhead">Kvifor er hopp ${rart.nr} tregare enn målet?</div><p>Hopp ${rart.nr} har ${fmt(rart.st.avg)} ms medan målet har ${fmt(siste.st.avg)} ms. Ruterar sender trafikk vidare i maskinvare på full fart, men når dei sjølve må lage ein ICMP Time Exceeded-melding, skjer det i ein treg prosessor med låg prioritet. Svaret kan òg ta ein annan og lengre veg tilbake. Det er difor tida til målet som tel, ikkje tida til eitt einskild hopp i midten.</p>` : ""}
-        <div class="tekhead">Kjeda av autonome system</div>
-        <p>${asListe.join(" → ") || "–"}</p>
-        <div class="tekhead">Om plasseringa i kartet</div>
-        <p>Ruterar oppgir ikkje kvar dei står. Sida prøver først å finne ein flyplasskode eller bykode i DNS-namnet (som <code>oso</code> = Oslo eller <code>tky</code> = Tokyo), og deretter ein geo-IP-database. Plasseringa blir forkasta om ho ville kravd at pakken gjekk raskare enn lyset, eller om ho gir ein urimeleg omveg. Då står det <i>usikker</i>. Geo-IP-databasar plasserer ofte ruterar der selskapet har hovudkontor, ikkje der ruteren står.</p>
-        <div class="tekhead">Råutskrift frå mtr på målestasjonen</div>
-        <div class="term">${esc(res.rawOutput)}</div>
-        <p class="small" style="margin-top:6px">Sjølv: <code>tracert ${esc(mal)}</code> i Windows, <code>traceroute ${esc(mal)}</code> eller <code>mtr ${esc(mal)}</code> i Linux. Kolonnen <i>Javg</i> er jitter i snitt.</p>
-    </div>`;
+    const tallNett = new Set(hopp.filter(h => h.asn).map(h => h.asn)).size;
+    status(`${oppsummering} Pakken var innom <b>${hopp.length} ruterar</b> i <b>${tallNett} nettverk</b>.` +
+        (malNadd ? "" : " Dei siste ruterane før målet ville ikkje svare."), false);
 
-    $("tilKart").addEventListener("click", () => $("kart").scrollIntoView({ behavior: "smooth", block: "center" }));
-    // Teikn ruta i kartet
+    // Ruta i kartet, teikna bit for bit
+    pakkeAnim++;
     ruteLag.clearLayers();
-    const punkt = [{ ...start, nr: 0, start: true }];
+    const punkt = [{ ...start, start: true }];
     hopp.forEach(h => {
         if (!h.stad) return;
         const last = punkt[punkt.length - 1];
-        if (avstand(last, h.stad) < 30) { last.hopp = (last.hopp || []).concat(h); return; }
+        if (avstand(last, h.stad) < 30) { if (!last.start) last.hopp.push(h); return; }
         punkt.push({ lat: h.stad.lat, lon: h.stad.lon, hopp: [h] });
     });
-    let bane = [];
-    for (let i = 1; i < punkt.length; i++) bane = bane.concat(storsirkel(punkt[i - 1], punkt[i]));
-    if (bane.length) {
-        bane = pakkUt(bane);
-        L.polyline(bane, { color: "#0f766e", weight: 3, opacity: .8 }).addTo(ruteLag);
-    }
-    // marker etter utpakka lengdegrad
     const utpakka = pakkUt(punkt.map(q => [q.lat, q.lon]));
-    punkt.forEach((q, i) => {
-        const [la, lo] = utpakka[i];
-        if (q.start) {
-            L.circleMarker([la, lo], { radius: 8, color: "#1d4ed8", fillColor: "#3b82f6", fillOpacity: 1, weight: 2 })
-                .addTo(ruteLag).bindTooltip(`Start: ${esc(p.city)}`, { permanent: true, direction: "left", className: "rtt" });
-            return;
-        }
-        const sisteH = q.hopp[q.hopp.length - 1];
-        const ms = sisteH.st.avg;
-        const erMal = q.hopp.includes(siste) && malNadd;
-        const m = L.circleMarker([la, lo], { radius: erMal ? 8 : 5, color: erMal ? "#991b1b" : "#334155", fillColor: rttFarge(ms), fillOpacity: 1, weight: 2 }).addTo(ruteLag);
-        const by = q.hopp[0].stad.by || landNamn(q.hopp[0].stad.land);
-        m.bindPopup(`<b>${esc(by)}</b><br>Hopp ${q.hopp.map(h => h.nr).join(", ")}<br>${q.hopp.map(h => esc(h.namn || h.ip)).join("<br>")}<br>RTT ${fmt(ms)} ms`);
-        m.bindTooltip(`${erMal ? "Mål · " : ""}${fmt(ms, 0)} ms`, { permanent: erMal || i === punkt.length - 1, direction: "right", className: "rtt" });
-    });
-    if (utpakka.length > 1) kart.fitBounds(L.latLngBounds(utpakka), { padding: [30, 30], maxZoom: 6 });
+    if (utpakka.length > 1) kart.fitBounds(L.latLngBounds(utpakka), { padding: [60, 60], maxZoom: 6 });
     else kart.setView(utpakka[0], 4);
-}
+    teiknStart(p);
+    if (utpakka.length > 1) kart.fitBounds(L.latLngBounds(utpakka), { padding: [60, 60], maxZoom: 6 });
 
-/* ---------- DNS, IP og nettverk ---------- */
-async function dnsOppslag(mal) {
-    if (erIp(mal)) {
-        let ptr = null;
-        if (!mal.includes(":")) {
-            const namn = mal.split(".").reverse().join(".") + ".in-addr.arpa";
-            try {
-                const { d } = await jsonFetch(`https://dns.google/resolve?name=${namn}&type=PTR`);
-                ptr = (d.Answer || []).filter(a => a.type === 12).map(a => a.data.replace(/\.$/, ""));
-            } catch (e) { }
-        }
-        return { erIp: true, ptr };
+    const mi = koyring;
+    let heileBana = [];
+    for (let i = 1; i < punkt.length; i++) {
+        if (mi !== koyring) return;
+        const q = punkt[i], sisteH = q.hopp[q.hopp.length - 1], t = sisteH.st.avg;
+        // Bogen startar der førre bit slutta, så linja ikkje hoppar over datolinja
+        let bit = storsirkel(punkt[i - 1], q);
+        bit = pakkUt([heileBana.length ? heileBana[heileBana.length - 1] : utpakka[0], ...bit]).slice(1);
+        heileBana = heileBana.concat(bit);
+        L.polyline(bit, { color: rttFarge(t), weight: 4, opacity: .9 }).addTo(ruteLag);
+        const erMal = q.hopp.includes(siste) && malNadd, sisteP = i === punkt.length - 1;
+        const by = q.hopp[0].stad.by || landNamn(q.hopp[0].stad.land);
+        const m = L.circleMarker(bit[bit.length - 1], { radius: erMal ? 9 : 6, color: erMal ? "#991b1b" : "#334155", fillColor: rttFarge(t), fillOpacity: 1, weight: 2 }).addTo(ruteLag);
+        m.bindPopup(`<b>${esc(by)}</b><br>Ruter ${q.hopp.map(h => h.nr).join(", ")}<br>${ms(t)} ms tur-retur`);
+        m.bindTooltip(sisteP ? `${erMal ? "Mål: " : ""}${esc(by)} · ${ms(t)} ms` : `${esc(by)} · ${ms(t)} ms`, { permanent: sisteP, direction: "auto", className: "rtt" });
+        if (!roleg) await sleep(350);
     }
-    const hent = async type => {
-        try { const { d } = await jsonFetch(`https://dns.google/resolve?name=${encodeURIComponent(mal)}&type=${type}`); return d; } catch (e) { return null; }
-    };
-    const [a, aaaa] = await Promise.all([hent("A"), hent("AAAA")]);
-    return { erIp: false, a, aaaa };
-}
-
-async function visInfo(mal, ping, dnsP) {
-    const r = ping.results[0], p = r.probe, ip = r.result.resolvedAddress;
-    const dns = await dnsP;
-    let dnsHtml = "";
-    if (dns.erIp) {
-        dnsHtml = `<p>Du skreiv ei IP-adresse, så det trengst ikkje noko DNS-oppslag. Eit <i>omvendt</i> oppslag (PTR) spør kva namn adressa har:</p>
-            <dl class="info"><dt>PTR</dt><dd class="mono">${dns.ptr && dns.ptr.length ? esc(dns.ptr.join(", ")) : "ingen namn registrert"}</dd></dl>`;
-    } else {
-        const svar = [...((dns.a && dns.a.Answer) || []), ...((dns.aaaa && dns.aaaa.Answer) || [])];
-        const sett = new Set();
-        const linjer = svar.filter(x => { const k = x.type + x.name + x.data; if (sett.has(k)) return false; sett.add(k); return true; }).map(x => {
-            const t = { 1: "A", 28: "AAAA", 5: "CNAME" }[x.type] || x.type;
-            return `<div class="dnsrad"><span class="mono">${esc(x.name.replace(/\.$/, ""))}</span> <span class="badge info">${t}</span><span class="small tekttl">TTL ${x.TTL} s</span><br><span class="pil">→</span> <span class="mono"><b>${esc(String(x.data).replace(/\.$/, ""))}</b></span></div>`;
-        }).join("");
-        const cname = svar.some(x => x.type === 5);
-        const v6 = svar.some(x => x.type === 28);
-        const nx = dns.a && dns.a.Status === 3;
-        dnsHtml = nx ? `<div class="msg bad">Namnet finst ikkje i DNS (NXDOMAIN).</div>` : `
-            <p>Før pakkane kan sendast, må namnet gjerast om til ei IP-adresse. Dette svarte DNS:</p>
-            <div class="dnsliste">${linjer}</div>
-            <p class="small" style="margin-top:6px"><b>A</b> = IPv4-adresse, <b>AAAA</b> = IPv6-adresse, <b>CNAME</b> = «sjå heller på dette namnet».
-            ${cname ? " Her peikar namnet vidare til eit anna namn. Det er typisk for CDN-tenester." : ""}${v6 ? " Målet har òg IPv6." : " Målet har ikkje IPv6."}</p>
-            ${ip && svar.length && !svar.some(x => String(x.data) === ip) ? `<div class="msg warn small">Målestasjonen i ${esc(p.city)} fekk adressa <b class="mono">${esc(ip)}</b>, som ikkje er blant svara nettlesaren din fekk. Same namn gir altså ulike svar på ulike stader. Det er eit teikn på at nettstaden brukar eit CDN som sender kvar brukar til næraste kopi.</div>` : ""}
-            <p class="small tek">TTL i DNS (sekund) seier kor lenge andre resolverar kan hugse svaret. Det har ingenting med TTL i ping å gjere. Oppslaget her er gjort av nettlesaren din via Google Public DNS. Målestasjonen spurde sin eigen resolver (${esc((p.resolvers || []).join(", ") || "ukjend")}), og fekk ${esc(ip || "–")}. Store tenester kan gi ulike svar til ulike stader.</p>`;
-    }
-
-    const [pfx, geo] = await Promise.all([ip ? prefiks(ip) : null, ip ? geoIp(ip) : null]);
-    const asnHtml = pfx && pfx.asns.length ? pfx.asns.map(a => `AS${a.asn} ${esc(kortAs(a.holder))}`).join(", ") : "–";
-    const probeAs = p.asn ? `AS${p.asn}` : "–";
-    $("infoRes").innerHTML = `
-    <div class="grid2">
-        <div><div class="who">DNS-oppslag</div>${dnsHtml}</div>
-        <div>
-            <div class="who">Mål-IP</div>
-            <dl class="info">
-                <dt>IP-adresse</dt><dd class="mono">${esc(ip || "–")} ${ip && ip.includes(":") ? '<span class="badge info">IPv6</span>' : '<span class="badge info">IPv4</span>'}</dd>
-                <dt>Eigar (AS)</dt><dd>${asnHtml}</dd>
-                <dt>Adresseblokk</dt><dd class="mono">${esc(pfx ? pfx.prefiks : "–")}</dd>
-                <dt>Registrert hos</dt><dd>${esc(pfx && pfx.rir || "–")}</dd>
-                <dt>Geo-IP</dt><dd>${geo ? esc((geo.by ? geo.by + ", " : "") + landNamn(geo.land)) : "ukjend"}</dd>
-            </dl>
-            <p class="small tek" style="margin-top:6px">Blokka ${esc(pfx ? pfx.prefiks : "")} er det nettet BGP-ruterane i verda har i tabellen sin. /-talet er nettmaska: jo mindre tal, jo større blokk. Adressene blir delte ut av eit regionalt register (RIR): RIPE NCC for Europa, ARIN for Nord-Amerika, APNIC for Asia og Stillehavet, LACNIC for Latin-Amerika og AFRINIC for Afrika.</p>
-            <div class="who" style="margin-top:12px">Målestasjonen</div>
-            <dl class="info">
-                <dt>Stad</dt><dd>${esc(p.city)}, ${esc(landNamn(p.country))}</dd>
-                <dt>Nettverk</dt><dd>${esc(p.network)} (${probeAs})</dd>
-                <dt>Type</dt><dd>${(p.tags || []).includes("datacenter-network") ? "datasenter" : (p.tags || []).includes("eyeball-network") ? "vanleg brukarnett (heim/mobil)" : "–"}</dd>
-            </dl>
-        </div>
-    </div>`;
-}
-
-/* ---------- Ping frå heile verda ---------- */
-const VERDA = [
-    { magic: "Norway", namn: "Noreg" }, { magic: "North America", namn: "Nord-Amerika" }, { magic: "South America", namn: "Sør-Amerika" },
-    { magic: "Africa", namn: "Afrika" }, { magic: "Asia", namn: "Asia" }, { magic: "Oceania", namn: "Oseania" },
-];
-
-async function kjorVerda() {
-    const mal = reinsMal($("mal").value);
-    if (!mal) { $("mal").focus(); return; }
-    $("mal").value = mal; dempa = true; malMarkorar();
-    knappar(true);
-    ["resKort", "ruteKort", "infoKort"].forEach(id => $(id).classList.add("hidden"));
-    $("verdaKort").classList.remove("hidden");
-    $("verdaRes").innerHTML = "";
-    ruteLag.clearLayers();
-    status($("verdaStatus"), `Ber målestasjonar på seks kontinent om å pinge ${esc(mal)} …`, true);
-    $("verdaKort").scrollIntoView({ behavior: "smooth", block: "start" });
-    try {
-        const id = await gpStart({ type: "ping", target: mal, locations: VERDA.map(v => ({ magic: v.magic, limit: 1 })), measurementOptions: { packets: 4 } });
-        const d = await gpVent(id, d => {
-            const ferdig = (d.results || []).filter(r => r.result.status !== "in-progress").length;
-            status($("verdaStatus"), `${ferdig} av ${(d.results || []).length} målestasjonar har svart …`, true);
-        });
-        await visVerda(d, mal);
-    } catch (e) {
-        $("verdaStatus").innerHTML = `<div class="msg bad">${esc(e.message)}</div>`;
-    } finally { knappar(false); }
-}
-
-async function visVerda(d, mal) {
-    const res = d.results.filter(r => r.result);
-    const ip = (res.find(r => r.result.resolvedAddress) || {}).result?.resolvedAddress;
-    const ips = new Set(res.map(r => r.result.resolvedAddress).filter(Boolean));
-    const geo = ip ? await geoIp(ip) : null;
-    let umogleg = 0;
-    const rader = res.map(r => {
-        const p = r.probe, st = r.result.stats || {};
-        const pos = { lat: p.latitude, lon: p.longitude };
-        const km = geo ? avstand(pos, geo) : null;
-        const teori = km != null ? minRtt(km) : null;
-        const ok = r.result.status === "finished" && st.rcv > 0;
-        const fort = ok && teori != null && km > 300 && st.min < teori * 0.85;
-        if (fort) umogleg++;
-        r._x = { pos, ok, st, fort };
-        return `<tr><td>${esc(KONTINENT[p.continent] || p.continent)}</td><td>${esc(p.city)}, ${esc(landNamn(p.country))}<br><span class="small">${esc(p.network)}</span></td>` +
-            `<td class="num"><b style="color:${rttFarge(ok ? st.avg : null)}">${ok ? fmt(st.avg) + " ms" : "inkje svar"}</b></td>` +
-            `<td class="num tek">${km != null ? fmtKm(km) + " km" : "–"}</td><td class="num tek">${teori != null ? fmt(teori, 0) + " ms" : "–"}</td>` +
-            `<td class="tek">${fort ? '<span class="badge warn">raskare enn lyset</span>' : ok ? '<span class="badge ok">mogleg</span>' : "–"}</td>` +
-            `<td class="mono small tek">${esc(r.result.resolvedAddress || "")}</td></tr>`;
-    }).join("");
-
-    // Trekanttest: éin server kan ikkje vere nær nok to stasjonar som ligg langt frå kvarandre
-    const oka = res.filter(r => r._x.ok);
-    let par = null;
-    for (let i = 0; i < oka.length; i++) for (let j = i + 1; j < oka.length; j++) {
-        const A = oka[i], B = oka[j], km = avstand(A._x.pos, B._x.pos);
-        const naa = FIBER_KM_PER_MS * (A._x.st.min + B._x.st.min) / 2;
-        if (km > naa * 1.2 && (!par || km / naa > par.f)) par = { A, B, km, f: km / naa };
-    }
-    const parTxt = par ? `${esc(par.A.probe.city)} og ${esc(par.B.probe.city)} ligg ${fmtKm(par.km)} km frå kvarandre, men fekk svar på ${fmt(par.A._x.st.min, par.A._x.st.min < 10 ? 1 : 0)} og ${fmt(par.B._x.st.min, par.B._x.st.min < 10 ? 1 : 0)} ms. På den tida rekk lyset berre ${fmtKm(FIBER_KM_PER_MS * par.A._x.st.min / 2)} og ${fmtKm(FIBER_KM_PER_MS * par.B._x.st.min / 2)} km kvar veg, så éin og same server kan ikkje stå nær nok begge. ` : "";
-    let konklusjon;
-    if (par || umogleg >= 2 || ips.size > 2) konklusjon = `<div class="msg warn"><b>Målet finst mange stader samstundes.</b> ${parTxt}${!par && umogleg >= 2 ? `${umogleg} av målestasjonane fekk svar raskare enn lyset kunne reist til ${geo ? esc(landNamn(geo.land)) : "den registrerte plasseringa"}. ` : ""}${ips.size > 1 ? `Stasjonane fekk ${ips.size} ulike IP-adresser frå DNS. ` : "Alle fekk same IP-adresse, men svaret kom likevel raskt overalt. Det er anycast: same adresse blir annonsert frå mange datasenter, og BGP sender kvar pakke til det næraste. "}${ips.size > 1 ? "DNS gir ulike svar etter kvar du spør frå. Det er eit CDN som sender deg til næraste kopi." : ""}</div>`;
-    else konklusjon = `<div class="msg info">Tida veks med avstanden. Det tyder på at ${esc(mal)} er <b>éin server på éin stad</b>${geo ? `, i ${esc(geo.by ? geo.by + ", " : "")}${esc(landNamn(geo.land))}` : ""}. Samanlikn gjerne med <code>1.1.1.1</code> eller <code>vg.no</code>.</div>`;
-
-    status($("verdaStatus"), `Ping til <b>${esc(mal)}</b> frå ${res.length} målestasjonar, 4 pakkar kvar.`, false);
-    $("verdaRes").innerHTML = `${konklusjon}
-    <div class="tablewrap"><table>
-        <thead><tr><th>Kontinent</th><th>Målestasjon</th><th class="num">RTT (snitt)</th><th class="num tek">Avstand</th><th class="num tek">Lysfart-minimum</th><th class="tek">Fysisk mogleg?</th><th class="tek">IP i svaret</th></tr></thead>
-        <tbody>${rader}</tbody>
-    </table></div>
-    <p class="small tek" style="margin-top:6px">Avstand og lysfart-minimum er rekna frå målestasjonen til der geo-IP-databasen plasserer ${esc(ip || "målet")}. Lys i fiber: 200 km per ms, så minste moglege RTT = 2 × avstand / 200.</p>`;
-
-    // kart
-    ruteLag.clearLayers();
-    const alle = [];
-    res.forEach(r => {
-        const x = r._x;
-        L.circleMarker([x.pos.lat, x.pos.lon], { radius: 7, color: "#1e293b", fillColor: rttFarge(x.ok ? x.st.avg : null), fillOpacity: 1, weight: 2 })
-            .addTo(ruteLag).bindTooltip(x.ok ? `${fmt(x.st.avg, 0)} ms` : "inkje svar", { permanent: true, direction: "right", className: "rtt" })
-            .bindPopup(`<b>${esc(r.probe.city)}</b><br>${esc(r.probe.network)}`);
-        alle.push([x.pos.lat, x.pos.lon]);
-        if (geo && !x.fort && x.ok && !par) {
-            L.polyline(pakkUt(storsirkel(x.pos, geo)), { color: rttFarge(x.st.avg), weight: 2, opacity: .7 }).addTo(ruteLag);
-        }
-    });
-    if (geo) {
-        const fleire = par || umogleg >= 2;
-        L.circleMarker([geo.lat, geo.lon], { radius: 9, color: "#991b1b", fillColor: "#ef4444", fillOpacity: fleire ? .35 : 1, weight: 2, dashArray: fleire ? "3 3" : null })
-            .addTo(ruteLag).bindTooltip(fleire ? "Registrert her (men svarar nærare)" : "Mål", { direction: "left" });
-        alle.push([geo.lat, geo.lon]);
-    }
-    if (alle.length) kart.fitBounds(L.latLngBounds(alle), { padding: [30, 30], maxZoom: 4 });
-}
-
-/* ---------- Mål frå klasserommet ---------- */
-const LOKAL = ["Stockholm", "Frankfurt", "London", "New York", "Los Angeles", "São Paulo", "Johannesburg", "Mumbai", "Singapore", "Tokyo", "Sydney"]
-    .map(by => MAL.find(m => m.by === by));
-
-$("kjorLokal").addEventListener("click", kjorLokal);
-
-async function tid(url, mode, metode = "HEAD") {
-    const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 6000);
-    const t0 = performance.now();
-    try {
-        await fetch(url + (url.includes("?") ? "&" : "?") + "r=" + Math.random().toString(36).slice(2), { method: metode, mode, cache: "no-store", signal: ctl.signal });
-        return performance.now() - t0;
-    } finally { clearTimeout(t); }
-}
-async function malEin(host, eige) {
-    const url = "https://" + host + "/";
-    let mode = eige ? "no-cors" : "cors", metode = "HEAD", forste;
-    try { forste = await tid(url, mode); }
-    catch (e) {
-        mode = "no-cors";
-        try { forste = await tid(url, mode); }
-        catch (e2) { metode = "GET"; forste = await tid(url, mode, metode); }
-    }
-    const vidare = [];
-    for (let i = 0; i < 5; i++) { try { vidare.push(await tid(url, mode, metode)); } catch (e) { } }
-    return { forste, best: vidare.length ? Math.min(...vidare) : null };
-}
-
-async function kjorLokal() {
-    const btn = $("kjorLokal"), el = $("lokalRes");
-    btn.disabled = true;
-    const ekstra = reinsMal($("mal").value);
-    const liste = LOKAL.slice();
-    if (ekstra && !liste.some(m => m.host === ekstra) && !erIp(ekstra)) liste.push({ by: ekstra, host: ekstra, eige: true });
-    el.innerHTML = `<div class="status"><div class="spinner"></div><span>Finn den offentlege IP-adressa di …</span></div><div id="minIp"></div>
-        <div class="tablewrap"><table><thead><tr><th>Server</th><th class="num">Første kontakt</th><th class="num">Beste av 5</th><th class="barcell">Samanlikning</th></tr></thead><tbody id="lokalRader"></tbody></table></div>
-        <div id="lokalSlutt"></div>`;
-    const statusEl = el.querySelector(".status");
-
-    // Kven er eg på nettet?
-    (async () => {
-        try {
-            const { d } = await jsonFetch(`${RIPE}/whats-my-ip/data.json?${RIPE_APP}`);
-            const ip = d.data.ip;
-            const pfx = await prefiks(ip);
-            const as = pfx && pfx.asns[0];
-            $("minIp").innerHTML = `<dl class="info" style="margin-bottom:8px"><dt>Di offentlege IP</dt><dd class="mono">${esc(ip)}</dd>
-                <dt>Nettverk</dt><dd>${as ? `AS${as.asn} ${esc(kortAs(as.holder))}` : "ukjend"}</dd></dl>
-                <p class="small">Maskina di har truleg ei privat adresse (sjå <code>ipconfig</code> i Windows). Ruteren byter ho ut med ${esc(ip)} på veg ut. Alle i rommet går ut på nettet med same adresse. Det er NAT.</p>`;
-        } catch (e) { $("minIp").innerHTML = ""; }
-    })();
-
-    const rader = $("lokalRader"), resultat = [];
-    for (const m of liste) {
-        statusEl.innerHTML = `<div class="spinner"></div><span>Måler ${esc(m.by)} …</span>`;
-        let r;
-        try { r = await malEin(m.host, m.eige); } catch (e) { r = null; }
-        resultat.push({ m, r });
-        const maks = Math.max(...resultat.filter(x => x.r).map(x => x.r.forste), 1);
-        rader.innerHTML = resultat.map(({ m, r }) => {
-            if (!r) return `<tr><td>${esc(m.by)}${m.eige ? ' <span class="badge info">ditt mål</span>' : ""}</td><td class="num" colspan="2">ikkje nåbar over HTTPS</td><td></td></tr>`;
-            const b = r.best ?? r.forste;
-            return `<tr><td>${esc(m.by)}${m.eige ? ' <span class="badge info">ditt mål</span>' : ""}<div class="small mono tek">${esc(m.host)}</div></td>` +
-                `<td class="num">${fmt(r.forste, 0)} ms</td><td class="num"><b style="color:${rttFarge(b)}">${r.best != null ? fmt(r.best, 0) + " ms" : "–"}</b></td>` +
-                `<td class="barcell"><div class="bar lys" style="width:${100 * r.forste / maks}%"></div><div class="bar" style="width:${100 * b / maks}%;background:${rttFarge(b)}"></div></td></tr>`;
-        }).join("");
-    }
-    statusEl.classList.add("hidden");
-
-    let samanlikn = "";
-    if (sistePing) {
-        const lik = resultat.find(x => x.m.host === sistePing.mal && x.r && x.r.best != null);
-        if (lik) samanlikn = `<div class="msg info"><b>Samanlikning for ${esc(sistePing.mal)}:</b> målestasjonen i ${esc(sistePing.fraStad)} fekk ${fmt(sistePing.snitt)} ms med ICMP. Nettlesaren din fekk ${fmt(lik.r.best, 0)} ms med HTTPS. Skilnaden kjem av vegen frå klasserommet ut til internett, at du står ein annan stad, og at HTTPS-svaret skal gjennom fleire lag i nettlesaren og på serveren.</div>`;
-    }
-    $("lokalSlutt").innerHTML = `
-        <div class="kartlegende" style="margin-top:8px"><span style="--dot:var(--accent-soft)">første kontakt</span><span style="--dot:var(--accent)">beste av 5</span></div>
-        ${samanlikn}
-        <p style="margin-top:10px"><b>Kvifor tek første kontakt lengre tid?</b> Før det første spørsmålet kan sendast, må nettlesaren slå opp namnet i DNS, opne ei TCP-kopling (tre-vegs handtrykk: SYN, SYN-ACK, ACK) og forhandle fram kryptering med TLS. Det er fleire rundturar. Etterpå gjenbrukar nettlesaren koplinga, og då tek eit spørsmål om lag éin rundtur.</p>
-        <div class="tek">
-            <div class="tekhead">Kva blir målt her?</div>
-            <p>Nettlesaren sender HTTP <code>HEAD /</code> over HTTPS og måler tida til svaret kjem, med <code>performance.now()</code>. «Beste av 5» er nærast RTT, men inneheld òg litt tid på serveren og i nettlesaren. Difor blir tala gjerne nokre millisekund høgare enn ICMP-ping. Mål du på Wi-Fi, kjem òg tida i lufta mellom PC-en og tilgangspunktet med, og den kan variere mykje.</p>
-            <p>Prøv å køyre målinga på kabel og på Wi-Fi, eller på skulenettet og på mobilnettet. Kva er skilnaden?</p>
-        </div>`;
-    btn.disabled = false;
+    if (mi === koyring) animerPakke(heileBana);
 }
 </script>
 </body>
