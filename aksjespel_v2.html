@@ -756,7 +756,8 @@ $("innlogging").addEventListener("submit", async e => {
         try { localStorage.setItem(LAGER, JSON.stringify(innlogga)); } catch (x) {}
         lagreKode(meg.kode);
         $("pin").value = "";
-        await hentStoda();
+        if (stoda) visAlt();   // vis porteføljen med ein gong, og hent ny toppliste i bakgrunnen
+        hentStoda();
     } catch (feil) {
         $("innFeil").textContent = feil.message;
     }
@@ -869,7 +870,8 @@ $("hSkjema").addEventListener("submit", async e => {
         meg = d.meg;
         $("handel").close();
         if (d.ordre) visFane("min");   // vis ordren som no ventar
-        await hentStoda();
+        visAlt();                      // vis handelen med ein gong, og hent ny toppliste i bakgrunnen
+        hentStoda();
     } catch (feil) {
         visRekning();
         $("hFeil").textContent = feil.message;
