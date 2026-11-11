@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html lang="nn">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Aksjespelet V2: klassane investerer liksompengar i selskap på Oslo Børs og i New York, med toppliste per klasse og klassekamp.">
+    <meta name="theme-color" content="#2e7d32">
+    <title>Aksjespelet V2</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gron: #2e7d32;
+            --gron-mork: #1b5e20;
+            --bakgrunn: #f3f7f1;
+            --flate: #ffffff;
+            --blekk: #16231a;
+            --dempa: #56635a;
+            --linje: #d5ded3;
+            --lenke: #1b5e20;
+            --sol: #ffd54a;
+            --sol-tekst: #4a3800;
+            --pluss: #1b7a2f;
+            --minus: #b3261e;
+            --meg: #fff6cf;
+            --overskrift: "Bricolage Grotesque", "Trebuchet MS", "Segoe UI", sans-serif;
+            --tekst: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+        }
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bakgrunn: #111a13;
+                --flate: #19241c;
+                --blekk: #e7eee7;
+                --dempa: #a3b1a6;
+                --linje: #2d3b30;
+                --lenke: #93dc98;
+                --pluss: #7bd88f;
+                --minus: #ff8a80;
+                --meg: #3a3410;
+            }
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            background: var(--bakgrunn);
+            color: var(--blekk);
+            font-family: var(--tekst);
+            font-size: 16px;
+            line-height: 1.45;
+        }
+        .innhald { max-width: 980px; margin: 0 auto; padding-left: 16px; padding-right: 16px; }
+        a { color: var(--lenke); }
+        :focus-visible { outline: 3px solid var(--sol); outline-offset: 2px; border-radius: 4px; }
+        .skjult { display: none !important; }
+
+        /* Grøn tittellinje – varemerket */
+        header { background: var(--gron); color: #fff; }
+        header .innhald { padding-top: 18px; padding-bottom: 16px; }
+        .heim { color: #d9efd9; font-size: 14px; text-decoration: none; }
+        .heim:hover { text-decoration: underline; }
+        h1 {
+            font-family: var(--overskrift);
+            font-weight: 800;
+            font-size: clamp(32px, 7vw, 56px);
+            line-height: 1;
+            letter-spacing: -.02em;
+            margin: 6px 0 8px;
+        }
+        #fase { margin: 0; font-size: 17px; color: #e6f3e6; }
+        #fase b { color: #fff; }
+        #demo {
+            background: var(--sol); color: var(--sol-tekst);
+            font-size: 14.5px; font-weight: 600;
+        }
+        #demo .innhald { padding-top: 8px; padding-bottom: 8px; }
+
+        nav { background: var(--gron-mork); position: sticky; top: 0; z-index: 5; }
+        nav .innhald { display: flex; gap: 4px; overflow-x: auto; padding-top: 6px; padding-bottom: 6px; }
+        nav button {
+            flex: none;
+            font: 600 15px var(--tekst);
+            color: #fff; background: none; border: 0; cursor: pointer;
+            padding: 8px 14px; border-radius: 8px;
+        }
+        nav button:hover { background: rgba(255,255,255,.16); }
+        nav button[aria-selected="true"] { background: #fff; color: var(--gron-mork); }
+
+        main { padding-top: 20px; padding-bottom: 48px; }
+        h2 { font-family: var(--overskrift); font-weight: 700; font-size: 26px; line-height: 1.1; margin: 0 0 6px; }
+        h3 { font-family: var(--overskrift); font-weight: 700; font-size: 19px; margin: 26px 0 8px; }
+        .under { color: var(--dempa); margin: 0 0 14px; font-size: 15px; }
+        .kort {
+            background: var(--flate);
+            border: 1px solid var(--linje);
+            border-radius: 12px;
+            padding: 16px;
+        }
+        .rull { overflow-x: auto; }
+
+        table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+        th {
+            text-align: left; font-size: 13px; font-weight: 600; color: var(--dempa);
+            padding: 6px 10px; border-bottom: 2px solid var(--linje); white-space: nowrap;
+        }
+        td { padding: 10px; border-bottom: 1px solid var(--linje); vertical-align: middle; }
+        tr:last-child td { border-bottom: 0; }
+        .h { text-align: right; white-space: nowrap; }
+        .liten { font-size: 13.5px; color: var(--dempa); }
+        .pluss { color: var(--pluss); font-weight: 600; }
+        .minus { color: var(--minus); font-weight: 600; }
+        .tom { color: var(--dempa); padding: 18px 10px; }
+
+        /* Topplista */
+        #topp td.plass { width: 44px; font-family: var(--overskrift); font-weight: 800; font-size: 20px; }
+        #topp .namn { font-weight: 700; font-size: 17px; overflow-wrap: anywhere; }
+        #topp .verdi { font-weight: 700; font-size: 17px; }
+        #topp tr.meg td { background: var(--meg); }
+        #topp tr.strek td {
+            padding: 4px 10px; font-size: 12.5px; font-weight: 600; color: var(--dempa);
+            background: color-mix(in srgb, var(--gron) 10%, transparent);
+            border-top: 2px dashed var(--gron); border-bottom: 0; text-align: center;
+        }
+        .verkty { display: flex; flex-wrap: wrap; gap: 6px 18px; justify-content: space-between; margin-top: 10px; font-size: 13.5px; color: var(--dempa); }
+        @media (max-width: 620px) {
+            .brei { display: none; }
+            th, td { padding-left: 6px; padding-right: 6px; }
+            #topp td.plass, #kamp td.plass { width: 30px; font-size: 17px; }
+            #topp .namn, #topp .verdi, #kamp .namn, #kamp .verdi { font-size: 15px; }
+        }
+
+        /* Storskjerm: aksjespel.html#tavle */
+        body.tavle nav, body.tavle .heim, body.tavle .ikkje-tavle { display: none; }
+        body.tavle .innhald { max-width: 1400px; }
+        body.tavle #topp td { padding: 14px 16px; font-size: 24px; }
+        body.tavle #topp .namn, body.tavle #topp .verdi { font-size: 28px; }
+        body.tavle #topp td.plass { font-size: 32px; width: 70px; }
+
+        /* Klassekampen og klassekoden */
+        #kamp td.plass { width: 44px; font-family: var(--overskrift); font-weight: 800; font-size: 20px; }
+        #kamp .namn { font-weight: 700; font-size: 17px; overflow-wrap: anywhere; }
+        #kamp .verdi { font-weight: 700; font-size: 17px; }
+        #kamp tr.meg td { background: var(--meg); }
+        #kodeSkjema { max-width: 420px; }
+        #kodeSkjema .rad { display: flex; gap: 10px; }
+        body.tavle #kamp td { padding: 14px 16px; font-size: 24px; }
+        body.tavle #kamp .namn, body.tavle #kamp .verdi { font-size: 28px; }
+        body.tavle #kamp td.plass { font-size: 32px; width: 70px; }
+
+        /* Open eller stengd børs */
+        .status {
+            display: inline-block; vertical-align: middle;
+            font: 600 12.5px var(--tekst); white-space: nowrap;
+            border-radius: 999px; padding: 2px 10px; margin-left: 8px;
+        }
+        .status.open { background: color-mix(in srgb, var(--pluss) 18%, transparent); color: var(--pluss); }
+        .status.stengd { background: color-mix(in srgb, var(--dempa) 20%, transparent); color: var(--dempa); }
+        .varsel { background: var(--meg); border-radius: 10px; padding: 10px 12px; font-size: 14.5px; margin: 14px 0 0; }
+
+        /* Marknaden */
+        .selskap { cursor: pointer; }
+        .selskap:hover td { background: color-mix(in srgb, var(--gron) 8%, transparent); }
+        .selskap .namn { font-weight: 600; }
+        .merke {
+            display: inline-block; font-size: 12px; font-weight: 700;
+            background: var(--sol); color: var(--sol-tekst);
+            border-radius: 5px; padding: 0 6px; margin-left: 6px;
+        }
+
+        /* Knappar og skjema */
+        button.knapp, button.lys {
+            font: 600 16px var(--tekst);
+            border-radius: 10px; padding: 11px 18px; cursor: pointer;
+            border: 2px solid var(--gron);
+        }
+        button.knapp { background: var(--gron); color: #fff; }
+        button.knapp:hover { background: var(--gron-mork); border-color: var(--gron-mork); }
+        button.lys { background: transparent; color: var(--lenke); }
+        button:disabled { opacity: .5; cursor: default; }
+        button.tekst { font: inherit; color: var(--lenke); background: none; border: 0; padding: 0; text-decoration: underline; cursor: pointer; }
+        label { display: block; font-size: 14px; font-weight: 600; margin: 12px 0 4px; }
+        input[type=text], input[type=password], input[type=number] {
+            width: 100%; font: inherit; font-size: 18px;
+            padding: 10px 12px;
+            border: 1.5px solid var(--linje); border-radius: 10px;
+            background: var(--flate); color: var(--blekk);
+        }
+        .hint { font-size: 13.5px; color: var(--dempa); margin: 4px 0 0; }
+        .feil { color: var(--minus); font-weight: 600; min-height: 1.45em; margin: 10px 0 0; }
+        #innlogging { max-width: 420px; }
+        #innlogging .rad { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 16px; }
+
+        /* Mi portefølje */
+        .tal3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 8px; }
+        .tal3 div { background: var(--flate); border: 1px solid var(--linje); border-radius: 12px; padding: 12px 14px; }
+        .tal3 div > span { display: block; font-size: 13px; color: var(--dempa); }
+        .tal3 b { font-family: var(--overskrift); font-size: clamp(19px, 4.6vw, 28px); font-variant-numeric: tabular-nums; white-space: nowrap; }
+        @media (max-width: 520px) { .tal3 { grid-template-columns: 1fr 1fr; } .tal3 div:first-child { grid-column: 1 / -1; } }
+        .topplinje { display: flex; flex-wrap: wrap; gap: 8px 16px; justify-content: space-between; align-items: baseline; }
+
+        /* Handel */
+        dialog {
+            width: min(440px, calc(100vw - 24px));
+            border: 0; border-radius: 16px; padding: 0;
+            background: var(--flate); color: var(--blekk);
+            box-shadow: 0 20px 60px rgba(0,0,0,.35);
+        }
+        dialog::backdrop { background: rgba(10, 25, 12, .55); }
+        .dhovud { background: var(--gron); color: #fff; padding: 14px 18px; }
+        .dhovud h2 { font-size: 24px; margin: 0; }
+        .dhovud p { margin: 2px 0 0; color: #e6f3e6; font-size: 15px; }
+        .dkropp { padding: 16px 18px 18px; }
+        .val { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; background: var(--bakgrunn); border-radius: 12px; padding: 4px; }
+        .val button { font: 600 16px var(--tekst); border: 0; border-radius: 9px; padding: 9px; background: none; color: var(--blekk); cursor: pointer; }
+        .val button[aria-pressed="true"] { background: var(--gron); color: #fff; }
+        .talrad { display: flex; gap: 8px; }
+        .talrad button { flex: none; }
+        dl { display: grid; grid-template-columns: 1fr auto; gap: 5px 12px; margin: 14px 0 0; font-variant-numeric: tabular-nums; }
+        dt { color: var(--dempa); }
+        dd { margin: 0; text-align: right; }
+        dl .sum { font-weight: 700; border-top: 1px solid var(--linje); padding-top: 6px; }
+        dl dt.sum { color: var(--blekk); }
+        .dknappar { display: flex; gap: 10px; margin-top: 16px; }
+        .dknappar .knapp { flex: 1; }
+
+        .reglar li { margin-bottom: 6px; }
+        pre {
+            background: var(--flate); border: 1px solid var(--linje); border-radius: 10px;
+            padding: 12px 14px; overflow-x: auto; font-size: 13.5px; line-height: 1.5;
+        }
+        footer { border-top: 1px solid var(--linje); color: var(--dempa); font-size: 14px; }
+        footer .innhald { padding-top: 16px; padding-bottom: 26px; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="innhald">
+        <a class="heim" href="index.html">← Frode si sandkasse</a>
+        <h1 id="spelnamn">Aksjespelet V2</h1>
+        <p id="fase">Hentar spelet …</p>
+    </div>
+</header>
+<div id="demo" class="skjult"><div class="innhald">Demo: kursane er oppdikta, og alt blir lagra berre i denne nettlesaren. Prøv gjerne – meld deg på med kva namn som helst. Påmeldingskoden er <b>A</b> eller <b>B</b>.</div></div>
+
+<nav aria-label="Visningar">
+    <div class="innhald" role="tablist">
+        <button role="tab" data-fane="topp" aria-selected="true">Toppliste</button>
+        <button role="tab" data-fane="marknad" aria-selected="false">Marknaden</button>
+        <button role="tab" data-fane="min" aria-selected="false">Mi portefølje</button>
+        <button role="tab" data-fane="reglar" aria-selected="false">Reglar</button>
+    </div>
+</nav>
+
+<main class="innhald">
+
+    <section id="fane-topp">
+        <h2 id="toppTittel">Toppliste</h2>
+        <p class="under" id="toppUnder"></p>
+        <form id="kodeSkjema" class="kort skjult">
+            <label for="klassekode" style="margin-top:0">Påmeldingskoden til klassen</label>
+            <div class="rad">
+                <input type="text" id="klassekode" autocomplete="off" autocapitalize="none" spellcheck="false" required>
+                <button class="knapp">Vis</button>
+            </div>
+            <p class="hint">Topplista er per klasse. Koden får du av læraren.</p>
+            <p class="feil" id="kodeFeil" role="alert"></p>
+        </form>
+        <div class="kort rull" id="toppKort" style="padding:6px">
+            <table id="topp">
+                <thead><tr><th></th><th>Spelar</th><th class="h">Verdi</th><th class="h">Avkastning</th><th class="h brei">Selskap</th><th class="brei">Størst post</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <div id="kampDel" class="skjult">
+            <h3>Klassekamp</h3>
+            <p class="under" id="kampUnder"></p>
+            <div class="kort rull" style="padding:6px">
+                <table id="kamp">
+                    <thead><tr><th></th><th>Klasse</th><th class="h brei">Spelarar</th><th class="h">Typisk elev</th><th class="h">Avkastning</th><th class="h brei">Samla verdi</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+        <div class="verkty">
+            <span id="oppdatert"></span>
+            <span class="ikkje-tavle"><a href="#tavle" id="tavleLenke">Vis på storskjerm</a></span>
+        </div>
+    </section>
+
+    <section id="fane-marknad" class="skjult">
+        <h2>Marknaden</h2>
+        <p class="under" id="marknadUnder">Trykk på eit selskap for å kjøpe eller selje.</p>
+        <div id="marknad"></div>
+    </section>
+
+    <section id="fane-min" class="skjult">
+        <form id="innlogging" class="kort">
+            <h2 id="innTittel">Logg inn</h2>
+            <label for="brukar">Brukarnamn</label>
+            <input type="text" id="brukar" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="16" required>
+            <p class="hint skjult" id="namnHint">3–16 teikn. Ikkje bruk det ekte namnet ditt – alle ser brukarnamnet på topplista.</p>
+            <label for="pin">PIN-kode</label>
+            <input type="password" id="pin" inputmode="numeric" autocomplete="current-password" maxlength="8" required>
+            <p class="hint skjult" id="pinHint">4–8 siffer som du vel sjølv. Ikkje bruk ein kode du brukar andre stader.</p>
+            <div id="kodeFelt" class="skjult">
+                <label for="kode">Påmeldingskode</label>
+                <input type="text" id="kode" autocomplete="off" autocapitalize="none" spellcheck="false">
+                <p class="hint">Koden får du av læraren.</p>
+            </div>
+            <p class="feil" id="innFeil" role="alert"></p>
+            <div class="rad">
+                <button class="knapp" id="innKnapp">Logg inn</button>
+                <button type="button" class="tekst" id="byt">Ny spelar? Meld deg på</button>
+            </div>
+        </form>
+
+        <div id="min" class="skjult">
+            <div class="topplinje">
+                <h2 id="minTittel"></h2>
+                <button type="button" class="tekst" id="loggUt">Logg ut</button>
+            </div>
+            <p class="under" id="minPlass"></p>
+            <div class="tal3">
+                <div><span>Totalverdi</span><b id="mTotal"></b></div>
+                <div><span>Kontantar</span><b id="mKontant"></b></div>
+                <div><span>Avkastning</span><b id="mPst"></b></div>
+            </div>
+            <div id="ordreDel" class="skjult">
+                <h3>Ordrane mine</h3>
+                <div class="kort rull" style="padding:6px">
+                    <table id="ordrar">
+                        <thead><tr><th>Lagt inn</th><th>Ordre</th><th>Status</th><th></th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            <h3>Aksjane mine</h3>
+            <div class="kort rull" style="padding:6px">
+                <table id="postar">
+                    <thead><tr><th>Selskap</th><th class="h">Tal</th><th class="h brei">Kurs</th><th class="h">Verdi</th><th class="h">Gevinst</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <h3>Handlane mine</h3>
+            <div class="kort rull" style="padding:6px">
+                <table id="handlar">
+                    <thead><tr><th>Når</th><th>Handel</th><th class="h brei">Kurs</th><th class="h">Beløp</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <section id="fane-reglar" class="skjult">
+        <h2>Reglar</h2>
+        <ul class="reglar" id="regelliste"></ul>
+
+        <h3>Slik heng systemet saman</h3>
+        <p>Aksjespelet er eit lite datasystem med tre delar. Nettsida du ser no er <b>klienten</b>. Ho spør eit lite program hos Google (<b>API-et</b>), og programmet les og skriv i eit Google-ark som er <b>databasen</b>.</p>
+<pre>Nettlesaren (aksjespel.html)
+      │  HTTPS: «gje meg stoda» / «kjøp 10 Equinor»
+      ▼
+API (Google Apps Script) – sjekkar PIN, dato, opningstid og saldo
+      │
+      ▼
+Database (Google-ark)
+  Oppsett   start, slutt, startsum, kurtasje, fridagar
+  Selskap   ticker, namn, børs, valuta, kurs
+  Klassar   påmeldingskode, klassenamn
+  Spelarar  brukarnamn, PIN-hash, klasse
+  Handlar   tid, brukarnamn, kjøp/sal, ticker, tal, kurs
+  Ordrar    brukarnamn, kjøp/sal, ticker, tal, status</pre>
+        <ul class="reglar">
+            <li><b>Sjekken skjer på tenaren.</b> Nettsida kan du endre på sjølv i nettlesaren, så det er API-et som avgjer om du har råd til ein handel.</li>
+            <li><b>Saldoen blir aldri lagra.</b> Databasen lagrar berre handlane. Kontantar og aksjepostar blir rekna ut på nytt frå handlelista kvar gong – slik ein bank fører rekneskap.</li>
+            <li><b>PIN-koden blir heller ikkje lagra.</b> Databasen har berre ein SHA-256-hash med salt. Etter fem feil PIN-kodar må du vente ti minutt.</li>
+            <li><b>Ordrane blir køyrde av ein tidsstyrt jobb.</b> Kvart tiande minutt ser API-et gjennom ordrane som ventar. Er børsen open, blir ordren til ein handel – eller kansellert viss det ikkje er dekning.</li>
+            <li><b>Klassane er skjerma på tenaren.</b> API-et sender berre ut topplista til klassen du har koden til. Frå dei andre klassane får nettsida berre tala i klassekampen.</li>
+            <li><b>Ingen ekte namn.</b> Systemet veit berre brukarnamnet. Kven som er kven, står på ei liste hos læraren.</li>
+        </ul>
+    </section>
+</main>
+
+<dialog id="handel" aria-labelledby="hNamn">
+    <div class="dhovud">
+        <h2 id="hNamn"></h2>
+        <p id="hKurs"></p>
+    </div>
+    <form class="dkropp" id="hSkjema">
+        <div class="val">
+            <button type="button" id="hKjop" aria-pressed="true">Kjøp</button>
+            <button type="button" id="hSal" aria-pressed="false">Sel</button>
+        </div>
+        <label for="hTal">Tal på aksjar</label>
+        <div class="talrad">
+            <input type="number" id="hTal" min="1" step="1" inputmode="numeric" required>
+            <button type="button" class="lys" id="hMaks">Maks</button>
+        </div>
+        <p class="hint" id="hEig"></p>
+        <dl id="hRekning"></dl>
+        <p class="varsel skjult" id="hStengd"></p>
+        <p class="feil" id="hFeil" role="alert"></p>
+        <div class="dknappar">
+            <button type="button" class="lys" id="hAvbryt">Avbryt</button>
+            <button class="knapp" id="hOk">Kjøp</button>
+        </div>
+    </form>
+</dialog>
+
+<footer>
+    <div class="innhald">Aksjespelet V2. Liksompengar og forseinka kursar. Dette er eit spel for å lære – ikkje råd om kva du bør gjere med ekte pengar.</div>
+</footer>
+
+<script>
+/* Lim inn adressa til Apps Script-nettappen her (ho sluttar på /exec). Sjå aksjespel_v2.gs.
+   Står ho tom, køyrer sida i demomodus med oppdikta kursar. */
+const API_URL = "";
+
+const $ = id => document.getElementById(id);
+const LAGER = "aksjespel2-innlogging";
+const KODELAGER = "aksjespel2-klassekode";
+let stoda = null;      // svaret frå GET: spel, børsar, selskap, toppliste for klassen, klassekamp
+let meg = null;        // kontantar, postar, ordrar og handlar for den innlogga
+let innlogga = null;   // { brukar, pin }
+let klassekode = "";   // koden som avgjer kva toppliste me får sjå
+let ny = false;        // påmelding i staden for innlogging
+let vald = null;       // selskapet i handledialogen
+let retning = "KJØP";
+
+/* ---------- Småting ---------- */
+
+const esc = t => String(t).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const heile = n => Math.round(n).toLocaleString("nb-NO");
+const kroner = n => heile(n) + " kr";
+const desimal = n => n.toLocaleString("nb-NO", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const kurs = (n, valuta) => desimal(n) + (valuta === "USD" ? " $" : " kr");
+const ticker = id => String(id).split(":").pop();
+const dag = iso => new Date(iso + "T12:00:00").toLocaleDateString("nb-NO", { day: "numeric", month: "long" });
+const dagar = (fra, til) => Math.round((new Date(til + "T12:00:00") - new Date(fra + "T12:00:00")) / 86400000);
+const klokke = iso => new Date(iso).toLocaleTimeString("nb-NO", { hour: "2-digit", minute: "2-digit" });
+const kortTid = iso => new Date(iso).toLocaleString("nb-NO", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+function idag() {
+    const d = new Date();
+    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+}
+// «i dag kl. 16:00», «i morgon kl. 09:30», «måndag kl. 09:30»
+function nar(iso) {
+    const d = new Date(iso);
+    const dagnr = x => Math.floor((x.getTime() - x.getTimezoneOffset() * 60000) / 86400000);
+    const om = dagnr(d) - dagnr(new Date());
+    const kva = om <= 0 ? "i dag" : om === 1 ? "i morgon"
+        : om < 7 ? ["sundag", "måndag", "tysdag", "onsdag", "torsdag", "fredag", "laurdag"][d.getDay()]
+        : d.toLocaleDateString("nb-NO", { day: "numeric", month: "long" });
+    return kva + " kl. " + klokke(iso);
+}
+function prosent(p, tom) {
+    if (p == null || !isFinite(p)) return '<span class="liten">' + (tom || "–") + "</span>";
+    const t = (p > 0 ? "+" : p < 0 ? "−" : "") + Math.abs(p).toLocaleString("nb-NO", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + " %";
+    return '<span class="' + (p > 0.049 ? "pluss" : p < -0.049 ? "minus" : "") + '">' + t + "</span>";
+}
+function gevinst(n) {
+    n = Math.round(n);
+    const t = (n > 0 ? "+" : n < 0 ? "−" : "") + heile(Math.abs(n)) + " kr";
+    return '<span class="' + (n >= 0.5 ? "pluss" : n <= -0.5 ? "minus" : "") + '">' + t + "</span>";
+}
+const selskapet = id => stoda && stoda.selskap.find(s => s.id === id);
+const veksling = s => s.valuta === "USD" ? stoda.usdnok : 1;
+const borsen = s => stoda.borsar[s.marknad] || { namn: s.bors, open: true, opnar: "", stenger: "" };
+const fleire = () => stoda.klassekamp.length > 1;
+const ventande = () => meg ? meg.ordrar.filter(o => o.status === "VENTAR") : [];
+function lagreKode(kode) {
+    klassekode = kode || "";
+    try { klassekode ? localStorage.setItem(KODELAGER, klassekode) : localStorage.removeItem(KODELAGER); } catch (x) {}
+}
+
+/* ---------- Samtale med API-et ---------- */
+
+async function api(f, data) {
+    if (!API_URL) return Demo.kall(f, data || {});
+    let svar;
+    if (f === "status") {
+        svar = await fetch(API_URL + (data && data.kode ? "?kode=" + encodeURIComponent(data.kode) : ""));
+    } else {
+        // text/plain gjer at nettlesaren sender direkte utan CORS-forspørjing
+        svar = await fetch(API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify(Object.assign({ f: f }, data))
+        });
+    }
+    const d = await svar.json();
+    if (!d.ok) throw new Error(d.feil || "ukjend feil");
+    return d;
+}
+
+async function hentStoda() {
+    try {
+        stoda = await api("status", { kode: klassekode });
+        visAlt();
+    } catch (e) {
+        if (!stoda) $("fase").textContent = "Får ikkje kontakt med spelet (" + e.message + ").";
+        $("oppdatert").textContent = "Får ikkje kontakt akkurat no. Prøver igjen snart.";
+    }
+}
+
+/* ---------- Visning ---------- */
+
+function visAlt() {
+    visHovud();
+    visTopp();
+    visMarknad();
+    visMin();
+    visReglar();
+    // Står handledialogen open, skal han vise den nye kursen
+    if (vald && $("handel").open) { vald = selskapet(vald.id) || vald; visRekning(); }
+}
+
+function visHovud() {
+    const s = stoda.spel;
+    $("spelnamn").textContent = s.namn;
+    document.title = s.namn;
+    let t;
+    if (s.fase === "for") {
+        t = s.start ? "Startar <b>" + dag(s.start) + "</b> og varer til " + dag(s.slutt) + ". Du kan melde deg på no."
+                    : "Startdatoen er ikkje sett enno.";
+    } else if (s.fase === "igang") {
+        const att = dagar(idag(), s.slutt);
+        t = "Dag <b>" + (dagar(s.start, idag()) + 1) + "</b> av " + (dagar(s.start, s.slutt) + 1) + " · "
+          + (att <= 0 ? "<b>siste dag i dag</b>" : "sluttar " + dag(s.slutt) + (att === 1 ? " (i morgon)" : " (om " + att + " dagar)"));
+    } else {
+        const v = stoda.toppliste && stoda.toppliste[0];
+        const k = fleire() && stoda.klassekamp[0].verdi !== null ? stoda.klassekamp[0] : null;
+        t = "Spelet er slutt."
+          + (k ? " <b>" + esc(k.namn) + "</b> vann klassekampen." : "")
+          + (v ? " Vinnaren" + (fleire() ? " i " + esc(stoda.klasse) : "") + " er <b>" + esc(v.brukar) + "</b> med " + kroner(v.verdi) + "." : "");
+    }
+    $("fase").innerHTML = t;
+}
+
+function visTopp() {
+    const s = stoda.spel, liste = stoda.toppliste;
+    const medaljar = ["🥇", "🥈", "🥉"];
+    $("toppTittel").textContent = liste && fleire() ? "Toppliste · " + stoda.klasse : "Toppliste";
+    $("kodeSkjema").classList.toggle("skjult", !!liste);
+    $("toppKort").classList.toggle("skjult", !liste);
+    $("toppUnder").textContent = !liste ? "Skriv koden til klassen din for å sjå topplista."
+        : liste.length ? liste.length + (liste.length === 1 ? " spelar" : " spelarar") + " · alle starta med " + kroner(s.startsum)
+        : "Ingen har meldt seg på enno.";
+    let h = "", strek = false;
+    (liste || []).forEach((r, i) => {
+        // Streken viser kven som har tent og kven som har tapt pengar
+        if (!strek && r.verdi < s.startsum && i > 0 && s.fase !== "for") {
+            h += '<tr class="strek"><td colspan="6">Startsum ' + kroner(s.startsum) + "</td></tr>";
+            strek = true;
+        }
+        const erMeg = innlogga && r.brukar.toLowerCase() === innlogga.brukar.toLowerCase();
+        const st = selskapet(r.storst);
+        h += '<tr class="' + (erMeg ? "meg" : "") + '">'
+           + '<td class="plass">' + (s.fase !== "for" && i < 3 ? medaljar[i] : i + 1) + "</td>"
+           + '<td class="namn">' + esc(r.brukar) + (erMeg ? ' <span class="merke">deg</span>' : "") + "</td>"
+           + '<td class="h verdi">' + kroner(r.verdi) + "</td>"
+           + '<td class="h">' + prosent(r.pst) + "</td>"
+           + '<td class="h brei">' + (r.selskap || "–") + "</td>"
+           + '<td class="brei liten">' + (st ? esc(st.namn) : r.storst ? esc(ticker(r.storst)) : "berre kontantar") + "</td></tr>";
+    });
+    $("topp").tBodies[0].innerHTML = h || '<tr><td colspan="6" class="tom">Topplista fyller seg opp når elevane melder seg på.</td></tr>';
+
+    // Klassekampen: berre tal per klasse, aldri spelarane i dei andre klassane
+    $("kampDel").classList.toggle("skjult", !fleire());
+    $("kampUnder").textContent = "Klassane blir rangerte etter den typiske eleven: den midtarste i klassen når alle er sorterte etter verdi (medianen). "
+        + "Klassar med færre enn " + s.minst + " spelarar får ikkje plassering.";
+    h = "";
+    stoda.klassekamp.forEach((k, i) => {
+        const min = k.namn === stoda.klasse;
+        h += '<tr class="' + (min ? "meg" : "") + '">'
+           + '<td class="plass">' + (k.verdi === null ? "–" : s.fase !== "for" && i < 3 ? medaljar[i] : i + 1) + "</td>"
+           + '<td class="namn">' + esc(k.namn) + (min ? ' <span class="merke">din klasse</span>' : "") + "</td>"
+           + '<td class="h brei">' + k.spelarar + "</td>"
+           + (k.verdi === null ? '<td class="h liten" colspan="3">for få spelarar</td>'
+              : '<td class="h verdi">' + kroner(k.verdi) + "</td>"
+              + '<td class="h">' + prosent(k.pst) + "</td>"
+              + '<td class="h brei">' + kroner(k.sum) + "</td>")
+           + "</tr>";
+    });
+    $("kamp").tBodies[0].innerHTML = h;
+
+    $("oppdatert").textContent = "Oppdatert kl. " + klokke(stoda.oppdatert)
+        + (s.fase === "ferdig" ? " · sluttkursane er frosne" : " · oppdaterer seg sjølv");
+}
+
+// «Open til 16:20» eller «Stengd · opnar måndag kl. 09:30»
+function borsMerke(b) {
+    if (stoda.spel.fase !== "igang") return "";
+    return b.open ? '<span class="status open">Open til ' + klokke(b.stenger) + "</span>"
+        : '<span class="status stengd">Stengd' + (b.opnar ? " · opnar " + nar(b.opnar) : "") + "</span>";
+}
+
+function visMarknad() {
+    const s = stoda.spel;
+    $("marknadUnder").textContent = s.fase === "for" ? "Handelen opnar " + (s.start ? dag(s.start) : "seinare") + ". Sjå deg rundt så lenge."
+        : s.fase === "ferdig" ? "Spelet er slutt. Slik enda kursane."
+        : "Trykk på eit selskap for å kjøpe eller selje. Er børsen stengd, legg du inn ein ordre som ventar til ho opnar. 1 $ = " + desimal(stoda.usdnok) + " kr.";
+    const borsar = [];
+    stoda.selskap.forEach(x => { if (!borsar.includes(x.bors)) borsar.push(x.bors); });
+    const eig = {};
+    if (meg) meg.postar.forEach(p => eig[p.id] = p.tal);
+    let h = "";
+    borsar.forEach(b => {
+        const her = stoda.selskap.filter(x => x.bors === b);
+        h += "<h3>" + esc(b === "Oslo" ? "Oslo Børs" : b) + borsMerke(borsen(her[0])) + '</h3><div class="kort rull" style="padding:6px"><table>'
+           + '<thead><tr><th>Selskap</th><th class="h">Kurs</th><th class="h">Sidan start</th></tr></thead><tbody>';
+        her.forEach(x => {
+            h += '<tr class="selskap" tabindex="0" data-id="' + esc(x.id) + '">'
+               + '<td><span class="namn">' + esc(x.namn) + "</span>" + (eig[x.id] ? '<span class="merke">' + heile(eig[x.id]) + " stk</span>" : "")
+               + '<br><span class="liten">' + esc(ticker(x.id)) + "</span></td>"
+               + '<td class="h">' + kurs(x.kurs, x.valuta) + "</td>"
+               + '<td class="h">' + prosent(x.start > 0 ? (x.kurs / x.start - 1) * 100 : null) + "</td></tr>";
+        });
+        h += "</tbody></table></div>";
+    });
+    $("marknad").innerHTML = h || '<p class="tom">Ingen kursar tilgjengelege akkurat no.</p>';
+}
+
+function visMin() {
+    $("innlogging").classList.toggle("skjult", !!meg);
+    $("min").classList.toggle("skjult", !meg);
+    if (!meg || !stoda) { visSkjema(); return; }
+    const s = stoda.spel;
+    let total = meg.kontantar;
+    let h = "";
+    meg.postar.forEach(p => {
+        const x = selskapet(p.id);
+        const verdi = x ? p.tal * x.kurs * veksling(x) : p.kost;
+        total += verdi;
+        h += '<tr class="selskap" tabindex="0" data-id="' + esc(p.id) + '">'
+           + '<td><span class="namn">' + esc(x ? x.namn : ticker(p.id)) + '</span><br><span class="liten">' + esc(ticker(p.id)) + "</span></td>"
+           + '<td class="h">' + heile(p.tal) + "</td>"
+           + '<td class="h brei">' + (x ? kurs(x.kurs, x.valuta) : "–") + "</td>"
+           + '<td class="h">' + kroner(verdi) + "</td>"
+           + '<td class="h">' + gevinst(verdi - p.kost) + "</td></tr>";
+    });
+    $("postar").tBodies[0].innerHTML = h || '<tr><td colspan="5" class="tom">Du eig ingen aksjar enno. '
+        + (s.fase === "igang" ? "Gå til Marknaden og gjer den første handelen." : "") + "</td></tr>";
+
+    $("minTittel").textContent = meg.brukar;
+    const liste = stoda.toppliste || [];
+    const plass = liste.findIndex(r => r.brukar.toLowerCase() === meg.brukar.toLowerCase()) + 1;
+    $("minPlass").textContent = plass ? "Du er på " + plass + ". plass av " + liste.length + (fleire() ? " i " + stoda.klasse : "") + "." : "";
+    $("mTotal").textContent = kroner(total);
+    $("mKontant").textContent = kroner(meg.kontantar);
+    $("mPst").innerHTML = prosent((total / s.startsum - 1) * 100);
+
+    // Ordrar som ventar på at børsen skal opne, og dei som nyleg vart kansellerte
+    h = "";
+    meg.ordrar.forEach(o => {
+        const x = selskapet(o.id);
+        const b = x ? borsen(x) : null;
+        const ventar = o.status === "VENTAR";
+        h += '<tr><td class="liten">' + kortTid(o.lagt) + "</td>"
+           + "<td>" + (o.type === "SAL" ? "Sel " : "Kjøp ") + heile(o.tal) + " " + esc(x ? x.namn : ticker(o.id)) + "</td>"
+           + "<td>" + (ventar
+                ? "Ventar" + '<br><span class="liten">' + (!b ? "" : b.open ? "blir gjennomført om få minutt" : b.opnar ? "børsen opnar " + nar(b.opnar) : "") + "</span>"
+                : '<span class="minus">Kansellert</span><br><span class="liten">' + esc(o.merknad) + "</span>") + "</td>"
+           + '<td class="h">' + (ventar ? '<button type="button" class="tekst" data-ordre="' + esc(o.ordre) + '">Angre</button>' : "") + "</td></tr>";
+    });
+    $("ordreDel").classList.toggle("skjult", !meg.ordrar.length);
+    $("ordrar").tBodies[0].innerHTML = h;
+
+    h = "";
+    meg.handlar.forEach(x => {
+        const sel = selskapet(x.id);
+        h += "<tr><td class=\"liten\">" + kortTid(x.tid) + "</td>"
+           + "<td>" + (x.type === "SAL" ? "Selde " : "Kjøpte ") + heile(x.tal) + " " + esc(sel ? sel.namn : ticker(x.id)) + "</td>"
+           + '<td class="h brei">' + kurs(x.kurs, x.valuta) + "</td>"
+           + '<td class="h">' + (x.type === "SAL" ? "+" : "−") + heile(x.belop) + " kr</td></tr>";
+    });
+    $("handlar").tBodies[0].innerHTML = h || '<tr><td colspan="4" class="tom">Ingen handlar enno.</td></tr>';
+}
+
+function visSkjema() {
+    $("innTittel").textContent = ny ? "Meld deg på" : "Logg inn";
+    $("innKnapp").textContent = ny ? "Meld meg på" : "Logg inn";
+    $("byt").textContent = ny ? "Har du brukar? Logg inn" : "Ny spelar? Meld deg på";
+    $("namnHint").classList.toggle("skjult", !ny);
+    $("pinHint").classList.toggle("skjult", !ny);
+    $("kodeFelt").classList.toggle("skjult", !ny);
+    $("pin").autocomplete = ny ? "new-password" : "current-password";
+}
+
+function visReglar() {
+    const s = stoda.spel;
+    const tider = Object.keys(stoda.borsar).map(k => stoda.borsar[k]).filter(b => b.opnar)
+        .map(b => esc(b.namn) + " kl. " + klokke(b.opnar) + "–" + klokke(b.stenger)).join(" og ");
+    const reglar = [
+        "Alle startar med <b>" + kroner(s.startsum) + "</b> i liksompengar.",
+        s.start ? "Du kan handle frå og med <b>" + dag(s.start) + "</b> til og med <b>" + dag(s.slutt) + "</b>. Etterpå blir kursane frosne, og topplista er endeleg." : "Start og slutt er ikkje sett enno.",
+        "Du kan kjøpe og selje aksjar i selskapa på lista, frå Oslo Børs og børsane i New York (NYSE og Nasdaq). Berre heile aksjar.",
+        "<b>Du handlar direkte berre når børsen er open</b>" + (tider ? ": " + tider + " norsk tid, måndag til fredag" : "") + ". "
+            + (s.forseinking > 0 ? "Kursane er forseinka, så handelen i spelet opnar " + s.forseinking + " minutt etter at børsen opnar." : ""),
+        "<b>Er børsen stengd, legg du inn ein ordre.</b> Han blir gjennomført til den første kursen etter at børsen opnar – og den kan vere både høgare og lågare enn kursen du såg. "
+            + "Har du ikkje råd då, eller eig du ikkje nok aksjar, blir ordren kansellert. Du kan angre ein ordre så lenge han ventar.",
+        "Amerikanske aksjar blir prisa i dollar og rekna om til kroner med dollarkursen den augneblinken handelen blir gjennomført. Stig dollaren, stig verdien av dei amerikanske aksjane dine òg.",
+        s.kurtasje > 0 ? "Kvar handel kostar <b>" + kroner(s.kurtasje) + "</b> i kurtasje – gebyret meklaren tek. Mange små handlar et opp pengane." : "Ingen kurtasje i dette spelet.",
+        "Du kan ikkje låne pengar og ikkje selje aksjar du ikkje eig.",
+        "Topplista viser kontantar pluss verdien av aksjane. Høgast verdi i klassen når spelet er slutt, vinn."
+    ];
+    if (fleire()) reglar.push("<b>Klassekampen</b> blir avgjord av den typiske eleven i kvar klasse (medianen): den midtarste når alle i klassen er sorterte etter verdi. "
+        + "Då hjelper det ikkje at éin elev har flaks – heile klassen må gjere det bra. Du ser berre spelarane i din eigen klasse.");
+    $("regelliste").innerHTML = reglar.map(r => "<li>" + r + "</li>").join("");
+}
+
+/* ---------- Faner ---------- */
+
+function visFane(namn) {
+    document.querySelectorAll("nav button").forEach(b => b.setAttribute("aria-selected", b.dataset.fane === namn));
+    ["topp", "marknad", "min", "reglar"].forEach(f => $("fane-" + f).classList.toggle("skjult", f !== namn));
+    window.scrollTo(0, 0);
+}
+document.querySelectorAll("nav button").forEach(b => b.addEventListener("click", () => visFane(b.dataset.fane)));
+
+function tavle() {
+    const pa = location.hash === "#tavle";
+    document.body.classList.toggle("tavle", pa);
+    if (pa) visFane("topp");
+}
+window.addEventListener("hashchange", tavle);
+
+/* ---------- Klassekode og innlogging ---------- */
+
+// Utan innlogging (til dømes på storskjermen) vel klassekoden kva toppliste som blir vist
+$("kodeSkjema").addEventListener("submit", async e => {
+    e.preventDefault();
+    $("kodeFeil").textContent = "";
+    lagreKode($("klassekode").value.trim());
+    await hentStoda();
+    if (stoda && !stoda.klasse) {
+        lagreKode("");
+        $("kodeFeil").textContent = "Fann ingen klasse med den koden.";
+    } else {
+        $("klassekode").value = "";
+    }
+});
+
+$("byt").addEventListener("click", () => { ny = !ny; $("innFeil").textContent = ""; visSkjema(); });
+
+$("innlogging").addEventListener("submit", async e => {
+    e.preventDefault();
+    const data = { brukar: $("brukar").value.trim(), pin: $("pin").value.trim(), kode: $("kode").value.trim() };
+    $("innKnapp").disabled = true;
+    $("innFeil").textContent = "";
+    try {
+        const d = await api(ny ? "registrer" : "logginn", data);
+        meg = d.meg;
+        innlogga = { brukar: meg.brukar, pin: data.pin };
+        try { localStorage.setItem(LAGER, JSON.stringify(innlogga)); } catch (x) {}
+        lagreKode(meg.kode);
+        $("pin").value = "";
+        await hentStoda();
+    } catch (feil) {
+        $("innFeil").textContent = feil.message;
+    }
+    $("innKnapp").disabled = false;
+});
+
+$("loggUt").addEventListener("click", () => {
+    meg = null; innlogga = null; ny = false;
+    try { localStorage.removeItem(LAGER); } catch (x) {}
+    visAlt();
+});
+
+async function hentMeg() {
+    if (!innlogga) return;
+    try {
+        meg = (await api("logginn", innlogga)).meg;
+        if (meg.kode && meg.kode.toLowerCase() !== klassekode.toLowerCase()) { lagreKode(meg.kode); await hentStoda(); }
+    } catch (feil) {
+        // Feil PIN eller sletta brukar: logg ut. Nettverksfeil: behald innlogginga.
+        if (/PIN|brukarnamn/i.test(feil.message)) {
+            meg = null; innlogga = null;
+            try { localStorage.removeItem(LAGER); } catch (x) {}
+        }
+    }
+    if (stoda) visAlt();
+}
+
+/* ---------- Handel ---------- */
+
+function opneHandel(id) {
+    const x = selskapet(id);
+    if (!x) return;
+    if (!meg) { visFane("min"); $("innFeil").textContent = "Logg inn eller meld deg på for å handle."; $("brukar").focus(); return; }
+    vald = x;
+    $("hNamn").textContent = x.namn;
+    $("hTal").value = "";
+    $("hFeil").textContent = "";
+    setRetning("KJØP");
+    $("handel").showModal();
+    $("hTal").focus();
+}
+
+// Aksjar du kan selje: dei du eig, minus dei som alt ligg i ein salsordre
+function eigTal() {
+    const p = meg && vald && meg.postar.find(p => p.id === vald.id);
+    const iOrdre = ventande().filter(o => o.type === "SAL" && o.id === vald.id).reduce((a, o) => a + o.tal, 0);
+    return Math.max(0, (p ? p.tal : 0) - iOrdre);
+}
+function maksTal() {
+    if (retning === "SAL") return eigTal();
+    return Math.max(0, Math.floor((meg.kontantar - stoda.spel.kurtasje) / (vald.kurs * veksling(vald))));
+}
+
+function setRetning(r) {
+    retning = r;
+    $("hKjop").setAttribute("aria-pressed", r === "KJØP");
+    $("hSal").setAttribute("aria-pressed", r === "SAL");
+    visRekning();
+}
+
+function visRekning() {
+    if (!vald) return;
+    const s = stoda.spel, x = vald, b = borsen(x);
+    const tal = Math.floor(Number($("hTal").value)) || 0;
+    const belop = tal * x.kurs * veksling(x);
+    const etter = retning === "SAL" ? meg.kontantar + belop - s.kurtasje : meg.kontantar - belop - s.kurtasje;
+    const ca = b.open ? "" : "ca. ";   // stengd børs: kursen kan endre seg før ordren går gjennom
+    $("hKurs").textContent = ticker(x.id) + " · " + kurs(x.kurs, x.valuta) + (x.valuta === "USD" ? " = " + desimal(x.kurs * stoda.usdnok) + " kr" : "");
+    $("hEig").textContent = "Du kan selje " + heile(eigTal()) + " aksjar og har " + kroner(meg.kontantar) + " i kontantar.";
+    let h = "<dt>" + heile(tal) + " × " + kurs(x.kurs, x.valuta) + "</dt><dd>" + (x.valuta === "USD" ? desimal(tal * x.kurs) + " $" : kroner(belop)) + "</dd>";
+    if (x.valuta === "USD") h += "<dt>Veksla til kroner (× " + desimal(stoda.usdnok) + ")</dt><dd>" + kroner(belop) + "</dd>";
+    if (s.kurtasje > 0) h += "<dt>Kurtasje</dt><dd>" + (retning === "SAL" ? "−" : "+") + " " + kroner(s.kurtasje) + "</dd>";
+    h += '<dt class="sum">' + (retning === "SAL" ? "Du får" : "Du betaler") + '</dt><dd class="sum">' + ca + kroner(retning === "SAL" ? belop - s.kurtasje : belop + s.kurtasje) + "</dd>"
+       + "<dt>Kontantar etterpå</dt><dd>" + (etter < 0 ? '<span class="minus">' : "<span>") + ca + (etter < 0 ? "−" : "") + heile(Math.abs(etter)) + " kr</span></dd>";
+    $("hRekning").innerHTML = h;
+
+    const igang = s.fase === "igang";
+    const forMange = tal > maksTal();
+    // Stengd børs: eit kjøp som ser for dyrt ut kan framleis leggjast inn. Det blir avgjort når børsen opnar.
+    const ok = igang && tal >= 1 && (b.open ? !forMange : !!b.opnar && !(retning === "SAL" && forMange));
+    const kva = (retning === "SAL" ? "sel" : "kjøp") + (tal ? " " + heile(tal) + (tal === 1 ? " aksje" : " aksjar") : "");
+    $("hOk").textContent = b.open ? kva.charAt(0).toUpperCase() + kva.slice(1) : "Legg inn ordre: " + kva;
+    $("hOk").disabled = !ok;
+    $("hMaks").disabled = !igang || maksTal() < 1;
+    $("hStengd").classList.toggle("skjult", !igang || b.open);
+    $("hStengd").innerHTML = "<b>" + esc(b.namn) + " er stengd no.</b> "
+        + (b.opnar ? "Ordren ventar til børsen opnar " + nar(b.opnar) + ", og blir gjennomført til kursen då. Beløpa over er rekna med kursen no."
+                   : "Børsen opnar ikkje fleire gonger før spelet er slutt.");
+    $("hFeil").textContent = !igang ? (s.fase === "for" ? "Handelen har ikkje opna enno." : "Spelet er slutt.")
+        : !forMange ? ""
+        : retning === "SAL" ? "Du har ikkje så mange aksjar å selje."
+        : b.open ? "Du har ikkje nok kontantar."
+        : "Med kursen no har du ikkje råd. Ordren blir kansellert viss det framleis er slik når børsen opnar.";
+}
+
+$("hKjop").addEventListener("click", () => setRetning("KJØP"));
+$("hSal").addEventListener("click", () => setRetning("SAL"));
+$("hTal").addEventListener("input", visRekning);
+$("hMaks").addEventListener("click", () => { $("hTal").value = maksTal(); visRekning(); });
+$("hAvbryt").addEventListener("click", () => $("handel").close());
+$("handel").addEventListener("click", e => { if (e.target === $("handel")) $("handel").close(); });
+
+$("hSkjema").addEventListener("submit", async e => {
+    e.preventDefault();
+    const tal = Math.floor(Number($("hTal").value));
+    $("hOk").disabled = true;
+    $("hOk").textContent = "Sender …";
+    try {
+        const d = await api("handel", Object.assign({ type: retning, id: vald.id, tal: tal }, innlogga));
+        meg = d.meg;
+        $("handel").close();
+        if (d.ordre) visFane("min");   // vis ordren som no ventar
+        await hentStoda();
+    } catch (feil) {
+        visRekning();
+        $("hFeil").textContent = feil.message;
+    }
+});
+
+// Angre ein ordre som ventar
+$("ordrar").addEventListener("click", async e => {
+    const knapp = e.target.closest("[data-ordre]");
+    if (!knapp) return;
+    knapp.disabled = true;
+    try {
+        meg = (await api("angre", Object.assign({ ordre: knapp.dataset.ordre }, innlogga))).meg;
+        visAlt();
+    } catch (feil) {
+        await hentMeg();   // ordren vart truleg gjennomført i mellomtida
+    }
+});
+
+// Trykk på eit selskap, i marknaden eller i porteføljen
+["marknad", "postar"].forEach(id => {
+    $(id).addEventListener("click", e => { const r = e.target.closest(".selskap"); if (r) opneHandel(r.dataset.id); });
+    $(id).addEventListener("keydown", e => {
+        const r = e.target.closest(".selskap");
+        if (r && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); opneHandel(r.dataset.id); }
+    });
+});
+
+/* ---------- Demomodus: same API, men i nettlesaren og med oppdikta kursar ---------- */
+
+const Demo = (() => {
+    const NOKKEL = "aksjespel2-demo-v1";
+    const STARTSUM = 100000, KURTASJE = 29, DOGN = 86400000, MINST = 3, MAKS_ORDRAR = 10, STEG = 300000;
+    const KLASSAR = [["A", "Klasse A"], ["B", "Klasse B"]];
+    // «fra» er opningstida pluss 30 minutt forseinking, slik som i aksjespel_v2.gs
+    const BORSAR = {
+        "Oslo": { namn: "Oslo Børs", tz: "Europe/Oslo", fra: "09:30", stenger: "16:20" },
+        "New York": { namn: "New York", tz: "America/New_York", fra: "10:00", stenger: "16:00" }
+    };
+    const SELSKAP = [
+        ["OSL:EQNR", "Equinor", "Oslo", "NOK", 265], ["OSL:DNB", "DNB Bank", "Oslo", "NOK", 270],
+        ["OSL:TEL", "Telenor", "Oslo", "NOK", 160], ["OSL:NHY", "Norsk Hydro", "Oslo", "NOK", 72],
+        ["OSL:MOWI", "Mowi", "Oslo", "NOK", 215], ["OSL:KOG", "Kongsberg Gruppen", "Oslo", "NOK", 290],
+        ["OSL:AKSO", "Aker Solutions", "Oslo", "NOK", 34], ["OSL:NAS", "Norwegian", "Oslo", "NOK", 16],
+        ["NASDAQ:AAPL", "Apple", "New York", "USD", 260], ["NASDAQ:MSFT", "Microsoft", "New York", "USD", 480],
+        ["NASDAQ:NVDA", "Nvidia", "New York", "USD", 190], ["NASDAQ:TSLA", "Tesla", "New York", "USD", 410],
+        ["NASDAQ:CSCO", "Cisco", "New York", "USD", 75], ["NYSE:KO", "Coca-Cola", "New York", "USD", 70],
+        ["NYSE:NKE", "Nike", "New York", "USD", 68], ["NYSE:SPOT", "Spotify", "New York", "USD", 610]
+    ];
+    // Namn, klasse (0 = A, 1 = B) og kjøp som [selskap, tal]
+    const ROBOTAR = [
+        ["Borshai", 0, [[8, 20], [10, 15]]], ["Sparegris", 0, []], ["OljeOla", 0, [[0, 300]]], ["HODL_Stord", 0, [[11, 12], [9, 8]]],
+        ["Laksebaronen", 0, [[4, 250], [7, 1500]]], ["KjopHogt", 0, [[15, 8], [14, 30], [6, 500]]],
+        ["Aksjehauk", 1, [[2, 200], [12, 60]]], ["Kronerulling", 1, [[1, 100], [13, 60]]], ["TilManen", 1, [[11, 12], [10, 15]]],
+        ["Utbyttejeger", 1, [[0, 100], [1, 80], [2, 150]]], ["Madrassen", 1, []]
+    ];
+    const kr = n => Math.round(n * 100) / 100;
+    const iso = t => new Date(t).toISOString();
+    const kursPa = (i, t) => {
+        const m = t / 60000;
+        return kr(SELSKAP[i][4] * (1 + 0.07 * Math.sin(m / 2900 + i * 1.7) + 0.03 * Math.sin(m / 31 + i * 0.9) + 0.006 * Math.sin(m / 1.3 + i)));
+    };
+    const dollar = t => kr(10.4 + 0.25 * Math.sin(t / 60000 / 1700));
+    const datoPa = t => { const d = new Date(t); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
+
+    /* Opningstider, rekna i børsen si eiga tidssone */
+    const format = {};
+    function open(nokkel, t) {
+        const b = BORSAR[nokkel];
+        const f = format[b.tz] || (format[b.tz] = new Intl.DateTimeFormat("en-GB", { timeZone: b.tz, weekday: "short", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }));
+        const p = {};
+        f.formatToParts(new Date(t)).forEach(x => p[x.type] = x.value);
+        const tid = p.hour + ":" + p.minute;
+        return p.weekday !== "Sat" && p.weekday !== "Sun" && tid >= b.fra && tid < b.stenger;
+    }
+    // Første tidspunkt frå og med t (på fem minutt-rutenettet) der børsen er open, eller stengd
+    function neste(nokkel, t, onskt) {
+        let x = Math.ceil(t / STEG) * STEG;
+        for (let i = 0; i < 4100 && open(nokkel, x) !== onskt; i++) x += STEG;
+        return x;
+    }
+    function borsStatus(nokkel, no) {
+        const er = open(nokkel, no);
+        let opnar = er ? Math.floor(no / STEG) * STEG : neste(nokkel, no, true);
+        while (er && open(nokkel, opnar - STEG)) opnar -= STEG;   // gå attende til børsen opna i dag
+        return { namn: BORSAR[nokkel].namn, open: er, opnar: iso(opnar), stenger: iso(neste(nokkel, opnar, false)) };
+    }
+
+    function les() {
+        try { const d = JSON.parse(localStorage.getItem(NOKKEL)); if (d && d.t0) return d; } catch (x) {}
+        // Første besøk: spelet starta for seks dagar sidan, og nokre robotar har alt handla
+        const t0 = Date.now() - 6 * DOGN;
+        const d = { t0: t0, spelarar: ROBOTAR.map(r => ({ namn: r[0], pin: null, klasse: KLASSAR[r[1]][1] })), handlar: [], ordrar: [] };
+        ROBOTAR.forEach(r => r[2].forEach(h => d.handlar.push(lagHandel(r[0], "KJØP", h[0], h[1], t0 + 3600000))));
+        lagre(d);
+        return d;
+    }
+    function lagre(d) { try { localStorage.setItem(NOKKEL, JSON.stringify(d)); } catch (x) {} }
+    function lagHandel(namn, type, i, tal, t) {
+        const s = SELSKAP[i], k = kursPa(i, t), v = s[3] === "USD" ? dollar(t) : 1;
+        return { tid: iso(t), brukar: namn, type: type, id: s[0], tal: tal, kurs: k, valuta: s[3], belop: kr(tal * k * v), kurtasje: KURTASJE };
+    }
+    // Same utrekning som i aksjespel_v2.gs
+    function rekn(handlar) {
+        const ut = {};
+        handlar.forEach(h => {
+            const k = h.brukar.toLowerCase();
+            const r = ut[k] || (ut[k] = { kontantar: STARTSUM, postar: {} });
+            const p = r.postar[h.id] || (r.postar[h.id] = { tal: 0, kost: 0 });
+            if (h.type === "SAL") {
+                const del = p.tal > 0 ? Math.min(1, h.tal / p.tal) : 1;
+                p.kost = kr(p.kost * (1 - del));
+                p.tal -= h.tal;
+                r.kontantar = kr(r.kontantar + h.belop - h.kurtasje);
+            } else {
+                p.tal += h.tal;
+                p.kost = kr(p.kost + h.belop);
+                r.kontantar = kr(r.kontantar - h.belop - h.kurtasje);
+            }
+        });
+        return ut;
+    }
+    function dekning(m, h, namn) {
+        const eig = (m.postar.find(p => p.id === h.id) || { tal: 0 }).tal;
+        if (h.type === "KJØP" && h.belop + KURTASJE > m.kontantar + 0.001) {
+            return "Du har ikkje nok kontantar. Handelen kostar " + Math.ceil(h.belop + KURTASJE) + " kr, og du har " + Math.floor(m.kontantar) + " kr.";
+        }
+        return h.type === "SAL" && h.tal > eig ? "Du eig berre " + eig + " aksjar i " + namn + "." : "";
+    }
+    // Ordrar der børsen har opna sidan sist: gjennomfør til kursen ved opning, eller kanseller
+    function koyrOrdrar(d, no) {
+        const klare = d.ordrar.filter(o => o.status === "VENTAR" && Date.parse(o.opnar) <= no)
+            .sort((a, b) => Date.parse(a.opnar) - Date.parse(b.opnar) || Date.parse(a.lagt) - Date.parse(b.lagt));
+        klare.forEach(o => {
+            const t = Date.parse(o.opnar), i = SELSKAP.findIndex(s => s[0] === o.id);
+            const h = lagHandel(o.brukar, o.type, i, o.tal, t);
+            const feil = dekning(minSide(d, o.brukar), h, SELSKAP[i][1]);
+            o.status = feil ? "KANSELLERT" : "GJENNOMFØRT";
+            o.merknad = feil;
+            o.avgjort = iso(t);
+            if (!feil) d.handlar.push(h);
+        });
+        if (klare.length) lagre(d);
+    }
+    function median(verdiar) {
+        const v = verdiar.slice().sort((a, b) => a - b), midt = Math.floor(v.length / 2);
+        return v.length % 2 ? v[midt] : (v[midt - 1] + v[midt]) / 2;
+    }
+    function status(d, kode) {
+        const no = Date.now(), usd = dollar(no);
+        const selskap = SELSKAP.map((s, i) => ({ id: s[0], namn: s[1], bors: s[2], marknad: s[2], valuta: s[3], kurs: kursPa(i, no), start: kursPa(i, d.t0) }));
+        const rekneskap = rekn(d.handlar);
+        const liste = d.spelarar.map(s => {
+            const r = rekneskap[s.namn.toLowerCase()] || { kontantar: STARTSUM, postar: {} };
+            let verdi = r.kontantar, tal = 0, storst = "", storstVerdi = 0;
+            Object.keys(r.postar).forEach(id => {
+                const p = r.postar[id];
+                if (p.tal <= 0) return;
+                const x = selskap.find(y => y.id === id);
+                const v = p.tal * x.kurs * (x.valuta === "USD" ? usd : 1);
+                verdi += v; tal++;
+                if (v > storstVerdi) { storstVerdi = v; storst = id; }
+            });
+            return { brukar: s.namn, klasse: s.klasse, verdi: Math.round(verdi), pst: (verdi / STARTSUM - 1) * 100, selskap: tal, storst: storst };
+        }).sort((a, b) => b.verdi - a.verdi || a.brukar.localeCompare(b.brukar));
+        const kamp = KLASSAR.map(k => {
+            const verdiar = liste.filter(r => r.klasse === k[1]).map(r => r.verdi);
+            const nok = verdiar.length >= MINST, m = nok ? median(verdiar) : null;
+            return { namn: k[1], spelarar: verdiar.length, verdi: nok ? Math.round(m) : null, pst: nok ? (m / STARTSUM - 1) * 100 : null, sum: nok ? verdiar.reduce((a, b) => a + b, 0) : null };
+        }).sort((a, b) => (b.verdi === null ? -1 : b.verdi) - (a.verdi === null ? -1 : a.verdi));
+        const klasse = (KLASSAR.find(k => k[0].toLowerCase() === String(kode || "").trim().toLowerCase()) || [])[1] || null;
+        return {
+            ok: true,
+            spel: { namn: "Aksjespelet V2 (demo)", start: datoPa(d.t0), slutt: datoPa(d.t0 + 28 * DOGN), startsum: STARTSUM, kurtasje: KURTASJE,
+                    fase: no > d.t0 + 29 * DOGN ? "ferdig" : "igang", forseinking: 30, minst: MINST },
+            usdnok: usd,
+            borsar: { "Oslo": borsStatus("Oslo", no), "New York": borsStatus("New York", no) },
+            selskap: selskap,
+            klasse: klasse,
+            // Som i det ekte API-et: berre spelarane i klassen du har koden til
+            toppliste: klasse ? liste.filter(r => r.klasse === klasse).map(r => ({ brukar: r.brukar, verdi: r.verdi, pst: r.pst, selskap: r.selskap, storst: r.storst })) : null,
+            klassekamp: kamp,
+            oppdatert: iso(no)
+        };
+    }
+    function minSide(d, namn) {
+        const k = namn.toLowerCase();
+        const handlar = d.handlar.filter(h => h.brukar.toLowerCase() === k);
+        const r = rekn(handlar)[k] || { kontantar: STARTSUM, postar: {} };
+        const s = d.spelarar.find(x => x.namn.toLowerCase() === k);
+        const veke = Date.now() - 7 * DOGN;
+        return {
+            brukar: namn, klasse: s.klasse, kode: KLASSAR.find(x => x[1] === s.klasse)[0], kontantar: r.kontantar,
+            postar: Object.keys(r.postar).filter(id => r.postar[id].tal > 0).map(id => ({ id: id, tal: r.postar[id].tal, kost: r.postar[id].kost })),
+            ordrar: d.ordrar.filter(o => o.brukar.toLowerCase() === k && (o.status === "VENTAR" || (o.status === "KANSELLERT" && Date.parse(o.avgjort) > veke))).reverse(),
+            handlar: handlar.slice().sort((a, b) => Date.parse(a.tid) - Date.parse(b.tid)).slice(-50).reverse()
+        };
+    }
+    function loggInn(d, q) {
+        const s = d.spelarar.find(x => x.namn.toLowerCase() === String(q.brukar || "").trim().toLowerCase());
+        if (!s) throw new Error("Fann ikkje brukarnamnet. Er du ny, vel «Ny spelar».");
+        if (s.pin !== String(q.pin || "")) throw new Error("Feil PIN-kode.");
+        return s.namn;
+    }
+    async function kall(f, q) {
+        const d = les();
+        koyrOrdrar(d, Date.now());
+        if (f === "status") return status(d, q.kode);
+        if (f === "registrer") {
+            const namn = String(q.brukar || "").trim(), pin = String(q.pin || "");
+            if (!/^[A-Za-z0-9ÆØÅæøå_-]{3,16}$/.test(namn)) throw new Error("Brukarnamnet må ha 3–16 bokstavar, tal, _ eller -.");
+            if (!/^\d{4,8}$/.test(pin)) throw new Error("PIN-koden må ha 4–8 siffer.");
+            const klasse = KLASSAR.find(k => k[0].toLowerCase() === String(q.kode || "").trim().toLowerCase());
+            if (!klasse) throw new Error("Feil påmeldingskode. I demoen er koden A eller B.");
+            if (d.spelarar.some(s => s.namn.toLowerCase() === namn.toLowerCase())) throw new Error("Brukarnamnet er oppteke. Vel eit anna.");
+            d.spelarar.push({ namn: namn, pin: pin, klasse: klasse[1] });
+            lagre(d);
+            return { ok: true, meg: minSide(d, namn) };
+        }
+        const namn = loggInn(d, q);
+        if (f === "logginn") return { ok: true, meg: minSide(d, namn) };
+        if (f === "angre") {
+            const o = d.ordrar.find(x => x.ordre === q.ordre && x.brukar === namn);
+            if (!o || o.status !== "VENTAR") throw new Error("Ordren ventar ikkje lenger, så han kan ikkje angrast.");
+            o.status = "ANGRA";
+            lagre(d);
+            return { ok: true, meg: minSide(d, namn) };
+        }
+        if (f === "handel") {
+            const no = Date.now();
+            if (no > d.t0 + 29 * DOGN) throw new Error("Spelet er slutt.");
+            const i = SELSKAP.findIndex(s => s[0] === q.id);
+            const tal = Math.floor(Number(q.tal));
+            const type = q.type === "SAL" ? "SAL" : "KJØP";
+            if (i < 0) throw new Error("Finn ikkje selskapet.");
+            if (!(tal >= 1)) throw new Error("Talet på aksjar må vere eit heiltal frå 1 og opp.");
+            const m = minSide(d, namn);
+            if (open(SELSKAP[i][2], no)) {
+                const h = lagHandel(namn, type, i, tal, no);
+                const feil = dekning(m, h, SELSKAP[i][1]);
+                if (feil) throw new Error(feil);
+                d.handlar.push(h);
+                lagre(d);
+                return { ok: true, meg: minSide(d, namn) };
+            }
+            // Børsen er stengd: legg inn ein ordre som ventar til ho opnar
+            const mine = d.ordrar.filter(o => o.brukar === namn && o.status === "VENTAR");
+            if (mine.length >= MAKS_ORDRAR) throw new Error("Du har alt " + MAKS_ORDRAR + " ordrar som ventar. Angre ein av dei først.");
+            if (type === "SAL") {
+                const eig = (m.postar.find(p => p.id === q.id) || { tal: 0 }).tal;
+                const alt = mine.filter(o => o.type === "SAL" && o.id === q.id).reduce((a, o) => a + o.tal, 0);
+                if (tal > eig - alt) throw new Error("Du eig berre " + eig + " aksjar i " + SELSKAP[i][1] + (alt ? ", og " + alt + " av dei ligg alt i ein salsordre." : "."));
+            }
+            const ordre = { ordre: Math.random().toString(36).slice(2, 10), lagt: iso(no), brukar: namn, type: type, id: q.id, tal: tal,
+                            status: "VENTAR", opnar: iso(neste(SELSKAP[i][2], no, true)), merknad: "" };
+            d.ordrar.push(ordre);
+            lagre(d);
+            return { ok: true, meg: minSide(d, namn), ordre: ordre };
+        }
+        throw new Error("ukjend førespurnad");
+    }
+    return { kall: kall };
+})();
+
+/* ---------- Start ---------- */
+
+$("demo").classList.toggle("skjult", !!API_URL);
+try { innlogga = JSON.parse(localStorage.getItem(LAGER)); } catch (x) {}
+if (!innlogga || !innlogga.brukar) innlogga = null;
+try { klassekode = localStorage.getItem(KODELAGER) || ""; } catch (x) {}
+if (!API_URL && !klassekode) klassekode = "A";   // demoen viser Klasse A til du vel noko anna
+tavle();
+visSkjema();
+(async () => {
+    await hentStoda();
+    await hentMeg();
+})();
+setInterval(() => {
+    hentStoda();
+    if (ventande().length) hentMeg();   // sjå om ordrane har gått gjennom
+}, API_URL ? 60000 : 15000);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) { hentStoda(); hentMeg(); } });
+</script>
+</body>
+</html>
