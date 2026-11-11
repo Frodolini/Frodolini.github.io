@@ -32,6 +32,9 @@
  * Gløymd PIN: slett PIN-hashen til spelaren i fana «Spelarar». Då vel eleven ny PIN
  * neste gong han loggar inn.
  *
+ * Endringar du gjer i arket (datoar, klassar, selskap) gjeld med ein gong. Skriptet hugsar
+ * elles innstillingane og kursane i opptil ti minutt, slik at nettsida svarar raskare.
+ *
  * Fridagar: skriv datoane børsen er stengd i «Stengt Oslo» og «Stengt New York» i fana
  * «Oppsett», som åååå-mm-dd med komma mellom. Helgane tek skriptet seg av sjølv.
  */
@@ -59,6 +62,26 @@ const K_KLASSAR = ["Kode", "Klasse"];
 const K_SPELARAR = ["Brukarnamn", "PIN-hash", "Registrert", "Klasse"];
 const K_HANDLAR = ["Tid", "Brukarnamn", "Type", "Ticker", "Tal", "Kurs", "Valuta", "USDNOK", "Beløp NOK", "Kurtasje NOK", "Ordre"];
 const K_ORDRAR = ["Ordre", "Lagt inn", "Brukarnamn", "Type", "Ticker", "Tal", "Status", "Avgjort", "Merknad"];
+
+// Fanene med innstillingar og kursar er trege å lese, så dei blir mellomlagra mellom kalla.
+// Jobben som går kvart tiande minutt les dei på nytt, og onEdit tømmer lageret når du endrar noko.
+const MELLOMLAGRA = [A_OPPSETT, A_SELSKAP, A_KLASSAR];
+const DATOMERKE = "\u0001dato:";
+
+// Gjeld berre for éi køyring: det me alt har lese frå arket, og kor lang tid ting tok
+let MINNE = { ark: {} };
+let MS = {};
+let T0 = Date.now();
+
+function start() {
+  MINNE = { ark: {} };
+  MS = {};
+  T0 = Date.now();
+}
+
+function tid(kva, fra) {
+  MS[kva] = (MS[kva] || 0) + Date.now() - fra;
+}
 
 const STANDARD_OPPSETT = [
   ["Spelnamn", "Aksjespelet V2", "Vist øvst på nettsida"],
@@ -132,6 +155,7 @@ function onOpen() {
 
 // Lagar fanene som manglar. Rører ikkje det som alt står der.
 function oppsett() {
+  start();
   const bok = SpreadsheetApp.getActiveSpreadsheet();
 
   let ark = bok.getSheetByName(A_OPPSETT);
@@ -180,6 +204,18 @@ function oppsett() {
   });
   ScriptApp.newTrigger("kvarTiande").timeBased().everyMinutes(10).create();
   hentKursar();
+  tomLager();
+}
+
+// Køyrer av seg sjølv når du endrar noko i arket for hand: gløym det som er mellomlagra
+function onEdit() {
+  tomLager();
+}
+
+function tomLager() {
+  try {
+    CacheService.getScriptCache().removeAll(["status"].concat(MELLOMLAGRA.map(n => "ark:" + n)));
+  } catch (x) {}
 }
 
 function hovud(ark, kolonnar) {
@@ -189,6 +225,7 @@ function hovud(ark, kolonnar) {
 
 // Slettar alle spelarar, handlar og ordrar, og dei lagra start- og sluttkursane. Klassane står att.
 function nullstill() {
+  start();
   const ui = SpreadsheetApp.getUi();
   const svar = ui.alert("Nullstill spelet", "Alle spelarar, handlar og ordrar blir sletta. Er du sikker?", ui.ButtonSet.YES_NO);
   if (svar !== ui.Button.YES) return;
@@ -200,16 +237,21 @@ function nullstill() {
   if (selskap.getLastRow() > 1) selskap.getRange(2, 7, selskap.getLastRow() - 1, 2).clearContent();
   const o = lesOppsett();
   ["Startkursar tekne", "Sluttkursar frosne", "USDNOK ved slutt"].forEach(k => settOppsett(o, k, ""));
-  CacheService.getScriptCache().remove("status");
+  tomLager();
 }
 
 function kvarTiande() {
+  start();
   hentKursar();
   const las = LockService.getScriptLock();
   las.waitLock(20000);
   try {
+    MELLOMLAGRA.forEach(gloym);        // les ferske kursar og innstillingar frå arket
     sjekkFase(lesOppsett());
     koyrOrdrar(lesOppsett());
+    MELLOMLAGRA.forEach(verdiar);      // … og mellomlagre dei til kalla frå nettsida
+    CacheService.getScriptCache().remove("status");
+    SpreadsheetApp.flush();
   } finally { las.releaseLock(); }
 }
 
@@ -247,6 +289,7 @@ function hentKursar() {
     } catch (feil) {}
   }
   SpreadsheetApp.flush();
+  gloym(A_SELSKAP);
   CacheService.getScriptCache().remove("status");
 }
 
@@ -301,12 +344,14 @@ function alleBorsar(o, no) {
 // GET → stoda i spelet: innstillingar, kursar, opningstider og klassekamp. Krev ikkje innlogging.
 // Med ?kode=KLASSEKODE følgjer topplista til den klassen med. Andre klassar si liste blir aldri sendt.
 function doGet(e) {
+  start();
   try {
     const cache = CacheService.getScriptCache();
     let tekst = cache.get("status");
     if (!tekst) {
       tekst = JSON.stringify(status());
-      try { cache.put("status", tekst, 20); } catch (x) {}
+      // Lageret blir tømt ved kvar handel og påmelding, så det kan trygt leve eit minutt
+      try { cache.put("status", tekst, 60); } catch (x) {}
     }
     const d = JSON.parse(tekst);
     const kode = String((e && e.parameter && e.parameter.kode) || "").trim().toLowerCase();
@@ -324,6 +369,7 @@ function doGet(e) {
 
 // POST (JSON i body) → { f: "registrer" | "logginn" | "handel" | "angre", brukar, pin, ... }
 function doPost(e) {
+  start();
   const las = LockService.getScriptLock();
   try {
     const d = JSON.parse(e.postData.contents);
@@ -334,6 +380,10 @@ function doPost(e) {
     else if (d.f === "handel") ut = handel(d);
     else if (d.f === "angre") ut = angre(d);
     else throw new Error("ukjend førespurnad");
+    // Skriv alt til arket før låsen blir sleppt, så neste kall ser det
+    const t = Date.now();
+    SpreadsheetApp.flush();
+    tid("skriv", t);
     ut.ok = true;
     return svar(ut);
   } catch (feil) {
@@ -431,7 +481,7 @@ function registrer(d) {
   if (alle.length >= MAKS_SPELARAR) throw new Error("Spelet er fullt.");
   // ' framfor teksten gjer at arket aldri tolkar han som ein formel
   ark(A_SPELARAR).appendRow(["'" + namn, hash(namn, pin), new Date(), "'" + klasse.namn]);
-  SpreadsheetApp.flush();
+  gloym(A_SPELARAR);
   CacheService.getScriptCache().remove("status");
   return { meg: meg(namn) };
 }
@@ -451,6 +501,7 @@ function loggInn(d) {
     // Læraren har sletta hashen: den nye PIN-koden gjeld frå no
     if (!/^\d{4,8}$/.test(pin)) throw new Error("PIN-koden må ha 4–8 siffer.");
     ark(A_SPELARAR).getRange(s.rad, 2).setValue(hash(s.namn, pin));
+    gloym(A_SPELARAR);
     return s.namn;
   }
   if (s.hash !== hash(s.namn, pin)) {
@@ -462,7 +513,7 @@ function loggInn(d) {
 
 // PIN-koden blir aldri lagra, berre ein SHA-256-hash med salt
 function hash(namn, pin) {
-  const salt = SpreadsheetApp.getActiveSpreadsheet().getId();
+  const salt = bok().getId();
   const bytes = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, salt + "|" + namn.toLowerCase() + "|" + pin, Utilities.Charset.UTF_8);
   return bytes.map(b => ("0" + (b & 255).toString(16)).slice(-2)).join("");
 }
@@ -525,7 +576,7 @@ function handel(d) {
     const feil = dekning(r, type, s, tal, belop, o.kurtasje);
     if (feil) throw new Error(feil);
     ark(A_HANDLAR).appendRow([new Date(), "'" + namn, type, s.id, tal, s.kurs, s.valuta, veksling, belop, o.kurtasje, ""]);
-    SpreadsheetApp.flush();
+    gloym(A_HANDLAR);
     CacheService.getScriptCache().remove("status");
     return { meg: meg(namn), handel: { type: type, id: s.id, tal: tal, kurs: s.kurs, valuta: s.valuta, belop: belop } };
   }
@@ -545,7 +596,7 @@ function handel(d) {
   }
   const ordre = Utilities.getUuid().slice(0, 8);
   ark(A_ORDRAR).appendRow(["'" + ordre, new Date(), "'" + namn, type, s.id, tal, "VENTAR", "", ""]);
-  SpreadsheetApp.flush();
+  gloym(A_ORDRAR);
   return { meg: meg(namn), ordre: { ordre: ordre, type: type, id: s.id, tal: tal, opnar: bors.opnar } };
 }
 
@@ -555,7 +606,7 @@ function angre(d) {
   const x = lesOrdrar().filter(x => x.ordre === String(d.ordre) && x.brukar.toLowerCase() === namn.toLowerCase())[0];
   if (!x || x.status !== "VENTAR") throw new Error("Ordren ventar ikkje lenger, så han kan ikkje angrast.");
   ark(A_ORDRAR).getRange(x.rad, 7, 1, 3).setValues([["ANGRA", new Date(), ""]]);
-  SpreadsheetApp.flush();
+  gloym(A_ORDRAR);
   return { meg: meg(namn) };
 }
 
@@ -611,7 +662,8 @@ function koyrOrdrar(o) {
   });
 
   if (avgjorde) {
-    SpreadsheetApp.flush();
+    gloym(A_ORDRAR);
+    gloym(A_HANDLAR);
     CacheService.getScriptCache().remove("status");
   }
   return avgjorde;
@@ -673,25 +725,71 @@ function lagreKursar(o, kolonne) {
   const selskap = lesSelskap(o);
   if (!selskap.length) return;
   const sisteRad = Math.max.apply(null, selskap.map(s => s.rad));
-  const verdiar = [];
+  const kolonneverdiar = [];
   for (let rad = 2; rad <= sisteRad; rad++) {
     const s = selskap.filter(x => x.rad === rad)[0];
-    verdiar.push([s && s.kurs > 0 ? s.kurs : ""]);
+    kolonneverdiar.push([s && s.kurs > 0 ? s.kurs : ""]);
   }
-  ark(A_SELSKAP).getRange(2, kolonne, verdiar.length, 1).setValues(verdiar);
-  SpreadsheetApp.flush();
+  ark(A_SELSKAP).getRange(2, kolonne, kolonneverdiar.length, 1).setValues(kolonneverdiar);
+  gloym(A_SELSKAP);
 }
 
 /* ---------- Lesing frå arket ---------- */
 
+function bok() {
+  if (!MINNE.bok) {
+    const t = Date.now();
+    MINNE.bok = SpreadsheetApp.getActiveSpreadsheet();
+    tid("opne arket", t);
+  }
+  return MINNE.bok;
+}
+
 function ark(namn) {
-  const a = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(namn);
+  const a = bok().getSheetByName(namn);
   if (!a) throw new Error("Manglar fana «" + namn + "». Køyr funksjonen oppsett.");
   return a;
 }
 
+// Alle cellene i ei fane. Kvar fane blir lesen høgst éin gong per køyring, og fanene
+// i MELLOMLAGRA blir i tillegg hugsa mellom køyringane.
+function verdiar(namn) {
+  if (MINNE.ark[namn]) return MINNE.ark[namn];
+  const lagra = MELLOMLAGRA.indexOf(namn) >= 0;
+  let v = null;
+  if (lagra) {
+    try {
+      const tekst = CacheService.getScriptCache().get("ark:" + namn);
+      if (tekst) v = JSON.parse(tekst).map(r => r.map(c =>
+        typeof c === "string" && c.indexOf(DATOMERKE) === 0 ? new Date(Number(c.slice(DATOMERKE.length))) : c));
+    } catch (x) {}
+  }
+  if (!v) {
+    const t = Date.now();
+    v = ark(namn).getDataRange().getValues();
+    tid("les " + namn, t);
+    if (lagra) {
+      try {
+        const tekst = JSON.stringify(v.map(r => r.map(c => c instanceof Date ? DATOMERKE + c.getTime() : c)));
+        CacheService.getScriptCache().put("ark:" + namn, tekst, 900);
+      } catch (x) {}
+    }
+  }
+  return MINNE.ark[namn] = v;
+}
+
+// Skriptet har skrive i fana: det me har lese stemmer ikkje lenger
+function gloym(namn) {
+  delete MINNE.ark[namn];
+  if (namn === A_OPPSETT) delete MINNE.oppsett;
+  if (MELLOMLAGRA.indexOf(namn) >= 0) {
+    try { CacheService.getScriptCache().remove("ark:" + namn); } catch (x) {}
+  }
+}
+
 function lesOppsett() {
-  const rader = ark(A_OPPSETT).getDataRange().getValues();
+  if (MINNE.oppsett) return MINNE.oppsett;
+  const rader = verdiar(A_OPPSETT);
   const v = {}, rad = {};
   rader.forEach((r, i) => {
     const k = String(r[0]).trim();
@@ -702,7 +800,7 @@ function lesOppsett() {
   const fase = (!start || !slutt || idag < start) ? "for" : idag > slutt ? "ferdig" : "igang";
   const frosne = !!v["Sluttkursar frosne"];
   const direkte = tal(v["USDNOK manuell"]) || tal(v["USDNOK"]);
-  return {
+  return MINNE.oppsett = {
     rad: rad,
     namn: String(v["Spelnamn"] || "Aksjespelet"),
     start: start,
@@ -722,11 +820,12 @@ function settOppsett(o, nokkel, verdi) {
   const a = ark(A_OPPSETT);
   if (o.rad[nokkel]) a.getRange(o.rad[nokkel], 2).setValue(verdi);
   else a.appendRow([nokkel, verdi]);
+  gloym(A_OPPSETT);
 }
 
 function lesSelskap(o) {
   const brukSlutt = o.fase === "ferdig" && o.frosne;
-  return ark(A_SELSKAP).getDataRange().getValues().slice(1).map((r, i) => {
+  return verdiar(A_SELSKAP).slice(1).map((r, i) => {
     const direkte = tal(r[5]) || tal(r[4]);
     const bors = String(r[2]).trim() || "Oslo";
     const valuta = String(r[3]).trim().toUpperCase() === "USD" ? "USD" : "NOK";
@@ -745,7 +844,7 @@ function lesSelskap(o) {
 }
 
 function lesKlassar() {
-  return ark(A_KLASSAR).getDataRange().getValues().slice(1)
+  return verdiar(A_KLASSAR).slice(1)
     .map(r => ({ kode: String(r[0]).trim(), namn: String(r[1]).trim() }))
     .filter(k => k.kode && k.namn);
 }
@@ -757,13 +856,13 @@ function klasseTil(spelar, klassar) {
 }
 
 function lesSpelarar() {
-  return ark(A_SPELARAR).getDataRange().getValues().slice(1).map((r, i) => ({
+  return verdiar(A_SPELARAR).slice(1).map((r, i) => ({
     rad: i + 2, namn: String(r[0]).trim(), hash: String(r[1]).trim(), klasse: String(r[3] == null ? "" : r[3]).trim()
   })).filter(s => s.namn);
 }
 
 function lesHandlar() {
-  return ark(A_HANDLAR).getDataRange().getValues().slice(1).filter(r => r[1] !== "").map(r => ({
+  return verdiar(A_HANDLAR).slice(1).filter(r => r[1] !== "").map(r => ({
     tid: r[0] instanceof Date ? r[0].toISOString() : String(r[0]),
     brukar: String(r[1]).trim(),
     type: String(r[2]).trim() === "SAL" ? "SAL" : "KJØP",
@@ -777,7 +876,7 @@ function lesHandlar() {
 }
 
 function lesOrdrar() {
-  return ark(A_ORDRAR).getDataRange().getValues().slice(1).map((r, i) => ({
+  return verdiar(A_ORDRAR).slice(1).map((r, i) => ({
     rad: i + 2,
     ordre: String(r[0]).trim(),
     lagt: r[1] instanceof Date ? r[1].toISOString() : String(r[1]),
@@ -802,7 +901,7 @@ function tal(v) {
 
 // Dato som åååå-mm-dd, anten cella er tekst, dd.mm.åååå eller ein ekte dato
 function dato(v) {
-  if (v instanceof Date) return Utilities.formatDate(v, SpreadsheetApp.getActiveSpreadsheet().getSpreadsheetTimeZone(), "yyyy-MM-dd");
+  if (v instanceof Date) return Utilities.formatDate(v, bok().getSpreadsheetTimeZone(), "yyyy-MM-dd");
   const t = String(v || "").trim();
   const m = t.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
   if (m) return m[3] + "-" + ("0" + m[2]).slice(-2) + "-" + ("0" + m[1]).slice(-2);
@@ -819,6 +918,8 @@ function kr(n) {
   return Math.round(n * 100) / 100;
 }
 
+// «ms» i svaret viser kor mange millisekund tenaren brukte, og på kva
 function svar(objekt) {
+  objekt.ms = Object.assign({ totalt: Date.now() - T0 }, MS);
   return ContentService.createTextOutput(JSON.stringify(objekt)).setMimeType(ContentService.MimeType.JSON);
 }
