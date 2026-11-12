@@ -1,0 +1,2926 @@
+<!DOCTYPE html>
+<html lang="nn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Docker 101</title>
+<!-- Kode 101 – Docker. Bygd på felles mal for Kode 101-sidene. Linux-serveren, Docker og Docker Hub er simulerte i nettlesaren (ingen eksterne bibliotek). -->
+<style>
+:root {
+    --gron: #2e7d32;
+    --gron-mork: #1b5e20;
+    --gron-lys: #e8f5e9;
+    --bg: #eef3ef;
+    --kort: #ffffff;
+    --tekst: #24302a;
+    --grå: #5f6b64;
+    --linje: #dfe6e1;
+    --lenke: #0066cc;
+    --gul: #fff6d6;
+    --gul-kant: #e8c547;
+    --kode-bg: #f4f6f5;
+    --font: system-ui, "Segoe UI", Arial, sans-serif;
+    --mono: Consolas, "Cascadia Mono", "Cascadia Code", Menlo, monospace;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body { margin: 0; background: var(--bg); color: var(--tekst); font-family: var(--font); font-size: 15px; display: flex; flex-direction: column; }
+
+/* ---------- Grøn tittellinje ---------- */
+header.topp { background: var(--gron); color: #fff; padding: 10px 16px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; border-bottom: 3px solid var(--gron-mork); }
+header.topp .tilbake { color: #fff; text-decoration: none; font-size: 14px; padding: 4px 10px; border: 1px solid rgba(255,255,255,.5); border-radius: 14px; white-space: nowrap; }
+header.topp .tilbake:hover { background: var(--gron-mork); }
+header.topp .titlar { flex: 1 1 260px; min-width: 0; }
+header.topp h1 { margin: 0; font-size: 21px; line-height: 1.2; }
+header.topp .under { margin: 2px 0 0; font-size: 13px; opacity: .9; }
+header.topp .hogre { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.framdrift { font-size: 13px; min-width: 130px; }
+.framdrift .linje { height: 6px; background: rgba(255,255,255,.3); border-radius: 3px; margin-top: 4px; overflow: hidden; }
+.framdrift .linje div { height: 100%; width: 0; background: #fff; transition: width .4s; }
+header.topp button { background: transparent; color: #fff; border: 1px solid rgba(255,255,255,.6); border-radius: 6px; padding: 6px 12px; font: inherit; font-size: 13px; cursor: pointer; }
+header.topp button:hover { background: var(--gron-mork); }
+
+/* ---------- To kolonnar ---------- */
+main.oppsett { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(320px, 40%) 1fr; gap: 14px; padding: 14px; }
+.kort { background: var(--kort); border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,.1); }
+#leksjonspanel { overflow-y: auto; min-height: 0; padding: 0; display: flex; flex-direction: column; }
+#sim { min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
+@media (max-width: 900px) {
+    body { height: auto; display: block; }
+    main.oppsett { display: flex; flex-direction: column; padding: 10px; }
+    #leksjonspanel { overflow: visible; }
+    #sim { height: 78vh; min-height: 460px; }
+}
+
+/* ---------- Leksjonsliste ---------- */
+#leksjonsliste { list-style: none; margin: 0; padding: 8px; border-bottom: 1px solid var(--linje); display: flex; flex-direction: column; gap: 2px; }
+#leksjonsliste li button { width: 100%; text-align: left; background: none; border: none; font: inherit; font-size: 14px; padding: 5px 8px; border-radius: 6px; cursor: pointer; display: flex; gap: 8px; align-items: baseline; color: var(--tekst); }
+#leksjonsliste li button:hover { background: var(--gron-lys); }
+#leksjonsliste li.aktiv button { background: var(--gron); color: #fff; }
+#leksjonsliste .status { width: 1.2em; text-align: center; flex: none; }
+#leksjonsliste .sirkel { display: inline-block; width: 11px; height: 11px; border-radius: 50%; border: 2px solid currentColor; vertical-align: -1px; opacity: .75; }
+#leksjonsliste .sirkel.halv { background: linear-gradient(90deg, currentColor 50%, transparent 50%); opacity: 1; }
+@media (max-width: 600px) { #leksjon .eksempel pre { padding-right: 12px; padding-top: 34px; } }
+#leksjonsliste .nr { color: var(--grå); width: 1.6em; flex: none; }
+#leksjonsliste li.aktiv .nr { color: #dfeee0; }
+#leksjonsliste .tal { margin-left: auto; font-size: 12px; color: var(--grå); }
+#leksjonsliste li.aktiv .tal { color: #dfeee0; }
+#leksjonsliste .ferdig .status { color: var(--gron); }
+#leksjonsliste li.aktiv.ferdig .status { color: #fff; }
+
+/* ---------- Leksjonsinnhald ---------- */
+#leksjon { padding: 14px 18px 18px; line-height: 1.5; }
+#leksjon h2 { font-size: 20px; margin: 0 0 4px; padding-bottom: 6px; border-bottom: 2px solid var(--gron); }
+#leksjon .laerer { color: var(--grå); font-size: 14px; margin: 6px 0 12px; }
+#leksjon .laerer b { color: var(--gron-mork); }
+#leksjon p { margin: 8px 0; }
+#leksjon code { font-family: var(--mono); background: var(--kode-bg); padding: 1px 4px; border-radius: 3px; font-size: 13.5px; }
+#leksjon h3 { font-size: 15px; margin: 18px 0 6px; color: var(--gron-mork); }
+.eksempel { position: relative; margin: 8px 0 12px; }
+.eksempel pre { margin: 0; background: #1e1e1e; color: #e6e6e6; font-family: var(--mono); font-size: 13.5px; padding: 10px 12px; padding-right: 70px; border-radius: 6px; overflow-x: auto; line-height: 1.4; }
+.eksempel .prov { position: absolute; top: 6px; right: 6px; background: var(--gron); color: #fff; border: none; border-radius: 4px; padding: 3px 9px; font: inherit; font-size: 12.5px; cursor: pointer; }
+.eksempel .prov:hover { background: var(--gron-mork); }
+.tips { background: var(--gul); border-left: 4px solid var(--gul-kant); padding: 8px 12px; border-radius: 4px; margin: 10px 0; }
+table.juks { border-collapse: collapse; width: 100%; font-size: 13.5px; margin: 8px 0; }
+table.juks td, table.juks th { border-bottom: 1px solid var(--linje); padding: 4px 6px; text-align: left; vertical-align: top; }
+table.juks td:first-child { font-family: var(--mono); white-space: nowrap; }
+
+/* ---------- Oppgåver ---------- */
+.oppgaver { list-style: none; padding: 0; margin: 6px 0; display: flex; flex-direction: column; gap: 8px; }
+.oppgave { border: 1px solid var(--linje); border-radius: 8px; padding: 9px 12px; display: grid; grid-template-columns: 1.4em 1fr auto; gap: 4px 8px; align-items: start; transition: background .4s, border-color .4s; }
+.oppgave .ikon { font-size: 16px; line-height: 1.4; color: #9aa59f; }
+.oppgave.loyst { background: var(--gron-lys); border-color: #a5d6a7; }
+.oppgave.loyst .ikon { color: var(--gron); }
+.oppgave .hintknapp { background: #fff; border: 1px solid var(--linje); border-radius: 5px; padding: 2px 9px; font: inherit; font-size: 12.5px; cursor: pointer; color: var(--grå); }
+.oppgave .hintknapp:hover { border-color: var(--gron); color: var(--gron-mork); }
+.oppgave .hint { grid-column: 2 / 4; font-size: 13.5px; background: var(--gul); border-radius: 5px; padding: 5px 9px; }
+.oppgave .bra { grid-column: 2 / 4; color: var(--gron-mork); font-weight: bold; font-size: 14px; animation: bra 2.6s forwards; }
+@keyframes bra { 0% { opacity: 0; } 10% { opacity: 1; } 75% { opacity: 1; } 100% { opacity: 0; } }
+.fullfort { background: var(--gron); color: #fff; border-radius: 8px; padding: 10px 14px; margin: 14px 0 6px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.fullfort button { background: #fff; color: var(--gron-mork); border: none; border-radius: 5px; padding: 5px 12px; font: inherit; font-weight: bold; cursor: pointer; }
+.navknappar { display: flex; justify-content: space-between; margin: 18px 0 8px; }
+.navknappar button { background: #fff; border: 1px solid var(--gron); color: var(--gron-mork); border-radius: 6px; padding: 6px 14px; font: inherit; cursor: pointer; }
+.navknappar button:hover:not(:disabled) { background: var(--gron); color: #fff; }
+.navknappar button:disabled { opacity: .35; cursor: default; }
+details.laerar { margin: 16px 0 0; border: 1px solid var(--linje); border-radius: 8px; padding: 8px 12px; font-size: 14px; background: #fafcfb; }
+details.laerar summary { cursor: pointer; font-weight: bold; color: var(--grå); }
+details.laerar ul { padding-left: 20px; margin: 6px 0; }
+
+/* ---------- Toast ---------- */
+#toast { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%) translateY(20px); background: var(--gron-mork); color: #fff; padding: 9px 16px; border-radius: 8px; box-shadow: 0 4px 14px rgba(0,0,0,.25); opacity: 0; pointer-events: none; transition: opacity .3s, transform .3s; z-index: 50; max-width: 90vw; font-size: 14px; }
+#toast.vis { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ---------- Kursbevis ---------- */
+#bevisbakgrunn { position: fixed; inset: 0; background: rgba(0,0,0,.5); display: none; align-items: center; justify-content: center; z-index: 100; padding: 16px; }
+#bevisbakgrunn.vis { display: flex; }
+#bevisboks { background: #fff; border-radius: 10px; max-width: 640px; width: 100%; max-height: 92vh; overflow-y: auto; padding: 18px; }
+.namnrad { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; font-size: 14px; }
+.namnrad input { flex: 1; min-width: 160px; padding: 7px 10px; font: inherit; border: 1px solid #bbb; border-radius: 6px; }
+#bevis { border: 3px solid var(--gron); border-radius: 6px; padding: 0 22px 18px; position: relative; text-align: center; }
+#bevis .stripe { height: 14px; background: var(--gron); margin: 0 -22px 16px; }
+#bevis h2 { margin: 6px 0 2px; font-size: 26px; color: var(--gron-mork); letter-spacing: .02em; }
+#bevis .bnamn { font-size: 24px; margin: 14px 0 2px; font-family: Georgia, serif; border-bottom: 1px solid #999; display: inline-block; min-width: 60%; padding: 0 10px 2px; }
+#bevis .skule { color: var(--grå); font-size: 14px; }
+#bevis ul { list-style: none; padding: 0; text-align: left; margin: 14px auto 6px; max-width: 420px; font-size: 14px; }
+#bevis ul li { padding: 2px 0; }
+#bevis .sum { font-weight: bold; margin-top: 8px; }
+#bevis .segl { position: absolute; right: 14px; top: 26px; width: 84px; height: 84px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #ffe680, #d4a017 60%, #a87900); color: #5a3d00; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 13px; box-shadow: 0 0 0 4px #f3d36b, 0 2px 6px rgba(0,0,0,.3); transform: rotate(-12deg); }
+#bevis .delvis { position: absolute; right: 14px; top: 30px; border: 2px dashed var(--grå); color: var(--grå); border-radius: 6px; padding: 4px 8px; font-size: 13px; transform: rotate(-8deg); }
+#bevis .manglar { font-size: 13px; color: var(--grå); }
+.bevisknappar { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+.bevisknappar button { padding: 7px 14px; font: inherit; border-radius: 6px; border: 1px solid var(--gron); background: #fff; color: var(--gron-mork); cursor: pointer; }
+.bevisknappar button.hoved { background: var(--gron); color: #fff; }
+@media print {
+    @page { size: A4; margin: 15mm; }
+    /* display:none (ikkje visibility:hidden) – elles tek resten av sida plass og gir fleire tomme sider */
+    html, body { height: auto !important; min-height: 0 !important; overflow: visible !important; background: #fff !important; }
+    body { display: block !important; }
+    body > *:not(#bevisbakgrunn) { display: none !important; }
+    #bevisbakgrunn { position: static !important; inset: auto; background: none !important; display: block !important; padding: 0 !important; }
+    #bevisboks { box-shadow: none; max-width: none; max-height: none; overflow: visible; padding: 0; border-radius: 0; }
+    #bevisboks .namnrad, #bevisboks .bevisknappar { display: none !important; }
+    #bevis { break-inside: avoid; page-break-inside: avoid; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+
+/* ---------- Felles 💡-hjelpetekst (bruk i simulatoren) ---------- */
+.hjelp { color: #ffe9a8; font-family: var(--font); font-size: 14px; background: rgba(255, 214, 90, .08); border-left: 3px solid #f2c94c; padding: 4px 10px; margin: 4px 0 6px; white-space: pre-wrap; border-radius: 0 4px 4px 0; }
+#leksjon button.handling { background: var(--gron); color: #fff; border: none; border-radius: 6px; padding: 6px 12px; font: inherit; font-size: 14px; cursor: pointer; margin: 2px 6px 2px 0; }
+#leksjon button.handling:hover { background: var(--gron-mork); }
+#leksjon button.handling.lys { background: #fff; color: var(--gron-mork); border: 1px solid var(--gron); }
+#leksjon button.handling.lys:hover { background: var(--gron-lys); }
+#leksjon .klargjer { font-size: 13.5px; color: var(--grå); border-top: 1px dashed var(--linje); margin-top: 14px; padding-top: 8px; }
+
+/* ---------- Terminal ---------- */
+#sim { background: #0c0c0c; position: relative; }
+.vtittel { display: flex; align-items: center; gap: 8px; background: #202020; color: #e6e6e6; font-size: 12.5px; height: 32px; padding-left: 10px; flex: none; user-select: none; border-radius: 8px 8px 0 0; }
+.vtittel .vikon { width: 18px; height: 14px; background: #1d63ed; border-radius: 3px; flex: none; }
+.vtittel .vnamn { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--mono); }
+.vtittel button { background: none; border: 1px solid #555; color: #ddd; border-radius: 5px; font: inherit; font-size: 12px; padding: 2px 9px; cursor: pointer; margin-right: 8px; }
+.vtittel button:hover { background: #333; }
+#term { flex: 1 1 0; min-height: 160px; overflow-y: auto; overflow-x: hidden; padding: 4px 10px 10px; font-family: var(--mono); font-size: 14px; line-height: 1.32; color: #cccccc; background: #0c0c0c; white-space: pre-wrap; word-break: normal; overflow-wrap: anywhere; cursor: text; position: relative; tab-size: 8; }
+#term::-webkit-scrollbar { width: 10px; }
+#term::-webkit-scrollbar-thumb { background: #3a3a3a; border-radius: 5px; }
+#termUt > div { min-height: 1.32em; }
+#termAktiv { position: relative; min-height: 1.32em; }
+#termInn { position: absolute; left: 0; top: 0; width: 2px; height: 1.3em; opacity: 0; border: 0; padding: 0; margin: 0; resize: none; overflow: hidden; font-size: 16px; color: transparent; background: transparent; caret-color: transparent; outline: none; }
+.markor { position: relative; }
+.markor::after { content: ""; position: absolute; left: 0; right: 0; bottom: 1px; height: 3px; background: currentColor; animation: blink 1.06s steps(1) infinite; }
+.markor.tom::after { width: .6em; right: auto; }
+#term.ufokus .markor::after { animation: none; opacity: .45; }
+@keyframes blink { 0% { opacity: 1; } 50% { opacity: 0; } }
+#term .hjelp { word-break: normal; overflow-wrap: break-word; line-height: 1.45; white-space: normal; }
+#term .hjelp code { font-family: var(--mono); background: rgba(255,255,255,.1); padding: 0 4px; border-radius: 3px; color: #fff3c4; }
+#term ::selection { background: #f2f2f2; color: #0c0c0c; }
+.fg { color: #3fc85a; } .fr { color: #f14c4c; } .fy { color: #d7ba3d; } .fc { color: #29b8db; } .fm { color: #c678dd; } .fb { font-weight: bold; } .fd { color: #5c9cff; }
+.mobilrad { display: none; gap: 6px; padding: 6px 8px; background: #1a1a1a; flex: none; overflow-x: auto; }
+.mobilrad button { background: #2d2d2d; color: #e6e6e6; border: 1px solid #444; border-radius: 6px; padding: 6px 12px; font: 13px var(--mono); flex: none; }
+@media (max-width: 900px), (pointer: coarse) { .mobilrad { display: flex; } }
+
+/* ---------- Figur: VM mot container ---------- */
+.vmfig { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0 12px; font-size: 12px; }
+.vmfig h5 { margin: 0 0 4px; font-size: 13px; text-align: center; color: var(--gron-mork); }
+.vmfig .rad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; margin-bottom: 3px; }
+.vmfig .rad span, .vmfig .lag { border-radius: 4px; padding: 4px 2px; text-align: center; line-height: 1.2; }
+.vmfig .app { background: var(--gron-lys); border: 1px solid #a5d6a7; }
+.vmfig .gos { background: #ffe8cc; border: 1px solid #f0b46a; }
+.vmfig .lag { margin-bottom: 3px; }
+.vmfig .hv { background: #e3e8f7; border: 1px solid #a9b6e0; }
+.vmfig .dk { background: #dbeafe; border: 1px solid #8ab4f8; }
+.vmfig .os { background: #ffe8cc; border: 1px solid #f0b46a; }
+.vmfig .mv { background: #e6e9e7; border: 1px solid #c3cbc6; }
+@media (max-width: 420px) { .vmfig { grid-template-columns: 1fr; } }
+
+/* ---------- Docker-modell (levande teikning) ---------- */
+#sim.inne .vtittel { background: #0b3a8f; }
+#sim.inne .vtittel .vikon { background: #fff; }
+#modell { flex: 0 0 auto; max-height: 50%; overflow-y: auto; background: #f7faf8; color: var(--tekst); border-top: 3px solid #111; font-size: 13px; border-radius: 0 0 8px 8px; }
+#modell .mtopp { display: flex; align-items: baseline; gap: 8px; padding: 6px 10px 2px; flex-wrap: wrap; }
+#modell .mtopp b { font-size: 13.5px; }
+#modell .mtopp .repo { color: var(--grå); font-size: 12px; }
+#modell .tom { padding: 8px 12px 12px; color: var(--grå); }
+#modell code { font-family: var(--mono); background: var(--kode-bg); padding: 1px 4px; border-radius: 3px; font-size: 12.5px; }
+.dk { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1.5fr) auto minmax(0, 1fr); gap: 4px; padding: 4px 10px 8px; align-items: start; }
+.dk .kol { background: #fff; border: 1px solid var(--linje); border-radius: 8px; padding: 5px 6px 6px; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.dk h4 { margin: 0; font-size: 12px; color: var(--grå); text-transform: uppercase; letter-spacing: .03em; }
+.dk .pil { align-self: center; font-size: 11px; color: var(--grå); text-align: center; line-height: 1.2; font-family: var(--mono); }
+.dk .pil span { display: block; font-size: 18px; color: #9aa59f; }
+.dk .ingen { color: #9aa59f; font-size: 12px; font-style: italic; }
+.bil, .ko, .vo { border: 1px solid var(--linje); border-radius: 6px; padding: 4px 6px; min-width: 0; background: #fbfdfc; }
+.bil .bn, .ko .kn, .vo .vn { font-family: var(--mono); font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bil .bn { font-weight: bold; }
+.bil .bn span { font-weight: normal; color: var(--grå); }
+.bil .bn em { font-style: normal; font-family: var(--font); font-size: 10.5px; background: var(--gron); color: #fff; border-radius: 8px; padding: 0 6px; margin-left: 5px; vertical-align: 1px; }
+.bil .lagrad { display: flex; gap: 2px; margin: 3px 0 2px; }
+.bil .lagrad i { flex: 1 1 0; max-width: 14px; height: 6px; background: #8ab4f8; border-radius: 1px; }
+.bil .lagrad i:first-child { background: #1d63ed; }
+.bil .bs, .ko .ks, .vo .vs { font-size: 11.5px; color: var(--grå); }
+.ko { border-left: 4px solid #b9c2bd; }
+.ko.pa { border-left-color: var(--gron); background: #f4fbf5; }
+.ko.feil { border-left-color: #b3261e; background: #fff6f5; }
+.ko.her { box-shadow: 0 0 0 2px #1d63ed; }
+.ko .kn { display: flex; align-items: center; gap: 5px; }
+.ko .kn b { overflow: hidden; text-overflow: ellipsis; }
+.ko .ki { color: var(--grå); margin-left: auto; padding-left: 6px; overflow: hidden; text-overflow: ellipsis; flex: 0 1 auto; }
+.ko .prikk { width: 9px; height: 9px; border-radius: 50%; background: #b9c2bd; flex: none; }
+.ko.pa .prikk { background: #2fb344; box-shadow: 0 0 0 3px rgba(47,179,68,.2); }
+.ko.feil .prikk { background: #b3261e; }
+.ko .kp { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 3px; }
+.ko .port { font: 12px var(--mono); background: #fff; border: 1px solid #1d63ed; color: #0b3a8f; border-radius: 10px; padding: 1px 8px; cursor: pointer; }
+.ko .port:hover:not(:disabled) { background: #1d63ed; color: #fff; }
+.ko .port:disabled { border-color: #c3cbc6; color: #9aa59f; cursor: default; }
+.ko .mo { font: 11.5px var(--mono); color: #5a4a00; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vo { background: #fffaf0; border-color: #ecd9a8; }
+.dk .ny { animation: popp .6s ease-out; }
+@keyframes popp { 0% { transform: scale(.6); opacity: 0; } 70% { transform: scale(1.06); opacity: 1; } 100% { transform: scale(1); } }
+.nettlesar { margin: 0 10px 10px; border: 1px solid #c3cbc6; border-radius: 8px; overflow: hidden; background: #fff; }
+.nettlesar .adr { display: flex; align-items: center; gap: 8px; background: #e9eeeb; padding: 4px 8px; font-size: 12px; }
+.nettlesar .prikkar { color: #b9c2bd; font-size: 9px; letter-spacing: 1px; flex: none; }
+.nettlesar .url { flex: 1; min-width: 0; background: #fff; border-radius: 10px; padding: 2px 10px; font-family: var(--mono); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nettlesar .stat { background: #b3261e; color: #fff; border-radius: 8px; padding: 0 7px; font-weight: bold; }
+.nettlesar button { background: none; border: none; cursor: pointer; font-size: 13px; color: var(--grå); padding: 0 4px; }
+.nettlesar iframe { display: block; width: 100%; height: 120px; border: 0; background: #fff; }
+@media (max-width: 900px) { #sim { height: auto; min-height: 0; } #term { height: 56vh; flex: none; } #modell { max-height: none; } }
+@media (max-width: 600px) {
+    #term { font-size: 12.5px; padding: 4px 6px 10px; }
+    .dk { grid-template-columns: 1fr; }
+    .dk .pil { display: flex; gap: 6px; justify-content: center; align-items: center; }
+    .dk .pil span { display: inline; font-size: 14px; transform: rotate(90deg); }
+}
+
+/* ---------- Editor (nano/notepad) ---------- */
+#editorBak { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: none; align-items: center; justify-content: center; z-index: 90; padding: 14px; }
+#editorBak.vis { display: flex; }
+#editor { background: #fff; border-radius: 8px; width: min(760px, 100%); height: min(560px, 92vh); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 34px rgba(0,0,0,.5); }
+#editor .et { display: flex; align-items: center; gap: 8px; padding: 7px 10px; background: #2b2b2b; color: #eee; font-family: var(--mono); font-size: 13px; }
+#editor .et .namn { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#editorTekst { flex: 1; min-height: 0; border: 0; outline: none; resize: none; padding: 10px 12px; font: 14px/1.45 var(--mono); color: #111; background: #fff; white-space: pre; overflow: auto; tab-size: 4; }
+#editor .ek { display: flex; gap: 8px; padding: 8px 10px; background: #f3f3f3; border-top: 1px solid #ddd; align-items: center; flex-wrap: wrap; }
+#editor .ek .info { font-size: 12px; color: #666; margin-right: auto; }
+#editor .ek button { padding: 6px 14px; font: inherit; font-size: 13.5px; border-radius: 6px; border: 1px solid var(--gron); background: #fff; color: var(--gron-mork); cursor: pointer; }
+#editor .ek button.hoved { background: var(--gron); color: #fff; }
+</style>
+</head>
+<body>
+
+<header class="topp">
+    <a class="tilbake" href="index.html">← Sandkassa</a>
+    <div class="titlar">
+        <h1>Docker 101</h1>
+        <p class="under">Containerar på ein Linux-server – sjå image, containerar og volum bli til</p>
+    </div>
+    <div class="hogre">
+        <div class="framdrift" title="Løyste oppgåver">
+            <span id="framdriftTekst">0 / 0 oppgåver</span>
+            <div class="linje"><div id="framdriftLinje"></div></div>
+        </div>
+        <button id="knappBevis" type="button">Kursbevis</button>
+        <button id="knappNullstill" type="button">Start på nytt</button>
+    </div>
+</header>
+
+<main class="oppsett">
+    <aside id="leksjonspanel" class="kort">
+        <ol id="leksjonsliste"></ol>
+        <div id="leksjon"></div>
+    </aside>
+    <section id="sim" class="kort">
+        <div class="vtittel"><span class="vikon"></span><span class="vnamn" id="vTittel">elev@im-server: ~</span><button type="button" id="knappMaskin" title="Set serveren tilbake til start (framdrifta blir ikkje sletta)">Nullstill maskina</button></div>
+        <div id="term" class="ufokus" aria-label="Terminal – klikk og skriv"><div id="termUt"></div><div id="termAktiv"><span id="aktivTekst"></span><textarea id="termInn" rows="1" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" aria-label="Skriv ein kommando"></textarea></div></div>
+        <div class="mobilrad" aria-label="Ekstra tastar">
+            <button type="button" data-tast="Tab">Tab</button>
+            <button type="button" data-tast="ArrowUp">&#8593;</button>
+            <button type="button" data-tast="ArrowDown">&#8595;</button>
+            <button type="button" data-tast="CtrlL">clear</button>
+            <button type="button" data-tekst="docker ">docker</button>
+            <button type="button" data-tekst="-">-</button>
+            <button type="button" data-tekst=":">:</button>
+            <button type="button" data-tekst="/">/</button>
+            <button type="button" data-tekst='"'>"</button>
+            <button type="button" data-tekst="~">~</button>
+        </div>
+        <div id="modell" aria-live="off"></div>
+    </section>
+</main>
+
+<div id="editorBak">
+    <div id="editor" role="dialog" aria-modal="true" aria-label="Editor">
+        <div class="et"><span class="namn" id="editorNamn">nano</span></div>
+        <textarea id="editorTekst" spellcheck="false" autocapitalize="off" autocomplete="off"></textarea>
+        <div class="ek"><span class="info">Ctrl+S lagrar og lukkar · Esc lukkar utan å lagre</span><button type="button" id="editorAvbryt">Lukk utan å lagre</button><button type="button" id="editorLagre" class="hoved">Lagre og lukk</button></div>
+    </div>
+</div>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<div id="bevisbakgrunn">
+    <div id="bevisboks" role="dialog" aria-modal="true" aria-label="Kursbevis">
+        <div class="namnrad">
+            <label for="bevisNamn">Fornamnet ditt:</label>
+            <input id="bevisNamn" type="text" maxlength="40" placeholder="Skriv fornamnet ditt">
+        </div>
+        <div id="bevis"></div>
+        <div class="bevisknappar">
+            <button type="button" id="bevisLukk">Lukk</button>
+            <button type="button" id="bevisSkriv" class="hoved">Skriv ut</button>
+        </div>
+    </div>
+</div>
+
+<script>
+"use strict";
+/* ================== KURSOPPSETT ================== */
+const KURS = {
+    namn: "Docker 101",
+    prefiks: "kode101-docker-",
+};
+
+/* Hjelparar (funksjonsdeklarasjonar, så dei finst før LEKSJONAR blir laga) */
+function htmlEsc(s) { return String(s).replace(/[&<>"]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch])); }
+function ex(kode) { return `<div class="eksempel"><pre>${htmlEsc(kode)}</pre></div>`; }
+/* Døme som ikkje skal limast inn i terminalen (utskrift, filinnhald) – utan «Prøv»-knapp */
+function exUtan(kode) { return `<div class="eksempel utan"><pre style="padding-right:12px">${htmlEsc(kode)}</pre></div>`; }
+
+/* Hjelparar for oppgåvesjekk (les tilstanden til Docker på serveren) */
+function koyrande() { return st.kont.filter(c => c.status === "running"); }
+function lokaltBilete(repo, tag) { return st.bilete.find(b => b.repo === repo && (!tag || b.tag === tag)) || null; }
+
+const LEKSJONAR = [
+{ id: "l1", tittel: "Kva er ein container?", laerer: "kva ein container er, korleis han skil seg frå ei virtuell maskin, og korleis du køyrer den første containeren.",
+  html: `
+<p>«Det verkar på min maskin!» Program treng rett versjon av bibliotek, innstillingar og andre program for å køyre. Flyttar du programmet til ein annan server, manglar det ofte noko.</p>
+<p>Ein <b>container</b> løyser dette: Programmet blir pakka saman med alt det treng, og køyrer isolert frå resten av maskina. Same pakke køyrer likt på PC-en din, på skuleserveren og i skya.</p>
+<table class="juks">
+<tr><td>image</td><td>ei ferdig pakke med program og filer – ei oppskrift som berre kan lesast</td></tr>
+<tr><td>container</td><td>eit image som køyrer. Du kan starte mange containerar frå same image</td></tr>
+<tr><td>Docker Hub</td><td>ein nettstad med tusenvis av ferdige image du kan laste ned</td></tr>
+</table>
+<p>Ei virtuell maskin (VM) har sitt eige operativsystem. Ein container <b>deler kjernen</b> med verten. Difor er containerar små og startar på under eitt sekund:</p>
+<div class="vmfig">
+  <div><h5>Virtuelle maskiner</h5>
+    <div class="rad"><span class="app">App A</span><span class="app">App B</span><span class="app">App C</span></div>
+    <div class="rad"><span class="gos">Gjeste-OS</span><span class="gos">Gjeste-OS</span><span class="gos">Gjeste-OS</span></div>
+    <div class="lag hv">Hypervisor (Proxmox, Hyper-V)</div>
+    <div class="lag mv">Maskinvare</div></div>
+  <div><h5>Containerar</h5>
+    <div class="rad"><span class="app">App A</span><span class="app">App B</span><span class="app">App C</span></div>
+    <div class="lag dk">Docker</div>
+    <div class="lag os">Eitt operativsystem (delt kjerne)</div>
+    <div class="lag mv">Maskinvare</div></div>
+</div>
+<p>Til høgre er du logga inn på Linux-serveren <code>im-server</code>, der Docker er installert. Under terminalen ser du ei levande teikning av image, containerar og volum. Sjekk først at Docker svarar:</p>
+${ex(`docker --version`)}
+<p>Køyr så den første containeren. <code>docker run</code> lastar ned imaget om det manglar, lagar ein container og startar han:</p>
+${ex(`docker run hello-world`)}
+<p>Containeren skreiv ei helsing og avslutta. Han ligg der framleis, men er stoppa. <code>docker ps</code> viser containerar som køyrer, og <code>-a</code> tek med dei som er stoppa:</p>
+${ex(`docker ps -a`)}
+<div class="tips">💡 Trykk <b>Tab</b> for å fullføre kommandoar og namn, og <b>pil opp</b> for å hente førre kommando. <code>clear</code> tømer skjermen.</div>`,
+  oppgaver: [
+    { id: "l1o1", tekst: "Sjekk kva versjon av Docker som er installert.", hint: ["<code>docker --version</code>"],
+      sjekk: c => !!st.flagg.versjon },
+    { id: "l1o2", tekst: "Køyr ein container frå imaget <code>hello-world</code>.", hint: ["Kommandoen er <code>docker run</code> og namnet på imaget.", "<code>docker run hello-world</code>"],
+      sjekk: c => !!st.flagg.hello },
+    { id: "l1o3", tekst: "Vis alle containerar, også dei som er stoppa.", hint: ["<code>docker ps</code> viser berre dei som køyrer. Kva flagg tek med alle?", "<code>docker ps -a</code>"],
+      sjekk: c => !!st.flagg.psA },
+  ]},
+
+{ id: "l2", tittel: "Image frå Docker Hub", laerer: "å laste ned image, sjå kva du har lokalt, og køyre ein kommando i ein container.",
+  html: `
+<p>Eit image er bygd opp av <b>lag</b>. Kvart lag er ei endring: først eit lite Linux-system, så programmet, så innstillingane. Når du lastar ned eit image, ser du at laga kjem eitt og eitt:</p>
+${ex(`docker pull nginx`)}
+<p><code>nginx</code> er ein webserver. Namnet kan ha ein <b>tag</b> etter kolon, som fortel kva versjon du vil ha. Utan tag får du <code>latest</code>. <code>nginx:alpine</code> er same webserver bygd på det vesle Linux-systemet Alpine:</p>
+${ex(`docker pull nginx:alpine`)}
+<p>Sjå kva image som ligg på serveren. Legg merke til skilnaden i storleik:</p>
+${ex(`docker images`)}
+<p>Du kan gi containeren ein kommando å køyre, rett etter namnet på imaget. Containeren startar, køyrer kommandoen og avsluttar:</p>
+${ex(`docker run alpine echo "Hei frå ein container"`)}
+${ex(`docker run alpine cat /etc/os-release`)}
+<p>Den siste kommandoen viser at containeren er Alpine Linux, sjølv om serveren køyrer Ubuntu. Samanlikn med <code>cat /etc/os-release</code> på serveren.</p>
+<div class="tips">💡 Ein container lever så lenge hovudprogrammet i han køyrer. <code>echo</code> er ferdig med ein gong, så containeren stoppar. Ein webserver køyrer til du stoppar han.</div>`,
+  oppgaver: [
+    { id: "l2o1", tekst: "Last ned imaget <code>nginx</code> frå Docker Hub.", hint: ["<code>docker pull nginx</code>"],
+      sjekk: c => !!lokaltBilete("nginx") },
+    { id: "l2o2", tekst: "Vis kva image som ligg på serveren.", hint: ["<code>docker images</code>"],
+      sjekk: c => !!st.flagg.images },
+    { id: "l2o3", tekst: "Køyr ein <code>alpine</code>-container som skriv ut ein tekst med <code>echo</code>.", hint: ["Kommandoen kjem etter namnet på imaget.", "<code>docker run alpine echo Hei</code>"],
+      sjekk: c => !!st.flagg.ekko },
+  ]},
+
+{ id: "l3", tittel: "Køyr ein webserver", laerer: "å køyre ein container i bakgrunnen, gi han eit namn og opne ein port inn til han.",
+  html: `
+<p>Ein webserver skal køyre heile tida. Då treng du tre flagg:</p>
+<table class="juks">
+<tr><td>-d</td><td>køyr i bakgrunnen (<i>detached</i>), så du får terminalen tilbake</td></tr>
+<tr><td>--name web</td><td>gi containeren eit namn du vel sjølv</td></tr>
+<tr><td>-p 8080:80</td><td>send port 8080 på serveren vidare til port 80 i containeren</td></tr>
+</table>
+<p>Flagga må stå <b>før</b> namnet på imaget:</p>
+${ex(`docker run -d --name web -p 8080:80 nginx`)}
+<p>Containeren er isolert. Utan <code>-p</code> når ingen inn til webserveren. Rekkjefølgja er alltid <code>VERT:CONTAINER</code>. Sjå at containeren køyrer, og kva portar som er opne:</p>
+${ex(`docker ps`)}
+<p>Hent nettsida med <code>curl</code>. I teikninga kan du òg klikke på porten for å sjå sida slik ein nettlesar viser ho:</p>
+${ex(`curl localhost:8080`)}
+<p>Alt containeren skriv ut, hamnar i loggen. Der ser du kvar førespurnad til webserveren:</p>
+${ex(`docker logs web`)}
+<div class="tips">💡 To containerar kan ikkje bruke same port på serveren. Vil du ha to webserverar, kan den andre få <code>-p 8081:80</code>. Port 80 i containeren er den same.</div>`,
+  oppgaver: [
+    { id: "l3o1", tekst: "Start ein <code>nginx</code>-container i bakgrunnen. Han skal heite <code>web</code> og svare på port <code>8080</code> på serveren.", hint: ["Du treng <code>-d</code>, <code>--name web</code> og <code>-p 8080:80</code> før <code>nginx</code>.", "<code>docker run -d --name web -p 8080:80 nginx</code>"],
+      sjekk: c => koyrande().some(k => k.namn === "web" && k.bilete.base === "nginx" && k.portar.some(p => p.vert === 8080 && p.kont === 80)) },
+    { id: "l3o2", tekst: "Vis containerane som køyrer.", hint: ["<code>docker ps</code>"],
+      sjekk: c => !!st.flagg.ps },
+    { id: "l3o3", tekst: "Hent nettsida frå webserveren på port 8080.", hint: ["<code>curl localhost:8080</code> – eller klikk på porten i teikninga."],
+      sjekk: c => !!st.flagg.web8080 },
+    { id: "l3o4", tekst: "Sjå i loggen til <code>web</code>.", hint: ["<code>docker logs web</code>"],
+      sjekk: c => !!st.flagg.logs },
+  ]},
+
+{ id: "l4", tittel: "Stopp, start og rydd", laerer: "å stoppe, starte og slette containerar, og kvifor du bør rydde.",
+  html: `
+<p>Denne leksjonen bruker containeren <code>web</code> frå leksjon 3. Manglar han, startar du han slik:</p>
+${ex(`docker run -d --name web -p 8080:80 nginx`)}
+<p>Stopp containeren. Han blir ikkje sletta, berre sett på pause med alt innhaldet sitt:</p>
+${ex(`docker stop web`)}
+<p>No svarar ikkje port 8080 lenger. Prøv <code>curl localhost:8080</code>. Start han igjen med same namn, portar og innstillingar:</p>
+${ex(`docker start web`)}
+<p>Stoppa containerar tek plass og held på namnet sitt. Prøver du å lage ein ny container som heiter <code>web</code>, får du ei feilmelding. Slett containeren når du er ferdig med han. Han må vere stoppa først, eller du kan tvinge det med <code>-f</code>:</p>
+${ex(`docker rm -f web`)}
+<p>Sjå etter gamle containerar som ligg att, og slett dei med namn eller ID. Du treng berre skrive dei første teikna i ID-en:</p>
+${ex(`docker ps -a`)}
+<table class="juks">
+<tr><td>docker stop namn</td><td>stopp ein container</td></tr>
+<tr><td>docker start namn</td><td>start ein stoppa container</td></tr>
+<tr><td>docker restart namn</td><td>stopp og start</td></tr>
+<tr><td>docker rm namn</td><td>slett ein stoppa container</td></tr>
+<tr><td>docker rm -f namn</td><td>stopp og slett i eitt</td></tr>
+<tr><td>docker container prune</td><td>slett alle stoppa containerar</td></tr>
+</table>
+<div class="tips">💡 Legg til <code>--rm</code> i <code>docker run</code> når du berre skal teste noko. Då slettar containeren seg sjølv når han stoppar.</div>`,
+  oppgaver: [
+    { id: "l4o1", tekst: "Stopp containeren <code>web</code>.", hint: ["<code>docker stop web</code>. Finst han ikkje, startar du han først med kommandoen øvst i leksjonen."],
+      sjekk: c => !!st.flagg.stoppaWeb },
+    { id: "l4o2", tekst: "Start <code>web</code> igjen.", hint: ["<code>docker start web</code>"],
+      sjekk: c => !!st.flagg.startaWeb },
+    { id: "l4o3", tekst: "Slett containeren <code>web</code>.", hint: ["Ein container som køyrer, må stoppast først – eller slettast med <code>-f</code>.", "<code>docker rm -f web</code>"],
+      sjekk: c => !!st.flagg.rmWeb },
+    { id: "l4o4", tekst: "Rydd: slett alle stoppa containerar, og sjekk med <code>docker ps -a</code> at ingen ligg att.", hint: ["<code>docker ps -a</code> viser dei. Slett kvar av dei med <code>docker rm</code> og namnet eller ID-en.", "Raskast: <code>docker container prune</code>, og så <code>docker ps -a</code>."],
+      sjekk: c => !!st.flagg.ryddig },
+  ]},
+
+{ id: "l5", tittel: "Inn i containeren", laerer: "å opne eit skal inne i ein container, og kva som skjer med endringar når containeren blir sletta.",
+  html: `
+<p>Start ein webserver om du ikkje har ein som køyrer:</p>
+${ex(`docker run -d --name web -p 8080:80 nginx`)}
+<p><code>docker exec</code> køyrer ein kommando i ein container som alt køyrer. Med <code>-it</code> og <code>sh</code> får du eit skal på innsida:</p>
+${ex(`docker exec -it web sh`)}
+<p>Ledeteksten endrar seg til <code>#</code>. No er du <b>inne i containeren</b>, og han ser ut som ei eiga maskin med eige filsystem og eige namn. Prøv desse:</p>
+${exUtan(`hostname
+ls /
+cat /etc/os-release
+uname -r`)}
+<p><code>uname -r</code> viser versjonen av Linux-kjernen. Han er den same inne i containeren som på serveren. Det er dette som er meint med at containerar deler kjerne med verten.</p>
+<p>Nettsida til nginx ligg i <code>/usr/share/nginx/html</code>. Byt ho ut, og gå ut av containeren:</p>
+${exUtan(`echo "<h1>Hei frå innsida</h1>" > /usr/share/nginx/html/index.html
+exit`)}
+<p>Hent sida på nytt med <code>curl localhost:8080</code>. Endringa verkar. Men ho ligg berre i <b>denne eine containeren</b>. Slett han og start ein ny frå same image:</p>
+${ex(`docker rm -f web`)}
+${ex(`docker run -d --name web -p 8080:80 nginx`)}
+<p>No er standardsida tilbake. Imaget blir aldri endra. Kvar container får sitt eige skrivelag oppå imaget, og det laget forsvinn når containeren blir sletta.</p>
+<div class="tips">💡 Image som nginx er strippa for alt som ikkje trengst. Difor finst ikkje <code>nano</code>, <code>ping</code> eller <code>ps</code> i containeren. Mindre innhald gir mindre å angripe.</div>`,
+  oppgaver: [
+    { id: "l5o1", tekst: "Opne eit skal inne i ein container som køyrer.", hint: ["Bruk <code>docker exec</code> med <code>-it</code>, namnet på containeren og <code>sh</code>.", "<code>docker exec -it web sh</code>"],
+      sjekk: c => !!st.flagg.execSkal },
+    { id: "l5o2", tekst: "Finn ut kva maskinnamn containeren har på innsida.", hint: ["Kommandoen heiter <code>hostname</code>. Du må køyre han inne i containeren."],
+      sjekk: c => !!st.flagg.hostnameInne },
+    { id: "l5o3", tekst: "Endre nettsida inne i nginx-containeren.", hint: ["Fila heiter <code>/usr/share/nginx/html/index.html</code>.", "Inne i containeren: <code>echo \"&lt;h1&gt;Hei&lt;/h1&gt;\" &gt; /usr/share/nginx/html/index.html</code>"],
+      sjekk: c => !!st.flagg.endraInne },
+    { id: "l5o4", tekst: "Slett containeren, start ein ny frå <code>nginx</code>, og hent sida. Endringa skal vere borte.", hint: ["Gå ut med <code>exit</code>. Så <code>docker rm -f web</code> og <code>docker run -d --name web -p 8080:80 nginx</code>.", "Hent sida med <code>curl localhost:8080</code>."],
+      sjekk: c => !!st.flagg.borte },
+  ]},
+
+{ id: "l6", tittel: "Volum: data som overlever", laerer: "å lagre data utanfor containeren med volum og med mapper frå serveren.",
+  html: `
+<p>I leksjon 5 forsvann endringane då containeren blei sletta. Det er bra for program, men ikkje for data. Databasar, opplasta filer og innstillingar må liggje <b>utanfor</b> containeren.</p>
+<p>Eit <b>volum</b> er eit lager som Docker styrer. Lag eit, og sjå at det dukkar opp i teikninga:</p>
+${ex(`docker volume create webdata`)}
+<p>Med <code>-v VOLUM:STI</code> blir volumet kopla inn som ei mappe i containeren. Rydd først vekk den gamle containeren:</p>
+${ex(`docker rm -f web`)}
+${ex(`docker run -d --name web -p 8080:80 -v webdata:/usr/share/nginx/html nginx`)}
+<p>Endre nettsida utan å gå inn i containeren. <code>sh -c</code> køyrer heile teksten i hermeteikn på innsida:</p>
+${ex(`docker exec web sh -c "echo '<h1>Lagra i volum</h1>' > /usr/share/nginx/html/index.html"`)}
+<p>Slett containeren og start ein ny med same volum. No overlever sida:</p>
+${ex(`docker rm -f web`)}
+${ex(`docker run -d --name web -p 8080:80 -v webdata:/usr/share/nginx/html nginx`)}
+${ex(`curl localhost:8080`)}
+<h3>Mappe frå serveren</h3>
+<p>Du kan òg kople inn ei vanleg mappe frå serveren. Då skriv du ein sti i staden for eit volumnamn. I heimemappa di ligg mappa <code>nettside</code> med ei <code>index.html</code>:</p>
+${ex(`docker run -d --name side -p 8081:80 -v ~/nettside:/usr/share/nginx/html nginx`)}
+<p>Endrar du fila på serveren med <code>nano ~/nettside/index.html</code>, endrar ho seg i containeren med ein gong.</p>
+<table class="juks">
+<tr><td>docker volume ls</td><td>vis alle volum</td></tr>
+<tr><td>docker volume create namn</td><td>lag eit volum</td></tr>
+<tr><td>docker volume rm namn</td><td>slett eit volum som ikkje er i bruk</td></tr>
+</table>
+<div class="tips">💡 Tommelfingerregel: Containeren skal kunne slettast når som helst. Alt du vil ta vare på, ligg i eit volum – og volumet tek du backup av.</div>`,
+  oppgaver: [
+    { id: "l6o1", tekst: "Lag eit volum.", hint: ["<code>docker volume create webdata</code>"],
+      sjekk: c => Object.keys(st.volum).length > 0 || !!st.flagg.volLaga },
+    { id: "l6o2", tekst: "Start ein nginx-container der volumet er kopla til <code>/usr/share/nginx/html</code>.", hint: ["Bruk <code>-v webdata:/usr/share/nginx/html</code>.", "Er namnet <code>web</code> eller port 8080 oppteke? Slett den gamle containeren med <code>docker rm -f web</code>."],
+      sjekk: c => koyrande().some(k => k.mont.some(m => m.type === "volume" && m.dst === "/usr/share/nginx/html")) },
+    { id: "l6o3", tekst: "Endre nettsida, slik at endringa hamnar i volumet.", hint: ["Skriv til <code>/usr/share/nginx/html/index.html</code> inne i containeren.", "<code>docker exec web sh -c \"echo '&lt;h1&gt;Lagra i volum&lt;/h1&gt;' &gt; /usr/share/nginx/html/index.html\"</code>"],
+      sjekk: c => Object.values(st.volum).some(v => v.endra) },
+    { id: "l6o4", tekst: "Slett containeren, start ein ny med same volum, og hent sida. Endringa skal ha overlevd.", hint: ["<code>docker rm -f web</code>, og så same <code>docker run</code> med <code>-v webdata:...</code> som sist.", "Hent sida med <code>curl localhost:8080</code>."],
+      sjekk: c => !!st.flagg.volOverlevde },
+    { id: "l6o5", tekst: "Start ein nginx-container som viser mappa <code>nettside</code> frå serveren, og hent sida.", hint: ["Bruk stien <code>~/nettside</code> framfor kolonet i <code>-v</code>, og ein ledig port.", "<code>docker run -d --name side -p 8081:80 -v ~/nettside:/usr/share/nginx/html nginx</code> og <code>curl localhost:8081</code>"],
+      sjekk: c => !!st.flagg.bindOk },
+  ]},
+
+{ id: "l7", tittel: "Bygg ditt eige image", laerer: "å skrive ei Dockerfile, byggje eit image av ho og gi imaget ein versjon.",
+  html: `
+<p>Til no har du brukt ferdige image. Ei <b>Dockerfile</b> er oppskrifta på eit image du lagar sjølv. Kvar linje er ein instruksjon, og kvar instruksjon blir eit lag:</p>
+<table class="juks">
+<tr><td>FROM</td><td>kva image du byggjer vidare på</td></tr>
+<tr><td>COPY</td><td>kopier filer frå mappa di og inn i imaget</td></tr>
+<tr><td>RUN</td><td>køyr ein kommando medan imaget blir bygd</td></tr>
+<tr><td>EXPOSE</td><td>fortel kva port programmet lyttar på</td></tr>
+<tr><td>CMD</td><td>kva som skal starte når containeren startar</td></tr>
+</table>
+<p>Gå inn i mappa <code>nettside</code>, og lag ei fil som heiter <code>Dockerfile</code>, med stor D og utan filending:</p>
+${ex(`cd ~/nettside`)}
+${ex(`nano Dockerfile`)}
+<p>Skriv desse to linjene i editoren, og lagre:</p>
+${exUtan(`FROM nginx
+COPY index.html /usr/share/nginx/html/`)}
+<p>Bygg imaget. <code>-t</code> gir det eit namn, og punktumet betyr at Docker skal bruke filene i denne mappa:</p>
+${ex(`docker build -t minside .`)}
+<p>No ligg <code>minside</code> saman med dei andre imaga. Start ein container frå det:</p>
+${ex(`docker run -d --name minside -p 8082:80 minside`)}
+${ex(`curl localhost:8082`)}
+<p>Nettsida er no ein del av imaget. Du treng ikkje volum eller mapper, og imaget kan flyttast til kva server som helst.</p>
+<h3>Ny versjon</h3>
+<p>Endrar du <code>index.html</code>, må du byggje på nytt. Gi den nye versjonen ein tag, så veit du kva som køyrer kvar:</p>
+${ex(`docker build -t minside:v2 .`)}
+<div class="tips">💡 I arbeidslivet ligg Dockerfile i Git-repoet saman med koden. Då kan kven som helst byggje nøyaktig same image.</div>`,
+  oppgaver: [
+    { id: "l7o1", tekst: "Lag ei <code>Dockerfile</code> i mappa <code>nettside</code> som byggjer på <code>nginx</code> og kopierer inn <code>index.html</code>.", hint: ["<code>cd ~/nettside</code> og <code>nano Dockerfile</code>.", "Fila treng to linjer: <code>FROM nginx</code> og <code>COPY index.html /usr/share/nginx/html/</code>"],
+      sjekk: c => { const t = st.fs[NETTSIDE + "/Dockerfile"] || ""; return /^\s*FROM\s+\S+/mi.test(t) && /^\s*(COPY|ADD)\s+\S+\s+\S+/mi.test(t); } },
+    { id: "l7o2", tekst: "Bygg imaget og kall det <code>minside</code>.", hint: ["Stå i mappa <code>nettside</code>.", "<code>docker build -t minside .</code> – hugs punktumet til slutt."],
+      sjekk: c => st.bilete.some(b => b.repo === "minside" && b.bygd) },
+    { id: "l7o3", tekst: "Start ein container frå imaget ditt, og hent nettsida.", hint: ["Vel ein ledig port, til dømes <code>-p 8082:80</code>.", "<code>docker run -d --name minside -p 8082:80 minside</code> og <code>curl localhost:8082</code>"],
+      sjekk: c => !!st.flagg.eigaSide },
+    { id: "l7o4", tekst: "Bygg ein ny versjon med taggen <code>v2</code>.", hint: ["Taggen kjem etter kolon i namnet.", "<code>docker build -t minside:v2 .</code>"],
+      sjekk: c => st.bilete.some(b => b.repo === "minside" && b.tag === "v2") },
+  ]},
+
+{ id: "l8", tittel: "Fleire containerar med Compose", laerer: "å starte eit heilt system med fleire containerar frå éi fil.",
+  html: `
+<p>Eit ekte system har ofte fleire delar: ein webserver, ein database, kanskje ein mellomlagar. Kvar del får sin eigen container. Å starte alle med lange <code>docker run</code>-kommandoar blir fort uoversiktleg.</p>
+<p>Med <b>Docker Compose</b> skriv du heile oppsettet i fila <code>compose.yaml</code>. I mappa <code>blogg</code> ligg ei ferdig fil for ein WordPress-blogg med database:</p>
+${ex(`cd ~/blogg`)}
+${ex(`cat compose.yaml`)}
+<p>Fila har to <b>tenester</b>: <code>web</code> og <code>db</code>. Du kjenner att <code>image</code>, <code>ports</code> og <code>volumes</code> frå tidlegare. Innrykka er viktige i YAML. Start alt med éin kommando:</p>
+${ex(`docker compose up -d`)}
+<p>Compose lagar eit eige nettverk til prosjektet. Der finn containerane kvarandre med tenestenamnet: WordPress når databasen på adressa <code>db</code>. Sjå status, og hent bloggen:</p>
+${ex(`docker compose ps`)}
+${ex(`curl localhost:8000`)}
+<p>Vil du sjå kva som skjer om databasen forsvinn? Prøv <code>docker compose stop db</code> og hent sida på nytt. Start han att med <code>docker compose start db</code>.</p>
+<p>Stopp og fjern containerane og nettverket:</p>
+${ex(`docker compose down`)}
+<p>Volumet med databasen blir ikkje sletta. Sjekk sjølv:</p>
+${ex(`docker volume ls`)}
+<p>Neste <code>docker compose up -d</code> finn att alle innlegga. Vil du slette dataa òg, skriv du <code>docker compose down -v</code>.</p>
+<div class="tips">💡 Passordet i <code>compose.yaml</code> står i klartekst. I ekte drift legg du slike verdiar i ei eiga <code>.env</code>-fil som ikkje blir lagd i Git.</div>`,
+  oppgaver: [
+    { id: "l8o1", tekst: "Vis innhaldet i <code>compose.yaml</code> i mappa <code>blogg</code>.", hint: ["<code>cd ~/blogg</code> og <code>cat compose.yaml</code>"],
+      sjekk: c => !!st.flagg.catCompose },
+    { id: "l8o2", tekst: "Start begge tenestene i bakgrunnen.", hint: ["Stå i mappa <code>blogg</code>.", "<code>docker compose up -d</code>"],
+      sjekk: c => koyrande().filter(k => k.prosjekt === "blogg").length >= 2 },
+    { id: "l8o3", tekst: "Hent bloggen på port 8000.", hint: ["<code>curl localhost:8000</code> – eller klikk på porten i teikninga."],
+      sjekk: c => !!st.flagg.wpOk },
+    { id: "l8o4", tekst: "Stopp og fjern containerane med Compose.", hint: ["<code>docker compose down</code>"],
+      sjekk: c => !!st.flagg.composeDown },
+    { id: "l8o5", tekst: "Vis at volumet med databasen framleis finst.", hint: ["<code>docker volume ls</code>", "Brukte du <code>down -v</code>, er volumet sletta. Køyr <code>docker compose up -d</code> og <code>docker compose down</code> på nytt."],
+      sjekk: c => !!st.flagg.volEtterDown },
+  ]},
+
+{ id: "l9", tittel: "Juksark og vegen vidare", laerer: "dei viktigaste kommandoane samla, og kvar du møter containerar i arbeidslivet.",
+  html: `
+<table class="juks">
+<tr><td>docker run -d --name n -p 8080:80 image</td><td>lag og start ein container</td></tr>
+<tr><td>docker ps -a</td><td>vis alle containerar</td></tr>
+<tr><td>docker stop / start / restart n</td><td>stopp og start</td></tr>
+<tr><td>docker rm -f n</td><td>slett ein container</td></tr>
+<tr><td>docker logs n</td><td>sjå kva containeren har skrive ut</td></tr>
+<tr><td>docker exec -it n sh</td><td>opne eit skal i containeren</td></tr>
+<tr><td>docker inspect n</td><td>vis alle detaljar som JSON</td></tr>
+<tr><td>docker images</td><td>vis lokale image</td></tr>
+<tr><td>docker pull image:tag</td><td>last ned eit image</td></tr>
+<tr><td>docker rmi image</td><td>slett eit image</td></tr>
+<tr><td>docker build -t namn .</td><td>bygg eit image frå Dockerfile</td></tr>
+<tr><td>docker volume ls / create / rm</td><td>arbeid med volum</td></tr>
+<tr><td>docker network ls</td><td>vis nettverk</td></tr>
+<tr><td>docker compose up -d</td><td>start alt i compose.yaml</td></tr>
+<tr><td>docker compose ps / logs</td><td>status og loggar for prosjektet</td></tr>
+<tr><td>docker compose down</td><td>stopp og fjern prosjektet</td></tr>
+</table>
+<h3>Feilsøking i tre steg</h3>
+<p>Når ein container ikkje verkar: <code>docker ps -a</code> viser om han køyrer og kva utgangskode han fekk. <code>docker logs</code> viser kvifor. <code>docker exec -it ... sh</code> lèt deg sjå etter på innsida.</p>
+<p>Prøv sjølv: Start ein database utan passord, og finn ut kvifor han stoppar.</p>
+${ex(`docker run -d --name db mariadb`)}
+<h3>Kvar blir dette brukt?</h3>
+<p><b>Drift:</b> Tenester som heimeautomasjon, filserver, overvaking og nettsider blir køyrde som containerar, ofte på ein liten server eller ein NAS. Oppdatering er å hente nytt image og starte containeren på nytt.</p>
+<p><b>Utvikling:</b> Utviklarar legg Dockerfile i repoet, slik at appen køyrer likt hos alle og i produksjon.</p>
+<p><b>Skya:</b> Store system køyrer tusenvis av containerar. Verktøy som Kubernetes fordeler dei på mange serverar og startar nye når noko feilar.</p>
+<p><b>Proxmox og LXC:</b> Proxmox har ein annan type containerar, LXC. Ein LXC-container oppfører seg som ei lita, heil Linux-maskin som deler kjerne med verten, medan ein Docker-container pakkar inn eitt program. Prinsippet er det same: isolasjon utan eige operativsystem.</p>`,
+  oppgaver: [] },
+];
+
+const LAERAR_HTML = `<ul>
+<li><b>Simulert Docker:</b> Serveren, Docker og Docker Hub er simulerte i nettlesaren. Utskrift og feilmeldingar følgjer ekte Docker (på engelsk), med ei forklaring på nynorsk under. Sida treng ingen eksterne bibliotek og ingen nettilgang.</li>
+<li><b>Støtta kommandoar:</b> <code>docker run</code> (<code>-d</code>, <code>-it</code>, <code>--rm</code>, <code>--name</code>, <code>-p</code>, <code>-v</code>, <code>-e</code>, <code>--network</code>), <code>ps</code>, <code>stop</code>, <code>start</code>, <code>restart</code>, <code>kill</code>, <code>rm</code>, <code>logs</code>, <code>exec</code>, <code>inspect</code>, <code>images</code>, <code>pull</code>, <code>rmi</code>, <code>tag</code>, <code>build</code>, <code>volume</code>, <code>network</code>, <code>container prune</code> og <code>docker compose up/down/ps/logs/stop/start/restart</code>. På serveren: <code>ls</code>, <code>cd</code>, <code>pwd</code>, <code>cat</code>, <code>echo</code>, <code>mkdir</code>, <code>touch</code>, <code>rm</code>, <code>cp</code>, <code>mv</code>, <code>nano</code>, <code>curl</code> og <code>uname</code>.</li>
+<li><b>Image på «Docker Hub»:</b> hello-world, nginx, httpd, alpine, busybox, ubuntu, debian, mariadb, mysql, postgres, redis, wordpress, python og node. Webserverane serverer filene sine på ekte vis, så elevane kan sjå resultatet ved å klikke på ein port i teikninga.</li>
+<li><b>Realistiske feil:</b> oppteken port, oppteke namn, flagg etter image-namnet, snudd portmapping, database utan passord og WordPress utan database gir same feil som i ekte Docker.</li>
+<li><b>Sjekk av oppgåver:</b> sida les tilstanden (containerar, image, volum) og ikkje den eksakte kommandoteksten. Leksjonane kan takast i vilkårleg rekkjefølgje; kvar leksjon viser kommandoen som trengst for å kome i gang.</li>
+<li><b>Lagring:</b> framdrift, filer, containerar og terminalhistorikk blir berre lagra i nettlesaren til eleven (localStorage). «Nullstill maskina» slettar containerar, image og volum, men ikkje framdrifta.</li>
+</ul>`;
+
+/* ================== LAGRING ================== */
+const lager = {
+    hent(nokkel, standard) {
+        try { const v = localStorage.getItem(KURS.prefiks + nokkel); return v === null ? standard : JSON.parse(v); }
+        catch (e) { return standard; }
+    },
+    set(nokkel, verdi) { try { localStorage.setItem(KURS.prefiks + nokkel, JSON.stringify(verdi)); } catch (e) {} },
+    slettAlle() {
+        try {
+            const ut = [];
+            for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.startsWith(KURS.prefiks)) ut.push(k); }
+            ut.forEach(k => localStorage.removeItem(k));
+        } catch (e) {}
+    }
+};
+
+/* ================== TILSTAND ================== */
+let loyste = new Set(lager.hent("loyste", []));
+let besokt = new Set(lager.hent("besokt", []));
+let hintNiva = lager.hent("hint", {});
+let aktivIndeks = Math.min(Math.max(0, LEKSJONAR.findIndex(l => l.id === lager.hent("aktiv", LEKSJONAR[0].id))), LEKSJONAR.length - 1);
+const ALLE_OPPGAVER = LEKSJONAR.flatMap(l => l.oppgaver.map(o => ({ ...o, leksjon: l })));
+
+function lagreTilstand() {
+    lager.set("loyste", [...loyste]);
+    lager.set("besokt", [...besokt]);
+    lager.set("hint", hintNiva);
+    lager.set("aktiv", LEKSJONAR[aktivIndeks].id);
+}
+
+function leksjonStatus(l) {
+    const n = l.oppgaver.length, ok = l.oppgaver.filter(o => loyste.has(o.id)).length;
+    if (n === 0) return besokt.has(l.id) ? "ferdig" : "ny";
+    if (ok === n) return "ferdig";
+    if (ok > 0 || besokt.has(l.id)) return "igang";
+    return "ny";
+}
+const STATUSIKON = { ny: '<span class="sirkel"></span>', igang: '<span class="sirkel halv"></span>', ferdig: "✔" };
+
+/* ================== VISING ================== */
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+function oppdaterFramdrift() {
+    const n = ALLE_OPPGAVER.length, ok = ALLE_OPPGAVER.filter(o => loyste.has(o.id)).length;
+    document.getElementById("framdriftTekst").textContent = `${ok} / ${n} oppgåver`;
+    document.getElementById("framdriftLinje").style.width = (n ? 100 * ok / n : 0) + "%";
+}
+
+function teiknListe() {
+    const ol = document.getElementById("leksjonsliste");
+    ol.innerHTML = "";
+    LEKSJONAR.forEach((l, i) => {
+        const st = leksjonStatus(l);
+        const ok = l.oppgaver.filter(o => loyste.has(o.id)).length;
+        const li = document.createElement("li");
+        li.className = (i === aktivIndeks ? "aktiv " : "") + st;
+        li.innerHTML = `<button type="button"><span class="status" title="${st === "ferdig" ? "Ferdig" : st === "igang" ? "I gang" : "Ikkje starta"}">${STATUSIKON[st]}</span><span class="nr">${i + 1}.</span><span>${esc(l.tittel)}</span>${l.oppgaver.length ? `<span class="tal">${ok}/${l.oppgaver.length}</span>` : ""}</button>`;
+        li.querySelector("button").onclick = () => visLeksjon(i);
+        ol.appendChild(li);
+    });
+    oppdaterFramdrift();
+}
+
+function visLeksjon(i, rull = true) {
+    aktivIndeks = i;
+    const l = LEKSJONAR[i];
+    besokt.add(l.id);
+    lagreTilstand();
+    const el = document.getElementById("leksjon");
+    el.innerHTML = `
+        <h2>${i + 1}. ${esc(l.tittel)}</h2>
+        <p class="laerer"><b>Dette lærer du:</b> ${l.laerer}</p>
+        <div class="forklaring">${l.html}</div>
+        ${l.oppgaver.length ? `<h3>Oppgåver</h3><ul class="oppgaver"></ul>` : ""}
+        <div class="fullfortplass"></div>
+        <div class="navknappar">
+            <button type="button" class="forre" ${i === 0 ? "disabled" : ""}>◀ Førre</button>
+            <button type="button" class="neste" ${i === LEKSJONAR.length - 1 ? "disabled" : ""}>Neste ▶</button>
+        </div>
+        <details class="laerar"><summary>For læraren</summary>${LAERAR_HTML}</details>`;
+    el.querySelectorAll(".eksempel:not(.utan)").forEach(ex => {
+        const pre = ex.querySelector("pre");
+        const b = document.createElement("button");
+        b.type = "button"; b.className = "prov"; b.textContent = "Prøv";
+        b.title = "Lim inn koden (du køyrer sjølv)";
+        b.onclick = () => { if (typeof simLim === "function") simLim(pre.dataset.kode ?? pre.textContent); };
+        ex.appendChild(b);
+    });
+    const ul = el.querySelector(".oppgaver");
+    if (ul) l.oppgaver.forEach(o => ul.appendChild(lagOppgaveEl(o)));
+    el.querySelector(".forre").onclick = () => visLeksjon(i - 1);
+    el.querySelector(".neste").onclick = () => visLeksjon(i + 1);
+    teiknFullfort();
+    teiknListe();
+    if (rull) document.getElementById("leksjonspanel").scrollTop = 0;
+    if (typeof simByttLeksjon === "function") simByttLeksjon(l);   // valfri krok (t.d. startkode i editoren)
+}
+
+function lagOppgaveEl(o) {
+    const li = document.createElement("li");
+    li.className = "oppgave" + (loyste.has(o.id) ? " loyst" : "");
+    li.dataset.id = o.id;
+    li.innerHTML = `<span class="ikon">${loyste.has(o.id) ? "✔" : "○"}</span><span class="tekst">${o.tekst}</span>` +
+        (o.hint && o.hint.length ? `<button type="button" class="hintknapp">Hint</button>` : "<span></span>");
+    const vis = () => {
+        li.querySelectorAll(".hint").forEach(h => h.remove());
+        const n = hintNiva[o.id] || 0;
+        for (let k = 0; k < n; k++) {
+            const d = document.createElement("div");
+            d.className = "hint"; d.innerHTML = "💡 " + o.hint[k];
+            li.appendChild(d);
+        }
+        const b = li.querySelector(".hintknapp");
+        if (b) { b.textContent = n === 0 ? "Hint" : n < o.hint.length ? "Meir hjelp" : "Hint"; b.disabled = n >= o.hint.length; b.style.opacity = n >= o.hint.length ? .4 : 1; }
+    };
+    const b = li.querySelector(".hintknapp");
+    if (b) b.onclick = () => { hintNiva[o.id] = Math.min((hintNiva[o.id] || 0) + 1, o.hint.length); lagreTilstand(); vis(); };
+    vis();
+    return li;
+}
+
+function teiknFullfort() {
+    const l = LEKSJONAR[aktivIndeks];
+    const plass = document.querySelector("#leksjon .fullfortplass");
+    if (!plass) return;
+    plass.innerHTML = "";
+    if (l.oppgaver.length && leksjonStatus(l) === "ferdig") {
+        const d = document.createElement("div");
+        d.className = "fullfort";
+        d.innerHTML = `<span>✔ Leksjon fullført!</span>` + (aktivIndeks < LEKSJONAR.length - 1 ? `<button type="button">Neste leksjon ▶</button>` : "");
+        const b = d.querySelector("button");
+        if (b) b.onclick = () => visLeksjon(aktivIndeks + 1);
+        plass.appendChild(d);
+    }
+}
+
+let toastTid = null;
+function toast(tekst) {
+    const t = document.getElementById("toast");
+    t.textContent = tekst; t.classList.add("vis");
+    clearTimeout(toastTid); toastTid = setTimeout(() => t.classList.remove("vis"), 3200);
+}
+
+/* ================== OPPGÅVESJEKK ================== */
+/* Kall etter KVAR kommando/køyring. Sjekkar alle oppgåver i alle leksjonar. */
+function sjekkOppgaver(ctx) {
+    const nye = [];
+    for (const o of ALLE_OPPGAVER) {
+        if (loyste.has(o.id)) continue;
+        let ok = false;
+        try { ok = !!o.sjekk(ctx); } catch (e) { ok = false; }
+        if (ok) { loyste.add(o.id); nye.push(o); }
+    }
+    if (!nye.length) return nye;
+    lagreTilstand();
+    const aktiv = LEKSJONAR[aktivIndeks];
+    for (const o of nye) {
+        const li = document.querySelector(`#leksjon .oppgave[data-id="${o.id}"]`);
+        if (li) {
+            li.classList.add("loyst");
+            li.querySelector(".ikon").textContent = "✔";
+            const bra = document.createElement("div");
+            bra.className = "bra"; bra.textContent = "✔ Bra!";
+            li.appendChild(bra);
+            setTimeout(() => bra.remove(), 2700);
+        }
+    }
+    const andre = nye.filter(o => o.leksjon !== aktiv);
+    if (andre.length) {
+        const o = andre[0];
+        toast(`✔ Bra! Du løyste ei oppgåve i leksjon ${LEKSJONAR.indexOf(o.leksjon) + 1}: ${o.leksjon.tittel}`);
+    }
+    teiknFullfort();
+    teiknListe();
+    return nye;
+}
+
+/* ================== KURSBEVIS ================== */
+function datoTekst(d = new Date()) {
+    return String(d.getDate()).padStart(2, "0") + "." + String(d.getMonth() + 1).padStart(2, "0") + "." + d.getFullYear();
+}
+function hentNamn() { try { return localStorage.getItem("kode101-namn") || ""; } catch (e) { return ""; } }
+function teiknBevis() {
+    const namn = document.getElementById("bevisNamn").value.trim();
+    const n = ALLE_OPPGAVER.length, ok = ALLE_OPPGAVER.filter(o => loyste.has(o.id)).length;
+    const alt = ok === n;
+    const leks = LEKSJONAR.filter(l => l.oppgaver.length);
+    const manglar = leks.filter(l => leksjonStatus(l) !== "ferdig");
+    document.getElementById("bevis").innerHTML = `
+        <div class="stripe"></div>
+        ${alt ? `<div class="segl">Fullført</div>` : `<div class="delvis">Delvis fullført</div>`}
+        <h2>Kursbevis – ${esc(KURS.namn)}</h2>
+        <div class="skule">Stord vidaregåande skule – IM</div>
+        <div class="bnamn">${namn ? esc(namn) : "&nbsp;"}</div>
+        <div class="skule">Dato: ${datoTekst()}</div>
+        <ul>${leks.map((l, i) => {
+            const lok = l.oppgaver.filter(o => loyste.has(o.id)).length;
+            return `<li>${lok === l.oppgaver.length ? "✔" : "○"} ${LEKSJONAR.indexOf(l) + 1}. ${esc(l.tittel)} <span style="color:#888">(${lok}/${l.oppgaver.length})</span></li>`;
+        }).join("")}</ul>
+        <div class="sum">${ok} av ${n} oppgåver</div>
+        ${alt ? "" : `<div class="manglar">Manglar: ${manglar.map(l => esc(l.tittel)).join(", ")}</div>`}`;
+}
+function opneBevis() {
+    document.getElementById("bevisNamn").value = hentNamn();
+    teiknBevis();
+    document.getElementById("bevisbakgrunn").classList.add("vis");
+    document.getElementById("bevisNamn").focus();
+}
+document.getElementById("bevisNamn").addEventListener("input", e => {
+    try { localStorage.setItem("kode101-namn", e.target.value.trim()); } catch (er) {}
+    teiknBevis();
+});
+document.getElementById("knappBevis").onclick = opneBevis;
+document.getElementById("bevisLukk").onclick = () => document.getElementById("bevisbakgrunn").classList.remove("vis");
+document.getElementById("bevisbakgrunn").addEventListener("click", e => { if (e.target.id === "bevisbakgrunn") e.target.classList.remove("vis"); });
+document.getElementById("bevisSkriv").onclick = () => window.print();
+document.addEventListener("keydown", e => { if (e.key === "Escape") document.getElementById("bevisbakgrunn").classList.remove("vis"); });
+
+/* ================== START PÅ NYTT ================== */
+document.getElementById("knappNullstill").onclick = () => {
+    if (!confirm("Vil du starte på nytt? All framdrift på denne sida blir sletta.")) return;
+    lager.slettAlle();
+    location.reload();
+};
+
+/* =====================================================================
+   TOLKING AV KOMMANDOLINJA
+   ===================================================================== */
+function avstand(a, b) {
+    a = a.toLowerCase(); b = b.toLowerCase();
+    const d = Array.from({ length: a.length + 1 }, (_, i) => [i]);
+    for (let j = 1; j <= b.length; j++) d[0][j] = j;
+    for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++)
+        d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    return d[a.length][b.length];
+}
+function naermast(ord, liste) {
+    let best = null, bd = Infinity;
+    for (const x of liste) { const d = avstand(ord, x); if (d < bd) { bd = d; best = x; } }
+    return best && bd > 0 && bd <= Math.max(1, Math.floor(ord.length / 3)) ? best : null;
+}
+
+/* Del opp ei linje i kommandoar (&&, ;) og ord, med hermeteikn og omdirigering */
+function tolk(linje) {
+    const kmd = [];
+    let ord = [], cur = "", harCur = false, q = null, omd = null, kopling = null;
+    const fullfor = () => { if (harCur) { if (omd && omd.fil === undefined) omd.fil = cur; else ord.push(cur); } cur = ""; harCur = false; };
+    const avslutt = op => { fullfor(); if (ord.length || omd) kmd.push({ ord, omd, kopling }); ord = []; omd = null; kopling = op; };
+    for (let i = 0; i < linje.length; i++) {
+        const c = linje[i];
+        if (q) { if (c === q) q = null; else cur += c; continue; }
+        if (c === '"' || c === "'") { q = c; harCur = true; continue; }
+        if (c === "\\" && i + 1 < linje.length && linje[i + 1] !== "\\") { cur += linje[++i]; harCur = true; continue; }
+        if (/\s/.test(c)) { fullfor(); continue; }
+        if (c === "&" && linje[i + 1] === "&") { avslutt("&&"); i++; continue; }
+        if (c === ";") { avslutt(";"); continue; }
+        if (c === "|" && linje[i + 1] === "|") { avslutt("||"); i++; continue; }
+        if (c === ">") { fullfor(); const leggTil = linje[i + 1] === ">"; if (leggTil) i++; omd = { leggTil }; continue; }
+        cur += c; harCur = true;
+    }
+    if (q) return { feil: "hermeteikn" };
+    avslutt(null);
+    return { kmd };
+}
+
+/* =====================================================================
+   SIMULERT MASKIN: Linux-server med filsystem, Docker og Docker Hub
+   ===================================================================== */
+const HEIM = "/home/elev", NETTSIDE = HEIM + "/nettside", BLOGG = HEIM + "/blogg", VERT = "im-server";
+const KJERNE = "6.8.0-48-generic";
+const DOCKER_VERSJON = "27.3.1";
+
+const START_INDEX = `<!DOCTYPE html>
+<html lang="nn">
+<head>
+    <meta charset="utf-8">
+    <title>Nettsida mi</title>
+</head>
+<body>
+    <h1>Hei frå nettsida mi!</h1>
+    <p>Denne sida ligg i mappa nettside på serveren.</p>
+</body>
+</html>
+`;
+const START_COMPOSE = `services:
+  web:
+    image: wordpress
+    ports:
+      - "8000:80"
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_USER: blogg
+      WORDPRESS_DB_PASSWORD: hemmeleg123
+      WORDPRESS_DB_NAME: blogg
+    depends_on:
+      - db
+
+  db:
+    image: mariadb
+    environment:
+      MARIADB_DATABASE: blogg
+      MARIADB_USER: blogg
+      MARIADB_PASSWORD: hemmeleg123
+      MARIADB_RANDOM_ROOT_PASSWORD: "1"
+    volumes:
+      - dbdata:/var/lib/mysql
+
+volumes:
+  dbdata:
+`;
+const NGINX_INDEX = `<!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to nginx!</title>
+<style>
+html { color-scheme: light dark; }
+body { width: 35em; margin: 0 auto;
+font-family: Tahoma, Verdana, Arial, sans-serif; }
+</style>
+</head>
+<body>
+<h1>Welcome to nginx!</h1>
+<p>If you see this page, the nginx web server is successfully installed and
+working. Further configuration is required.</p>
+
+<p><em>Thank you for using nginx.</em></p>
+</body>
+</html>
+`;
+const HTTPD_INDEX = "<html><body><h1>It works!</h1></body></html>\n";
+const WP_SIDE = `<!DOCTYPE html>
+<html lang="nn">
+<head><meta charset="utf-8"><title>Bloggen min</title>
+<style>body{font-family:Georgia,serif;max-width:34em;margin:1.5em auto;padding:0 1em;color:#222}h1{border-bottom:3px solid #2e7d32}small{color:#777}</style></head>
+<body>
+<h1>Bloggen min</h1>
+<h2>Hei, verda!</h2>
+<p>Velkomen til WordPress. Dette er det første innlegget ditt.</p>
+<small>WordPress køyrer i containeren web. Innlegga ligg i databasen i containeren db.</small>
+</body>
+</html>
+`;
+const WP_FEIL = `<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Database Error</title></head>
+<body><h1>Error establishing a database connection</h1></body>
+</html>
+`;
+const OS_TEKST = {
+    alpine: `NAME="Alpine Linux"\nID=alpine\nVERSION_ID=3.20.3\nPRETTY_NAME="Alpine Linux v3.20"\nHOME_URL="https://alpinelinux.org/"\n`,
+    debian: `PRETTY_NAME="Debian GNU/Linux 12 (bookworm)"\nNAME="Debian GNU/Linux"\nVERSION_ID="12"\nVERSION="12 (bookworm)"\nID=debian\n`,
+    ubuntu: `PRETTY_NAME="Ubuntu 24.04.1 LTS"\nNAME="Ubuntu"\nVERSION_ID="24.04"\nVERSION="24.04.1 LTS (Noble Numbat)"\nID=ubuntu\nID_LIKE=debian\n`,
+    busybox: "",
+};
+const HELLO = [
+    "", "Hello from Docker!", "This message shows that your installation appears to be working correctly.", "",
+    "To generate this message, Docker took the following steps:",
+    " 1. The Docker client contacted the Docker daemon.",
+    " 2. The Docker daemon pulled the \"hello-world\" image from the Docker Hub.",
+    " 3. The Docker daemon created a new container from that image which runs the",
+    "    executable that produces the output you are currently reading.",
+    " 4. The Docker daemon streamed that output to the Docker client, which sent it",
+    "    to your terminal.", "",
+];
+
+/* «Docker Hub»: image som kan lastast ned i simulatoren */
+const HUB = {
+    "hello-world": { tags: ["latest"], str: "10.1kB", lag: 1, cmd: "/hello", type: "hello", alder: "18 months ago", fam: "ingen" },
+    nginx: { tags: ["latest", "alpine", "1.27"], str: "192MB", strTag: { alpine: "47MB" }, famTag: { alpine: "alpine" }, lag: 7, cmd: "nginx -g 'daemon off;'", vis: "/docker-entrypoint.sh nginx -g 'daemon off;'", type: "web", port: 80, rot: "/usr/share/nginx/html", alder: "2 weeks ago", fam: "debian", bash: true,
+        filer: { "/usr/share/nginx/html/index.html": NGINX_INDEX, "/usr/share/nginx/html/50x.html": "<html><body><h1>An error occurred.</h1></body></html>\n", "/etc/nginx/nginx.conf": "user  nginx;\nworker_processes  auto;\n\nevents {\n    worker_connections  1024;\n}\n\nhttp {\n    include       /etc/nginx/mime.types;\n    sendfile        on;\n    include /etc/nginx/conf.d/*.conf;\n}\n", "/etc/nginx/conf.d/default.conf": "server {\n    listen       80;\n    server_name  localhost;\n\n    location / {\n        root   /usr/share/nginx/html;\n        index  index.html index.htm;\n    }\n}\n" } },
+    httpd: { tags: ["latest", "2.4"], str: "148MB", lag: 5, cmd: "httpd-foreground", type: "web", port: 80, rot: "/usr/local/apache2/htdocs", alder: "3 weeks ago", fam: "debian", bash: true,
+        filer: { "/usr/local/apache2/htdocs/index.html": HTTPD_INDEX } },
+    alpine: { tags: ["latest", "3.20"], str: "7.8MB", lag: 1, cmd: "/bin/sh", type: "skal", alder: "5 weeks ago", fam: "alpine", ps: true },
+    busybox: { tags: ["latest"], str: "4.27MB", lag: 1, cmd: "sh", type: "skal", alder: "6 weeks ago", fam: "busybox", ps: true },
+    ubuntu: { tags: ["latest", "24.04", "22.04"], str: "78.1MB", lag: 1, cmd: "/bin/bash", type: "skal", alder: "4 weeks ago", fam: "ubuntu", bash: true, ps: true },
+    debian: { tags: ["latest", "12"], str: "117MB", lag: 1, cmd: "bash", type: "skal", alder: "2 weeks ago", fam: "debian", bash: true, ps: true },
+    mariadb: { tags: ["latest", "11"], str: "407MB", lag: 8, cmd: "mariadbd", vis: "docker-entrypoint.sh mariadbd", type: "db", port: 3306, data: "/var/lib/mysql", alder: "3 weeks ago", fam: "ubuntu", bash: true, dbNamn: "MariaDB",
+        krev: ["MARIADB_ROOT_PASSWORD", "MARIADB_ROOT_PASSWORD_HASH", "MARIADB_ALLOW_EMPTY_ROOT_PASSWORD", "MARIADB_RANDOM_ROOT_PASSWORD", "MYSQL_ROOT_PASSWORD", "MYSQL_ALLOW_EMPTY_PASSWORD", "MYSQL_RANDOM_ROOT_PASSWORD"] },
+    mysql: { tags: ["latest", "8"], str: "601MB", lag: 10, cmd: "mysqld", vis: "docker-entrypoint.sh mysqld", type: "db", port: 3306, data: "/var/lib/mysql", alder: "4 weeks ago", fam: "debian", bash: true, dbNamn: "MySQL",
+        krev: ["MYSQL_ROOT_PASSWORD", "MYSQL_ALLOW_EMPTY_PASSWORD", "MYSQL_RANDOM_ROOT_PASSWORD"] },
+    postgres: { tags: ["latest", "17", "16"], str: "435MB", lag: 14, cmd: "postgres", vis: "docker-entrypoint.sh postgres", type: "db", port: 5432, data: "/var/lib/postgresql/data", alder: "2 weeks ago", fam: "debian", bash: true, dbNamn: "PostgreSQL",
+        krev: ["POSTGRES_PASSWORD", "POSTGRES_HOST_AUTH_METHOD"] },
+    redis: { tags: ["latest", "7"], str: "117MB", lag: 8, cmd: "redis-server", vis: "docker-entrypoint.sh redis-server", type: "teneste", port: 6379, alder: "5 weeks ago", fam: "debian", bash: true },
+    wordpress: { tags: ["latest", "6"], str: "701MB", lag: 12, cmd: "apache2-foreground", vis: "docker-entrypoint.sh apache2-foreground", type: "wp", port: 80, alder: "2 weeks ago", fam: "debian", bash: true },
+    python: { tags: ["latest", "3.12", "3.13"], str: "1.02GB", lag: 7, cmd: "python3", type: "repl", alder: "3 weeks ago", fam: "debian", bash: true },
+    node: { tags: ["latest", "22", "20"], str: "1.12GB", lag: 8, cmd: "node", vis: "docker-entrypoint.sh node", type: "repl", alder: "2 weeks ago", fam: "debian", bash: true },
+};
+const BASISMAPPER = ["/bin", "/dev", "/etc", "/home", "/lib", "/media", "/mnt", "/opt", "/proc", "/root", "/run", "/sbin", "/srv", "/sys", "/tmp", "/usr", "/var"];
+const NAMN_A = ["happy", "eager", "brave", "clever", "jolly", "quirky", "sleepy", "gifted", "bold", "kind", "wizardly", "festive", "sharp", "vibrant", "zen"];
+const NAMN_B = ["turing", "hopper", "lovelace", "ritchie", "torvalds", "curie", "noether", "dijkstra", "knuth", "hamilton", "nygaard", "dahl", "abel", "liskov", "shannon"];
+
+const IKKJE = -127;   // programmet finst ikkje i dette miljøet
+function hex(n) { let s = ""; while (s.length < n) s += Math.floor(Math.random() * 16).toString(16); return s; }
+function har(o, k) { return Object.prototype.hasOwnProperty.call(o, k); }
+
+/* ---------- Tilstand ---------- */
+let st = null;
+function nyTilstand() {
+    st = {
+        v: 1, cwd: HEIM,
+        dirs: [HEIM, NETTSIDE, BLOGG],
+        fs: { [NETTSIDE + "/index.html"]: START_INDEX, [BLOGG + "/compose.yaml"]: START_COMPOSE, "/etc/os-release": OS_TEKST.ubuntu, "/etc/hostname": VERT + "\n" },
+        flagg: {}, bilete: [], kont: [], volum: {},
+        nett: { bridge: { id: hex(64), driver: "bridge" }, host: { id: hex(64), driver: "host" }, none: { id: hex(64), driver: "null" } },
+        skal: null, side: null,
+    };
+    return st;
+}
+
+/* ---------- Stiar ---------- */
+function normSti(p) {
+    const ut = [];
+    for (const d of p.split("/")) { if (!d || d === ".") continue; if (d === "..") ut.pop(); else ut.push(d); }
+    return "/" + ut.join("/");
+}
+function forelderSti(p) { return p.slice(0, p.lastIndexOf("/")) || "/"; }
+function namnAv(p) { return p.slice(p.lastIndexOf("/") + 1); }
+function visSti(p) { return p === HEIM ? "~" : p.startsWith(HEIM + "/") ? "~" + p.slice(HEIM.length) : p; }
+function abs(p, m) {
+    if (p === "~") return m.heim;
+    if (p.startsWith("~/")) return normSti(m.heim + p.slice(1));
+    return normSti(p.startsWith("/") ? p : m.cwd + "/" + p);
+}
+
+/* ---------- Filsystem: felles «vising» over ulike lager ---------- */
+function lagVis(b) {
+    const v = {
+        les: p => b.get(p),
+        erFil: p => b.get(p) !== undefined,
+        erDir: p => p === "/" || b.dirs().some(d => d === p || d.startsWith(p + "/")) || b.filer().some(f => f.startsWith(p + "/")),
+        finst: p => v.erFil(p) || v.erDir(p),
+        skriv: (p, t) => b.set(p, t),
+        slett: p => b.del(p),
+        mkdir: p => b.mkdir(p),
+        rmdir: p => b.rmdir(p),
+        barn: dir => {
+            const pre = dir === "/" ? "/" : dir + "/", m = new Map();
+            for (const d of b.dirs()) if (d.startsWith(pre)) { const r = d.slice(pre.length).split("/")[0]; if (r) m.set(r, { n: r, d: true }); }
+            for (const f of b.filer()) if (f.startsWith(pre)) { const r = f.slice(pre.length), i = r.indexOf("/"); if (i < 0) m.set(r, { n: r, d: false }); else m.set(r.slice(0, i), { n: r.slice(0, i), d: true }); }
+            return [...m.values()].sort((x, y) => x.n < y.n ? -1 : x.n > y.n ? 1 : 0);
+        },
+    };
+    return v;
+}
+/* Serveren (verten) */
+const vertB = {
+    get: p => har(st.fs, p) ? st.fs[p] : undefined,
+    set: (p, t) => { st.fs[p] = t; },
+    del: p => { delete st.fs[p]; },
+    filer: () => Object.keys(st.fs),
+    dirs: () => st.dirs,
+    mkdir: p => { if (!st.dirs.includes(p)) st.dirs.push(p); },
+    rmdir: p => { st.dirs = st.dirs.filter(d => d !== p && !d.startsWith(p + "/")); for (const f of Object.keys(st.fs)) if (f.startsWith(p + "/")) delete st.fs[f]; },
+};
+const vertVis = lagVis(vertB);
+
+/* Filene i eit image: basisfilene frå Docker Hub + det som er kopiert inn med COPY */
+function biletFiler(bil) {
+    const h = HUB[bil.base] || {};
+    const f = { "/etc/hosts": "127.0.0.1\tlocalhost\n" };
+    const os = OS_TEKST[bil.fam || h.fam || "debian"];
+    if (os) f["/etc/os-release"] = os;
+    Object.assign(f, h.filer || {}, bil.filer || {});
+    return f;
+}
+let merkEndring = true;   // false medan simulatoren sjølv skriv (t.d. databasefiler)
+/* Containeren: skrivelag oppå imaget, pluss volum og mapper som er kopla inn */
+function kontB(c) {
+    const mont = p => { let best = null; for (const m of c.mont) if ((p === m.dst || p.startsWith(m.dst + "/")) && (!best || m.dst.length > best.dst.length)) best = m; return best; };
+    const rel = (m, p) => p.slice(m.dst.length).replace(/^\//, "");
+    const b = {
+        get(p) {
+            const m = mont(p);
+            if (m) {
+                const r = rel(m, p);
+                if (!r) return undefined;
+                if (m.type === "bind") return vertB.get(m.src + "/" + r);
+                const v = st.volum[m.src];
+                return v && har(v.filer, r) ? v.filer[r] : undefined;
+            }
+            if (har(c.fs, p)) return c.fs[p] === null ? undefined : c.fs[p];
+            const f = biletFiler(c.bilete);
+            return har(f, p) ? f[p] : undefined;
+        },
+        set(p, t) {
+            const m = mont(p);
+            if (m) {
+                const r = rel(m, p);
+                if (!r) return;
+                if (m.type === "bind") vertB.set(m.src + "/" + r, t);
+                else { const v = st.volum[m.src]; if (v) { v.filer[r] = t; if (merkEndring) { v.endra = true; v.endraAv = c.id; } } }
+                return;
+            }
+            c.fs[p] = t;
+        },
+        del(p) {
+            const m = mont(p);
+            if (m) {
+                const r = rel(m, p);
+                if (!r) return;
+                if (m.type === "bind") vertB.del(m.src + "/" + r);
+                else { const v = st.volum[m.src]; if (v) { delete v.filer[r]; if (merkEndring) { v.endra = true; v.endraAv = c.id; } } }
+                return;
+            }
+            if (har(biletFiler(c.bilete), p)) c.fs[p] = null; else delete c.fs[p];
+        },
+        filer() {
+            const ut = [], f = biletFiler(c.bilete);
+            for (const k of Object.keys(f)) if (!mont(k) && c.fs[k] !== null) ut.push(k);
+            for (const [k, t] of Object.entries(c.fs)) if (t !== null && !mont(k) && !har(f, k)) ut.push(k);
+            for (const m of c.mont) {
+                if (m.type === "bind") { for (const k of vertB.filer()) if (k.startsWith(m.src + "/")) ut.push(m.dst + k.slice(m.src.length)); }
+                else { const v = st.volum[m.src]; if (v) for (const r of Object.keys(v.filer)) ut.push(m.dst + "/" + r); }
+            }
+            return ut;
+        },
+        dirs() {
+            const ut = [...BASISMAPPER, ...c.dirs];
+            if (c.wd && c.wd !== "/") ut.push(c.wd);
+            const h = HUB[c.bilete.base] || {};
+            if (h.rot) ut.push(h.rot);
+            if (h.data) ut.push(h.data);
+            for (const m of c.mont) {
+                ut.push(m.dst);
+                if (m.type === "bind") { for (const d of st.dirs) if (d.startsWith(m.src + "/")) ut.push(m.dst + d.slice(m.src.length)); }
+                else { const v = st.volum[m.src]; if (v) for (const r of v.dirs) ut.push(m.dst + "/" + r); }
+            }
+            return ut;
+        },
+        mkdir(p) {
+            const m = mont(p);
+            if (m) {
+                const r = rel(m, p);
+                if (!r) return;
+                if (m.type === "bind") vertB.mkdir(m.src + "/" + r);
+                else { const v = st.volum[m.src]; if (v && !v.dirs.includes(r)) { v.dirs.push(r); if (merkEndring) { v.endra = true; v.endraAv = c.id; } } }
+                return;
+            }
+            if (!c.dirs.includes(p)) c.dirs.push(p);
+        },
+        rmdir(p) {
+            for (const f of b.filer()) if (f.startsWith(p + "/")) b.del(f);
+            c.dirs = c.dirs.filter(d => d !== p && !d.startsWith(p + "/"));
+            for (const m of c.mont) {
+                if (!(p === m.dst || p.startsWith(m.dst + "/"))) continue;
+                const r = rel(m, p);
+                if (!r) continue;
+                if (m.type === "bind") vertB.rmdir(m.src + "/" + r);
+                else { const v = st.volum[m.src]; if (v) v.dirs = v.dirs.filter(d => d !== r && !d.startsWith(r + "/")); }
+            }
+        },
+    };
+    return b;
+}
+
+/* ---------- Miljø: kven og kvar kommandoane køyrer ---------- */
+function miljoVert() {
+    return { vis: vertVis, get cwd() { return st.cwd; }, set cwd(v) { st.cwd = v; }, heim: HEIM, brukar: "elev", vertsnamn: VERT, kont: null, skal: "bash" };
+}
+function miljoKont(c, s) {
+    return { vis: lagVis(kontB(c)), get cwd() { return s.cwd; }, set cwd(v) { s.cwd = v; }, heim: "/root", brukar: "root", vertsnamn: c.id.slice(0, 12), kont: c, skal: s.bash ? "bash" : "sh", s };
+}
+function famAv(c) { const h = HUB[c.bilete.base] || {}; return c.bilete.fam || h.fam || "debian"; }
+
+/* ---------- Tekstformat ---------- */
+const E = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const F = {
+    g: t => `<span class="fg">${E(t)}</span>`, r: t => `<span class="fr">${E(t)}</span>`, y: t => `<span class="fy">${E(t)}</span>`,
+    c: t => `<span class="fc">${E(t)}</span>`, b: t => `<span class="fb">${E(t)}</span>`, m: t => `<span class="fm">${E(t)}</span>`, d: t => `<span class="fd">${E(t)}</span>`,
+};
+const kd = s => "<code>" + E(s) + "</code>";
+function utanHtml(h) { return h.replace(/<[^>]+>/g, "").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&amp;/g, "&"); }
+function tabell(rader) {
+    const w = rader[0].map((_, i) => Math.max(...rader.map(r => r[i].length)));
+    return rader.map(r => r.map((c, i) => i === r.length - 1 ? c : c.padEnd(w[i] + 3)).join("").trimEnd());
+}
+function varig(ms) {
+    const s = Math.max(0, Math.floor(ms / 1000));
+    if (s < 1) return "Less than a second";
+    if (s < 60) return s + (s === 1 ? " second" : " seconds");
+    if (s < 90) return "About a minute";
+    if (s < 3600) return Math.round(s / 60) + " minutes";
+    if (s < 5400) return "About an hour";
+    if (s < 172800) return Math.round(s / 3600) + " hours";
+    return Math.round(s / 86400) + " days";
+}
+function loggTid(d = new Date()) {
+    const p = n => String(n).padStart(2, "0");
+    return `${d.getFullYear()}/${p(d.getMonth() + 1)}/${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+}
+function fangIo(io) {
+    const l = [];
+    return { l, io: { ...io, ut: s => String(s).split("\n").forEach(x => l.push(x)), html: h => l.push(utanHtml(h)), hjelp: () => {}, tom: () => {} } };
+}
+
+/* =====================================================================
+   SKALKOMMANDOAR (felles for serveren og innsida av containerar)
+   ===================================================================== */
+const FELLES = {
+    pwd(a, io, m) { io.ut(m.cwd); },
+    cd(a, io, m) {
+        const p = a[0] === undefined ? m.heim : abs(a[0], m);
+        if (!m.vis.erDir(p)) {
+            io.ut(`${m.skal}: cd: ${a[0]}: ${m.vis.erFil(p) ? "Not a directory" : "No such file or directory"}`);
+            io.hjelp(`Skriv ${kd("ls")} for å sjå kva mapper som finst her.`);
+            return 1;
+        }
+        m.cwd = p;
+    },
+    ls(a, io, m) {
+        const erFlagg = x => /^-[a-zA-Z]+$/.test(x);
+        const fl = a.filter(erFlagg).join(""), mål = a.filter(x => !erFlagg(x));
+        const lang = fl.includes("l"), alle = fl.includes("a");
+        const d = new Date(), dato = d.toLocaleString("en-US", { month: "short" }) + " " + String(d.getDate()).padStart(2) + " " + String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+        const linje = (n, erD, storleik) => `${erD ? "drwxr-xr-x" : "-rw-r--r--"} ${erD ? 2 : 1} ${m.brukar} ${m.brukar} ${String(erD ? 4096 : storleik).padStart(5)} ${dato} ${erD ? F.d(n) : E(n)}`;
+        let kode = 0;
+        (mål.length ? mål : ["."]).forEach(t => {
+            const p = abs(t, m);
+            if (m.vis.erFil(p)) { if (lang) io.html(linje(t, false, m.vis.les(p).length)); else io.ut(t); return; }
+            if (!m.vis.erDir(p)) { io.ut(`ls: cannot access '${t}': No such file or directory`); kode = 2; return; }
+            if (mål.length > 1) io.ut(t + ":");
+            let b = m.vis.barn(p);
+            if (!alle) b = b.filter(x => !x.n.startsWith("."));
+            if (lang) { io.ut(`total ${b.length * 4}`); for (const x of b) io.html(linje(x.n, x.d, x.d ? 0 : m.vis.les((p === "/" ? "" : p) + "/" + x.n).length)); }
+            else if (b.length) io.html(b.map(x => x.d ? F.d(x.n) : E(x.n)).join("  "));
+        });
+        return kode;
+    },
+    cat(a, io, m) {
+        if (!a.length) { io.hjelp(`${kd("cat")} treng eit filnamn, til dømes ${kd("cat index.html")}.`); return 1; }
+        let kode = 0;
+        for (const f of a) {
+            const p = abs(f, m);
+            if (m.vis.erDir(p)) { io.ut(`cat: ${f}: Is a directory`); kode = 1; }
+            else if (!m.vis.erFil(p)) { io.ut(`cat: ${f}: No such file or directory`); io.hjelp(`Skriv ${kd("ls")} for å sjå kva filer som ligg her.`); kode = 1; }
+            else {
+                const t = m.vis.les(p);
+                if (t) io.ut(t.replace(/\n$/, ""));
+                if (!m.kont && p === BLOGG + "/compose.yaml") st.flagg.catCompose = true;
+            }
+        }
+        return kode;
+    },
+    echo(a, io) { io.ut(a.join(" ")); },
+    mkdir(a, io, m) {
+        const p_ = a.includes("-p"), mål = a.filter(x => !x.startsWith("-"));
+        if (!mål.length) { io.ut("mkdir: missing operand"); return 1; }
+        let kode = 0;
+        for (const f of mål) {
+            const p = abs(f, m);
+            if (m.vis.finst(p)) { if (!p_) { io.ut(`mkdir: cannot create directory '${f}': File exists`); kode = 1; } continue; }
+            if (!p_ && !m.vis.erDir(forelderSti(p))) { io.ut(`mkdir: cannot create directory '${f}': No such file or directory`); kode = 1; continue; }
+            m.vis.mkdir(p);
+        }
+        return kode;
+    },
+    touch(a, io, m) {
+        if (!a.length) { io.ut("touch: missing file operand"); return 1; }
+        let kode = 0;
+        for (const f of a) {
+            const p = abs(f, m);
+            if (m.vis.finst(p)) continue;
+            if (!m.vis.erDir(forelderSti(p))) { io.ut(`touch: cannot touch '${f}': No such file or directory`); kode = 1; continue; }
+            m.vis.skriv(p, "");
+        }
+        return kode;
+    },
+    rm(a, io, m) {
+        const fl = a.filter(x => /^-[a-zA-Z]+$/.test(x)).join(""), mål = a.filter(x => !/^-[a-zA-Z]+$/.test(x));
+        if (!mål.length) { io.ut("rm: missing operand"); return 1; }
+        let kode = 0;
+        for (const f of mål) {
+            const p = abs(f, m);
+            if (m.vis.erDir(p)) {
+                if (!/[rR]/.test(fl)) { io.ut(`rm: cannot remove '${f}': Is a directory`); io.hjelp(`Mapper blir sletta med ${kd("rm -r " + f)}.`); kode = 1; }
+                else if (p === "/" || p === m.heim || (!m.kont && (p === "/home" || m.cwd === p || m.cwd.startsWith(p + "/")))) { io.ut(`rm: refusing to remove '${f}'`); kode = 1; }
+                else m.vis.rmdir(p);
+            } else if (m.vis.erFil(p)) m.vis.slett(p);
+            else if (!fl.includes("f")) { io.ut(`rm: cannot remove '${f}': No such file or directory`); kode = 1; }
+        }
+        return kode;
+    },
+    cp(a, io, m) {
+        const mål = a.filter(x => !x.startsWith("-"));
+        if (mål.length < 2) { io.ut("cp: missing file operand"); return 1; }
+        const til = abs(mål[mål.length - 1], m);
+        let kode = 0;
+        for (const f of mål.slice(0, -1)) {
+            const p = abs(f, m);
+            if (m.vis.erDir(p)) { io.ut(`cp: -r not specified; omitting directory '${f}'`); io.hjelp("Simulatoren kopierer berre enkeltfiler."); kode = 1; continue; }
+            if (!m.vis.erFil(p)) { io.ut(`cp: cannot stat '${f}': No such file or directory`); kode = 1; continue; }
+            const d = m.vis.erDir(til) ? til + "/" + namnAv(p) : til;
+            if (!m.vis.erDir(forelderSti(d))) { io.ut(`cp: cannot create regular file '${mål[mål.length - 1]}': No such file or directory`); kode = 1; continue; }
+            m.vis.skriv(d, m.vis.les(p));
+        }
+        return kode;
+    },
+    mv(a, io, m) {
+        const mål = a.filter(x => !x.startsWith("-"));
+        if (mål.length < 2) { io.ut("mv: missing file operand"); return 1; }
+        const til = abs(mål[mål.length - 1], m);
+        let kode = 0;
+        for (const f of mål.slice(0, -1)) {
+            const p = abs(f, m);
+            if (m.vis.erDir(p)) { io.ut(`mv: cannot move '${f}'`); io.hjelp("Simulatoren flyttar berre enkeltfiler."); kode = 1; continue; }
+            if (!m.vis.erFil(p)) { io.ut(`mv: cannot stat '${f}': No such file or directory`); kode = 1; continue; }
+            const d = m.vis.erDir(til) ? til + "/" + namnAv(p) : til;
+            if (!m.vis.erDir(forelderSti(d))) { io.ut(`mv: cannot move '${f}' to '${mål[mål.length - 1]}': No such file or directory`); kode = 1; continue; }
+            if (d !== p) { m.vis.skriv(d, m.vis.les(p)); m.vis.slett(p); }
+        }
+        return kode;
+    },
+    whoami(a, io, m) { io.ut(m.brukar); },
+    hostname(a, io, m) { io.ut(m.vertsnamn); if (m.kont) st.flagg.hostnameInne = true; },
+    id(a, io, m) { io.ut(m.kont ? "uid=0(root) gid=0(root) groups=0(root)" : "uid=1000(elev) gid=1000(elev) groups=1000(elev),27(sudo),988(docker)"); },
+    date(a, io) { io.ut(new Date().toString().replace(/ GMT.*/, "")); },
+    uname(a, io, m) {
+        const fl = a.join("");
+        if (fl.includes("a")) io.ut(`Linux ${m.vertsnamn} ${KJERNE} #48-Ubuntu SMP PREEMPT_DYNAMIC x86_64 GNU/Linux`);
+        else if (fl.includes("r")) io.ut(KJERNE);
+        else io.ut("Linux");
+        if (m.kont && /[ar]/.test(fl)) io.hjelp(`Same kjerne som på serveren (${kd(KJERNE)}). Containeren har sine eigne filer, men låner kjernen av verten.`);
+    },
+    clear(a, io) { io.tom(); },
+    true() { return 0; },
+    false() { return 1; },
+};
+
+/* ---------- Berre inne i containerar ---------- */
+const KONT_KMD = {
+    ...FELLES,
+    exit(a, io, m) {
+        const s = st.skal;
+        if (!s) return 0;
+        const c = m.kont;
+        st.skal = null;
+        if (s.hovud) {
+            avslutt(c, 0);
+            io.hjelp(c.rm ? `Du er tilbake på serveren. Skalet var hovudprogrammet i containeren, så han stoppa – og sidan du brukte ${kd("--rm")}, er han sletta.` : `Du er tilbake på serveren. Skalet var hovudprogrammet i containeren, så han stoppa då du gjekk ut. Du ser han med ${kd("docker ps -a")}.`);
+        } else io.hjelp(`Du er tilbake på serveren. Containeren ${kd(c.namn)} køyrer vidare.`);
+    },
+    ps(a, io, m) {
+        const c = m.kont, h = HUB[c.bilete.base] || {};
+        if (!h.ps && famAv(c) !== "alpine") return IKKJE;
+        const hovud = h.prosess || [c.cmd];
+        const ekstra = st.skal && st.skal.id === c.id && !st.skal.hovud ? [m.skal] : [];
+        if (famAv(c) === "alpine" || famAv(c) === "busybox") {
+            io.ut("PID   USER     TIME  COMMAND");
+            let pid = 1;
+            for (const p of hovud) { io.ut(String(pid).padStart(5) + " root      0:00 " + p); pid += 28; }
+            for (const p of ekstra) { io.ut(String(pid).padStart(5) + " root      0:00 " + p); pid += 6; }
+            io.ut(String(pid).padStart(5) + " root      0:00 ps");
+        } else {
+            io.ut("    PID TTY          TIME CMD");
+            let pid = 1;
+            for (const p of [...hovud, ...ekstra]) { io.ut(String(pid).padStart(7) + " pts/0    00:00:00 " + p.split(" ")[0].replace(/^.*\//, "")); pid += 8; }
+            io.ut(String(pid).padStart(7) + " pts/0    00:00:00 ps");
+        }
+        io.hjelp("Containeren ser berre sine eigne prosessar. Hovudprogrammet har alltid PID 1.");
+    },
+    env(a, io, m) {
+        const c = m.kont;
+        io.ut("PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin");
+        io.ut("HOSTNAME=" + c.id.slice(0, 12));
+        for (const [k, v] of Object.entries(c.env)) io.ut(k + "=" + v);
+        io.ut("HOME=/root");
+    },
+    sh(a, io, m) { return underskal(a, io, m, "sh"); },
+    bash(a, io, m) { const h = HUB[m.kont.bilete.base] || {}; if (!h.bash || famAv(m.kont) === "alpine") return IKKJE; return underskal(a, io, m, "bash"); },
+    apk(a, io, m) { if (famAv(m.kont) !== "alpine") return IKKJE; io.ut("ERROR: unable to select packages"); io.hjelp("Simulatoren har ikkje nettilgang inne i containerane. I ekte Docker installerer du pakkar i Dockerfile med RUN, ikkje i ein container som køyrer."); return 1; },
+    apt(a, io, m) { if (!["debian", "ubuntu"].includes(famAv(m.kont))) return IKKJE; io.ut("E: Unable to locate package"); io.hjelp("Simulatoren har ikkje nettilgang inne i containerane. I ekte Docker installerer du pakkar i Dockerfile med RUN, ikkje i ein container som køyrer."); return 100; },
+    "apt-get"(a, io, m) { return KONT_KMD.apt(a, io, m); },
+    nginx(a, io, m) {
+        if (m.kont.bilete.base !== "nginx") return IKKJE;
+        if (a[0] === "-v") io.ut("nginx version: nginx/1.27.2");
+        else if (a[0] === "-t") { io.ut("nginx: the configuration file /etc/nginx/nginx.conf syntax is ok"); io.ut("nginx: configuration file /etc/nginx/nginx.conf test is successful"); }
+        else if (a[0] === "-s") io.ut(`${loggTid()} [notice] 40#40: signal process started`);
+        else io.ut("nginx: [emerg] bind() to 0.0.0.0:80 failed (98: Address already in use)");
+    },
+};
+function underskal(a, io, m, namn) {
+    if (a[0] === "-c") { if (a[1] === undefined) { io.ut(`${namn}: -c: option requires an argument`); return 2; } return koyrTekst(a.slice(1).join(" "), io, m); }
+    if (a.length) { io.ut(`${namn}: ${a[0]}: No such file or directory`); return 127; }
+    io.hjelp("Du er alt i eit skal i containeren.");
+    return 0;
+}
+
+/* =====================================================================
+   DOCKER
+   ===================================================================== */
+function delRef(ref) {
+    let r = ref.replace(/^docker\.io\//, "").replace(/^library\//, "");
+    const i = r.lastIndexOf(":");
+    if (i > 0 && !r.slice(i).includes("/")) return [r.slice(0, i), r.slice(i + 1) || "latest"];
+    return [r, "latest"];
+}
+function visRef(b) { return b.tag === "latest" ? b.repo : b.repo + ":" + b.tag; }
+function finnBilete(ref) {
+    const [repo, tag] = delRef(ref);
+    return st.bilete.find(b => b.repo === repo && b.tag === tag) || (/^[0-9a-f]{3,64}$/.test(ref) ? st.bilete.find(b => b.id.startsWith(ref)) : null) || null;
+}
+function hentBilete(ref, io, viaRun, stille) {
+    const [repo, tag] = delRef(ref);
+    const h = HUB[repo], pre = viaRun ? "docker: " : "";
+    if (viaRun && !stille) io.ut(`Unable to find image '${repo}:${tag}' locally`);
+    if (!h) {
+        io.ut(`${pre}Error response from daemon: pull access denied for ${repo}, repository does not exist or may require 'docker login': denied: requested access to the resource is denied`);
+        const n = naermast(repo, [...Object.keys(HUB), ...st.bilete.map(b => b.repo)]);
+        io.hjelp(n ? `Fann ikkje imaget ${kd(repo)}. Meinte du ${kd(n)}?` : `Fann ikkje imaget ${kd(repo)} på Docker Hub. I simulatoren finst: ${Object.keys(HUB).map(kd).join(", ")}.`);
+        return null;
+    }
+    if (!h.tags.includes(tag)) {
+        io.ut(`${pre}Error response from daemon: manifest for ${repo}:${tag} not found: manifest unknown: manifest unknown`);
+        io.hjelp(`Imaget ${kd(repo)} har ikkje taggen ${kd(tag)}. I simulatoren finst: ${h.tags.map(t => kd(repo + ":" + t)).join(", ")}.`);
+        return null;
+    }
+    if (!stille) {
+        io.ut(`${tag}: Pulling from library/${repo}`);
+        for (let i = 0; i < h.lag; i++) io.ut(`${hex(12)}: Pull complete`);
+        io.ut(`Digest: sha256:${hex(64)}`);
+        io.ut(`Status: Downloaded newer image for ${repo}:${tag}`);
+        if (!viaRun) io.ut(`docker.io/library/${repo}:${tag}`);
+    }
+    const b = { repo, tag, id: hex(64), str: (h.strTag && h.strTag[tag]) || h.str, alder: h.alder, lag: h.lag, base: repo, fam: (h.famTag && h.famTag[tag]) || h.fam, filer: {}, cmd: h.cmd, bygd: false, env: {}, wd: "/" };
+    st.bilete.push(b);
+    return b;
+}
+function finnKont(ref) {
+    return st.kont.find(c => c.namn === ref) || (/^[0-9a-f]{2,64}$/.test(ref) ? st.kont.find(c => c.id.startsWith(ref)) : null) || null;
+}
+function autoNamn() {
+    for (let i = 0; i < 50; i++) { const n = NAMN_A[Math.floor(Math.random() * NAMN_A.length)] + "_" + NAMN_B[Math.floor(Math.random() * NAMN_B.length)]; if (!st.kont.some(c => c.namn === n)) return n; }
+    return "container_" + hex(4);
+}
+function lagKont(bil, o) {
+    const id = hex(64);
+    const c = {
+        id, namn: o.namn || autoNamn(), bref: o.bref || visRef(bil),
+        bilete: { base: bil.base, fam: bil.fam, filer: bil.filer, bygd: bil.bygd, id: bil.id, cmd: bil.cmd },
+        eigaCmd: o.cmd && o.cmd.length ? o.cmd : null,
+        cmd: o.cmd && o.cmd.length ? o.cmd.join(" ") : bil.cmd,
+        laga: Date.now(), status: "created", kode: 0, starta: 0, stoppa: 0,
+        portar: o.portar || [], mont: o.mont || [], env: { ...bil.env, ...(o.env || {}) }, rm: !!o.rm, tty: !!o.tty,
+        nett: o.nett || "bridge", prosjekt: o.prosjekt || null, teneste: o.teneste || null,
+        fs: { "/etc/hostname": id.slice(0, 12) + "\n" }, dirs: [], logg: [], wd: o.wd || bil.wd || "/", lyttar: false, ip: "",
+    };
+    st.kont.push(c);
+    return c;
+}
+function avslutt(c, kode) {
+    c.status = "exited"; c.kode = kode; c.stoppa = Date.now(); c.lyttar = false;
+    if (st.skal && st.skal.id === c.id) st.skal = null;
+    if (c.rm) fjernKont(c);
+}
+function fjernKont(c) {
+    if (st.skal && st.skal.id === c.id) st.skal = null;
+    st.kont = st.kont.filter(x => x !== c);
+    st.flagg.rm = true;
+    if (c.namn === "web") st.flagg.rmWeb = true;
+}
+function erSkalOrd(o) { return !!o && o.length === 1 && /^(\/bin\/)?(sh|bash|ash)$/.test(o[0]); }
+function delOrd(tekst) { const t = tolk(tekst); return t.kmd && t.kmd[0] ? t.kmd[0].ord : []; }
+function visCmd(c) {
+    const h = HUB[c.bilete.base] || {};
+    let t = c.eigaCmd ? (h.vis ? h.vis.split(" ")[0] + " " : "") + c.cmd : (c.bilete.cmd === h.cmd && h.vis ? h.vis : c.cmd);
+    if (t.length > 20) t = t.slice(0, 19) + "…";
+    return `"${t}"`;
+}
+const OCI_FEIL = x => `exec: "${x}": executable file not found in $PATH: unknown`;
+
+/* Start ein container. Returnerer { feil } om han ikkje kom i gang. */
+function startKont(c, io) {
+    for (const p of c.portar) {
+        const o = st.kont.find(x => x !== c && x.status === "running" && x.portar.some(q => q.vert === p.vert));
+        if (o) {
+            io.ut(`docker: Error response from daemon: driver failed programming external connectivity on endpoint ${c.namn} (${hex(64)}): Bind for 0.0.0.0:${p.vert} failed: port is already allocated.`);
+            io.hjelp(`Port ${kd(p.vert)} på serveren er alt i bruk av containeren ${kd(o.namn)}. Vel ein annan port framfor kolonet (til dømes ${kd("-p " + ledigPort(p.vert) + ":" + p.kont)}), eller stopp ${kd(o.namn)} først. Containeren ${kd(c.namn)} blei laga, men ikkje starta – slett han med ${kd("docker rm " + c.namn)}.`);
+            return { feil: true };
+        }
+    }
+    const h = HUB[c.bilete.base] || {};
+    /* Eit tomt volum blir fylt med det som låg i mappa i imaget */
+    for (const m of c.mont) if (m.type === "volume") {
+        const v = st.volum[m.src];
+        if (v && !Object.keys(v.filer).length && !v.dirs.length) {
+            for (const [f, t] of Object.entries(biletFiler(c.bilete))) if (f.startsWith(m.dst + "/")) v.filer[f.slice(m.dst.length + 1)] = t;
+        }
+    }
+    c.status = "running"; c.starta = Date.now(); c.kode = 0; c.lyttar = false;
+    const brukte = new Set(koyrande().map(x => x.ip));
+    for (let i = 2; i < 250; i++) { const ip = (c.nett === "bridge" ? "172.17.0." : "172.18.0.") + i; if (!brukte.has(ip)) { c.ip = ip; break; } }
+    const logg = l => c.logg.push(l);
+    const std = !c.eigaCmd && c.bilete.cmd === h.cmd;
+    const ord = c.eigaCmd || delOrd(c.bilete.cmd || "");
+    if (std && h.type === "hello") { HELLO.forEach(logg); avslutt(c, 0); return {}; }
+    if (std && h.type === "web") {
+        if (c.bilete.base === "nginx") {
+            logg("/docker-entrypoint.sh: /docker-entrypoint.d/ is not empty, will attempt to perform configuration");
+            logg("/docker-entrypoint.sh: Configuration complete; ready for start up");
+            logg(`${loggTid()} [notice] 1#1: nginx/1.27.2`);
+            logg(`${loggTid()} [notice] 1#1: start worker processes`);
+        } else {
+            logg(`[${new Date().toString().slice(0, 24)}] [mpm_event:notice] [pid 1:tid 1] AH00489: Apache/2.4.62 (Unix) configured -- resuming normal operations`);
+        }
+        c.lyttar = true; return {};
+    }
+    if (std && h.type === "db") {
+        if (!h.krev.some(k => har(c.env, k))) {
+            if (c.bilete.base === "postgres") {
+                logg("Error: Database is uninitialized and superuser password is not specified.");
+                logg("       You must specify POSTGRES_PASSWORD to a non-empty value for the");
+                logg("       superuser. For example, \"-e POSTGRES_PASSWORD=password\" on \"docker run\".");
+            } else {
+                logg(`${loggTid().replace(/\//g, "-")}+00:00 [Note] [Entrypoint]: Entrypoint script for ${h.dbNamn} Server started.`);
+                logg(`${loggTid().replace(/\//g, "-")}+00:00 [ERROR] [Entrypoint]: Database is uninitialized and password option is not specified`);
+                logg(`\tYou need to specify one of ${h.krev.slice(0, c.bilete.base === "mariadb" ? 4 : 3).join(", ").replace(/, ([^,]*)$/, " and $1")}`);
+            }
+            avslutt(c, 1); return { krasj: true };
+        }
+        const v = lagVis(kontB(c)), merke = h.data + (c.bilete.base === "postgres" ? "/PG_VERSION" : "/ibdata1");
+        merkEndring = false;
+        if (v.erFil(merke)) logg(`${loggTid().replace(/\//g, "-")}+00:00 [Note] [Entrypoint]: ${h.dbNamn} data directory found, skipping initialization.`);
+        else {
+            logg(`${loggTid().replace(/\//g, "-")}+00:00 [Note] [Entrypoint]: Initializing database files`);
+            v.skriv(merke, c.bilete.base === "postgres" ? "17\n" : "(binære databasefiler)\n");
+            const db = c.env.MARIADB_DATABASE || c.env.MYSQL_DATABASE || c.env.POSTGRES_DB;
+            if (db) v.skriv(h.data + "/" + db + "/tabellar.ibd", "(binære databasefiler)\n");
+        }
+        merkEndring = true;
+        logg(`${loggTid().replace(/\//g, "-")} 0 [Note] ${h.cmd}: ready for connections.`);
+        c.lyttar = true; return {};
+    }
+    if (std && h.type === "wp") {
+        logg("WordPress not found in /var/www/html - copying now...");
+        logg("Complete! WordPress has been successfully copied to /var/www/html");
+        logg(`[${new Date().toString().slice(0, 24)}] [mpm_prefork:notice] [pid 1] AH00163: Apache/2.4.62 (Debian) PHP/8.2.25 configured -- resuming normal operations`);
+        c.lyttar = true; return {};
+    }
+    if (std && h.type === "teneste") { logg("1:M " + loggTid() + " * Ready to accept connections tcp"); c.lyttar = true; return {}; }
+    if (std && h.type === "repl") { avslutt(c, 0); return { repl: true }; }
+    if (erSkalOrd(ord)) {
+        const bash = /bash$/.test(ord[0]);
+        if (bash && (!h.bash || famAv(c) === "alpine")) { c.status = "created"; c.starta = 0; return { feil: true, oci: ord[0] }; }
+        if (c.tty) return { skal: true, bash };
+        avslutt(c, 0); return { skalUtanTty: true };
+    }
+    if (ord[0] === "sleep" || ord[0] === "top" || (ord[0] === "tail" && ord.includes("-f"))) return {};
+    if (!ord.length) { avslutt(c, 0); return {}; }
+    /* Ein enkelt kommando: køyr han, ta vare på utskrifta i loggen og avslutt */
+    const f = fangIo(io);
+    const kode = koyrOrd(ord, f.io, miljoKont(c, { cwd: c.wd }), true);
+    if (kode === IKKJE) { c.status = "created"; c.starta = 0; return { feil: true, oci: ord[0] }; }
+    f.l.forEach(logg);
+    avslutt(c, kode);
+    return {};
+}
+function ledigPort(fra) { let p = fra + 1; while (st.kont.some(c => c.status === "running" && c.portar.some(q => q.vert === p))) p++; return p; }
+
+/* ---------- Flagg ---------- */
+function lesFlagg(a, spes, val = {}) {
+    const f = {}, rest = [], alias = val.alias || {};
+    let i = 0;
+    for (; i < a.length; i++) {
+        let x = a[i];
+        if (x === "--") { i++; break; }
+        if (!x.startsWith("-") || x === "-") { if (val.blanda) { rest.push(x); continue; } break; }
+        let verdi;
+        if (x.startsWith("--") && x.includes("=")) { verdi = x.slice(x.indexOf("=") + 1); x = x.slice(0, x.indexOf("=")); }
+        const n = alias[x] || x;
+        if (!har(spes, n)) {
+            /* Samanslåtte korte flagg: -it, -dit, -dp 8080:80 (berre det siste kan ta ein verdi) */
+            const teikn = [...x.slice(1)].map(ch => alias["-" + ch] || "-" + ch);
+            if (/^-[a-zA-Z]{2,}$/.test(x) && teikn.slice(0, -1).every(k => spes[k] === 0) && har(spes, teikn[teikn.length - 1])) {
+                teikn.slice(0, -1).forEach(k => { f[k] = true; });
+                const siste = teikn[teikn.length - 1];
+                if (spes[siste] === 0) f[siste] = true;
+                else { const v = a[++i]; if (v === undefined) return { feil: x, manglar: true }; (f[siste] = f[siste] || []).push(v); }
+                continue;
+            }
+            return { feil: x };
+        }
+        if (spes[n] === 0) f[n] = true;
+        else { if (verdi === undefined) { verdi = a[++i]; if (verdi === undefined) return { feil: x, manglar: true }; } (f[n] = f[n] || []).push(verdi); }
+    }
+    return { f, rest: rest.concat(a.slice(i)) };
+}
+function flaggFeil(r, io, kmd) {
+    if (r.manglar) io.ut(`flag needs an argument: ${r.feil.startsWith("--") ? r.feil : `'${r.feil.slice(1)}' in ${r.feil}`}`);
+    else io.ut(r.feil.startsWith("--") ? `unknown flag: ${r.feil}` : `unknown shorthand flag: '${r.feil.slice(1, 2)}' in ${r.feil}`);
+    io.ut(`See 'docker ${kmd} --help'.`);
+    io.hjelp(r.manglar ? `Flagget ${kd(r.feil)} treng ein verdi etter seg.` : `Simulatoren kjenner ikkje flagget ${kd(r.feil)} for ${kd("docker " + kmd)}.`);
+    return 125;
+}
+const RUN_SPES = { "-d": 0, "-i": 0, "-t": 0, "--rm": 0, "--name": 1, "-p": 1, "-v": 1, "-e": 1, "--network": 1, "--restart": 1, "-w": 1, "-h": 1, "--init": 0, "--privileged": 0, "-u": 1, "--pull": 1 };
+const RUN_ALIAS = { "--detach": "-d", "--interactive": "-i", "--tty": "-t", "--publish": "-p", "--volume": "-v", "--env": "-e", "--net": "--network", "--workdir": "-w", "--hostname": "-h", "--user": "-u" };
+
+function tolkPortar(liste, io) {
+    const ut = [];
+    for (const s of liste || []) {
+        const d = String(s).replace(/\/(tcp|udp)$/, "").split(":");
+        const k = d[d.length - 1], v = d.length > 1 ? d[d.length - 2] : null;
+        if (!/^\d+$/.test(k) || +k < 1 || +k > 65535) { io.ut(`docker: invalid containerPort: ${k}.`); io.hjelp(`Ein port er eit tal mellom 1 og 65535. Skriv ${kd("-p VERT:CONTAINER")}, til dømes ${kd("-p 8080:80")}.`); return null; }
+        if (v !== null && (!/^\d+$/.test(v) || +v < 1 || +v > 65535)) { io.ut(`docker: invalid hostPort: ${v}.`); io.hjelp(`Ein port er eit tal mellom 1 og 65535. Skriv ${kd("-p VERT:CONTAINER")}, til dømes ${kd("-p 8080:80")}.`); return null; }
+        ut.push({ vert: v === null ? ledigPort(32767) : +v, kont: +k });
+    }
+    return ut;
+}
+function tolkVolum(liste, io, m, prefiks) {
+    const ut = [];
+    for (const s of liste || []) {
+        const d = String(s).split(":");
+        let src = d.length > 1 ? d[0] : null, dst = d.length > 1 ? d[1] : d[0];
+        if (!dst || !dst.startsWith("/")) {
+            io.ut(`docker: Error response from daemon: invalid volume specification: '${s}': invalid mount config for type "volume": invalid mount path: '${dst}' mount path must be absolute.`);
+            io.hjelp(`Stien inne i containeren må starte med ${kd("/")}. Skriv ${kd("-v VOLUM:/sti/i/containeren")}.`);
+            return null;
+        }
+        dst = normSti(dst);
+        if (src === null) src = hex(64);
+        if (/^[/.~]/.test(src)) {
+            const p = abs(src, m);
+            if (vertVis.erFil(p)) { io.ut(`docker: Error response from daemon: invalid mount config for type "bind": source path must be a directory.`); io.hjelp("Simulatoren kan berre kople inn mapper, ikkje enkeltfiler."); return null; }
+            if (!vertVis.erDir(p)) { vertVis.mkdir(p); io.hjelp(`Mappa ${kd(visSti(p))} fanst ikkje på serveren, så Docker laga ho (tom). Sjekk at stien er rett.`); }
+            ut.push({ type: "bind", src: p, dst });
+        } else {
+            if (!/^[a-zA-Z0-9][a-zA-Z0-9_.-]*$/.test(src)) { io.ut(`docker: Error response from daemon: create ${src}: "${src}" includes invalid characters for a local volume name, only "[a-zA-Z0-9][a-zA-Z0-9_.-]" are allowed. If you intended to pass a host directory, use absolute path.`); io.hjelp(`Skal du kople inn ei mappe frå serveren, må stien starte med ${kd("/")}, ${kd("./")} eller ${kd("~/")}.`); return null; }
+            const namn = prefiks && prefiks.namn.includes(src) ? prefiks.p + "_" + src : src;
+            if (!st.volum[namn]) st.volum[namn] = { filer: {}, dirs: [], laga: Date.now() };
+            ut.push({ type: "volume", src: namn, dst });
+        }
+    }
+    return ut;
+}
+function tolkEnv(liste) {
+    const env = {};
+    for (const s of liste || []) { const i = s.indexOf("="); if (i > 0) env[s.slice(0, i)] = s.slice(i + 1); else env[s] = ""; }
+    return env;
+}
+
+const DOCKER = {
+    run(a, io, m) {
+        const r = lesFlagg(a, RUN_SPES, { alias: RUN_ALIAS });
+        if (r.feil) return flaggFeil(r, io, "run");
+        const f = r.f;
+        if (!r.rest.length) { io.ut(`docker: 'docker run' requires at least 1 argument.`); io.ut("See 'docker run --help'."); io.ut(""); io.ut("Usage:  docker run [OPTIONS] IMAGE [COMMAND] [ARG...]"); io.hjelp(`Du må seie kva image containeren skal lagast frå, til dømes ${kd("docker run hello-world")}.`); return 1; }
+        const [ref, ...cmd] = r.rest;
+        const namn = f["--name"] ? f["--name"][f["--name"].length - 1] : null;
+        if (namn !== null && !/^[a-zA-Z0-9][a-zA-Z0-9_.-]+$/.test(namn)) { io.ut(`docker: Error response from daemon: Invalid container name (${namn}), only [a-zA-Z0-9][a-zA-Z0-9_.-] are allowed.`); io.hjelp("Namnet kan ha bokstavar (ikkje æ, ø, å), tal, bindestrek, understrek og punktum, og må vere minst to teikn."); return 125; }
+        if (namn && st.kont.some(c => c.namn === namn)) {
+            const o = st.kont.find(c => c.namn === namn);
+            io.ut(`docker: Error response from daemon: Conflict. The container name "/${namn}" is already in use by container "${o.id}". You have to remove (or rename) that container to be able to reuse that name.`);
+            io.hjelp(`Det finst alt ein container som heiter ${kd(namn)}${o.status === "running" ? "" : " (han er stoppa, men ligg der framleis)"}. Slett han med ${kd("docker rm -f " + namn)}, eller vel eit anna namn.`);
+            return 125;
+        }
+        const nett = f["--network"] ? f["--network"][0] : "bridge";
+        if (!st.nett[nett]) { io.ut(`docker: Error response from daemon: network ${nett} not found.`); io.hjelp(`Lag nettverket først med ${kd("docker network create " + nett)}.`); return 125; }
+        const portar = tolkPortar(f["-p"], io); if (!portar) return 125;
+        let bil = finnBilete(ref);
+        if (!bil) { bil = hentBilete(ref, io, true); if (!bil) return 125; }
+        const mont = tolkVolum(f["-v"], io, m); if (!mont) return 125;
+        const tty = !!(f["-t"] || f["-i"]);
+        const c = lagKont(bil, { namn, bref: ref, cmd, portar, mont, env: tolkEnv(f["-e"]), rm: f["--rm"], tty, nett, wd: f["-w"] ? f["-w"][0] : null });
+        const fraLogg = c.logg.length;
+        const res = startKont(c, io);
+        const h = HUB[bil.base] || {};
+        if (res.feil) {
+            if (res.oci) {
+                io.ut(`docker: Error response from daemon: failed to create task for container: failed to create shim task: OCI runtime create failed: runc create failed: unable to start container process: ${OCI_FEIL(res.oci)}.`);
+                if (res.oci.startsWith("-")) io.hjelp(`Flagg må stå ${F.b("før")} namnet på imaget. Alt som kjem etter imaget, blir sendt inn som kommando til containeren. Skriv ${kd("docker run " + res.oci + " ... " + ref)}.`);
+                else if (/bash$/.test(res.oci)) io.hjelp(`Imaget ${kd(ref)} har ikkje ${kd("bash")}. Bruk ${kd("sh")} i staden.`);
+                else io.hjelp(`Programmet ${kd(res.oci)} finst ikkje i imaget ${kd(ref)}.`);
+                st.kont = st.kont.filter(x => x !== c);
+                return 127;
+            }
+            return 125;
+        }
+        if (bil.base === "hello-world") st.flagg.hello = true;
+        if (cmd[0] === "echo" && cmd.length > 1) st.flagg.ekko = true;
+        if (f["-d"]) {
+            io.ut(c.id);
+            if (res.krasj) io.hjelp(`Containeren starta, men stoppa med ein gong. Sjå status med ${kd("docker ps -a")}, og finn årsaka med ${kd("docker logs " + c.namn)}.`);
+            else if (res.skalUtanTty || res.repl) io.hjelp(`Containeren avslutta med ein gong, fordi ${kd(c.cmd)} ikkje hadde noko å gjere utan ein terminal. Bruk ${kd("-it")} for å arbeide i han.`);
+            else if (res.skal) io.hjelp(`Containeren køyrer i bakgrunnen med eit skal som ventar. Gå inn med ${kd("docker exec -it " + c.namn + " sh")}.`);
+            return 0;
+        }
+        c.logg.slice(fraLogg).forEach(l => io.ut(l));
+        if (res.skal) {
+            st.skal = { id: c.id, cwd: c.wd, hovud: true, bash: res.bash };
+            io.hjelp(`Du er no ${F.b("inne i containeren")}. Ledeteksten har endra seg. Skriv ${kd("exit")} for å gå ut att.`);
+            return 0;
+        }
+        if (res.skalUtanTty) io.hjelp(`Imaget ${kd(ref)} startar eit skal, men utan ${kd("-it")} har skalet ingen terminal og avsluttar med ein gong. Prøv ${kd("docker run -it " + ref)}, eller gi ein kommando: ${kd("docker run " + ref + " echo Hei")}.`);
+        else if (res.repl) io.hjelp(`Simulatoren kan ikkje køyre ${kd(c.cmd)} interaktivt. Containeren avslutta.`);
+        else if (res.krasj) io.hjelp(`Containeren stoppa med feil (utgangskode ${c.kode}). Les feilmeldinga over.${h.type === "db" ? ` Databasen treng eit passord, til dømes ${kd("-e " + h.krev[0] + "=hemmeleg")}.` : ""}`);
+        else if (c.status === "running") {
+            io.ut("^C");
+            const flagg = a.slice(0, a.length - r.rest.length).join(" ");
+            io.hjelp(`Utan ${kd("-d")} køyrer containeren i framgrunnen og låser terminalen. Simulatoren trykte Ctrl+C for deg, så containeren er stoppa. Køyr i bakgrunnen med ${kd("docker run -d " + (flagg ? flagg + " " : "") + r.rest.join(" "))}${namn ? ` – men slett først den stoppa containeren med ${kd("docker rm " + namn)}` : ""}.`);
+            avslutt(c, 0);
+        }
+        return c.kode;
+    },
+    ps(a, io) {
+        const r = lesFlagg(a, { "-a": 0, "-q": 0, "-l": 0, "-s": 0 }, { alias: { "--all": "-a", "--quiet": "-q", "--latest": "-l" } });
+        if (r.feil) return flaggFeil(r, io, "ps");
+        const alle = r.f["-a"], liste = st.kont.filter(c => alle || c.status === "running").slice().reverse();
+        if (alle && st.kont.length) st.flagg.psA = true;
+        if (!alle && liste.length) st.flagg.ps = true;
+        if (alle && st.flagg.rm && !st.kont.some(c => c.status !== "running")) st.flagg.ryddig = true;
+        if (r.f["-q"]) { liste.forEach(c => io.ut(c.id.slice(0, 12))); return 0; }
+        const no = Date.now();
+        const rader = [["CONTAINER ID", "IMAGE", "COMMAND", "CREATED", "STATUS", "PORTS", "NAMES"]];
+        for (const c of liste) rader.push([c.id.slice(0, 12), c.bref, visCmd(c), varig(no - c.laga) + " ago", statusTekst(c, no), portTekst(c), c.namn]);
+        tabell(rader).forEach(l => io.ut(l));
+        if (!liste.length && !alle && st.kont.length) io.hjelp(`Ingen containerar køyrer no. ${kd("docker ps -a")} viser òg dei som er stoppa.`);
+        return 0;
+    },
+    stop(a, io) { return forKvar(a, io, "stop", (c, f) => { if (c.status === "running") { avslutt(c, HUB[c.bilete.base] && ["web", "wp", "db", "teneste"].includes(HUB[c.bilete.base].type) && !c.eigaCmd ? 0 : 137); if (c.namn === "web") st.flagg.stoppaWeb = true; } io.ut(c.namn); }, { "-t": 1 }); },
+    kill(a, io) { return forKvar(a, io, "kill", c => { if (c.status !== "running") { io.ut(`Error response from daemon: cannot kill container: ${c.namn}: container ${c.id} is not running`); return 1; } avslutt(c, 137); io.ut(c.namn); }, { "-s": 1 }); },
+    start(a, io) {
+        return forKvar(a, io, "start", c => {
+            if (c.status === "running") { io.ut(c.namn); return; }
+            const var_ = c.status;
+            const res = startKont(c, io);
+            if (res.feil) { if (res.oci) io.ut(`Error response from daemon: failed to create task for container: ${OCI_FEIL(res.oci)}`); io.ut(`Error: failed to start containers: ${c.namn}`); return 1; }
+            io.ut(c.namn);
+            if (c.namn === "web" && var_ === "exited" && c.status === "running") st.flagg.startaWeb = true;
+            if (c.status === "exited") io.hjelp(`${kd(c.namn)} starta, køyrde ${kd(c.cmd)} og avslutta igjen${c.kode ? ` med utgangskode ${c.kode}` : ""}. Sjå utskrifta med ${kd("docker logs " + c.namn)}.`);
+        }, { "-a": 0, "-i": 0 });
+    },
+    restart(a, io) {
+        return forKvar(a, io, "restart", c => {
+            if (c.status === "running") { const rm = c.rm; c.rm = false; avslutt(c, 0); c.rm = rm; }
+            const res = startKont(c, io);
+            if (res.feil) return 1;
+            io.ut(c.namn);
+        }, { "-t": 1 });
+    },
+    rm(a, io) {
+        return forKvar(a, io, "rm", (c, f) => {
+            if (c.status === "running" && !f["-f"]) {
+                io.ut(`Error response from daemon: cannot remove container "/${c.namn}": container is running: stop the container before removing or force remove`);
+                io.hjelp(`Containeren køyrer. Stopp han først med ${kd("docker stop " + c.namn)}, eller slett med tvang: ${kd("docker rm -f " + c.namn)}.`);
+                return 1;
+            }
+            fjernKont(c); io.ut(c.namn);
+        }, { "-f": 0, "-v": 0 }, { "--force": "-f", "--volumes": "-v" });
+    },
+    logs(a, io) {
+        const r = lesFlagg(a, { "-f": 0, "-t": 0, "--tail": 1, "-n": 1 }, { blanda: true, alias: { "--follow": "-f" } });
+        if (r.feil) return flaggFeil(r, io, "logs");
+        if (r.rest.length !== 1) { io.ut(`docker: 'docker logs' requires 1 argument.`); io.ut(""); io.ut("Usage:  docker logs [OPTIONS] CONTAINER"); io.hjelp(`Skriv namnet på containeren, til dømes ${kd("docker logs web")}.`); return 1; }
+        const c = finnKont(r.rest[0]);
+        if (!c) return ingenKont(r.rest[0], io);
+        const n = r.f["--tail"] || r.f["-n"];
+        (n && /^\d+$/.test(n[0]) ? c.logg.slice(-n[0]) : c.logg).forEach(l => io.ut(l));
+        st.flagg.logs = true;
+        if (r.f["-f"]) io.hjelp(`Med ${kd("-f")} følgjer ekte Docker loggen direkte til du trykkjer Ctrl+C. Simulatoren viser berre det som er logga til no.`);
+        else if (!c.logg.length) io.hjelp("Containeren har ikkje skrive ut noko enno.");
+        return 0;
+    },
+    exec(a, io) {
+        const r = lesFlagg(a, { "-i": 0, "-t": 0, "-d": 0, "-w": 1, "-e": 1, "-u": 1 }, { alias: { "--interactive": "-i", "--tty": "-t", "--workdir": "-w", "--env": "-e", "--user": "-u" } });
+        if (r.feil) return flaggFeil(r, io, "exec");
+        if (r.rest.length < 2) { io.ut(`docker: 'docker exec' requires at least 2 arguments.`); io.ut(""); io.ut("Usage:  docker exec [OPTIONS] CONTAINER COMMAND [ARG...]"); io.hjelp(`Du må seie både kva container og kva kommando, til dømes ${kd("docker exec -it web sh")}.`); return 1; }
+        const c = finnKont(r.rest[0]);
+        if (!c) return ingenKont(r.rest[0], io);
+        if (c.status !== "running") { io.ut(`Error response from daemon: container ${c.id} is not running`); io.hjelp(`${kd("docker exec")} verkar berre på containerar som køyrer. Start han med ${kd("docker start " + c.namn)}.`); return 1; }
+        const ord = r.rest.slice(1), h = HUB[c.bilete.base] || {};
+        const s = { cwd: r.f["-w"] ? r.f["-w"][0] : c.wd };
+        if (h.type === "hello") { io.ut(`OCI runtime exec failed: exec failed: unable to start container process: ${OCI_FEIL(ord[0])}`); return 127; }
+        if (erSkalOrd(ord)) {
+            const bash = /bash$/.test(ord[0]);
+            if (bash && (!h.bash || famAv(c) === "alpine")) { io.ut(`OCI runtime exec failed: exec failed: unable to start container process: ${OCI_FEIL(ord[0])}`); io.hjelp(`Denne containeren har ikkje ${kd("bash")}. Bruk ${kd("sh")}: ${kd("docker exec -it " + c.namn + " sh")}.`); return 127; }
+            if (!(r.f["-i"] && r.f["-t"])) { io.hjelp(`Skalet starta og avslutta med ein gong, fordi det ikkje hadde nokon terminal. Legg til ${kd("-it")}: ${kd("docker exec -it " + c.namn + " " + ord[0])}.`); return 0; }
+            st.skal = { id: c.id, cwd: s.cwd, hovud: false, bash };
+            st.flagg.execSkal = true;
+            io.hjelp(`Du er no ${F.b("inne i containeren")} ${kd(c.namn)}. Ledeteksten har endra seg. Skriv ${kd("exit")} for å gå ut att.`);
+            return 0;
+        }
+        s.bash = false;
+        const kode = koyrOrd(ord, io, miljoKont(c, s), true);
+        if (kode === IKKJE) { io.ut(`OCI runtime exec failed: exec failed: unable to start container process: ${OCI_FEIL(ord[0])}`); io.hjelp(`Programmet ${kd(ord[0])} finst ikkje i containeren ${kd(c.namn)}.`); return 127; }
+        return kode;
+    },
+    images(a, io) {
+        const r = lesFlagg(a, { "-a": 0, "-q": 0 }, { blanda: true, alias: { "--all": "-a", "--quiet": "-q" } });
+        if (r.feil) return flaggFeil(r, io, "images");
+        st.flagg.images = true;
+        const liste = st.bilete.slice().reverse().filter(b => !r.rest.length || b.repo === delRef(r.rest[0])[0]);
+        if (r.f["-q"]) { liste.forEach(b => io.ut(b.id.slice(0, 12))); return 0; }
+        const rader = [["REPOSITORY", "TAG", "IMAGE ID", "CREATED", "SIZE"]];
+        for (const b of liste) rader.push([b.repo, b.tag, b.id.slice(0, 12), b.bygd ? varig(Date.now() - b.laga) + " ago" : b.alder, b.str]);
+        tabell(rader).forEach(l => io.ut(l));
+        if (!st.bilete.length) io.hjelp(`Ingen image er lasta ned enno. Hent eit med ${kd("docker pull nginx")}.`);
+        return 0;
+    },
+    pull(a, io) {
+        const r = lesFlagg(a, { "-q": 0, "-a": 0 }, { blanda: true });
+        if (r.feil) return flaggFeil(r, io, "pull");
+        if (r.rest.length !== 1) { io.ut(`docker: 'docker pull' requires 1 argument.`); io.ut(""); io.ut("Usage:  docker pull [OPTIONS] NAME[:TAG|@DIGEST]"); io.hjelp(`Skriv namnet på imaget, til dømes ${kd("docker pull nginx")}.`); return 1; }
+        const [repo, tag] = delRef(r.rest[0]);
+        const b = finnBilete(r.rest[0]);
+        if (b && !b.bygd) {
+            io.ut(`${tag}: Pulling from library/${repo}`); io.ut(`Digest: sha256:${hex(64)}`); io.ut(`Status: Image is up to date for ${repo}:${tag}`); io.ut(`docker.io/library/${repo}:${tag}`);
+            return 0;
+        }
+        return hentBilete(r.rest[0], io, false) ? 0 : 1;
+    },
+    rmi(a, io) {
+        const r = lesFlagg(a, { "-f": 0 }, { blanda: true, alias: { "--force": "-f" } });
+        if (r.feil) return flaggFeil(r, io, "rmi");
+        if (!r.rest.length) { io.ut(`docker: 'docker rmi' requires at least 1 argument.`); io.ut(""); io.ut("Usage:  docker rmi [OPTIONS] IMAGE [IMAGE...]"); return 1; }
+        let kode = 0;
+        for (const ref of r.rest) {
+            const b = finnBilete(ref);
+            if (!b) { io.ut(`Error response from daemon: No such image: ${delRef(ref).join(":")}`); io.hjelp(`${kd("docker images")} viser kva image som finst.`); kode = 1; continue; }
+            const brukar = st.kont.find(c => c.bilete.id === b.id);
+            if (brukar && !st.bilete.some(x => x !== b && x.id === b.id)) {
+                io.ut(`Error response from daemon: conflict: unable to remove repository reference "${ref}" (must force) - container ${brukar.id.slice(0, 12)} is using its referenced image ${b.id.slice(0, 12)}`);
+                io.hjelp(`Containeren ${kd(brukar.namn)} er laga frå dette imaget. Slett containeren først: ${kd("docker rm -f " + brukar.namn)}.`);
+                kode = 1; continue;
+            }
+            st.bilete = st.bilete.filter(x => x !== b);
+            io.ut(`Untagged: ${b.repo}:${b.tag}`);
+            if (!st.bilete.some(x => x.id === b.id)) io.ut(`Deleted: sha256:${b.id}`);
+        }
+        return kode;
+    },
+    tag(a, io) {
+        if (a.length !== 2) { io.ut(`docker: 'docker tag' requires 2 arguments.`); io.ut(""); io.ut("Usage:  docker tag SOURCE_IMAGE[:TAG] TARGET_IMAGE[:TAG]"); return 1; }
+        const b = finnBilete(a[0]);
+        if (!b) { io.ut(`Error response from daemon: No such image: ${delRef(a[0]).join(":")}`); return 1; }
+        const [repo, tag] = delRef(a[1]);
+        st.bilete = st.bilete.filter(x => !(x.repo === repo && x.tag === tag));
+        st.bilete.push({ ...b, repo, tag });
+        return 0;
+    },
+    inspect(a, io) {
+        const mål = a.filter(x => !x.startsWith("-"));
+        if (!mål.length) { io.ut(`docker: 'docker inspect' requires at least 1 argument.`); return 1; }
+        const ut = [];
+        let kode = 0;
+        for (const ref of mål) {
+            const c = finnKont(ref), b = c ? null : finnBilete(ref), v = c || b ? null : st.volum[ref];
+            if (c) ut.push({
+                Id: c.id, Created: new Date(c.laga).toISOString(), Path: (c.eigaCmd || delOrd(c.cmd))[0] || "", Args: (c.eigaCmd || delOrd(c.cmd)).slice(1),
+                State: { Status: c.status, Running: c.status === "running", ExitCode: c.kode, StartedAt: c.starta ? new Date(c.starta).toISOString() : "0001-01-01T00:00:00Z" },
+                Image: "sha256:" + c.bilete.id, Name: "/" + c.namn,
+                Mounts: c.mont.map(m => m.type === "volume" ? { Type: "volume", Name: m.src, Source: `/var/lib/docker/volumes/${m.src}/_data`, Destination: m.dst, RW: true } : { Type: "bind", Source: m.src, Destination: m.dst, RW: true }),
+                Config: { Hostname: c.id.slice(0, 12), Env: Object.entries(c.env).map(([k, x]) => k + "=" + x), Image: c.bref, WorkingDir: c.wd === "/" ? "" : c.wd },
+                NetworkSettings: { Ports: Object.fromEntries(c.portar.map(p => [p.kont + "/tcp", [{ HostIp: "0.0.0.0", HostPort: String(p.vert) }]])), Networks: { [c.nett]: { IPAddress: c.status === "running" ? c.ip : "" } } },
+            });
+            else if (b) ut.push({ Id: "sha256:" + b.id, RepoTags: st.bilete.filter(x => x.id === b.id).map(x => x.repo + ":" + x.tag), Size: b.str, Architecture: "amd64", Os: "linux", Config: { Cmd: delOrd(b.cmd || ""), Env: Object.entries(b.env).map(([k, x]) => k + "=" + x), WorkingDir: b.wd === "/" ? "" : b.wd }, RootFS: { Type: "layers", Layers: Array.from({ length: b.lag }, (_, i) => "sha256:" + b.id.slice(i * 3) + b.id.slice(0, i * 3)) } });
+            else if (v) ut.push(volumInfo(ref));
+            else { io.ut(`Error: No such object: ${ref}`); kode = 1; }
+        }
+        if (ut.length) io.ut(JSON.stringify(ut, null, 4));
+        else io.ut("[]");
+        return kode;
+    },
+    volume(a, io) {
+        const [sub, ...r] = a;
+        if (sub === "ls" || sub === "list") {
+            const rader = [["DRIVER", "VOLUME NAME"]];
+            for (const n of Object.keys(st.volum)) rader.push(["local", n]);
+            tabell(rader).forEach(l => io.ut(l));
+            if (st.flagg.composeDown && st.volum.blogg_dbdata) st.flagg.volEtterDown = true;
+            return 0;
+        }
+        if (sub === "create") {
+            const namn = r.filter(x => !x.startsWith("-"))[0] || hex(64);
+            if (!/^[a-zA-Z0-9][a-zA-Z0-9_.-]*$/.test(namn)) { io.ut(`Error response from daemon: create ${namn}: "${namn}" includes invalid characters for a local volume name, only "[a-zA-Z0-9][a-zA-Z0-9_.-]" are allowed`); return 1; }
+            if (!st.volum[namn]) st.volum[namn] = { filer: {}, dirs: [], laga: Date.now() };
+            st.flagg.volLaga = true;
+            io.ut(namn);
+            return 0;
+        }
+        if (sub === "rm" || sub === "remove") {
+            const mål = r.filter(x => !x.startsWith("-"));
+            if (!mål.length) { io.ut(`docker: 'docker volume rm' requires at least 1 argument.`); return 1; }
+            let kode = 0;
+            for (const n of mål) {
+                if (!st.volum[n]) { io.ut(`Error response from daemon: get ${n}: no such volume`); kode = 1; continue; }
+                const br = st.kont.find(c => c.mont.some(m => m.type === "volume" && m.src === n));
+                if (br) { io.ut(`Error response from daemon: remove ${n}: volume is in use - [${br.id}]`); io.hjelp(`Volumet er kopla til containeren ${kd(br.namn)}. Slett containeren først. Hugs at dataa i volumet blir borte for godt.`); kode = 1; continue; }
+                delete st.volum[n]; io.ut(n);
+            }
+            return kode;
+        }
+        if (sub === "inspect") {
+            const mål = r.filter(x => !x.startsWith("-")), ut = [];
+            let kode = 0;
+            for (const n of mål) { if (st.volum[n]) ut.push(volumInfo(n)); else { io.ut(`Error response from daemon: get ${n}: no such volume`); kode = 1; } }
+            io.ut(JSON.stringify(ut, null, 4));
+            return kode;
+        }
+        if (sub === "prune") {
+            const ledige = Object.keys(st.volum).filter(n => !st.kont.some(c => c.mont.some(m => m.type === "volume" && m.src === n)) && /^[0-9a-f]{64}$/.test(n));
+            if (ledige.length) { io.ut("Deleted Volumes:"); ledige.forEach(n => { delete st.volum[n]; io.ut(n); }); io.ut(""); }
+            io.ut("Total reclaimed space: 0B");
+            return 0;
+        }
+        return underkmdFeil("volume", sub, ["ls", "create", "rm", "inspect", "prune"], io);
+    },
+    network(a, io) {
+        const [sub, ...r] = a;
+        if (sub === "ls" || sub === "list") {
+            const rader = [["NETWORK ID", "NAME", "DRIVER", "SCOPE"]];
+            for (const [n, v] of Object.entries(st.nett)) rader.push([v.id.slice(0, 12), n, v.driver, "local"]);
+            tabell(rader).forEach(l => io.ut(l));
+            return 0;
+        }
+        if (sub === "create") {
+            const namn = r.filter(x => !x.startsWith("-"))[0];
+            if (!namn) { io.ut(`docker: 'docker network create' requires 1 argument.`); return 1; }
+            if (st.nett[namn]) { io.ut(`Error response from daemon: network with name ${namn} already exists`); return 1; }
+            st.nett[namn] = { id: hex(64), driver: "bridge" };
+            io.ut(st.nett[namn].id);
+            return 0;
+        }
+        if (sub === "rm" || sub === "remove") {
+            let kode = 0;
+            for (const n of r.filter(x => !x.startsWith("-"))) {
+                if (!st.nett[n]) { io.ut(`Error response from daemon: network ${n} not found`); kode = 1; continue; }
+                if (["bridge", "host", "none"].includes(n)) { io.ut(`Error response from daemon: ${n} is a pre-defined network and cannot be removed`); kode = 1; continue; }
+                if (st.kont.some(c => c.nett === n && c.status === "running")) { io.ut(`Error response from daemon: error while removing network: network ${n} has active endpoints`); kode = 1; continue; }
+                delete st.nett[n]; io.ut(n);
+            }
+            return kode;
+        }
+        if (sub === "inspect") {
+            const n = r.filter(x => !x.startsWith("-"))[0];
+            if (!n || !st.nett[n]) { io.ut(`Error response from daemon: network ${n || ""} not found`); return 1; }
+            io.ut(JSON.stringify([{ Name: n, Id: st.nett[n].id, Driver: st.nett[n].driver, Containers: Object.fromEntries(koyrande().filter(c => c.nett === n).map(c => [c.id, { Name: c.namn, IPv4Address: c.ip + "/16" }])) }], null, 4));
+            return 0;
+        }
+        return underkmdFeil("network", sub, ["ls", "create", "rm", "inspect"], io);
+    },
+    container(a, io, m) {
+        const [sub, ...r] = a;
+        if (sub === "ls" || sub === "list") return DOCKER.ps(r, io, m);
+        if (sub === "prune") {
+            const d = st.kont.filter(c => c.status !== "running");
+            if (!r.includes("-f") && !r.includes("--force")) { io.ut("WARNING! This will remove all stopped containers."); io.ut("Are you sure you want to continue? [y/N] y"); }
+            if (d.length) { io.ut("Deleted Containers:"); d.forEach(c => { io.ut(c.id); fjernKont(c); }); io.ut(""); }
+            io.ut("Total reclaimed space: 0B");
+            return 0;
+        }
+        if (["run", "stop", "start", "restart", "rm", "logs", "exec", "inspect", "kill"].includes(sub)) return DOCKER[sub](r, io, m);
+        return underkmdFeil("container", sub, ["ls", "prune", "run", "stop", "start", "rm", "logs", "exec", "inspect"], io);
+    },
+    image(a, io, m) {
+        const [sub, ...r] = a;
+        if (sub === "ls" || sub === "list") return DOCKER.images(r, io, m);
+        if (sub === "rm" || sub === "remove") return DOCKER.rmi(r, io, m);
+        if (["pull", "build", "tag", "inspect"].includes(sub)) return DOCKER[sub](r, io, m);
+        return underkmdFeil("image", sub, ["ls", "rm", "pull", "build", "tag", "inspect"], io);
+    },
+    build(a, io, m) {
+        const r = lesFlagg(a, { "-t": 1, "-f": 1, "--no-cache": 0, "-q": 0, "--pull": 0 }, { blanda: true, alias: { "--tag": "-t", "--file": "-f" } });
+        if (r.feil) return flaggFeil(r, io, "build");
+        if (r.rest.length !== 1) {
+            io.ut(`ERROR: docker: 'docker buildx build' requires 1 argument`); io.ut(""); io.ut("Usage:  docker buildx build [OPTIONS] PATH | URL | -");
+            io.hjelp(`Du må fortelje Docker kvar filene ligg. Eit punktum betyr «denne mappa»: ${kd("docker build -t minside .")}`);
+            return 1;
+        }
+        const dir = abs(r.rest[0], m);
+        if (!vertVis.erDir(dir)) { io.ut(`ERROR: unable to prepare context: path "${r.rest[0]}" not found`); return 1; }
+        const b = bygg(dir, r.f["-t"] ? r.f["-t"][0] : null, io, r.f["-f"] ? abs(r.f["-f"][0], m) : null);
+        if (!b) return 1;
+        if (!r.f["-t"]) io.hjelp(`Imaget blei bygd, men fekk ikkje noko namn. Gi det eit namn med ${kd("-t")}: ${kd("docker build -t minside .")}`);
+        return 0;
+    },
+    compose(a, io, m) { return compose(a, io, m); },
+    version(a, io) { io.ut("Client: Docker Engine - Community"); io.ut(" Version:           " + DOCKER_VERSJON); io.ut(" OS/Arch:           linux/amd64"); io.ut(""); io.ut("Server: Docker Engine - Community"); io.ut(" Engine:"); io.ut("  Version:          " + DOCKER_VERSJON); io.ut("  OS/Arch:          linux/amd64"); st.flagg.versjon = true; return 0; },
+    info(a, io) {
+        io.ut("Server:"); io.ut(` Containers: ${st.kont.length}`); io.ut(`  Running: ${koyrande().length}`); io.ut(`  Stopped: ${st.kont.length - koyrande().length}`); io.ut(` Images: ${st.bilete.length}`);
+        io.ut(` Server Version: ${DOCKER_VERSJON}`); io.ut(` Kernel Version: ${KJERNE}`); io.ut(" Operating System: Ubuntu 24.04.1 LTS"); io.ut(" Architecture: x86_64"); io.ut(` Name: ${VERT}`);
+        return 0;
+    },
+    help(a, io) {
+        io.ut("Usage:  docker [OPTIONS] COMMAND"); io.ut("");
+        io.ut("Kommandoar i simulatoren:");
+        [["run", "Lag og start ein container frå eit image"], ["ps", "Vis containerar"], ["stop / start / restart", "Stopp og start containerar"], ["rm", "Slett containerar"], ["logs", "Vis loggen til ein container"], ["exec", "Køyr ein kommando i ein container som køyrer"], ["inspect", "Vis detaljar som JSON"],
+         ["images", "Vis lokale image"], ["pull", "Last ned eit image frå Docker Hub"], ["rmi", "Slett image"], ["build", "Bygg eit image frå ei Dockerfile"], ["tag", "Gi eit image eit nytt namn"],
+         ["volume", "Arbeid med volum (ls, create, rm, inspect)"], ["network", "Arbeid med nettverk (ls, create, rm)"], ["compose", "Fleire containerar frå compose.yaml (up, down, ps, logs)"], ["version", "Vis versjon"]].forEach(([k, t]) => io.ut("  " + k.padEnd(24) + t));
+        return 0;
+    },
+    stats(a, io) { return ikkjeStotta("stats", io); },
+    top(a, io) { return ikkjeStotta("top", io); },
+    login(a, io) { return ikkjeStotta("login", io); },
+    push(a, io) { return ikkjeStotta("push", io); },
+    system(a, io) { return ikkjeStotta("system " + (a[0] || ""), io); },
+    cp(a, io) { return ikkjeStotta("cp", io); },
+};
+function ikkjeStotta(k, io) { io.hjelp(`Simulatoren støttar ikkje ${kd("docker " + k.trim())}. Skriv ${kd("docker help")} for å sjå kva som finst.`); return 1; }
+function underkmdFeil(gruppe, sub, liste, io) {
+    if (!sub) { io.ut(`Usage:  docker ${gruppe} COMMAND`); io.ut(""); io.ut("Commands:"); liste.forEach(l => io.ut("  " + l)); return 0; }
+    io.ut(`docker: unknown command: docker ${gruppe} ${sub}`); io.ut(""); io.ut(`Run 'docker ${gruppe} --help' for more information`);
+    const n = naermast(sub, liste);
+    io.hjelp(n ? `Meinte du ${kd(`docker ${gruppe} ${n}`)}?` : `${kd("docker " + gruppe)} har desse kommandoane: ${liste.map(kd).join(", ")}.`);
+    return 1;
+}
+function volumInfo(n) { return { CreatedAt: new Date(st.volum[n].laga).toISOString(), Driver: "local", Labels: null, Mountpoint: `/var/lib/docker/volumes/${n}/_data`, Name: n, Options: null, Scope: "local" }; }
+function ingenKont(ref, io) {
+    io.ut(`Error response from daemon: No such container: ${ref}`);
+    const n = naermast(ref, st.kont.map(c => c.namn));
+    io.hjelp(n ? `Fann ingen container som heiter ${kd(ref)}. Meinte du ${kd(n)}?` : `Fann ingen container som heiter ${kd(ref)}. ${kd("docker ps -a")} viser kva som finst.`);
+    return 1;
+}
+function forKvar(a, io, kmd, fn, spes = {}, alias = {}) {
+    const r = lesFlagg(a, spes, { blanda: true, alias });
+    if (r.feil) return flaggFeil(r, io, kmd);
+    if (!r.rest.length) { io.ut(`docker: 'docker ${kmd}' requires at least 1 argument.`); io.ut(""); io.ut(`Usage:  docker ${kmd} [OPTIONS] CONTAINER [CONTAINER...]`); io.hjelp(`Skriv namnet eller ID-en til containeren, til dømes ${kd("docker " + kmd + " web")}.`); return 1; }
+    let kode = 0;
+    for (const ref of r.rest) {
+        const c = finnKont(ref);
+        if (!c) { ingenKont(ref, io); kode = 1; continue; }
+        if (fn(c, r.f)) kode = 1;
+    }
+    return kode;
+}
+function statusTekst(c, no = Date.now()) {
+    if (c.status === "running") return "Up " + varig(no - c.starta);
+    if (c.status === "exited") return `Exited (${c.kode}) ${varig(no - c.stoppa)} ago`;
+    return "Created";
+}
+function portTekst(c) {
+    if (c.status !== "running") return "";
+    const h = HUB[c.bilete.base] || {}, ut = c.portar.map(p => `0.0.0.0:${p.vert}->${p.kont}/tcp`);
+    if (h.port && !c.portar.some(p => p.kont === h.port)) ut.push(h.port + "/tcp");
+    return ut.join(", ");
+}
+
+/* ---------- docker build ---------- */
+const DF_INSTR = ["FROM", "COPY", "ADD", "RUN", "CMD", "ENTRYPOINT", "EXPOSE", "ENV", "WORKDIR", "LABEL", "USER", "ARG", "VOLUME", "HEALTHCHECK", "SHELL", "MAINTAINER"];
+function bygg(dir, tag, io, dfSti) {
+    const df = dfSti || dir + "/Dockerfile";
+    if (!vertVis.erFil(df)) {
+        io.ut("[+] Building 0.0s (1/1) FINISHED");
+        io.ut(" => [internal] load build definition from Dockerfile");
+        io.ut(` => => transferring dockerfile: 2B`);
+        io.ut("ERROR: failed to solve: failed to read dockerfile: open Dockerfile: no such file or directory");
+        const feilNamn = vertVis.barn(dir).find(x => !x.d && x.n.toLowerCase().startsWith("dockerfile") && x.n !== "Dockerfile");
+        io.hjelp(feilNamn ? `Fila heiter ${kd(feilNamn.n)}, men Docker leitar etter ${kd("Dockerfile")} – med stor D og utan filending. Gi ho nytt namn med ${kd("mv " + feilNamn.n + " Dockerfile")}.` : `Det ligg inga ${kd("Dockerfile")} i ${kd(visSti(dir))}. Stå i mappa der fila ligg, eller lag ho med ${kd("nano Dockerfile")}.`);
+        return null;
+    }
+    /* Slå saman linjer som endar med \ og hopp over kommentarar */
+    const linjer = [];
+    let buf = "", start = 0;
+    vertVis.les(df).split("\n").forEach((l, i) => {
+        if (!buf) start = i + 1;
+        if (!buf && (/^\s*#/.test(l) || !l.trim())) return;
+        if (/\\\s*$/.test(l)) { buf += l.replace(/\\\s*$/, " "); return; }
+        linjer.push({ t: (buf + l).trim(), n: start }); buf = "";
+    });
+    if (buf.trim()) linjer.push({ t: buf.trim(), n: start });
+    const feil = (melding, hjelp) => { io.ut("ERROR: failed to solve: " + melding); if (hjelp) io.hjelp(hjelp); return null; };
+    if (!linjer.length) return feil("the Dockerfile cannot be empty", `${kd("Dockerfile")} er tom. Ho må minst ha ei ${kd("FROM")}-linje.`);
+    const steg = [];
+    for (const l of linjer) {
+        const m = l.t.match(/^(\S+)\s*(.*)$/), ins = m[1].toUpperCase();
+        if (!DF_INSTR.includes(ins)) {
+            const n = naermast(ins, DF_INSTR);
+            return feil(`dockerfile parse error on line ${l.n}: unknown instruction: ${m[1]}${n ? ` (did you mean ${n}?)` : ""}`, `Linje ${l.n} i Dockerfile startar med ${kd(m[1])}, som ikkje er ein instruksjon.${n ? ` Meinte du ${kd(n)}?` : ""}`);
+        }
+        steg.push({ ins, arg: m[2], n: l.n, t: ins + " " + m[2] });
+    }
+    if (steg[0].ins !== "FROM" && steg[0].ins !== "ARG") return feil("no build stage in current context", `Ei Dockerfile må starte med ${kd("FROM")}, som fortel kva image du byggjer vidare på. Til dømes ${kd("FROM nginx")}.`);
+    const fra = steg.find(s => s.ins === "FROM");
+    if (!fra || !fra.arg) return feil("no build stage in current context", `${kd("FROM")} treng namnet på eit image, til dømes ${kd("FROM nginx")}.`);
+    const fraRef = fra.arg.split(/\s+/)[0];
+    let basis = finnBilete(fraRef);
+    const ut = [];
+    ut.push(" => [internal] load build definition from Dockerfile");
+    ut.push(` => => transferring dockerfile: ${vertVis.les(df).length}B`);
+    ut.push(` => [internal] load metadata for docker.io/library/${delRef(fraRef).join(":")}`);
+    if (!basis) {
+        const f = fangIo(io);
+        basis = hentBilete(fraRef, f.io, false, true);
+        if (!basis) {
+            io.ut("[+] Building 0.9s (2/2) FINISHED"); ut.forEach(l => io.ut(l));
+            return feil(`${delRef(fraRef).join(":")}: failed to resolve source metadata for docker.io/library/${delRef(fraRef).join(":")}: pull access denied, repository does not exist or may require authorization`, `Imaget ${kd(fraRef)} i ${kd("FROM")}-linja finst ikkje på Docker Hub. Sjekk stavinga.`);
+        }
+    }
+    ut.push(" => [internal] load .dockerignore");
+    ut.push(" => [internal] load build context");
+    const lagSteg = steg.filter(s => ["COPY", "ADD", "RUN", "WORKDIR"].includes(s.ins));
+    const tal = lagSteg.length + 1;
+    ut.push(` => [1/${tal}] FROM docker.io/library/${delRef(fraRef).join(":")}`);
+    const ny = { repo: "<none>", tag: "<none>", id: hex(64), str: basis.str, lag: basis.lag, base: basis.base, fam: basis.fam, filer: { ...basis.filer }, cmd: basis.cmd, bygd: true, laga: Date.now(), env: { ...basis.env }, wd: basis.wd || "/" };
+    let nr = 1;
+    for (const s of steg) {
+        if (s.ins === "FROM" || s.ins === "ARG") continue;
+        if (lagSteg.includes(s)) { nr++; ut.push(` => [${nr}/${tal}] ${s.t}`); ny.lag++; }
+        if (s.ins === "WORKDIR") { ny.wd = normSti(s.arg.startsWith("/") ? s.arg : ny.wd + "/" + s.arg); }
+        else if (s.ins === "ENV") { const m = s.arg.match(/^(\w+)(?:=|\s+)(.*)$/); if (m) ny.env[m[1]] = m[2].replace(/^"(.*)"$/, "$1"); }
+        else if (s.ins === "CMD" || s.ins === "ENTRYPOINT") {
+            let c = s.arg.trim();
+            if (c.startsWith("[")) { try { c = JSON.parse(c).map(x => /\s/.test(x) ? `'${x}'` : x).join(" "); } catch (e) { io.ut(`[+] Building 0.1s FINISHED`); ut.forEach(l => io.ut(l)); return feil(`dockerfile parse error on line ${s.n}: ${s.ins} requires valid JSON array`, `I linje ${s.n}: Bruk doble hermeteikn og komma mellom orda, til dømes ${kd('CMD ["nginx", "-g", "daemon off;"]')}.`); } }
+            if (s.ins === "CMD") ny.cmd = c;
+        }
+        else if (s.ins === "COPY" || s.ins === "ADD") {
+            const d = s.arg.split(/\s+/).filter(x => !x.startsWith("--"));
+            if (d.length < 2) { io.ut("[+] Building 0.1s FINISHED"); ut.forEach(l => io.ut(l)); return feil(`dockerfile parse error on line ${s.n}: ${s.ins} requires at least two arguments, but only one was provided. Destination could not be determined`, `${kd(s.ins)} treng både kva som skal kopierast, og kvar det skal hamne: ${kd("COPY index.html /usr/share/nginx/html/")}`); }
+            const dstRaa = d[d.length - 1], kjelder = d.slice(0, -1);
+            const dst = normSti(dstRaa.startsWith("/") ? dstRaa : ny.wd + "/" + dstRaa);
+            const somMappe = dstRaa.endsWith("/") || kjelder.length > 1 || erBiletDir(ny, dst);
+            for (const k of kjelder) {
+                const p = normSti(dir + "/" + k);
+                if (vertVis.erFil(p)) ny.filer[somMappe ? dst + "/" + namnAv(p) : dst] = vertVis.les(p);
+                else if (vertVis.erDir(p)) { for (const f of Object.keys(st.fs)) if (f.startsWith(p + "/")) ny.filer[normSti(dst + "/" + f.slice(p.length + 1))] = st.fs[f]; }
+                else {
+                    io.ut(`[+] Building 0.3s (${nr + 3}/${tal + 4}) FINISHED`); ut.forEach(l => io.ut(l));
+                    io.ut(" ------"); io.ut(` > [${nr}/${tal}] ${s.t}:`); io.ut(" ------");
+                    return feil(`failed to compute cache key: failed to calculate checksum of ref: "/${k}": not found`, `Fila ${kd(k)} i ${kd(s.ins)}-linja finst ikkje i ${kd(visSti(dir))}. Sjekk namnet med ${kd("ls")}.`);
+                }
+            }
+        }
+    }
+    ut.push(" => exporting to image");
+    ut.push(" => => exporting layers");
+    ut.push(` => => writing image sha256:${ny.id}`);
+    if (tag) {
+        const [repo, tg] = delRef(tag);
+        if (!/^[a-z0-9]+([._-][a-z0-9]+)*(\/[a-z0-9]+([._-][a-z0-9]+)*)*$/.test(repo)) { io.ut(`ERROR: invalid tag "${tag}": repository name must be lowercase`); io.hjelp("Namn på image kan berre ha små bokstavar (a–z), tal, bindestrek, understrek og punktum."); return null; }
+        ny.repo = repo; ny.tag = tg;
+        st.bilete = st.bilete.filter(b => !(b.repo === repo && b.tag === tg));
+        ut.push(` => => naming to docker.io/library/${repo}:${tg}`);
+    }
+    io.ut(`[+] Building ${(0.6 + Math.random()).toFixed(1)}s (${tal + 4}/${tal + 4}) FINISHED`);
+    ut.forEach(l => io.ut(l));
+    st.bilete.push(ny);
+    return ny;
+}
+function erBiletDir(bil, p) {
+    const f = biletFiler(bil), h = HUB[bil.base] || {};
+    return BASISMAPPER.includes(p) || p === h.rot || p === h.data || Object.keys(f).some(k => k.startsWith(p + "/"));
+}
+
+/* ---------- Enkel YAML-lesar (nok til compose.yaml) ---------- */
+function yaml(tekst) {
+    const l = [];
+    tekst.split("\n").forEach((r, i) => {
+        r = r.replace(/\t/g, "  ").replace(/(^|\s)#.*$/, "");
+        if (r.trim() && r.trim() !== "---") l.push({ inn: r.search(/\S/), t: r.trim(), n: i + 1 });
+    });
+    let i = 0;
+    const skalar = s => {
+        s = s.trim();
+        if (/^".*"$|^'.*'$/.test(s)) return s.slice(1, -1);
+        if (/^\[.*\]$/.test(s)) return s.slice(1, -1).split(",").map(x => skalar(x)).filter(x => x !== "");
+        return s;
+    };
+    const erPunkt = t => t === "-" || t.startsWith("- ");
+    function blokk(inn) {
+        if (erPunkt(l[i].t)) {
+            const a = [];
+            while (i < l.length && l[i].inn === inn && erPunkt(l[i].t)) { a.push(skalar(l[i].t.slice(1))); i++; }
+            if (i < l.length && l[i].inn > inn) throw { linje: l[i].n };
+            return a;
+        }
+        const o = {};
+        while (i < l.length && l[i].inn === inn) {
+            if (erPunkt(l[i].t)) throw { linje: l[i].n };
+            const m = l[i].t.match(/^("[^"]*"|'[^']*'|[^:\s][^:]*):(?:\s+(.*))?$/);
+            if (!m) throw { linje: l[i].n };
+            const k = skalar(m[1]), v = m[2];
+            i++;
+            if (v !== undefined && v !== "") o[k] = skalar(v);
+            else if (i < l.length && l[i].inn > inn) o[k] = blokk(l[i].inn);
+            else if (i < l.length && l[i].inn === inn && erPunkt(l[i].t)) o[k] = blokk(inn);
+            else o[k] = null;
+        }
+        if (i < l.length && l[i].inn > inn) throw { linje: l[i].n };
+        return o;
+    }
+    if (!l.length) return {};
+    const r = blokk(l[0].inn);
+    if (i < l.length) throw { linje: l[i].n };
+    return r;
+}
+
+/* ---------- docker compose ---------- */
+function composeLes(io) {
+    let fil = null;
+    for (const n of ["compose.yaml", "compose.yml", "docker-compose.yaml", "docker-compose.yml"]) if (vertVis.erFil(st.cwd + "/" + n)) { fil = st.cwd + "/" + n; break; }
+    if (!fil) {
+        io.ut("no configuration file provided: not found");
+        io.hjelp(`Compose leitar etter ${kd("compose.yaml")} i mappa du står i (${kd(visSti(st.cwd))}). Gå til rett mappe, til dømes ${kd("cd ~/blogg")}.`);
+        return null;
+    }
+    let d;
+    try { d = yaml(vertVis.les(fil)); }
+    catch (e) {
+        io.ut(`yaml: line ${e.linje || 1}: did not find expected key`);
+        io.hjelp(`Det er ein feil i ${kd(namnAv(fil))} rundt linje ${e.linje || 1}. I YAML er innrykka viktige: Bruk mellomrom (ikkje Tab), og linjer på same nivå må ha like mange mellomrom framfor seg.`);
+        return null;
+    }
+    if (!d || typeof d.services !== "object" || !d.services || Array.isArray(d.services) || !Object.keys(d.services).length) {
+        io.ut("no service selected");
+        io.hjelp(`${kd(namnAv(fil))} må ha ein ${kd("services:")}-del med minst éi teneste.`);
+        return null;
+    }
+    for (const [n, s] of Object.entries(d.services)) {
+        if (!s || typeof s !== "object" || (!s.image && !s.build)) {
+            io.ut(`service "${n}" has neither an image nor a build context specified: invalid compose project`);
+            io.hjelp(`Tenesta ${kd(n)} manglar ${kd("image:")}. Sjekk innrykket – ${kd("image:")} skal stå eitt nivå inn under ${kd(n + ":")}.`);
+            return null;
+        }
+    }
+    const prosjekt = (namnAv(st.cwd).toLowerCase().replace(/[^a-z0-9_-]/g, "") || "prosjekt");
+    const volum = d.volumes && typeof d.volumes === "object" && !Array.isArray(d.volumes) ? Object.keys(d.volumes) : [];
+    return { prosjekt, tenester: d.services, volum, fil };
+}
+function composeRekkjefolgje(tenester) {
+    const ut = [], sett = new Set();
+    const dep = n => { const d = tenester[n].depends_on; return Array.isArray(d) ? d : d && typeof d === "object" ? Object.keys(d) : []; };
+    const besok = n => { if (sett.has(n) || !tenester[n]) return; sett.add(n); dep(n).forEach(besok); ut.push(n); };
+    Object.keys(tenester).forEach(besok);
+    return ut;
+}
+function compose(a, io, m) {
+    const sub = a.find(x => !x.startsWith("-"));
+    const r = a.slice(a.indexOf(sub) + 1);
+    if (!sub || sub === "help") { io.ut("Usage:  docker compose [OPTIONS] COMMAND"); io.ut(""); io.ut("Commands:"); ["up", "down", "ps", "logs", "stop", "start", "restart"].forEach(k => io.ut("  " + k)); return 0; }
+    if (sub === "version") { io.ut("Docker Compose version v2.29.7"); return 0; }
+    if (!["up", "down", "ps", "logs", "stop", "start", "restart"].includes(sub)) {
+        if (["build", "pull", "exec", "run", "config", "rm", "kill", "top"].includes(sub)) return ikkjeStotta("compose " + sub, io);
+        return underkmdFeil("compose", sub, ["up", "down", "ps", "logs", "stop", "start", "restart"], io);
+    }
+    const p = composeLes(io);
+    if (!p) return 1;
+    const nett = p.prosjekt + "_default";
+    const knamn = n => `${p.prosjekt}-${n}-1`;
+    const mine = () => st.kont.filter(c => c.prosjekt === p.prosjekt);
+    const valde = r.filter(x => !x.startsWith("-"));
+    for (const v of valde) if (!p.tenester[v]) { io.ut(`no such service: ${v}`); io.hjelp(`${kd(namnAv(p.fil))} har desse tenestene: ${Object.keys(p.tenester).map(kd).join(", ")}.`); return 1; }
+    const rekke = composeRekkjefolgje(p.tenester).filter(n => !valde.length || valde.includes(n) || sub === "up");
+    const skriv = linjer => { const w = Math.max(...linjer.map(l => l[0].length)); io.ut(`[+] Running ${linjer.length}/${linjer.length}`); linjer.forEach(l => io.html(` ${F.g("✔")} ${E(l[0].padEnd(w))}  ${F.g(l[1])}`)); };
+
+    if (sub === "up") {
+        const d = r.includes("-d") || r.includes("--detach");
+        const linjer = [], pull = [];
+        const stille = fangIo(io);
+        /* Image */
+        for (const n of rekke) {
+            const s = p.tenester[n];
+            if (s.build && !s.image) {
+                const dir = abs(typeof s.build === "string" ? s.build : (s.build.context || "."), m);
+                if (!finnBilete(`${p.prosjekt}-${n}`)) { const b = bygg(dir, `${p.prosjekt}-${n}`, io); if (!b) return 1; }
+            } else if (!finnBilete(String(s.image))) {
+                if (!hentBilete(String(s.image), io, false, true)) return 1;
+                pull.push([n, "Pulled"]);
+            }
+        }
+        if (pull.length) skriv(pull);
+        if (!st.nett[nett]) { st.nett[nett] = { id: hex(64), driver: "bridge" }; linjer.push([`Network ${nett}`, "Created"]); }
+        for (const v of p.volum) { const vn = p.prosjekt + "_" + v; if (!st.volum[vn]) { st.volum[vn] = { filer: {}, dirs: [], laga: Date.now() }; linjer.push([`Volume "${vn}"`, "Created"]); } }
+        let feil = false;
+        for (const n of rekke) {
+            const s = p.tenester[n];
+            let c = st.kont.find(x => x.namn === knamn(n));
+            if (c && c.status === "running") { linjer.push([`Container ${c.namn}`, "Running"]); continue; }
+            if (!c) {
+                const bref = s.image ? String(s.image) : `${p.prosjekt}-${n}`;
+                const portar = tolkPortar([].concat(s.ports || []), io); if (!portar) return 1;
+                const mont = tolkVolum([].concat(s.volumes || []), stille.io, m, { p: p.prosjekt, namn: p.volum });
+                if (!mont) { io.ut(`service "${n}": invalid volume specification`); io.hjelp(`Sjekk ${kd("volumes:")} under tenesta ${kd(n)}. Formatet er ${kd("- namn:/sti/i/containeren")}.`); return 1; }
+                const env = Array.isArray(s.environment) ? tolkEnv(s.environment) : s.environment && typeof s.environment === "object" ? Object.fromEntries(Object.entries(s.environment).map(([k, v]) => [k, v === null ? "" : String(v)])) : {};
+                c = lagKont(finnBilete(bref), { namn: s.container_name || knamn(n), bref, cmd: s.command ? (Array.isArray(s.command) ? s.command : delOrd(String(s.command))) : null, portar, mont, env, nett, prosjekt: p.prosjekt, teneste: n });
+            }
+            const f = fangIo(io);
+            const res = startKont(c, f.io);
+            if (res.feil) {
+                skriv(linjer.concat([[`Container ${c.namn}`, "Created"]]));
+                const opptatt = c.portar.find(q => st.kont.some(x => x !== c && x.status === "running" && x.portar.some(y => y.vert === q.vert)));
+                io.ut(`Error response from daemon: driver failed programming external connectivity on endpoint ${c.namn} (${hex(64)}): Bind for 0.0.0.0:${opptatt ? opptatt.vert : "?"} failed: port is already allocated`);
+                if (opptatt) io.hjelp(`Port ${kd(opptatt.vert)} på serveren er alt i bruk av ein annan container. Sjå kven med ${kd("docker ps")}, og stopp han – eller endre porten framfor kolonet i ${kd("compose.yaml")}.`);
+                feil = true; break;
+            }
+            linjer.push([`Container ${c.namn}`, "Started"]);
+        }
+        if (feil) return 1;
+        skriv(linjer);
+        const krasja = mine().filter(c => c.status === "exited" && c.kode);
+        if (krasja.length) io.hjelp(`${krasja.map(c => kd(c.namn)).join(" og ")} stoppa rett etter start. Finn årsaka med ${kd("docker compose logs")}.`);
+        if (!d) {
+            mine().forEach(c => c.logg.slice(-3).forEach(l => io.html(`${F.c((c.teneste + "-1").padEnd(8))} | ${E(l)}`)));
+            io.ut("^C"); io.ut("Gracefully stopping... (press Ctrl+C again to force)");
+            io.hjelp(`Utan ${kd("-d")} køyrer Compose i framgrunnen og låser terminalen. Simulatoren trykte Ctrl+C for deg, så containerane er stoppa. Start dei i bakgrunnen med ${kd("docker compose up -d")}.`);
+            mine().forEach(c => { if (c.status === "running") avslutt(c, 0); });
+        }
+        return 0;
+    }
+    if (sub === "down") {
+        const linjer = [];
+        const k = mine();
+        k.slice().reverse().forEach(c => { if (c.status === "running") { c.rm = false; avslutt(c, 0); } fjernKont(c); linjer.push([`Container ${c.namn}`, "Removed"]); });
+        if (r.includes("-v") || r.includes("--volumes")) for (const v of p.volum) { const vn = p.prosjekt + "_" + v; if (st.volum[vn]) { delete st.volum[vn]; linjer.push([`Volume ${vn}`, "Removed"]); } }
+        if (st.nett[nett]) { delete st.nett[nett]; linjer.push([`Network ${nett}`, "Removed"]); }
+        if (linjer.length) skriv(linjer);
+        if (k.length) st.flagg.composeDown = true;
+        return 0;
+    }
+    if (sub === "ps") {
+        const alle = r.includes("-a") || r.includes("--all"), no = Date.now();
+        const rader = [["NAME", "IMAGE", "COMMAND", "SERVICE", "CREATED", "STATUS", "PORTS"]];
+        mine().filter(c => alle || c.status === "running").forEach(c => rader.push([c.namn, c.bref, visCmd(c), c.teneste, varig(no - c.laga) + " ago", statusTekst(c, no), portTekst(c)]));
+        tabell(rader).forEach(l => io.ut(l));
+        if (rader.length === 1 && !alle && mine().length) io.hjelp(`Ingen av tenestene køyrer. ${kd("docker compose ps -a")} viser òg dei som er stoppa.`);
+        return 0;
+    }
+    if (sub === "logs") {
+        const k = mine().filter(c => !valde.length || valde.includes(c.teneste));
+        const w = Math.max(0, ...k.map(c => (c.teneste + "-1").length));
+        k.forEach(c => c.logg.forEach(l => io.html(`${F.c((c.teneste + "-1").padEnd(w))}  | ${E(l)}`)));
+        if (!k.length) io.hjelp(`Prosjektet har ingen containerar no. Start det med ${kd("docker compose up -d")}.`);
+        return 0;
+    }
+    /* stop / start / restart */
+    const linjer = [];
+    const k = mine().filter(c => !valde.length || valde.includes(c.teneste));
+    if (!k.length) { io.hjelp(`Prosjektet har ingen containerar no. Start det med ${kd("docker compose up -d")}.`); return 0; }
+    for (const c of (sub === "stop" ? k.slice().reverse() : k)) {
+        if (sub !== "start" && c.status === "running") avslutt(c, 0);
+        if (sub !== "stop" && c.status !== "running") { const f = fangIo(io); startKont(c, f.io); }
+        linjer.push([`Container ${c.namn}`, sub === "stop" ? "Stopped" : "Started"]);
+    }
+    skriv(linjer);
+    return 0;
+}
+
+/* ---------- «Nettverket»: hent ei side frå ein port på serveren ---------- */
+function hent(port, sti) {
+    const c = koyrande().find(x => x.portar.some(p => p.vert === port));
+    if (!c) return { feil: 7 };
+    const pm = c.portar.find(p => p.vert === port), h = HUB[c.bilete.base] || {};
+    if (!c.lyttar || pm.kont !== h.port) return { feil: 56, c, pm, h };
+    if (h.type === "db" || h.type === "teneste") return { feil: 52, c, h };
+    sti = "/" + (sti || "").replace(/^\/+/, "").replace(/[?#].*$/, "");
+    const tid = new Date(), tt = `${String(tid.getDate()).padStart(2, "0")}/${tid.toLocaleString("en-US", { month: "short" })}/${tid.getFullYear()}:${tid.toTimeString().slice(0, 8)} +0000`;
+    const logg = (status, n) => c.logg.push(`172.17.0.1 - - [${tt}] "GET ${sti} HTTP/1.1" ${status} ${n} "-" "curl/8.5.0" "-"`);
+    if (h.type === "wp") {
+        const dbVert = c.env.WORDPRESS_DB_HOST || "mysql";
+        const db = koyrande().find(x => x !== c && x.nett === c.nett && c.nett !== "bridge" && (x.teneste === dbVert || x.namn === dbVert) && (HUB[x.bilete.base] || {}).type === "db" && x.lyttar);
+        const ok = !!db;
+        logg(ok ? 200 : 500, ok ? WP_SIDE.length : WP_FEIL.length);
+        if (ok) st.flagg.wpOk = true;
+        return { status: ok ? 200 : 500, kropp: ok ? WP_SIDE : WP_FEIL, c, server: "Apache/2.4.62 (Debian)", dbVert, db };
+    }
+    const v = lagVis(kontB(c));
+    let p = normSti(h.rot + sti);
+    if (v.erDir(p)) p = p + "/index.html";
+    const server = c.bilete.base === "nginx" ? "nginx/1.27.2" : "Apache/2.4.62 (Unix)";
+    const feilside = (kode, tekst) => `<html>\n<head><title>${kode} ${tekst}</title></head>\n<body>\n<center><h1>${kode} ${tekst}</h1></center>\n<hr><center>${server.split(" ")[0]}</center>\n</body>\n</html>\n`;
+    if (!v.erFil(p)) {
+        const erMappe = p.endsWith("/index.html") && v.erDir(forelderSti(p));
+        const kode = erMappe ? 403 : 404, kropp = feilside(kode, erMappe ? "Forbidden" : "Not Found");
+        logg(kode, kropp.length);
+        return { status: kode, kropp, c, server, tomMappe: erMappe };
+    }
+    const kropp = v.les(p);
+    logg(200, kropp.length);
+    /* Flagg til oppgåvene */
+    if (port === 8080) st.flagg.web8080 = true;
+    const mont = c.mont.find(m => h.rot === m.dst || h.rot.startsWith(m.dst + "/"));
+    if (!mont && st.flagg.endraInne && c.id !== st.flagg.endraId && c.bilete.base === "nginx" && !c.bilete.bygd && kropp === NGINX_INDEX) st.flagg.borte = true;
+    if (mont && mont.type === "volume" && st.volum[mont.src] && st.volum[mont.src].endra && st.volum[mont.src].endraAv !== c.id) st.flagg.volOverlevde = true;
+    if (mont && mont.type === "bind") st.flagg.bindOk = true;
+    if (c.bilete.bygd) st.flagg.eigaSide = true;
+    return { status: 200, kropp, c, server };
+}
+/* Flagg som ikkje heng på ein bestemt kommando */
+function oppdaterFlagg() {
+    for (const c of st.kont) {
+        const h = HUB[c.bilete.base] || {};
+        if (h.type !== "web") continue;
+        if (Object.keys(c.fs).some(k => k.startsWith(h.rot + "/"))) { st.flagg.endraInne = true; st.flagg.endraId = c.id; }
+    }
+}
+
+/* =====================================================================
+   KOMMANDOAR PÅ SERVEREN
+   ===================================================================== */
+const DOCKER_SUB = ["run", "ps", "stop", "start", "restart", "rm", "logs", "exec", "images", "pull", "rmi", "build", "tag", "inspect", "volume", "network", "compose", "container", "image", "kill", "version", "info", "help"];
+const WIN_KMD = { dir: "ls", cls: "clear", type: "cat", del: "rm", copy: "cp", move: "mv", md: "mkdir", notepad: "nano", ipconfig: "hostname" };
+const VERT_KMD = {
+    ...FELLES,
+    docker(a, io, m) {
+        if (!a.length || a[0] === "--help" || a[0] === "-h") return DOCKER.help(a, io);
+        if (a[0] === "--version" || a[0] === "-v") { io.ut(`Docker version ${DOCKER_VERSJON}, build ce12230`); st.flagg.versjon = true; return 0; }
+        const [sub, ...r] = a;
+        if (sub === "ls") { io.ut("docker: 'ls' is not a docker command."); io.ut("See 'docker --help'"); io.hjelp(`Containerar blir lista med ${kd("docker ps")}, og image med ${kd("docker images")}.`); return 1; }
+        if (!har(DOCKER, sub)) {
+            io.ut(`docker: '${sub}' is not a docker command.`); io.ut("See 'docker --help'");
+            const n = naermast(sub, DOCKER_SUB);
+            io.hjelp(n ? `Meinte du ${kd("docker " + n)}?` : `Skriv ${kd("docker help")} for å sjå kva kommandoar som finst i simulatoren.`);
+            return 1;
+        }
+        if (r.includes("--help") && sub !== "run" && sub !== "exec") { io.hjelp(`Simulatoren har ikkje hjelpetekst for kvar kommando. Sjå juksarket i leksjon 9, eller skriv ${kd("docker help")}.`); return 0; }
+        return DOCKER[sub](r, io, m) || 0;
+    },
+    "docker-compose"(a, io, m) {
+        io.hjelp(`${kd("docker-compose")} med bindestrek er den gamle versjonen. No heiter kommandoen ${kd("docker compose")} med mellomrom. Simulatoren køyrer han for deg.`);
+        return compose(a, io, m);
+    },
+    sudo(a, io, m) {
+        if (!a.length) { io.ut("usage: sudo command"); return 1; }
+        if (a[0] === "docker") io.hjelp(`Brukaren ${kd("elev")} er med i gruppa ${kd("docker")}, så du treng ikkje ${kd("sudo")} her.`);
+        return koyrOrd(a, io, m);
+    },
+    curl(a, io) {
+        const fl = a.filter(x => x.startsWith("-")).join(""), url = a.find(x => !x.startsWith("-"));
+        if (!url) { io.ut("curl: try 'curl --help' for more information"); io.hjelp(`Skriv adressa du vil hente, til dømes ${kd("curl localhost:8080")}.`); return 2; }
+        const mm = url.match(/^(?:(https?):\/\/)?([^/:]+)(?::(\d+))?(\/.*)?$/);
+        if (!mm) { io.ut(`curl: (3) URL rejected: Malformed input to a URL function`); return 3; }
+        const vert = mm[2].toLowerCase(), port = mm[3] ? +mm[3] : (mm[1] === "https" ? 443 : 80), sti = mm[4] || "/";
+        if (!["localhost", "127.0.0.1", VERT, "0.0.0.0"].includes(vert)) {
+            io.ut(`curl: (6) Could not resolve host: ${mm[2]}`);
+            const k = finnKont(mm[2]);
+            io.hjelp(k ? `${kd(mm[2])} er namnet på ein container, men serveren kan ikkje bruke containernamn som adresse. Bruk porten som er opna med ${kd("-p")}: ${kd("curl localhost:" + (k.portar[0] ? k.portar[0].vert : "PORT"))}.` : `Simulatoren har ikkje internett. Du kan hente sider frå containerane dine med ${kd("curl localhost:PORT")}.`);
+            return 6;
+        }
+        const r = hent(port, sti);
+        if (r.feil === 7) {
+            io.ut(`curl: (7) Failed to connect to ${mm[2]} port ${port} after 0 ms: Couldn't connect to server`);
+            const stoppa = st.kont.find(c => c.status !== "running" && c.portar.some(p => p.vert === port));
+            const utanPort = koyrande().find(c => (HUB[c.bilete.base] || {}).port && !c.portar.length);
+            io.hjelp(stoppa ? `Ingenting svarar på port ${kd(port)}. Containeren ${kd(stoppa.namn)} bruker den porten, men han er stoppa. Start han med ${kd("docker start " + stoppa.namn)}.`
+                : utanPort && !koyrande().some(c => c.portar.length) ? `Ingenting svarar på port ${kd(port)}. Containeren ${kd(utanPort.namn)} køyrer, men ingen port er opna inn til han. Lag han på nytt med ${kd("-p " + port + ":" + HUB[utanPort.bilete.base].port)}.`
+                : `Ingenting svarar på port ${kd(port)} på serveren. ${kd("docker ps")} viser kva portar som er opne (kolonnen PORTS).`);
+            return 7;
+        }
+        if (r.feil === 56) {
+            io.ut("curl: (56) Recv failure: Connection reset by peer");
+            io.hjelp(r.c.lyttar ? `Port ${kd(port)} på serveren går til port ${kd(r.pm.kont)} i containeren ${kd(r.c.namn)}, men programmet der lyttar på port ${kd(r.h.port)}. Rekkjefølgja er ${kd("-p VERT:CONTAINER")} – prøv ${kd("-p " + port + ":" + r.h.port)}.` : `Porten er opna, men det køyrer ingen webserver i containeren ${kd(r.c.namn)} (han køyrer ${kd(r.c.cmd)}).`);
+            return 56;
+        }
+        if (r.feil === 52) { io.ut("curl: (52) Empty reply from server"); io.hjelp(`${kd(r.c.namn)} er ein ${r.h.dbNamn || "teneste"}, ikkje ein webserver, så ${kd("curl")} får ikkje noko fornuftig svar. Men porten er open!`); return 52; }
+        st.side = { port, sti, html: r.kropp, status: r.status };
+        if (/[I]/.test(fl)) {
+            io.ut(`HTTP/1.1 ${r.status} ${r.status === 200 ? "OK" : r.status === 404 ? "Not Found" : r.status === 403 ? "Forbidden" : "Internal Server Error"}`);
+            io.ut(`Server: ${r.server}`); io.ut(`Date: ${new Date().toUTCString()}`); io.ut("Content-Type: text/html"); io.ut(`Content-Length: ${r.kropp.length}`); io.ut("Connection: keep-alive");
+        } else io.ut(r.kropp.replace(/\n$/, ""));
+        if (r.status === 500) io.hjelp(`WordPress køyrer, men finn ikkje databasen på adressa ${kd(r.dbVert)}. Databasen må køyre, og dei to containerane må vere på same nettverk. Sjekk med ${kd("docker ps")}.`);
+        else if (r.status === 403) io.hjelp(`Webserveren fann mappa, men det ligg inga ${kd("index.html")} der.`);
+        else if (r.status === 404) io.hjelp(`Webserveren køyrer, men fila ${kd(sti)} finst ikkje i containeren.`);
+        else io.hjelp(`Containeren ${kd(r.c.namn)} svara. Under teikninga ser du sida slik ein nettlesar viser ho.`);
+        return 0;
+    },
+    nano(a, io, m) {
+        const f = a.find(x => !x.startsWith("-"));
+        if (!f) { io.hjelp(`Skriv namnet på fila du vil redigere, til dømes ${kd("nano Dockerfile")}.`); return 1; }
+        const p = abs(f, m);
+        if (vertVis.erDir(p)) { io.ut(`nano: ${f}: Is a directory`); return 1; }
+        if (!vertVis.erDir(forelderSti(p))) { io.ut(`nano: Directory '${visSti(forelderSti(p))}' does not exist`); return 1; }
+        io.opne(p);
+        return 0;
+    },
+    vi(a, io, m) { io.hjelp(`Simulatoren har ikkje ${kd("vi")}. Bruk ${kd("nano")} i staden – han er enklare å kome seg ut av òg.`); return VERT_KMD.nano(a, io, m); },
+    vim(a, io, m) { return VERT_KMD.vi(a, io, m); },
+    history(a, io) { historikk.forEach((h, i) => io.ut(String(i + 1).padStart(5) + "  " + h)); },
+    exit(a, io) { io.hjelp("Du er på serveren, ikkje i ein container. I simulatoren kan du ikkje logge ut."); },
+    help(a, io) {
+        io.ut("Kommandoar på serveren:");
+        io.ut("  ls, cd, pwd, cat, echo, mkdir, touch, rm, cp, mv, nano, curl, clear, history, uname, hostname, whoami");
+        io.ut("");
+        io.ut("Docker:  skriv «docker help» for å sjå Docker-kommandoane.");
+        io.hjelp("Tab fullfører namn, pil opp hentar førre kommando, og Ctrl+L tømer skjermen.");
+    },
+};
+const ALLE_KMD = Object.keys(VERT_KMD).filter(k => !["true", "false", "vi", "vim", "docker-compose"].includes(k));
+
+/* Køyr éin kommando (ei liste ord) i eit miljø. Returnerer utgangskoden. */
+function koyrOrd(ord, io, m, stille127) {
+    const [namn, ...args] = ord;
+    const tab = m.kont ? KONT_KMD : VERT_KMD;
+    let kode = IKKJE;
+    if (har(tab, namn)) {
+        try { const r = tab[namn](args, io, m); kode = r === undefined ? 0 : r; }
+        catch (e) { console.error(e); io.ut(`${namn}: intern feil i simulatoren`); kode = 1; }
+    }
+    if (kode !== IKKJE) return kode;
+    if (stille127) return IKKJE;
+    if (m.kont) {
+        io.ut(m.skal === "bash" ? `bash: ${namn}: command not found` : `sh: ${namn}: not found`);
+        if (namn === "docker") io.hjelp(`Du er inne i ein container, og Docker finst berre på serveren. Skriv ${kd("exit")} først.`);
+        else if (["nano", "vi", "vim", "ps", "ping", "curl", "wget", "ip", "top", "less", "sudo", "bash"].includes(namn)) io.hjelp(`${kd(namn)} finst ikkje i denne containeren. Image er strippa for alt hovudprogrammet ikkje treng – det gjer dei små og tryggare.${namn === "bash" ? ` Bruk ${kd("sh")}.` : ["nano", "vi", "vim"].includes(namn) ? ` Du kan skrive til ei fil med ${kd("echo \"tekst\" > fil")}.` : ""}`);
+        else { const n = naermast(namn, Object.keys(FELLES)); if (n) io.hjelp(`Meinte du ${kd(n)}?`); }
+        return 127;
+    }
+    if (har(VERT_KMD, namn.toLowerCase())) { io.ut(`${namn}: command not found`); io.hjelp(`Linux skil mellom store og små bokstavar. Skriv ${kd(namn.toLowerCase())}.`); return 127; }
+    io.ut(`${namn}: command not found`);
+    const w = WIN_KMD[namn.toLowerCase()];
+    if (w) io.hjelp(`${kd(namn)} er ein Windows-kommando. Serveren køyrer Linux: skriv ${kd(w)} i staden.`);
+    else if (DOCKER_SUB.includes(namn) || namn === "image") io.hjelp(`Docker-kommandoar startar med ${kd("docker")}: skriv ${kd("docker " + ord.join(" "))}.`);
+    else { const n = naermast(namn, ALLE_KMD); io.hjelp(n ? `Meinte du ${kd(n)}?` : `Skriv ${kd("help")} for å sjå kva kommandoar som finst i simulatoren.`); }
+    return 127;
+}
+
+/* Køyr ei tekstlinje (med &&, ; og >) i eit miljø */
+function koyrTekst(linje, io, m) {
+    const t = tolk(linje);
+    if (t.feil) { io.ut(`${m.skal}: unexpected EOF while looking for matching quote`); io.hjelp("Eit hermeteikn er ikkje lukka. Sjekk at kvart hermeteikn har ein partnar."); return 2; }
+    let kode = 0;
+    for (const k of t.kmd) {
+        if (k.kopling === "&&" && kode !== 0) continue;
+        if (k.kopling === "||" && kode === 0) continue;
+        const iSkal = !!st.skal;
+        let ord = k.ord;
+        if (!ord.length && k.omd) { if (k.omd.fil) { const p = abs(k.omd.fil, m); if (!m.vis.erFil(p) || !k.omd.leggTil) m.vis.skriv(p, ""); } continue; }
+        if (ord.includes("|")) { io.ut(`${m.skal}: syntax error near unexpected token \`|'`); io.hjelp("Simulatoren støttar ikkje røyr (|) mellom kommandoar."); kode = 2; continue; }
+        if (k.omd) {
+            if (k.omd.fil === undefined) { io.ut(`${m.skal}: syntax error near unexpected token \`newline'`); return 2; }
+            const p = abs(k.omd.fil, m);
+            if (m.vis.erDir(p)) { io.ut(`${m.skal}: ${k.omd.fil}: Is a directory`); kode = 1; continue; }
+            if (!m.vis.erDir(forelderSti(p))) { io.ut(`${m.skal}: ${k.omd.fil}: No such file or directory`); kode = 1; continue; }
+            const f = fangIo(io);
+            kode = koyrOrd(ord, { ...f.io, hjelp: io.hjelp }, m);
+            const tekst = f.l.length ? f.l.join("\n") + "\n" : "";
+            m.vis.skriv(p, k.omd.leggTil && m.vis.erFil(p) ? m.vis.les(p) + tekst : tekst);
+            continue;
+        }
+        kode = koyrOrd(ord, io, m);
+        if (iSkal !== !!st.skal) break;   // gjekk inn i eller ut av ein container: resten av linja gjeld ikkje lenger
+    }
+    return kode;
+}
+/* Køyr éi linje frå terminalen. io samlar utskrift. */
+function koyrLinje(linje, io) {
+    if (st.skal) {
+        const c = st.kont.find(x => x.id === st.skal.id);
+        if (!c || c.status !== "running") { st.skal = null; io.hjelp("Containeren du var inne i, køyrer ikkje lenger. Du er tilbake på serveren."); }
+        else return koyrTekst(linje, io, miljoKont(c, st.skal));
+    }
+    const m = miljoVert();
+    linje = linje.replace(/\$\{PWD\}|\$PWD/g, st.cwd).replace(/\$\{?HOME\}?/g, HEIM);
+    /* Kommandosubstitusjon: $(docker ps -aq) blir bytt ut med utskrifta frå kommandoen */
+    linje = linje.replace(/\$\(([^()]*)\)/g, (_, indre) => { const f = fangIo(io); koyrTekst(indre, f.io, m); return f.l.join(" "); });
+    return koyrTekst(linje.replace(/(^|[\s=:])~(?=\/|\s|:|$)/g, "$1" + HEIM), io, m);
+}
+
+/* =====================================================================
+   TERMINAL
+   ===================================================================== */
+const termEl = document.getElementById("term"), termUt = document.getElementById("termUt");
+const aktivTekst = document.getElementById("aktivTekst"), inn = document.getElementById("termInn");
+let historikk = lager.hent("historikk", []);
+let histPos = -1, histUtkast = "", tabT = null;
+const MAKS_LINJER = 1500;
+let skjerm = lager.hent("skjerm", []);   // lagra HTML-linjer
+
+function skalKont() { return st.skal ? st.kont.find(c => c.id === st.skal.id) || null : null; }
+function promptHtml() {
+    const c = skalKont();
+    if (c) {
+        if (st.skal.bash) return E(`root@${c.id.slice(0, 12)}:${st.skal.cwd}#`);
+        return ["alpine", "busybox"].includes(famAv(c)) ? E(`${st.skal.cwd} #`) : "#";
+    }
+    return `${F.g("elev@" + VERT)}:${F.d(visSti(st.cwd))}$`;
+}
+function leggTil(html, klasse) {
+    const d = document.createElement("div");
+    if (klasse) d.className = klasse;
+    d.innerHTML = html;
+    termUt.appendChild(d);
+    skjerm.push(klasse ? `<div class="${klasse}">${html}</div>` : html);
+    while (termUt.childElementCount > MAKS_LINJER) termUt.firstElementChild.remove();
+    if (skjerm.length > 400) skjerm = skjerm.slice(-400);
+}
+function tomSkjerm() { termUt.innerHTML = ""; skjerm = []; lager.set("skjerm", skjerm); teikn(); }
+function teikn() {
+    const buf = inn.value, pos = Math.min(inn.selectionStart ?? buf.length, buf.length);
+    const foer = buf.slice(0, pos), under = buf.slice(pos, pos + 1), etter = buf.slice(pos + 1);
+    aktivTekst.innerHTML = promptHtml() + " " + E(foer) + `<span class="markor${under ? "" : " tom"}">${under ? E(under) : "&#8203;"}</span>` + E(etter);
+    termEl.scrollTop = termEl.scrollHeight;
+}
+function visPrompt() {
+    const c = skalKont();
+    document.getElementById("vTittel").textContent = c ? `root@${c.id.slice(0, 12)}: ${st.skal.cwd}  –  inne i containeren ${c.namn}` : `elev@${VERT}: ${visSti(st.cwd)}`;
+    document.getElementById("sim").classList.toggle("inne", !!c);
+    teikn();
+}
+
+let editorOpen = null;
+function lagIo(samle) {
+    return {
+        ut: t => String(t).split("\n").forEach(l => samle.push({ h: E(l) })),
+        html: h => samle.push({ h }),
+        hjelp: h => samle.push({ h: "💡 " + h, k: "hjelp" }),
+        tom: () => samle.push({ tom: true }),
+        opne: p => { editorOpen = p; },
+    };
+}
+function koyrKommando(linje, stille = false) {
+    const samle = [];
+    const io = lagIo(samle);
+    const kode = koyrLinje(linje, io);
+    if (!stille) {
+        for (const x of samle) { if (x.tom) { termUt.innerHTML = ""; skjerm = []; } else leggTil(x.h, x.k); }
+    }
+    return { kode, ctx: { st, linje, kode }, samle };
+}
+function sendInn() {
+    if (editorOpen) return;
+    const linje = inn.value.replace(/\r?\n/g, "");
+    inn.value = ""; histPos = -1; tabT = null;
+    leggTil(promptHtml() + " " + E(linje));
+    if (linje.trim()) {
+        if (historikk[historikk.length - 1] !== linje) historikk.push(linje);
+        if (historikk.length > 100) historikk = historikk.slice(-100);
+        lager.set("historikk", historikk);
+        const r = koyrKommando(linje);
+        etterKommando(r.ctx);
+        if (editorOpen) { opneEditor(editorOpen); return; }
+    }
+    visPrompt();
+    lagreAlt();
+}
+function etterKommando(ctx) {
+    oppdaterFlagg();
+    lagreAlt();
+    teiknModell();
+    sjekkOppgaver(ctx || { st, linje: "" });
+}
+function lagreAlt() {
+    lager.set("maskin", st);
+    lager.set("skjerm", skjerm);
+}
+function historikkSteg(r) {
+    if (!historikk.length) return;
+    if (histPos === -1) { if (r > 0) return; histUtkast = inn.value; histPos = historikk.length; }
+    histPos += r;
+    if (histPos < 0) histPos = 0;
+    if (histPos >= historikk.length) { histPos = -1; inn.value = histUtkast; }
+    else inn.value = historikk[histPos];
+    inn.setSelectionRange(inn.value.length, inn.value.length);
+    teikn();
+}
+
+/* Tab-fullføring: kommandoar, Docker-kommandoar, containerar, image, volum og filer */
+function filKand(tok, berreMapper) {
+    const c = skalKont();
+    const m = c ? miljoKont(c, st.skal) : miljoVert();
+    const idx = tok.lastIndexOf("/");
+    const dirDel = idx >= 0 ? tok.slice(0, idx + 1) : "";
+    const namnDel = tok.slice(dirDel.length);
+    const dir = abs(dirDel || ".", m);
+    if (!m.vis.erDir(dir)) return { k: [], dirDel };
+    const k = m.vis.barn(dir).filter(b => (!berreMapper || b.d) && b.n.toLowerCase().startsWith(namnDel.toLowerCase()) && (namnDel.startsWith(".") || !b.n.startsWith("."))).map(b => b.n + (b.d ? "/" : ""));
+    return { k, dirDel };
+}
+function kandidatar(foran, tok) {
+    const start = l => l.filter(x => x.startsWith(tok));
+    if (st.skal) { if (!foran.length) return { k: start(Object.keys(FELLES).concat(["exit", "ps", "env"])) }; return filKand(tok, foran[0] === "cd"); }
+    if (!foran.length) return { k: start(ALLE_KMD) };
+    if (foran[0] === "sudo") foran = foran.slice(1);
+    if (foran[0] === "docker") {
+        const sub = foran[1], siste = foran[foran.length - 1];
+        const kont = () => st.kont.map(c => c.namn), bil = () => [...new Set(st.bilete.filter(b => b.repo !== "<none>").map(visRef))];
+        if (foran.length === 1) return { k: start(DOCKER_SUB).map(k => k + " ") };
+        if (sub === "compose") return foran.length === 2 ? { k: start(["up", "down", "ps", "logs", "stop", "start", "restart"]).map(k => k + " ") } : { k: start(["-d", "-v", "-a"]) };
+        if (sub === "volume") return foran.length === 2 ? { k: start(["ls", "create", "rm", "inspect"]).map(k => k + " ") } : { k: start(Object.keys(st.volum)) };
+        if (sub === "network") return foran.length === 2 ? { k: start(["ls", "create", "rm", "inspect"]).map(k => k + " ") } : { k: start(Object.keys(st.nett)) };
+        if (sub === "container" && foran.length === 2) return { k: start(["ls", "prune", "stop", "start", "rm", "logs", "exec", "inspect"]).map(k => k + " ") };
+        if (sub === "image" && foran.length === 2) return { k: start(["ls", "rm", "pull", "build", "tag", "inspect"]).map(k => k + " ") };
+        if (["stop", "start", "restart", "rm", "logs", "kill"].includes(sub) || (sub === "exec" && !foran.slice(2).some(x => !x.startsWith("-")))) return { k: start(kont()) };
+        if (sub === "inspect") return { k: start([...kont(), ...bil(), ...Object.keys(st.volum)]) };
+        if (sub === "rmi" || sub === "tag") return { k: start(bil()) };
+        if (sub === "pull") return { k: start(Object.keys(HUB)) };
+        if (sub === "run") {
+            if (siste === "-v" || siste === "--volume") return tok.startsWith("/") || tok.startsWith(".") || tok.startsWith("~") ? filKand(tok, true) : { k: start(Object.keys(st.volum)).map(v => v + ":") };
+            if (["--name", "-p", "-e", "--publish", "--env"].includes(siste)) return { k: [] };
+            if (siste === "--network") return { k: start(Object.keys(st.nett)) };
+            if (tok.startsWith("--")) return { k: start(["--name ", "--rm ", "--network "]) };
+            if (!tok.startsWith("-")) return { k: start([...new Set([...bil(), ...Object.keys(HUB)])]) };
+        }
+        if (sub === "build" && !tok.startsWith("-") && siste !== "-t") return filKand(tok, true);
+        return { k: [] };
+    }
+    return filKand(tok, foran[0] === "cd");
+}
+function fullfor(bak) {
+    const v = inn.value;
+    if (!(tabT && tabT.resultat === v)) {
+        const pos = inn.selectionStart ?? v.length;
+        let q = false, start = 0;
+        for (let i = 0; i < pos; i++) { const c = v[i]; if (c === '"') q = !q; else if (!q && /[\s;&|>]/.test(c)) start = i + 1; }
+        const tok = v.slice(start, pos).replace(/"/g, "");
+        const sisteKmd = v.slice(0, start).split(/&&|;|\|\|/).pop();
+        const foran = sisteKmd.trim().split(/\s+/).filter(Boolean);
+        const r = kandidatar(foran, tok.replace(/^~(?=\/|$)/, st.skal ? "~" : HEIM));
+        const kand = r.k || [];
+        if (!kand.length) return;
+        const dirDel = r.dirDel !== undefined ? (tok.startsWith("~") && !st.skal ? "~" + r.dirDel.slice(HEIM.length) : r.dirDel) : "";
+        tabT = { prefiks: v.slice(0, start), etter: v.slice(pos), dirDel, kand: [...new Set(kand)], i: bak ? 0 : -1 };
+    }
+    const n = tabT.kand.length;
+    tabT.i = (tabT.i + (bak ? -1 : 1) + n) % n;
+    let full = tabT.dirDel + tabT.kand[tabT.i];
+    if (/\s/.test(full.trimEnd())) full = '"' + full + '"';
+    if (n === 1 && !full.endsWith("/") && !full.endsWith(" ") && !full.endsWith(":")) full += " ";
+    inn.value = tabT.prefiks + full + tabT.etter;
+    const p = tabT.prefiks.length + full.length;
+    inn.setSelectionRange(p, p);
+    tabT.resultat = inn.value;
+    teikn();
+}
+function settInnTekst(tekst) {
+    const v = inn.value, a = inn.selectionStart ?? v.length, b = inn.selectionEnd ?? v.length;
+    inn.value = v.slice(0, a) + tekst + v.slice(b);
+    inn.setSelectionRange(a + tekst.length, a + tekst.length);
+    teikn();
+}
+inn.addEventListener("keydown", e => {
+    if (e.ctrlKey && !e.altKey && e.key.toLowerCase() === "l") { e.preventDefault(); tomSkjerm(); visPrompt(); return; }
+    if (e.ctrlKey && !e.altKey && e.key.toLowerCase() === "c" && inn.selectionStart === inn.selectionEnd) { e.preventDefault(); leggTil(promptHtml() + " " + E(inn.value) + "^C"); inn.value = ""; visPrompt(); return; }
+    if (e.ctrlKey && !e.altKey && e.key.toLowerCase() === "d" && !inn.value && st.skal) { e.preventDefault(); inn.value = "exit"; sendInn(); return; }
+    if (e.key === "Enter") { e.preventDefault(); sendInn(); return; }
+    if (e.key === "Tab") { e.preventDefault(); fullfor(e.shiftKey); return; }
+    if (e.key === "ArrowUp") { e.preventDefault(); historikkSteg(-1); return; }
+    if (e.key === "ArrowDown") { e.preventDefault(); historikkSteg(1); return; }
+    if (e.key === "Escape") { e.preventDefault(); inn.value = ""; teikn(); return; }
+    requestAnimationFrame(teikn);
+});
+inn.addEventListener("input", () => {
+    if (/\n/.test(inn.value)) { const d = inn.value.split("\n"); inn.value = d[0]; sendInn(); return; }
+    if (tabT && tabT.resultat !== inn.value) tabT = null;
+    teikn();
+});
+inn.addEventListener("paste", e => {
+    const t = (e.clipboardData || window.clipboardData)?.getData("text");
+    if (t == null) return;
+    e.preventDefault();
+    const d = t.replace(/\r/g, "").split("\n");
+    settInnTekst(d[0]);
+    if (d.length > 1) { sendInn(); for (const l of d.slice(1).filter(x => x.trim())) { inn.value = l; sendInn(); } }
+});
+["select", "keyup", "click"].forEach(ev => inn.addEventListener(ev, () => teikn()));
+inn.addEventListener("focus", () => { termEl.classList.remove("ufokus"); teikn(); });
+inn.addEventListener("blur", () => termEl.classList.add("ufokus"));
+function fokuserTerm() { try { inn.focus({ preventScroll: true }); } catch (e) { inn.focus(); } }
+termEl.addEventListener("click", () => { if (!String(window.getSelection ? window.getSelection() : "")) fokuserTerm(); });
+document.querySelectorAll(".mobilrad button").forEach(b => {
+    b.addEventListener("pointerdown", e => e.preventDefault());
+    b.addEventListener("click", () => {
+        fokuserTerm();
+        if (b.dataset.tekst) { settInnTekst(b.dataset.tekst); return; }
+        const t = b.dataset.tast;
+        if (t === "Tab") fullfor(false); else if (t === "ArrowUp") historikkSteg(-1); else if (t === "ArrowDown") historikkSteg(1);
+        else if (t === "CtrlL") { tomSkjerm(); visPrompt(); }
+    });
+});
+/* Malen kallar simLim når eleven trykkjer «Prøv» */
+function simLim(tekst) {
+    const t = tekst.replace(/\r/g, "").trim().split("\n").map(s => s.trim()).filter(Boolean).join(" && ");
+    inn.value = t; inn.setSelectionRange(t.length, t.length);
+    fokuserTerm(); teikn();
+    if (st.skal && /^(docker|cd ~|nano|curl)\b/.test(t)) toast("Du er inne i ein container. Skriv exit først for å kome tilbake til serveren.");
+}
+
+/* =====================================================================
+   EDITOR (nano)
+   ===================================================================== */
+const editorBak = document.getElementById("editorBak"), editorTekst = document.getElementById("editorTekst");
+function opneEditor(p) {
+    editorOpen = p;
+    document.getElementById("editorNamn").textContent = "nano – " + visSti(p);
+    editorTekst.value = vertVis.erFil(p) ? vertVis.les(p) : "";
+    editorBak.classList.add("vis");
+    setTimeout(() => { editorTekst.focus(); editorTekst.setSelectionRange(0, 0); editorTekst.scrollTop = 0; }, 30);
+}
+function lukkEditor(lagre) {
+    const p = editorOpen;
+    if (!p) return;
+    if (lagre) {
+        let t = editorTekst.value.replace(/\r/g, "");
+        if (t && !t.endsWith("\n")) t += "\n";
+        vertVis.skriv(p, t);
+        leggTil("💡 " + `Lagra ${kd(visSti(p))}.` + (namnAv(p) === "Dockerfile" ? ` Bygg imaget med ${kd("docker build -t minside .")}` : /^dockerfile/i.test(namnAv(p)) ? ` Obs: Docker leitar etter ${kd("Dockerfile")} – med stor D og utan filending.` : ""), "hjelp");
+    }
+    editorOpen = null;
+    editorBak.classList.remove("vis");
+    visPrompt();
+    etterKommando({ st, linje: "", editor: true });
+    fokuserTerm();
+}
+document.getElementById("editorLagre").onclick = () => lukkEditor(true);
+document.getElementById("editorAvbryt").onclick = () => lukkEditor(false);
+editorTekst.addEventListener("keydown", e => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") { e.preventDefault(); lukkEditor(true); }
+    else if (e.ctrlKey && e.key.toLowerCase() === "x") { e.preventDefault(); lukkEditor(true); }
+    else if (e.key === "Escape") { e.preventDefault(); lukkEditor(false); }
+    else if (e.key === "Tab") { e.preventDefault(); const a = editorTekst.selectionStart; editorTekst.setRangeText("    ", a, editorTekst.selectionEnd, "end"); }
+});
+
+/* =====================================================================
+   LEVANDE TEIKNING AV DOCKER PÅ SERVEREN
+   ===================================================================== */
+const modellEl = document.getElementById("modell");
+let kjende = null;
+function kortNamn(n) { return /^[0-9a-f]{64}$/.test(n) ? n.slice(0, 12) + "…" : n; }
+function teiknModell() {
+    const ny = id => (kjende && !kjende.has(id) ? " ny" : "");
+    const idar = new Set();
+    const bil = st.bilete.slice().reverse().map(b => {
+        const id = "b:" + b.id + b.repo + b.tag; idar.add(id);
+        return `<div class="bil${ny(id)}" title="Image ${E(b.repo)}:${E(b.tag)} – ${b.lag} lag, ${E(b.str)}"><div class="bn">${E(b.repo)}<span>:${E(b.tag)}</span>${b.bygd ? "<em>eige</em>" : ""}</div><div class="lagrad">${"<i></i>".repeat(Math.min(b.lag, 14))}</div><div class="bs">${b.lag} lag · ${E(b.str)}</div></div>`;
+    }).join("");
+    const kont = st.kont.slice().reverse().map(c => {
+        const id = "c:" + c.id; idar.add(id);
+        const kl = c.status === "running" ? "pa" : c.status === "exited" && c.kode ? "feil" : "av";
+        const status = c.status === "running" ? "køyrer" : c.status === "exited" ? `stoppa (kode ${c.kode})` : "laga, ikkje starta";
+        const portar = c.portar.map(p => `<button type="button" class="port" data-port="${p.vert}"${c.status === "running" ? "" : " disabled"} title="Opne http://localhost:${p.vert} i nettlesaren">:${p.vert} → ${p.kont}</button>`).join("");
+        const mont = c.mont.map(m => `<div class="mo" title="${E(m.src)} → ${E(m.dst)}">${m.type === "volume" ? "🗄️ " + E(kortNamn(m.src)) : "📁 " + E(visSti(m.src))} → ${E(m.dst)}</div>`).join("");
+        const her = st.skal && st.skal.id === c.id;
+        return `<div class="ko ${kl}${her ? " her" : ""}${ny(id)}"><div class="kn"><span class="prikk"></span><b>${E(c.namn)}</b><span class="ki">${E(c.bref)}</span></div><div class="ks">${status}${c.prosjekt ? ` · compose: ${E(c.prosjekt)}` : ""}${her ? " · <b>du er her inne</b>" : ""}</div>${portar ? `<div class="kp">${portar}</div>` : ""}${mont}</div>`;
+    }).join("");
+    const vol = Object.entries(st.volum).map(([n, v]) => {
+        const id = "v:" + n; idar.add(id);
+        const br = st.kont.filter(c => c.mont.some(m => m.type === "volume" && m.src === n)).map(c => c.namn);
+        const tal = Object.keys(v.filer).length;
+        return `<div class="vo${ny(id)}" title="Volum ${E(n)}"><div class="vn">🗄️ ${E(kortNamn(n))}</div><div class="vs">${tal} ${tal === 1 ? "fil" : "filer"} · ${br.length ? "kopla til " + br.map(E).join(", ") : "ikkje i bruk"}</div></div>`;
+    }).join("");
+    const k = koyrande().length;
+    let html = `<div class="mtopp"><b>Docker på ${VERT}</b><span class="repo">${st.bilete.length} image · ${st.kont.length} ${st.kont.length === 1 ? "container" : "containerar"}${st.kont.length ? ` (${k} køyrer)` : ""} · ${Object.keys(st.volum).length} volum</span></div>`;
+    if (!st.bilete.length && !st.kont.length && !Object.keys(st.volum).length) html += `<div class="tom">Her er det tomt enno. Køyr <code>docker run hello-world</code>, så dukkar imaget og containeren opp her.</div>`;
+    else html += `<div class="dk">
+        <div class="kol"><h4>Image</h4>${bil || '<div class="ingen">Ingen image</div>'}</div>
+        <div class="pil">run<span>→</span></div>
+        <div class="kol"><h4>Containerar</h4>${kont || '<div class="ingen">Ingen containerar</div>'}</div>
+        <div class="pil">-v<span>↔</span></div>
+        <div class="kol"><h4>Volum</h4>${vol || '<div class="ingen">Ingen volum</div>'}</div>
+    </div>`;
+    if (st.side) html += `<div class="nettlesar"><div class="adr"><span class="prikkar">● ● ●</span><span class="url">http://localhost:${st.side.port}${E(st.side.sti)}</span>${st.side.status !== 200 ? `<span class="stat">${st.side.status}</span>` : ""}<button type="button" id="sideLukk" title="Lukk nettlesaren">✕</button></div><iframe sandbox="" title="Nettsida slik ein nettlesar viser ho" srcdoc="${E(st.side.html)}"></iframe></div>`;
+    modellEl.innerHTML = html;
+    kjende = idar;
+}
+modellEl.addEventListener("click", e => {
+    const b = e.target.closest("button");
+    if (!b) return;
+    if (b.id === "sideLukk") { st.side = null; lagreAlt(); teiknModell(); return; }
+    if (b.classList.contains("port")) {
+        const port = +b.dataset.port, r = hent(port, "/");
+        if (r.feil === 7) toast(`Ingenting svarar på port ${port}.`);
+        else if (r.feil === 56) toast(r.c.lyttar ? `Port ${port} går til port ${r.pm.kont} i containeren, men programmet lyttar på port ${r.h.port}.` : `Det køyrer ingen webserver i ${r.c.namn}.`);
+        else if (r.feil === 52) toast(`${r.c.namn} er ikkje ein webserver, så det er inga nettside å vise. Men porten er open.`);
+        else st.side = { port, sti: "/", html: r.kropp, status: r.status };
+        etterKommando({ st, linje: "" });
+    }
+});
+
+/* =====================================================================
+   NULLSTILL MASKINA
+   ===================================================================== */
+document.getElementById("knappMaskin").onclick = () => {
+    if (!confirm("Vil du setje serveren tilbake til start? Alle containerar, image, volum og filer blir borte. Framdrifta i kurset blir ikkje sletta.")) return;
+    nyTilstand(); kjende = new Set(); tomSkjerm();
+    leggTil("💡 Serveren er nullstilt. Docker er tom, og mappene <code>nettside</code> og <code>blogg</code> er som nye.", "hjelp");
+    visPrompt(); etterKommando({ st, linje: "" }); fokuserTerm();
+};
+
+/* =====================================================================
+   OPPSTART
+   ===================================================================== */
+(function start() {
+    const lagra = lager.hent("maskin", null);
+    if (lagra && lagra.v === 1 && lagra.fs && Array.isArray(lagra.kont) && lagra.volum && lagra.nett) st = lagra;
+    else nyTilstand();
+    for (const h of skjerm) { const d = document.createElement("div"); d.innerHTML = h; termUt.appendChild(d.childElementCount === 1 && d.firstElementChild.className === "hjelp" ? d.firstElementChild : d); }
+    if (!skjerm.length) {
+        leggTil(`💡 Velkomen til ${kd(VERT)}! Dette er ein trygg simulator av ein Linux-server med Docker – du kan ikkje øydeleggje noko. Skriv ${kd("docker --version")} og trykk Enter.`, "hjelp");
+    }
+    teiknModell();
+    kjende = kjende || new Set();
+    visLeksjon(aktivIndeks, false);
+    visPrompt();
+})();
+</script>
+</body>
+</html>
