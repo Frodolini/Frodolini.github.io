@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="nn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Feilsøkingsmetodikk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* Layout: grøn tittellinje øvst, éi smal lesekolonne, kvar del i eit eige kort. */
+:root{
+  --bg:#f3f6f3; --surface:#ffffff; --ink:#17211b; --muted:#56635a; --line:#d3dbd5;
+  --green:#1f7a3f; --on-green:#ffffff; --accent:#1f7a3f; --soft:#e2f0e6;
+  --bad:#b3261e; --bad-soft:#fbe9e7; --code:#edf1ee;
+  --display:"Archivo","Arial Narrow",Arial,sans-serif;
+  --body:"IBM Plex Sans","Segoe UI",Arial,sans-serif;
+  --mono:"IBM Plex Mono",Consolas,"Courier New",monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#101511; --surface:#19201b; --ink:#e6ece7; --muted:#9ba8a0; --line:#2f3a33;
+    --accent:#72d290; --soft:#1e3327; --bad:#ff8a80; --bad-soft:#3a1f1c; --code:#222b25;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#101511; --surface:#19201b; --ink:#e6ece7; --muted:#9ba8a0; --line:#2f3a33;
+  --accent:#72d290; --soft:#1e3327; --bad:#ff8a80; --bad-soft:#3a1f1c; --code:#222b25;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.55}
+header{background:var(--green);color:var(--on-green);padding:22px 16px}
+header .in, main{max-width:760px;margin:0 auto}
+header h1{font-family:var(--display);font-weight:800;font-size:clamp(1.7rem,6vw,2.5rem);margin:0;line-height:1.1;text-wrap:balance}
+header p{margin:6px 0 0;opacity:.9}
+main{padding:20px 16px 48px;display:flex;flex-direction:column;gap:20px}
+nav{display:flex;flex-wrap:wrap;gap:8px}
+nav a{color:var(--accent);background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:5px 12px;text-decoration:none;font-size:.9rem;font-weight:600}
+section{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:20px}
+h2{font-family:var(--display);font-weight:800;font-size:1.4rem;margin:0 0 6px;text-wrap:balance}
+h3{font-family:var(--display);font-weight:600;font-size:1.05rem;margin:0 0 4px}
+p{margin:0 0 12px;max-width:65ch}
+.lead{color:var(--muted)}
+code{font-family:var(--mono);font-size:.9em;background:var(--code);padding:1px 6px;border-radius:4px;white-space:nowrap}
+ul{margin:0 0 12px;padding-left:20px}
+li{margin-bottom:4px}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible, a:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+/* Prosessen */
+.steps{list-style:none;padding:0;margin:14px 0 0;display:flex;flex-direction:column;gap:10px;counter-reset:s}
+.steps li{counter-increment:s;display:grid;grid-template-columns:38px 1fr;gap:12px;margin:0}
+.steps li::before{content:counter(s);font-family:var(--display);font-weight:800;background:var(--soft);color:var(--accent);width:38px;height:38px;border-radius:50%;display:grid;place-items:center}
+.steps p{margin:0;color:var(--muted)}
+
+/* OSI */
+.modes{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 10px}
+.modes button{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-weight:600}
+.modes button[aria-pressed="true"]{background:var(--green);border-color:var(--green);color:var(--on-green)}
+.modebox{background:var(--soft);border-radius:8px;padding:12px 14px;margin-bottom:16px}
+.modebox p{margin:0}
+.osi{display:grid;grid-template-columns:230px 1fr;gap:16px;align-items:start}
+.stack{display:flex;flex-direction:column;gap:6px}
+.stack button{display:grid;grid-template-columns:28px 1fr auto;gap:8px;align-items:center;text-align:left;background:var(--surface);border:1px solid var(--line);border-left:6px solid var(--line);border-radius:6px;padding:9px 10px}
+.stack .n{font-family:var(--display);font-weight:800;font-size:1.1rem;color:var(--muted)}
+.stack button[aria-pressed="true"]{border-color:var(--accent);background:var(--soft)}
+.stack button[aria-pressed="true"] .n{color:var(--accent)}
+.stack .start{font-size:.72rem;font-weight:600;background:var(--green);color:var(--on-green);border-radius:999px;padding:1px 8px;white-space:nowrap}
+.detail{border:1px solid var(--line);border-radius:8px;padding:16px;min-height:100%}
+.detail .tag{font-size:.8rem;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
+.detail h3{font-size:1.25rem;margin-bottom:6px}
+.detail h4{font-size:.85rem;margin:12px 0 4px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.detail ul{margin-bottom:0}
+@media (max-width:620px){.osi{grid-template-columns:1fr}}
+
+/* Ping-trappa */
+.ladder{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+.rung{border:1px solid var(--line);border-radius:8px;padding:12px 14px;display:grid;grid-template-columns:1fr 1fr;gap:6px 16px}
+.rung .cmd{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px;align-items:baseline}
+.rung .cmd span{color:var(--muted);font-size:.92rem}
+.rung div p{margin:0;font-size:.95rem}
+.yes b{color:var(--accent)} .no b{color:var(--bad)}
+@media (max-width:520px){.rung{grid-template-columns:1fr}}
+
+/* Quiz */
+.case{background:var(--soft);border-radius:8px;padding:14px;font-weight:600;margin:12px 0}
+.answers{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.answers button{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 0;font-family:var(--display);font-weight:800;font-size:1.1rem}
+.answers button.right{background:var(--green);border-color:var(--green);color:var(--on-green)}
+.answers button.wrong{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
+.answers button:disabled{cursor:default}
+.fb{min-height:3.2em;margin:12px 0}
+.row{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px}
+.next{background:var(--green);color:var(--on-green);border:0;border-radius:8px;padding:9px 16px;font-weight:600}
+.muted{color:var(--muted);font-size:.92rem}
+
+/* Logg */
+dl{display:grid;grid-template-columns:max-content 1fr;gap:6px 14px;margin:12px 0 0;border:1px solid var(--line);border-radius:8px;padding:14px}
+dt{font-weight:600;color:var(--accent)}
+dd{margin:0}
+@media (max-width:520px){dl{grid-template-columns:1fr} dd{margin-bottom:6px}}
+</style>
+</head>
+<body>
+<header><div class="in">
+  <h1>Feilsøkingsmetodikk</h1>
+  <p>Vg2 IT &middot; Brukarstøtte og Driftsstøtte</p>
+</div></header>
+
+<main>
+<nav aria-label="Innhald">
+  <a href="#prosess">Prosessen</a>
+  <a href="#sporsmal">Spør brukaren</a>
+  <a href="#osi">Lagvis feilsøking</a>
+  <a href="#trapp">Ping-trappa</a>
+  <a href="#ov">Øv</a>
+  <a href="#logg">Dokumenter</a>
+</nav>
+
+<section id="prosess">
+  <h2>Seks steg, same rekkjefølgje kvar gong</h2>
+  <p class="lead">Ein god feilsøkar gjettar ikkje. Du følgjer ein fast metode, endrar éin ting om gongen og skriv ned kva du gjer.</p>
+  <ol class="steps">
+    <li><div><h3>Finn ut kva problemet er</h3><p>Spør brukaren, sjå på feilmeldinga, prøv å gjenskape feilen. Kva er endra sidan det verka?</p></div></li>
+    <li><div><h3>Lag ein teori</h3><p>Kva er den mest sannsynlege årsaka? Start med det enkle: kabel, straum, omstart.</p></div></li>
+    <li><div><h3>Test teorien</h3><p>Stemmer han? Viss ikkje, lag ein ny teori eller send saka vidare til nokon som kan meir.</p></div></li>
+    <li><div><h3>Lag ein plan og løys feilen</h3><p>Tenk på konsekvensane først. Ta backup om du må, og gjer éi endring om gongen.</p></div></li>
+    <li><div><h3>Sjekk at alt verkar</h3><p>La brukaren stadfeste at det er i orden. Kan du hindre at feilen kjem att?</p></div></li>
+    <li><div><h3>Dokumenter</h3><p>Skriv ned symptom, årsak og løysing. Neste gong tek same feil fem minutt.</p></div></li>
+  </ol>
+</section>
+
+<section id="sporsmal">
+  <h2>Spørsmål du alltid stiller brukaren</h2>
+  <p class="lead">Gode spørsmål sparer deg for halve feilsøkinga. Bruk opne spørsmål først, og ja/nei-spørsmål for å snevre inn.</p>
+  <ul>
+    <li>Kva prøvde du å gjere, og kva skjedde i staden?</li>
+    <li>Fekk du ei feilmelding? Kva stod det, ordrett?</li>
+    <li>Har dette verka før? Når slutta det å verke?</li>
+    <li>Er noko endra? Ny programvare, oppdatering, flytta utstyr?</li>
+    <li>Gjeld det berre deg, eller fleire? Berre éi maskin eller éi teneste?</li>
+    <li>Skjer det kvar gong, eller berre av og til?</li>
+    <li>Kva har du prøvd sjølv?</li>
+  </ul>
+  <p class="muted">Gjeld feilen éin brukar, ligg årsaka oftast nær brukaren. Gjeld han mange, ligg ho oftast i nettverket eller på tenaren.</p>
+</section>
+
+<section id="osi">
+  <h2>Lagvis feilsøking etter OSI-modellen</h2>
+  <p class="lead">Kvart lag er avhengig av laga under. Verkar ikkje lag 1, verkar ingenting over. Difor går du gjennom laga i ei bestemt rekkjefølgje i staden for å hoppe rundt.</p>
+
+  <div class="modes" role="group" aria-label="Vel metode">
+    <button type="button" id="m-dh" data-mode="dh">Del og hersk</button>
+    <button type="button" id="m-bu" data-mode="bu">Nedanfrå og opp</button>
+    <button type="button" id="m-td" data-mode="td">Ovanfrå og ned</button>
+  </div>
+  <div class="modebox" aria-live="polite"><p id="modetext"></p></div>
+
+  <div class="osi">
+    <div class="stack" id="stack" role="group" aria-label="OSI-laga"></div>
+    <div class="detail" id="detail" aria-live="polite"></div>
+  </div>
+</section>
+
+<section id="trapp">
+  <h2>Ping-trappa</h2>
+  <p class="lead">Del og hersk i praksis. Test eitt steg lenger ut kvar gong. Der det stoppar, ligg feilen.</p>
+  <div class="ladder">
+    <div class="rung">
+      <div class="cmd"><code>ping 127.0.0.1</code><span>Verkar nettverksprogramvara på mi eiga maskin?</span></div>
+      <div class="yes"><p><b>Svar:</b> gå vidare.</p></div>
+      <div class="no"><p><b>Ikkje svar:</b> feil i TCP/IP eller nettverkskortet på maskina. Sjeldan.</p></div>
+    </div>
+    <div class="rung">
+      <div class="cmd"><code>ipconfig /all</code><span>Har eg ei gyldig IP-adresse?</span></div>
+      <div class="yes"><p><b>Gyldig adresse:</b> noter gateway og DNS, gå vidare.</p></div>
+      <div class="no"><p><b>169.254.x.x:</b> ingen kontakt med DHCP. Sjekk kabel, Wi-Fi, VLAN og DHCP-tenaren.</p></div>
+    </div>
+    <div class="rung">
+      <div class="cmd"><code>ping 192.168.1.1</code><span>Når eg standard gateway? (bruk din eigen)</span></div>
+      <div class="yes"><p><b>Svar:</b> lokalnettet verkar, gå vidare.</p></div>
+      <div class="no"><p><b>Ikkje svar:</b> feil i lokalnettet, lag 1 til 3. Kabel, svitsjport, VLAN, feil IP eller nettmaske.</p></div>
+    </div>
+    <div class="rung">
+      <div class="cmd"><code>ping 8.8.8.8</code><span>Kjem eg ut på Internett?</span></div>
+      <div class="yes"><p><b>Svar:</b> ruting ut verkar, gå vidare.</p></div>
+      <div class="no"><p><b>Ikkje svar:</b> feil i ruteren, brannmuren eller hos nettleverandøren. Prøv <code>tracert 8.8.8.8</code>.</p></div>
+    </div>
+    <div class="rung">
+      <div class="cmd"><code>nslookup vg.no</code><span>Blir namn omsette til IP-adresser?</span></div>
+      <div class="yes"><p><b>Får IP-adresse:</b> DNS verkar, gå vidare.</p></div>
+      <div class="no"><p><b>Ikkje svar:</b> DNS-feil. Sjekk kva DNS-tenar maskina brukar.</p></div>
+    </div>
+    <div class="rung">
+      <div class="cmd"><code>Test-NetConnection vg.no -Port 443</code><span>Er porten til tenesta open?</span></div>
+      <div class="yes"><p><b>True:</b> nettet er i orden. Feilen ligg i programmet eller tenesta.</p></div>
+      <div class="no"><p><b>False:</b> ein brannmur stoppar porten, eller tenesta køyrer ikkje.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="ov">
+  <h2>Øv: kva lag ligg feilen på?</h2>
+  <div class="row"><span class="muted" id="qcount"></span><span class="muted" id="qscore"></span></div>
+  <div class="case" id="qcase"></div>
+  <div class="answers" id="qans" role="group" aria-label="Vel lag 1 til 7"></div>
+  <p class="fb" id="qfb" aria-live="polite"></p>
+  <button type="button" class="next" id="qnext">Neste</button>
+</section>
+
+<section id="logg">
+  <h2>Dokumenter saka</h2>
+  <p class="lead">Fem linjer er nok. Skriv så ein kollega kan løyse same feil utan å spørje deg.</p>
+  <dl>
+    <dt>Symptom</dt><dd>PC på rom 214 kjem ikkje på Internett. Andre maskiner på rommet verkar.</dd>
+    <dt>Testa</dt><dd>Lampe på nettverkskortet lyser. <code>ipconfig</code> viser 169.254.33.10. Ping til gateway feilar.</dd>
+    <dt>Årsak</dt><dd>Svitsjporten stod i feil VLAN etter ommøblering, så maskina nådde ikkje DHCP-tenaren.</dd>
+    <dt>Løysing</dt><dd>Sette porten tilbake til VLAN 20. Maskina fekk adresse, og brukaren stadfesta at alt verkar.</dd>
+    <dt>Førebygging</dt><dd>Merkte veggpunktet med VLAN-nummer. Oppdaterte portoversikta.</dd>
+  </dl>
+</section>
+</main>
+
+<script>
+const layers = [
+ {n:7,name:"Applikasjon",what:"Programma og tenestene brukaren møter: nettlesar, e-post, DNS, DHCP, HTTP.",
+  faults:["Tenesta er nede","Feil innstillingar i programmet","DNS gir ikkje svar","Feil brukarnamn eller passord"],
+  check:["Prøv ein annan nettlesar eller eit anna program","<code>nslookup vg.no</code>","Verkar tenesta for andre brukarar?"]},
+ {n:6,name:"Presentasjon",what:"Format, teiknsett og kryptering, slik at begge sider forstår dataa.",
+  faults:["Sertifikatfeil på ei nettside","Æ, ø og å blir til rare teikn","Fila har eit format programmet ikkje kan lese"],
+  check:["Er dato og klokke på maskina rett?","Sjå på sertifikatet i nettlesaren","Prøv å opne fila i eit anna program"]},
+ {n:5,name:"Sesjon",what:"Opprettar, held ved like og avsluttar samtalen mellom to maskiner.",
+  faults:["Brukaren blir logga ut heile tida","VPN eller fjernskrivebord fell ut","Sesjonen går ut på tid"],
+  check:["Logg inn på nytt","Sjå i loggen etter tidsavbrot","Skjer det på både kabel og Wi-Fi?"]},
+ {n:4,name:"Transport",what:"TCP og UDP. Portnummer avgjer kva teneste trafikken skal til.",
+  faults:["Brannmur blokkerer porten","Tenesta lyttar ikkje på porten","Feil portnummer i innstillingane"],
+  check:["<code>Test-NetConnection vg.no -Port 443</code>","<code>netstat -an</code>","Sjå gjennom brannmurreglane"]},
+ {n:3,name:"Nettverk",what:"IP-adresser og ruting mellom nettverk. Ruteren arbeider her.",
+  faults:["Feil IP-adresse, nettmaske eller gateway","169.254.x.x: fekk ikkje adresse frå DHCP","IP-konflikt","Manglande rute"],
+  check:["<code>ipconfig /all</code>","<code>ping</code> til gateway og ut på Internett","<code>tracert 8.8.8.8</code>"]},
+ {n:2,name:"Datalenke",what:"MAC-adresser, svitsjar, VLAN og tilkopling til trådlaust nett.",
+  faults:["Porten står i feil VLAN","Svitsjporten er slått av","Feil passord til Wi-Fi","MAC-filter stoppar maskina"],
+  check:["<code>arp -a</code>","<code>show vlan brief</code> og <code>show interfaces status</code> på svitsjen","Er maskina kopla til rett trådlaust nett?"]},
+ {n:1,name:"Fysisk",what:"Kablar, kontaktar, radiosignal og straum. Sjølve signalet.",
+  faults:["Kabel er ute eller øydelagd","Utstyret er slått av","Flymodus er på","Svakt Wi-Fi-signal"],
+  check:["Lyser lampene på nettverkskortet og svitsjen?","Byt kabel, prøv ein annan port","Flytt nærare aksesspunktet"]}
+];
+const modes = {
+ dh:{start:3,text:"<b>Del og hersk:</b> start i midten med <code>ping</code> på lag 3. Får du svar, er lag 1 til 3 i orden, og du leitar oppover. Får du ikkje svar, leitar du nedover. Oftast den raskaste metoden."},
+ bu:{start:1,text:"<b>Nedanfrå og opp:</b> start med kabel og straum på lag 1 og arbeid deg oppover. Grundig, men tek tid. Bruk han når ingenting verkar, eller når du har mistanke om fysisk feil."},
+ td:{start:7,text:"<b>Ovanfrå og ned:</b> start i programmet på lag 7 og arbeid deg nedover. Bruk han når berre eitt program eller éi teneste sviktar og resten av nettet verkar."}
+};
+let mode="dh", sel=3;
+const stack=document.getElementById("stack"), detail=document.getElementById("detail");
+function li(a){return a.map(x=>"<li>"+x+"</li>").join("")}
+function drawOsi(){
+  stack.innerHTML=layers.map(l=>
+    '<button type="button" id="lag-'+l.n+'" data-n="'+l.n+'" aria-pressed="'+(l.n===sel)+'">'+
+    '<span class="n">'+l.n+'</span><span>'+l.name+'</span>'+
+    (modes[mode].start===l.n?'<span class="start">Start her</span>':'<span></span>')+'</button>').join("");
+  const l=layers.find(x=>x.n===sel);
+  detail.innerHTML='<div class="tag">Lag '+l.n+'</div><h3>'+l.name+'</h3><p>'+l.what+'</p>'+
+    '<h4>Typiske feil</h4><ul>'+li(l.faults)+'</ul><h4>Slik sjekkar du</h4><ul>'+li(l.check)+'</ul>';
+  document.getElementById("modetext").innerHTML=modes[mode].text;
+  document.querySelectorAll(".modes button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.mode===mode));
+}
+stack.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;sel=+b.dataset.n;drawOsi();});
+document.querySelector(".modes").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;mode=b.dataset.mode;sel=modes[mode].start;drawOsi();});
+drawOsi();
+
+const cases=[
+ {t:"Lampa på nettverkskortet lyser ikkje.",a:1,w:"Ingen lampe tyder på at det ikkje går signal i kabelen. Sjekk kabel, port og straum."},
+ {t:"PC-en er kopla til ein svitsjport som står i feil VLAN.",a:2,w:"VLAN høyrer til datalenkelaget. Kabelen er i orden, men ramma hamnar i feil nett."},
+ {t:"PC-en når maskiner på same nett, men ingenting utanfor. Standard gateway er skriven feil.",a:3,w:"Gateway handlar om ruting mellom nettverk, altså nettverkslaget."},
+ {t:"Nettsider verkar fint, men brannmuren stoppar fjernskrivebord på port 3389.",a:4,w:"Portnummer høyrer til transportlaget. IP-sambandet er i orden."},
+ {t:"Nettlesaren åtvarar om ugyldig sertifikat fordi klokka på PC-en går eitt år feil.",a:6,w:"Kryptering og sertifikat ligg på presentasjonslaget."},
+ {t:"Ping til 8.8.8.8 verkar, men vg.no opnar ikkje. nslookup gir ikkje svar.",a:7,w:"DNS er ei teneste på applikasjonslaget. Alt under verkar, sidan ping kjem fram."},
+ {t:"Brukaren sit langt frå aksesspunktet og mistar sambandet heile tida.",a:1,w:"Radiosignalet er det fysiske laget i eit trådlaust nett."},
+ {t:"To maskiner har fått same IP-adresse, og begge mistar sambandet av og til.",a:3,w:"IP-adresser høyrer til nettverkslaget."}
+];
+let qi=0, score=0, done=false;
+const qans=document.getElementById("qans"), qfb=document.getElementById("qfb"), qnext=document.getElementById("qnext");
+function drawQ(){
+  if(qi>=cases.length){
+    document.getElementById("qcount").textContent="Ferdig";
+    document.getElementById("qcase").textContent="Du fekk "+score+" av "+cases.length+" rette.";
+    qans.innerHTML=""; qfb.textContent=""; qnext.textContent="Start på nytt"; qnext.hidden=false; return;
+  }
+  done=false;
+  document.getElementById("qcount").textContent="Oppgåve "+(qi+1)+" av "+cases.length;
+  document.getElementById("qscore").textContent="Rette: "+score;
+  document.getElementById("qcase").textContent=cases[qi].t;
+  qans.innerHTML=[1,2,3,4,5,6,7].map(n=>'<button type="button" id="svar-'+n+'" data-n="'+n+'" aria-label="Lag '+n+'">'+n+'</button>').join("");
+  qfb.textContent="Trykk på laget du meiner feilen ligg på.";
+  qnext.textContent="Neste"; qnext.hidden=true;
+}
+qans.addEventListener("click",e=>{
+  const b=e.target.closest("button"); if(!b||done)return; done=true;
+  const c=cases[qi], n=+b.dataset.n, name=layers.find(l=>l.n===c.a).name;
+  qans.querySelectorAll("button").forEach(x=>{x.disabled=true; if(+x.dataset.n===c.a)x.classList.add("right");});
+  if(n===c.a){score++; qfb.innerHTML="<b>Rett.</b> Lag "+c.a+", "+name+". "+c.w;}
+  else{b.classList.add("wrong"); qfb.innerHTML="<b>Ikkje heilt.</b> Rett svar er lag "+c.a+", "+name+". "+c.w;}
+  document.getElementById("qscore").textContent="Rette: "+score;
+  qnext.hidden=false;
+});
+qnext.addEventListener("click",()=>{ if(qi>=cases.length){qi=0;score=0;} else qi++; drawQ(); });
+drawQ();
+</script>
+</body>
+</html>
