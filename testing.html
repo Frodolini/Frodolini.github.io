@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="nn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Test, feilsøk og dokumenter</title>
+<style>
+:root {
+    --bg: #e7efe9;
+    --panel: #ffffff;
+    --panel2: #f0f5f1;
+    --border: #cbd8ce;
+    --text: #17231c;
+    --muted: #536157;
+    --gron: #2e7d32;
+    --gron-mork: #1b5e20;
+    --accent: #2e7d32;
+    --accent-soft: #dcefdd;
+    --ok: #1b6e2a;
+    --okbg: #d9f2dd;
+    --bad: #b71c1c;
+    --badbg: #fde3e1;
+    --warn: #8a5a00;
+    --warnbg: #fdf0c9;
+    --hl: #fde68a;
+    color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #121a15;
+        --panel: #1c2620;
+        --panel2: #25312a;
+        --border: #3a4a40;
+        --text: #e6efe8;
+        --muted: #a0b0a5;
+        --accent: #6fce76;
+        --accent-soft: #1f4426;
+        --ok: #7fe08a;
+        --okbg: #173a20;
+        --bad: #ff9a92;
+        --badbg: #4a1f1f;
+        --warn: #f6c85f;
+        --warnbg: #40330f;
+        --hl: #6b5a12;
+        color-scheme: dark;
+    }
+}
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    font-size: 17px;
+    line-height: 1.55;
+}
+a { color: var(--accent); }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+h2:focus { outline: none; }
+
+/* Grøn tittellinje */
+.tittellinje { background: var(--gron); color: #fff; padding: 14px 16px 14px; }
+.tittellinje .inni, main, footer { max-width: 760px; margin: 0 auto; }
+.tittellinje a { color: #fff; }
+.tittellinje :focus-visible { outline-color: #fff; }
+.tilbake { font-size: 14px; }
+.tittellinje h1 { margin: 4px 0 2px; font-size: 32px; line-height: 1.15; }
+.tittellinje p { margin: 0 0 12px; max-width: 58ch; }
+.steg-nav { display: flex; flex-wrap: wrap; gap: 6px; }
+.steg-nav a {
+    display: flex; align-items: center; gap: 6px;
+    text-decoration: none; font-size: 14px; padding: 3px 11px 3px 4px;
+    border: 1px solid rgba(255,255,255,.55); border-radius: 999px;
+}
+.steg-nav a:hover { background: var(--gron-mork); }
+.steg-nav .nr {
+    display: inline-grid; place-items: center; width: 24px; height: 24px;
+    border-radius: 50%; background: rgba(255,255,255,.22); font-weight: 700; font-size: 13px;
+}
+.steg-nav a.ferdig .nr { background: #fff; color: var(--gron-mork); }
+.steg-nav a[aria-current] { background: #fff; color: var(--gron-mork); border-color: #fff; font-weight: 700; }
+.steg-nav a[aria-current] .nr { background: var(--gron); color: #fff; }
+
+main { padding: 16px; }
+.steg-topp { font-size: 14px; color: var(--muted); font-weight: 600; margin: 0 0 2px; text-transform: uppercase; letter-spacing: .04em; }
+.card {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 10px; padding: 18px; margin-bottom: 14px;
+}
+.card h2 { margin: 0 0 8px; font-size: 25px; line-height: 1.2; }
+.card h3 { margin: 18px 0 6px; font-size: 17px; }
+.card p { margin: 0 0 10px; max-width: 62ch; }
+.card > :last-child { margin-bottom: 0; }
+.small { font-size: 14px; color: var(--muted); }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+label, .etikett { display: block; font-weight: 600; margin: 12px 0 4px; font-size: 15px; }
+input[type=text], input[type=number] {
+    width: 100%; padding: 9px 10px; font: inherit;
+    border: 1px solid var(--border); border-radius: 8px;
+    background: var(--panel2); color: var(--text);
+}
+.btn {
+    border: 1px solid var(--border); background: var(--panel2); color: var(--text);
+    padding: 8px 14px; border-radius: 8px; font: inherit; font-size: 16px; cursor: pointer;
+    min-height: 42px; text-decoration: none; display: inline-flex; align-items: center;
+}
+.btn:hover:not(:disabled) { border-color: var(--accent); }
+.btn.primary { background: var(--gron); border-color: var(--gron); color: #fff; font-weight: 600; }
+.btn.danger { border-color: var(--bad); color: var(--bad); }
+.btn:disabled { opacity: .5; cursor: default; }
+.seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.seg button {
+    border: 0; border-right: 1px solid var(--border); background: var(--panel2); color: var(--text);
+    padding: 8px 15px; font: inherit; font-size: 16px; cursor: pointer; min-height: 42px;
+}
+.seg button:last-child { border-right: 0; }
+.seg button[aria-pressed=true] { background: var(--gron); color: #fff; font-weight: 700; }
+.seg button:disabled { cursor: default; opacity: .6; }
+code, .mono { font-family: ui-monospace, Menlo, Consolas, monospace; }
+.out {
+    font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 15px;
+    background: var(--panel2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px; margin-top: 4px; word-break: break-all;
+}
+.msg { margin-top: 10px; padding: 9px 12px; border-radius: 8px; font-weight: 600; }
+.msg.ok { background: var(--okbg); color: var(--ok); }
+.msg.bad { background: var(--badbg); color: var(--bad); }
+.msg.warn { background: var(--warnbg); color: var(--warn); }
+.msg.info { background: var(--accent-soft); color: var(--text); font-weight: 400; }
+.badge { display: inline-block; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+.badge.ok { background: var(--okbg); color: var(--ok); }
+.badge.bad { background: var(--badbg); color: var(--bad); }
+.badge.warn { background: var(--warnbg); color: var(--warn); }
+
+/* Oppdraget: det eleven skal gjere. Dette lærte du: kjem fram når oppdraget er løyst. */
+.oppdrag { border: 2px solid var(--gron); border-radius: 10px; padding: 10px 14px; margin: 14px 0; }
+.oppdrag .tittel { display: block; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--accent); }
+.oppdrag ol { margin: 4px 0 0; padding-left: 22px; }
+.laert { background: var(--okbg); border-radius: 10px; padding: 12px 14px; margin-top: 14px; animation: inn .35s ease-out; }
+.laert .tittel { display: block; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--ok); }
+.laert p { margin: 2px 0 0; }
+.laert p + p { margin-top: 8px; }
+@keyframes inn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.fagord { font-size: 15px; color: var(--muted); border-top: 1px solid var(--border); padding-top: 10px; margin-top: 14px; }
+.fagord b { color: var(--text); }
+
+table { border-collapse: collapse; width: 100%; font-size: 16px; }
+td, th { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+th { font-size: 13px; color: var(--muted); font-weight: 600; }
+td.tal, th.tal { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+tr.sum td { font-weight: 700; border-bottom: 0; }
+td.endra { background: var(--hl); }
+.tabellrull { overflow-x: auto; }
+details { background: var(--panel2); border-radius: 8px; padding: 9px 12px; margin: 6px 0; }
+details summary { cursor: pointer; font-weight: 600; }
+details p { margin: 6px 0 2px; }
+dl { margin: 0; }
+dt { font-weight: 700; margin-top: 8px; }
+dd { margin: 0; }
+
+/* Saker og quiz */
+.sporsmal { padding: 12px 0; border-bottom: 1px solid var(--border); }
+.sporsmal:last-of-type { border-bottom: 0; }
+.sporsmal p { font-weight: 600; margin-bottom: 6px; }
+.val { display: grid; gap: 6px; }
+.val .btn { text-align: left; }
+.val .btn.rett { background: var(--okbg); border-color: var(--ok); color: var(--ok); font-weight: 600; opacity: 1; }
+.val .btn.feil { background: var(--badbg); border-color: var(--bad); color: var(--bad); opacity: 1; }
+.kort-liste { margin: 0; padding-left: 22px; }
+.kort-liste li { margin: 4px 0; }
+
+/* Førre og neste */
+.vidare { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 20px; }
+.vidare .midt { font-size: 14px; color: var(--muted); }
+.vidare .btn[hidden] { display: none; }
+.vidare .tom { width: 1px; }
+
+footer { font-size: 13px; color: var(--muted); padding: 0 16px 24px; }
+footer ul { margin: 4px 0 10px; padding-left: 18px; }
+footer button { font: inherit; color: var(--accent); background: none; border: 0; padding: 0; text-decoration: underline; cursor: pointer; }
+
+@media (max-width: 560px) {
+    body { font-size: 16px; }
+    .tittellinje h1 { font-size: 27px; }
+    .card { padding: 14px; }
+    .card h2 { font-size: 22px; }
+    .steg-nav a { padding: 3px; }
+    .steg-nav a .namn { display: none; }
+    .steg-nav a[aria-current] { padding-right: 11px; }
+    .steg-nav a[aria-current] .namn { display: inline; }
+}
+@media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+}
+
+/* Krav, kode og testar */
+.krav { margin: 6px 0 10px; padding-left: 24px; }
+.krav li { margin: 2px 0; }
+.kode { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 15px; background: var(--panel2); border: 1px solid var(--border); border-radius: 8px; padding: 6px 0; margin: 6px 0 10px; overflow-x: auto; }
+.kode .linje { display: grid; grid-template-columns: 34px 1fr; align-items: baseline; width: 100%; border: 0; background: none; color: inherit; font: inherit; text-align: left; padding: 2px 10px 2px 0; white-space: pre; }
+.kode .linje .nr { color: var(--muted); text-align: right; padding-right: 10px; user-select: none; font-size: 13px; }
+.kode button.linje { cursor: pointer; }
+.kode button.linje:hover { background: var(--accent-soft); }
+.kode .linje.no { background: var(--hl); }
+.kode .linje.rett { background: var(--okbg); color: var(--ok); font-weight: 700; }
+.kode .linje.feil { background: var(--badbg); }
+.variabel { display: inline-block; font-family: ui-monospace, Menlo, Consolas, monospace; background: var(--accent-soft); border-radius: 6px; padding: 2px 9px; font-size: 15px; }
+textarea { width: 100%; padding: 9px 10px; font: inherit; border: 1px solid var(--border); border-radius: 8px; background: var(--panel2); color: var(--text); resize: vertical; }
+textarea.kodefelt { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 15px; line-height: 1.5; white-space: pre; overflow-x: auto; tab-size: 2; }
+.testtabell td, .testtabell th { padding: 6px 8px; }
+.testtabell tr.gron td { background: var(--okbg); }
+.testtabell tr.raud td { background: var(--badbg); }
+.testtabell tr.gul td { background: var(--warnbg); }
+.testtabell .slett { border: 0; background: none; color: var(--muted); font-size: 16px; cursor: pointer; padding: 2px 6px; }
+.leggtil { display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; align-items: end; margin-top: 10px; }
+.leggtil label { margin-top: 0; }
+.metode { margin: 6px 0 0; padding-left: 24px; }
+.metode li { margin: 3px 0; }
+.readme { border: 1px solid var(--border); border-radius: 8px; padding: 4px 16px 12px; background: var(--panel); margin-top: 6px; }
+.readme h3 { font-size: 24px; margin: 10px 0 6px; padding-bottom: 4px; border-bottom: 1px solid var(--border); }
+.readme h4 { font-size: 18px; margin: 14px 0 4px; }
+.readme p { margin: 0 0 6px; white-space: pre-wrap; }
+.readme .tom { color: var(--muted); font-style: italic; }
+pre.md { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 14px; background: var(--panel2); border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin: 6px 0 0; white-space: pre-wrap; word-break: break-word; }
+@media (max-width: 560px) { .leggtil { grid-template-columns: 1fr 1fr; } .leggtil .btn { grid-column: 1 / -1; justify-content: center; } .kode, textarea.kodefelt { font-size: 13.5px; } }
+</style>
+</head>
+<body>
+
+<header>
+    <div class="tittellinje">
+        <div class="inni">
+            <a class="tilbake" href="index.html">← Frode si Sandkasse</a>
+            <h1>Test, feilsøk og dokumenter</h1>
+            <p>Nora har laga billettprisane til kinoen. Koden køyrer. Men er han rett? Finn feilen, rett han, og skriv ned det andre treng å vite.</p>
+            <nav class="steg-nav" aria-label="Stega på sida">
+                <a href="#steg1"><span class="nr">1</span><span class="namn">«Det verkar jo!»</span></a>
+                <a href="#steg2"><span class="nr">2</span><span class="namn">Lag testar</span></a>
+                <a href="#steg3"><span class="nr">3</span><span class="namn">Finn feilen</span></a>
+                <a href="#steg4"><span class="nr">4</span><span class="namn">Rett og test</span></a>
+                <a href="#steg5"><span class="nr">5</span><span class="namn">Dokumenter</span></a>
+                <a href="#steg6"><span class="nr">6</span><span class="namn">Test deg sjølv</span></a>
+            </nav>
+        </div>
+    </div>
+</header>
+
+<main>
+
+<!-- 1 -->
+<section class="steg" id="steg1">
+<div class="card">
+    <p class="steg-topp">Steg 1 av 6</p>
+    <h2 tabindex="-1">«Det verkar jo!»</h2>
+    <p>Kinoen har bestilt eit program som reknar ut billettprisen. Dette er <b>krava</b> frå kinoen:</p>
+    <ol class="krav">
+        <li>Born <b>under 6 år</b> går gratis.</li>
+        <li><b>Frå 6 til og med 17 år</b> kostar billetten 60 kr.</li>
+        <li><b>Frå 18 til og med 66 år</b> kostar billetten 120 kr.</li>
+        <li><b>Frå og med 67 år</b> kostar billetten 60 kr.</li>
+    </ol>
+    <p>Nora skreiv koden. Ho prøvde med 30 år og fekk 120 kr. «Det verkar jo!» sa ho, og leverte.</p>
+    <div class="oppdrag"><span class="tittel">Oppdrag</span>Prøv programmet til Nora. Finn ein alder der programmet svarar noko anna enn krava seier.</div>
+    <label for="p-alder">Alder</label>
+    <div class="row">
+        <input type="number" id="p-alder" min="0" max="120" value="30" style="max-width:120px" inputmode="numeric">
+        <button class="btn primary" id="p-knapp">Rekn ut pris</button>
+    </div>
+    <div class="msg info" id="p-msg" hidden aria-live="polite"></div>
+    <p class="small" id="p-tips" hidden style="margin-top:10px">Tips: Feil gøymer seg ofte akkurat der prisen skiftar. Sjå på tala i krava.</p>
+    <div class="laert" id="laert1" hidden>
+        <span class="tittel">Dette lærte du</span>
+        <p>At koden køyrer utan feilmelding, betyr ikkje at han gjer det rette. Éi prøve er ikkje nok.</p>
+        <p>Du fann feilen ved å samanlikne svaret frå programmet med <b>krava</b>. Utan krav veit du ikkje kva som er rett svar.</p>
+    </div>
+</div>
+</section>
+
+<!-- 2 -->
+<section class="steg" id="steg2">
+<div class="card">
+    <p class="steg-topp">Steg 2 av 6</p>
+    <h2 tabindex="-1">Lag testar</h2>
+    <p>Å prøve seg fram for hand tek tid, og du gløymer kva du har prøvd. Skriv heller opp prøvene som <b>testar</b>. Ein test er eit døme der du veit svaret på førehand:</p>
+    <p><span class="variabel">alder 30</span> skal gi <span class="variabel">120 kr</span></p>
+    <p>Testane kan køyrast om att så ofte du vil. Grøn betyr at programmet svara det du venta. Raud betyr at det svara noko anna.</p>
+    <div class="tabellrull">
+    <table class="testtabell">
+        <thead><tr><th>Alder</th><th>Forventa pris</th><th>Programmet svara</th><th>Resultat</th><th></th></tr></thead>
+        <tbody id="t-rader"></tbody>
+    </table>
+    </div>
+    <div class="leggtil">
+        <div><label for="t-alder">Alder</label><input type="number" id="t-alder" min="0" max="120" inputmode="numeric"></div>
+        <div><label for="t-pris">Forventa pris (kr)</label><input type="number" id="t-pris" min="0" inputmode="numeric"></div>
+        <button class="btn" id="t-legg">Legg til test</button>
+    </div>
+    <div class="row" style="margin-top:12px"><button class="btn primary" id="t-koyr">Køyr testane</button></div>
+    <div class="msg info" id="t-msg" hidden aria-live="polite"></div>
+    <div class="oppdrag"><span class="tittel">Oppdrag</span>
+        <ol>
+            <li>Køyr dei to testane til Nora. Begge blir grøne.</li>
+            <li>Legg til ein test som blir <b>raud</b>. Den forventa prisen må stemme med krava i steg 1.</li>
+        </ol>
+    </div>
+    <details><summary>Vis krava</summary>
+        <p>Under 6 år: gratis. Frå 6 til og med 17 år: 60 kr. Frå 18 til og med 66 år: 120 kr. Frå og med 67 år: 60 kr.</p></details>
+    <div class="laert" id="laert2" hidden>
+        <span class="tittel">Dette lærte du</span>
+        <p>Grøne testar viser berre at akkurat desse døma verkar. Nora hadde to grøne testar og ein feil i koden.</p>
+        <p>Dei beste testane ligg på <b>grensene</b>, der svaret skal skifte: 5 og 6, 17 og 18, 66 og 67. Det er der programmerarar oftast bommar.</p>
+    </div>
+    <p class="fagord"><b>Fagord:</b> Eit døme med inndata og forventa svar heiter eit <b>testtilfelle</b>. Verdiane der svaret skiftar, heiter <b>grenseverdiar</b>. Det programmet faktisk svarar, heiter <b>faktisk resultat</b>.</p>
+</div>
+</section>
+
+<!-- 3 -->
+<section class="steg" id="steg3">
+<div class="card">
+    <p class="steg-topp">Steg 3 av 6</p>
+    <h2 tabindex="-1">Finn feilen</h2>
+    <p>Testen viser <b>at</b> noko er feil. No skal du finne ut <b>kvar</b>. Det heiter feilsøking. Då går du gjennom koden éi linje om gongen, slik datamaskina gjer, og ser kva som skjer.</p>
+    <p>Vi sender inn <span class="variabel">alder = 67</span>. Kravet seier at svaret skal bli 60 kr.</p>
+    <div class="kode" id="f-kode"></div>
+    <div class="row">
+        <button class="btn primary" id="f-steg">Neste steg</button>
+        <button class="btn" id="f-start">Start på nytt</button>
+    </div>
+    <div class="msg info" id="f-msg" aria-live="polite">Trykk på «Neste steg» for å køyre første linje.</div>
+    <div class="oppdrag"><span class="tittel">Oppdrag</span>Gå gjennom alle stega. Trykk så på linja i koden der feilen ligg.</div>
+    <div class="msg" id="f-svar" hidden aria-live="polite"></div>
+    <div class="laert" id="laert3" hidden>
+        <span class="tittel">Dette lærte du</span>
+        <p>Feilen låg i eitt teikn. <code>&gt;</code> betyr «større enn». Kravet seier «frå og med 67», og då må det stå <code>&gt;=</code>.</p>
+        <p>Slik feilsøkjer du:</p>
+        <ol class="metode">
+            <li><b>Gjenskap feilen.</b> Finn inndata som gir feil kvar gong.</li>
+            <li><b>Gå gjennom koden steg for steg.</b> Sjå på verdiane undervegs.</li>
+            <li><b>Finn linja</b> der programmet gjer noko anna enn du venta.</li>
+            <li><b>Rett éin ting</b>, og test på nytt.</li>
+        </ol>
+    </div>
+    <h3>Tre typar feil</h3>
+    <div class="tabellrull">
+    <table>
+        <thead><tr><th>Type</th><th>Kva skjer?</th><th>Døme</th></tr></thead>
+        <tbody>
+            <tr><td><b>Syntaksfeil</b></td><td>Koden er skriven feil og startar ikkje.</td><td>Ein parentes manglar.</td></tr>
+            <tr><td><b>Køyretidsfeil</b></td><td>Programmet startar, men krasjar undervegs.</td><td>Det prøver å opne ei fil som ikkje finst.</td></tr>
+            <tr><td><b>Logisk feil</b></td><td>Programmet køyrer, men svarar feil.</td><td>Feilen til Nora.</td></tr>
+        </tbody>
+    </table>
+    </div>
+    <p class="small" style="margin-top:8px">Dei to første får du feilmelding om. Logiske feil finn du berre med testar.</p>
+    <p class="fagord"><b>Fagord:</b> Feilsøking heiter <b>debugging</b> på engelsk. Verktøyet som køyrer koden steg for steg, heiter ein <b>debugger</b>. Staden du ber han stoppe, heiter eit <b>brotpunkt</b>. VS Code har ein debugger innebygd.</p>
+</div>
+</section>
+
+<!-- 4 -->
+<section class="steg" id="steg4">
+<div class="card">
+    <p class="steg-topp">Steg 4 av 6</p>
+    <h2 tabindex="-1">Rett og test på nytt</h2>
+    <p>No veit du kvar feilen ligg. Rett han i koden under. Du treng berre endre éi linje.</p>
+    <label for="r-kode">Koden til Nora</label>
+    <textarea class="kodefelt" id="r-kode" rows="7" spellcheck="false" autocapitalize="off" autocomplete="off"></textarea>
+    <div class="row" style="margin-top:10px">
+        <button class="btn primary" id="r-koyr">Køyr alle testane</button>
+        <button class="btn" id="r-nullstill">Hent fram koden til Nora att</button>
+    </div>
+    <div class="msg info" id="r-msg" hidden aria-live="polite"></div>
+    <div class="tabellrull" style="margin-top:10px">
+    <table class="testtabell">
+        <thead><tr><th>Alder</th><th>Forventa pris</th><th>Programmet svara</th><th>Resultat</th></tr></thead>
+        <tbody id="r-rader"></tbody>
+    </table>
+    </div>
+    <p class="small" style="margin-top:8px">Her er testane dine frå steg 2, saman med ein test for kvar grenseverdi.</p>
+    <div class="oppdrag"><span class="tittel">Oppdrag</span>Rett feilen, og køyr testane til alle er grøne.</div>
+    <div class="laert" id="laert4" hidden>
+        <span class="tittel">Dette lærte du</span>
+        <p>Du køyrde <b>alle</b> testane etter rettinga, ikkje berre den som var raud. Det er viktig, for ei retting kan øydeleggje noko som verka før.</p>
+        <p>Testane er no eit tryggingsnett. Neste gong nokon endrar koden, køyrer dei same testane og ser med ein gong om noko gjekk i stykke.</p>
+    </div>
+    <p class="fagord"><b>Fagord:</b> Å køyre gamle testar om att etter ei endring heiter <b>regresjonstesting</b>. Testar som køyrer av seg sjølv, heiter <b>automatiske testar</b>. Ein test som sjekkar éin funksjon, heiter ein <b>einingstest</b>.</p>
+</div>
+</section>
+
+<!-- 5 -->
+<section class="steg" id="steg5">
+<div class="card">
+    <p class="steg-topp">Steg 5 av 6</p>
+    <h2 tabindex="-1">Dokumenter</h2>
+    <p>Koden verkar. Om eit halvt år skal nokon endre prisane. Kanskje er det du. Då er det meste gløymt. <b>Teknisk dokumentasjon</b> er det du skriv ned for den som kjem etter.</p>
+    <h3>Kommentar i koden</h3>
+    <p>Ein kommentar er ei linje som datamaskina hoppar over. Kva kommentar hjelper mest over denne linja?</p>
+    <div class="kode"><span class="linje"><span class="nr"></span>if (alder &gt;= 67) return 60;</span></div>
+    <div class="val" id="k-val"></div>
+    <div class="msg info" id="k-msg" hidden aria-live="polite"></div>
+    <h3>README</h3>
+    <p>Ei README er fila folk les først når dei opnar eit prosjekt. Ho ligg øvst i mappa, og GitHub viser ho på framsida av repoet. Fyll ut dei fire felta, og sjå korleis fila blir.</p>
+    <label for="d-kva">Kva gjer programmet?</label>
+    <textarea id="d-kva" rows="2" placeholder="Til dømes: Reknar ut billettprisen på kinoen ut frå alderen."></textarea>
+    <label for="d-bruk">Korleis bruker du det?</label>
+    <textarea id="d-bruk" rows="2" placeholder="Til dømes: Kall billettpris(alder). billettpris(30) gir 120."></textarea>
+    <label for="d-test">Korleis testar du det?</label>
+    <textarea id="d-test" rows="2" placeholder="Til dømes: Køyr testane for 5, 6, 17, 18, 66 og 67 år. Alle skal vere grøne."></textarea>
+    <label for="d-manglar">Kva manglar, eller kva bør neste person vite?</label>
+    <textarea id="d-manglar" rows="2" placeholder="Til dømes: Programmet sjekkar ikkje om alderen er eit negativt tal."></textarea>
+    <span class="etikett">Slik ser README ut på GitHub</span>
+    <div class="readme" id="d-vis"></div>
+    <details><summary>Vis fila slik ho er skriven (Markdown)</summary>
+        <pre class="md" id="d-md"></pre>
+        <div class="row" style="margin-top:8px"><button class="btn" id="d-kopier">Kopier teksten</button><span class="small" id="d-kopiert" hidden>Kopiert.</span></div>
+    </details>
+    <div class="oppdrag"><span class="tittel">Oppdrag</span>
+        <ol>
+            <li>Vel den beste kommentaren.</li>
+            <li>Fyll ut alle fire felta i README.</li>
+        </ol>
+    </div>
+    <div class="laert" id="laert5" hidden>
+        <span class="tittel">Dette lærte du</span>
+        <p>Ein god kommentar forklarer <b>kvifor</b> koden er slik. Kva koden gjer, står alt i koden.</p>
+        <p>Ei god README svarar på fire spørsmål: Kva gjer programmet? Korleis bruker eg det? Korleis testar eg det? Kva manglar?</p>
+    </div>
+    <p class="fagord"><b>Fagord:</b> README-filer blir skrivne i <b>Markdown</b>, eit enkelt format der <code>#</code> lagar ei overskrift. Fila heiter <code>README.md</code>.</p>
+</div>
+</section>
+
+<!-- 6 -->
+<section class="steg" id="steg6">
+<div class="card">
+    <p class="steg-topp">Steg 6 av 6</p>
+    <h2 tabindex="-1">Test deg sjølv</h2>
+    <p>Heile sida på fire linjer:</p>
+    <ol class="kort-liste">
+        <li><b>Krava</b> fortel kva som er rett svar.</li>
+        <li>Ein <b>test</b> er inndata saman med svaret du ventar. Test grenseverdiane.</li>
+        <li><b>Feilsøking</b> er å gå gjennom koden steg for steg til du finn linja som gjer feil.</li>
+        <li><b>Dokumentasjon</b> er det neste person treng for å bruke, teste og endre koden.</li>
+    </ol>
+    <div id="quiz" style="margin-top:10px"></div>
+    <div class="msg ok" id="quiz-sum" hidden aria-live="polite"></div>
+    <div class="row" style="margin-top:8px"><button class="btn" id="quiz-nullstill">Ta testen på nytt</button></div>
+</div>
+
+<div class="card">
+    <h2>Vil du vite meir?</h2>
+    <details><summary>Kor mange testar er nok?</summary>
+        <p>Du kan aldri teste alt. Vel éin test frå kvar gruppe som skal få same svar, og to testar på kvar grense. For billettprisane blir det rundt ti testar.</p></details>
+    <details><summary>Kva med ugyldige verdiar?</summary>
+        <p>Kva skal programmet svare på alder −3 eller 500? Krava frå kinoen seier ingenting om det. Då må du spørje den som bestilte programmet, og så lage testar for svaret du får.</p></details>
+    <details><summary>Korleis gjer utviklarar dette i arbeidslivet?</summary>
+        <p>Testane ligg i eigne filer i repoet og blir køyrde automatisk kvar gong nokon sender inn ny kode. Er éin test raud, blir ikkje koden godkjend. I Python heiter eit vanleg testverktøy pytest, og i JavaScript Jest.</p></details>
+    <details><summary>For læraren</summary>
+        <p>Sida dekkjer testing, feilsøking og teknisk dokumentasjon i programfaget utvikling på vg2 informasjonsteknologi. Ho tek 20–30 minutt og krev ingen forkunnskapar utover enkle <code>if</code>-setningar. Koden er JavaScript og køyrer i nettlesaren til eleven. Ingenting blir sendt nokon stad, og framdrifta blir lagra lokalt.</p>
+        <p>Forslag til vidare arbeid: La elevane skrive testtilfelle og README for eit program dei sjølve har laga, og byte med ein medelev som prøver å finne feil.</p></details>
+    <h3>Fagorda på sida</h3>
+    <dl>
+        <dt>Krav</dt><dd>Det kunden har bestilt. Krava fortel kva som er rett svar.</dd>
+        <dt>Testtilfelle</dt><dd>Eitt døme med inndata og forventa svar.</dd>
+        <dt>Grenseverdi</dt><dd>Ein verdi der svaret skal skifte, til dømes 17 og 18 år.</dd>
+        <dt>Logisk feil</dt><dd>Koden køyrer, men svarar feil.</dd>
+        <dt>Feilsøking</dt><dd>Å finne ut kvar i koden feilen ligg. <i>Debugging</i> på engelsk.</dd>
+        <dt>Regresjonstesting</dt><dd>Å køyre gamle testar om att etter ei endring.</dd>
+        <dt>README</dt><dd>Fila som forklarer kva prosjektet er, og korleis ein bruker det.</dd>
+    </dl>
+</div>
+</section>
+
+<nav class="vidare" aria-label="Førre og neste steg">
+    <a class="btn" id="forre" href="#steg1">← Førre</a>
+    <span class="tom" id="forre-tom" hidden></span>
+    <span class="midt" id="vidare-midt"></span>
+    <a class="btn" id="neste" href="#steg2">Neste →</a>
+    <span class="tom" id="neste-tom" hidden></span>
+</nav>
+
+</main>
+
+<footer>
+    Frode, IM-Stord. Koden køyrer i nettlesaren din. Ingenting du skriv, blir sendt nokon stad.
+    <button id="nullstill-alt">Start heile sida på nytt</button>
+</footer>
+
+<script>
+const $ = id => document.getElementById(id);
+const TAL_STEG = 6;
+
+/* ---------- Stega: eitt om gongen, og hugs kva som er løyst ---------- */
+const LAGER = "testing-ferdig", DATALAGER = "testing-data";
+let ferdige = new Set();
+try { ferdige = new Set(JSON.parse(localStorage.getItem(LAGER) || "[]")); } catch (e) {}
+const navLenker = [...document.querySelectorAll(".steg-nav a")];
+let aktivt = 1;
+
+function stegFraaAdresse() {
+    const m = /^#steg(\d)$/.exec(location.hash);
+    const n = m ? +m[1] : 1;
+    return n >= 1 && n <= TAL_STEG ? n : 1;
+}
+function visSteg(n, flyttFokus) {
+    aktivt = n;
+    for (let i = 1; i <= TAL_STEG; i++) $("steg" + i).hidden = i !== n;
+    navLenker.forEach((a, i) => {
+        if (i + 1 === n) a.setAttribute("aria-current", "step"); else a.removeAttribute("aria-current");
+    });
+    $("forre").hidden = n === 1; $("forre-tom").hidden = n !== 1;
+    $("neste").hidden = n === TAL_STEG; $("neste-tom").hidden = n !== TAL_STEG;
+    $("forre").href = "#steg" + Math.max(1, n - 1);
+    $("neste").href = "#steg" + Math.min(TAL_STEG, n + 1);
+    $("vidare-midt").textContent = `Steg ${n} av ${TAL_STEG}`;
+    oppdaterNeste();
+    if (n === 4) teiknRett(null);
+    if (flyttFokus) {
+        document.querySelector("main").scrollIntoView();
+        $("steg" + n).querySelector("h2").focus({ preventScroll: true });
+    }
+}
+function oppdaterNeste() {
+    $("neste").classList.toggle("primary", ferdige.has(aktivt));
+}
+function visFerdige() {
+    navLenker.forEach((a, i) => {
+        const f = ferdige.has(i + 1);
+        a.classList.toggle("ferdig", f);
+        a.querySelector(".nr").textContent = f ? "✓" : i + 1;
+        a.setAttribute("aria-label", `Steg ${i + 1}: ${a.querySelector(".namn").textContent}${f ? " (løyst)" : ""}`);
+    });
+    for (let i = 1; i <= TAL_STEG; i++) { const l = $("laert" + i); if (l) l.hidden = !ferdige.has(i); }
+    oppdaterNeste();
+}
+function ferdig(n) {
+    if (ferdige.has(n)) return;
+    ferdige.add(n);
+    try { localStorage.setItem(LAGER, JSON.stringify([...ferdige])); } catch (e) {}
+    visFerdige();
+}
+window.addEventListener("hashchange", () => visSteg(stegFraaAdresse(), true));
+$("nullstill-alt").onclick = () => {
+    try { localStorage.removeItem(LAGER); localStorage.removeItem(DATALAGER); } catch (e) {}
+    location.hash = "#steg1";
+    location.reload();
+};
+
+/* ---------- Felles ---------- */
+const NORA_KODE = `function billettpris(alder) {
+  if (alder < 6) return 0;
+  if (alder < 18) return 60;
+  if (alder > 67) return 60;
+  return 120;
+}`;
+/* Koden til Nora, med feilen: > i staden for >= */
+function nora(alder) {
+    if (alder < 6) return 0;
+    if (alder < 18) return 60;
+    if (alder > 67) return 60;
+    return 120;
+}
+/* Det krava seier */
+function fasit(alder) { return alder < 6 ? 0 : alder < 18 ? 60 : alder < 67 ? 120 : 60; }
+const kr = n => n === 0 ? "0 kr (gratis)" : n + " kr";
+const gyldigAlder = v => Number.isInteger(v) && v >= 0 && v <= 120;
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+function melding(el, klasse, tekst) { el.hidden = false; el.className = "msg " + klasse; el.textContent = tekst; }
+function lesTal(el) { const t = el.value.trim(); return t === "" ? NaN : Number(t); }
+
+let data = { testar: [{ a: 30, p: 120 }, { a: 3, p: 0 }], kode: NORA_KODE, readme: { kva: "", bruk: "", test: "", manglar: "" }, kommentar: false };
+try {
+    const d = JSON.parse(localStorage.getItem(DATALAGER) || "null");
+    if (d && Array.isArray(d.testar) && typeof d.kode === "string" && d.readme) data = d;
+} catch (e) {}
+function lagre() { try { localStorage.setItem(DATALAGER, JSON.stringify(data)); } catch (e) {} }
+
+/* ---------- Steg 1: prøv programmet ---------- */
+let pForsok = 0;
+function provPris() {
+    const a = lesTal($("p-alder"));
+    if (!gyldigAlder(a)) { melding($("p-msg"), "warn", "Skriv ein heil alder frå 0 til 120."); return; }
+    const svar = nora(a), rett = fasit(a);
+    pForsok++;
+    if (svar === rett) {
+        melding($("p-msg"), "info", `Programmet svarar ${kr(svar)} for ${a} år. Det stemmer med krava. Prøv ein annan alder.`);
+        if (pForsok >= 3 && !ferdige.has(1)) $("p-tips").hidden = false;
+    } else {
+        melding($("p-msg"), "bad", `Programmet svarar ${kr(svar)} for ${a} år. Krava seier ${kr(rett)}. Du fann ein feil!`);
+        $("p-tips").hidden = true;
+        ferdig(1);
+    }
+}
+$("p-knapp").onclick = provPris;
+$("p-alder").addEventListener("keydown", e => { if (e.key === "Enter") provPris(); });
+
+/* ---------- Steg 2: testar ---------- */
+function testRad(t, faktisk, medSlett, i) {
+    const tr = document.createElement("tr");
+    let resultat = "", vist = "";
+    if (faktisk !== undefined) {
+        vist = typeof faktisk === "number" ? kr(faktisk) : String(faktisk);
+        if (t.p !== fasit(t.a)) { tr.className = "gul"; resultat = `<span class="badge warn">Sjekk kravet</span>`; }
+        else if (faktisk === t.p) { tr.className = "gron"; resultat = `<span class="badge ok">✓ Grøn</span>`; }
+        else { tr.className = "raud"; resultat = `<span class="badge bad">✗ Raud</span>`; }
+    }
+    tr.innerHTML = `<td>${t.a} år</td><td>${esc(kr(t.p))}</td><td>${esc(vist)}</td><td>${resultat}</td>` + (medSlett ? `<td><button class="slett" title="Slett testen" aria-label="Slett testen for ${t.a} år">✕</button></td>` : "");
+    if (medSlett) tr.querySelector(".slett").onclick = () => { data.testar.splice(i, 1); lagre(); teiknTestar(false); $("t-msg").hidden = true; };
+    return tr;
+}
+function teiknTestar(kjort) {
+    const tb = $("t-rader");
+    tb.innerHTML = "";
+    data.testar.forEach((t, i) => tb.appendChild(testRad(t, kjort ? nora(t.a) : undefined, true, i)));
+    if (!data.testar.length) tb.innerHTML = `<tr><td colspan="5" class="small">Ingen testar enno. Legg til ein under.</td></tr>`;
+}
+function leggTilTest() {
+    const a = lesTal($("t-alder")), p = lesTal($("t-pris"));
+    if (!gyldigAlder(a)) { melding($("t-msg"), "warn", "Skriv ein heil alder frå 0 til 120."); return; }
+    if (!Number.isInteger(p) || p < 0) { melding($("t-msg"), "warn", "Skriv den prisen krava seier at denne alderen skal gi. Gratis er 0."); return; }
+    if (data.testar.some(t => t.a === a)) { melding($("t-msg"), "warn", `Du har alt ein test for ${a} år.`); return; }
+    if (data.testar.length >= 15) { melding($("t-msg"), "warn", "15 testar er nok her. Slett ein før du legg til fleire."); return; }
+    data.testar.push({ a, p });
+    lagre();
+    $("t-alder").value = ""; $("t-pris").value = "";
+    teiknTestar(false);
+    melding($("t-msg"), "info", `Testen for ${a} år er lagd til. Trykk på «Køyr testane».`);
+    $("t-alder").focus();
+}
+function koyrTestar() {
+    if (!data.testar.length) { melding($("t-msg"), "warn", "Det er ingen testar å køyre. Legg til ein først."); return; }
+    teiknTestar(true);
+    const gule = data.testar.filter(t => t.p !== fasit(t.a));
+    const raude = data.testar.filter(t => t.p === fasit(t.a) && nora(t.a) !== t.p);
+    const grone = data.testar.length - gule.length - raude.length;
+    if (raude.length) {
+        const t = raude[0];
+        melding($("t-msg"), "bad", `Raud test! ${t.a} år skal gi ${kr(t.p)}, men programmet svara ${kr(nora(t.a))}. Testen din avslørte feilen.`);
+        ferdig(2);
+    } else if (gule.length) {
+        const t = gule[0];
+        melding($("t-msg"), "warn", `Sjekk testen for ${t.a} år. Krava seier ikkje ${kr(t.p)} for den alderen. Ein test med feil forventa svar er verre enn ingen test. Slett han og legg inn rett pris.`);
+    } else {
+        melding($("t-msg"), "info", `${grone} av ${data.testar.length} testar er grøne. Betyr det at koden er feilfri? Legg til fleire testar. Prøv aldrane der prisen skiftar.`);
+    }
+}
+$("t-legg").onclick = leggTilTest;
+$("t-koyr").onclick = koyrTestar;
+[$("t-alder"), $("t-pris")].forEach(el => el.addEventListener("keydown", e => { if (e.key === "Enter") leggTilTest(); }));
+teiknTestar(false);
+
+/* ---------- Steg 3: steg for steg ---------- */
+const KODELINJER = NORA_KODE.split("\n");
+const SPOR = [
+    { l: 1, t: "Funksjonen startar. alder er 67." },
+    { l: 2, t: "Er 67 mindre enn 6? Nei. Programmet går til neste linje." },
+    { l: 3, t: "Er 67 mindre enn 18? Nei. Programmet går til neste linje." },
+    { l: 4, t: "Er 67 større enn 67? Nei. 67 er lik 67, ikkje større. Programmet går til neste linje." },
+    { l: 5, t: "Programmet svarar 120 kr. Kravet sa 60 kr. Kvar gjekk det gale? Trykk på linja i koden." },
+];
+let fPos = -1;
+function teiknKode() {
+    const boks = $("f-kode");
+    boks.innerHTML = "";
+    KODELINJER.forEach((tekst, i) => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "linje" + (fPos >= 0 && SPOR[fPos].l === i + 1 ? " no" : "");
+        b.setAttribute("aria-label", `Linje ${i + 1}: ${tekst.trim()}`);
+        b.innerHTML = `<span class="nr">${i + 1}</span>${esc(tekst)}`;
+        b.onclick = () => velLinje(i + 1, b);
+        boks.appendChild(b);
+    });
+}
+function velLinje(nr, b) {
+    const svar = $("f-svar");
+    if (fPos < SPOR.length - 1) { melding(svar, "warn", "Gå gjennom alle stega først. Trykk på «Neste steg»."); return; }
+    $("f-kode").querySelectorAll(".linje").forEach(x => x.classList.remove("feil", "no"));
+    if (nr === 4) {
+        b.classList.add("rett");
+        melding(svar, "ok", "Rett. Linje 4 skulle ha fanga opp 67-åringen, men slepte han forbi.");
+        ferdig(3);
+    } else {
+        b.classList.add("feil");
+        melding(svar, "bad", nr === 5 ? "Linje 5 gir vaksenpris til alle som kjem så langt. Feilen er at 67-åringen kom hit. Kva linje skulle ha stoppa han?" : nr === 1 || nr === 6 ? "Den linja berre startar eller avsluttar funksjonen. Sjå på linjene som samanliknar alderen." : `Linje ${nr} gjorde det ho skulle: 67 er ikkje mindre enn ${nr === 2 ? 6 : 18}. Kva linje skulle ha fanga opp 67-åringen?`);
+    }
+}
+$("f-steg").onclick = () => {
+    if (fPos >= SPOR.length - 1) return;
+    fPos++;
+    teiknKode();
+    melding($("f-msg"), fPos === SPOR.length - 1 ? "bad" : "info", `Linje ${SPOR[fPos].l}: ${SPOR[fPos].t}`);
+    $("f-steg").disabled = fPos === SPOR.length - 1;
+};
+$("f-start").onclick = () => {
+    fPos = -1; teiknKode();
+    $("f-steg").disabled = false; $("f-svar").hidden = true;
+    melding($("f-msg"), "info", "Trykk på «Neste steg» for å køyre første linje.");
+};
+teiknKode();
+
+/* ---------- Steg 4: rett koden og køyr alle testane ---------- */
+function alleTestar() {
+    const m = new Map();
+    [0, 5, 6, 17, 18, 66, 67, 90].forEach(a => m.set(a, fasit(a)));
+    data.testar.filter(t => t.p === fasit(t.a)).forEach(t => m.set(t.a, t.p));
+    return [...m.entries()].sort((x, y) => x[0] - y[0]).map(([a, p]) => ({ a, p }));
+}
+function teiknRett(fn) {
+    const tb = $("r-rader");
+    tb.innerHTML = "";
+    let raude = 0;
+    const testar = alleTestar();
+    for (const t of testar) {
+        let faktisk;
+        if (fn) {
+            try { faktisk = fn(t.a); if (faktisk === undefined) faktisk = "ingenting"; }
+            catch (e) { faktisk = "Køyretidsfeil: " + e.message; }
+            if (faktisk !== t.p) raude++;
+        }
+        tb.appendChild(testRad(t, faktisk, false));
+    }
+    return { tal: testar.length, raude };
+}
+$("r-kode").value = data.kode;
+$("r-kode").addEventListener("input", () => { data.kode = $("r-kode").value; lagre(); });
+$("r-koyr").onclick = () => {
+    const msg = $("r-msg");
+    let fn;
+    try { fn = new Function(`"use strict";\n${$("r-kode").value}\n;return typeof billettpris === "function" ? billettpris : null;`)(); }
+    catch (e) {
+        teiknRett(null);
+        melding(msg, "bad", `Syntaksfeil: ${e.message}. Koden startar ikkje. Sjekk at alle parentesar og krøllparentesar er på plass.`);
+        return;
+    }
+    if (!fn) { teiknRett(null); melding(msg, "bad", "Fann ikkje funksjonen billettpris. Funksjonen må heite det same som før."); return; }
+    const r = teiknRett(fn);
+    if (r.raude === 0) { melding(msg, "ok", `Alle ${r.tal} testane er grøne. Feilen er retta, og ingenting anna gjekk i stykke.`); ferdig(4); }
+    else melding(msg, "bad", `${r.raude} av ${r.tal} testar er ${r.raude === 1 ? "raud" : "raude"}. Sjå kva aldrar som feilar, rett koden og køyr på nytt.`);
+};
+$("r-nullstill").onclick = () => {
+    data.kode = NORA_KODE; $("r-kode").value = NORA_KODE; lagre();
+    teiknRett(null);
+    melding($("r-msg"), "info", "Koden er slik Nora leverte han.");
+};
+
+/* ---------- Steg 5: kommentar og README ---------- */
+const KOMMENTARAR = [
+    { t: "// Viss alderen er 67 eller meir, returner 60", f: "Denne seier berre det same som koden. Det ser lesaren sjølv." },
+    { t: "// Honnørpris frå og med 67 år (krav 4 frå kinoen)", rett: true, f: "Rett. Kommentaren fortel kvifor linja finst, og kvar regelen kjem frå." },
+    { t: "// Fiksa feilen her", f: "Kva feil? Om eit halvt år veit ingen kva dette betyr." },
+];
+function byggKommentar() {
+    const val = $("k-val");
+    val.innerHTML = "";
+    KOMMENTARAR.forEach(k => {
+        const b = document.createElement("button");
+        b.className = "btn mono";
+        b.textContent = k.t;
+        if (data.kommentar) { b.disabled = true; if (k.rett) b.classList.add("rett"); }
+        b.onclick = () => {
+            melding($("k-msg"), "info", k.f);
+            if (k.rett) { data.kommentar = true; lagre(); byggKommentar(); sjekkDok(); }
+            else { b.classList.add("feil"); b.disabled = true; }
+        };
+        val.appendChild(b);
+    });
+}
+const FELT = [["kva", null], ["bruk", "Bruk"], ["test", "Testing"], ["manglar", "Kjende manglar"]];
+function markdown() {
+    const r = data.readme;
+    return "# Billettpris\n\n" + FELT.map(([k, tittel]) => (tittel ? `## ${tittel}\n\n` : "") + (r[k].trim() || "(ikkje skrive enno)")).join("\n\n") + "\n";
+}
+function teiknReadme() {
+    const r = data.readme;
+    $("d-vis").innerHTML = "<h3>Billettpris</h3>" + FELT.map(([k, tittel]) => (tittel ? `<h4>${tittel}</h4>` : "") + (r[k].trim() ? `<p>${esc(r[k].trim())}</p>` : `<p class="tom">(ikkje skrive enno)</p>`)).join("");
+    $("d-md").textContent = markdown();
+}
+function sjekkDok() {
+    if (data.kommentar && FELT.every(([k]) => data.readme[k].trim().length >= 8)) ferdig(5);
+}
+FELT.forEach(([k]) => {
+    const el = $("d-" + k);
+    el.value = data.readme[k] || "";
+    el.addEventListener("input", () => { data.readme[k] = el.value; lagre(); teiknReadme(); sjekkDok(); });
+});
+$("d-kopier").onclick = async () => {
+    const tekst = markdown();
+    try { await navigator.clipboard.writeText(tekst); }
+    catch (e) {
+        const ta = document.createElement("textarea");
+        ta.value = tekst; document.body.appendChild(ta); ta.select();
+        try { document.execCommand("copy"); } catch (e2) {}
+        ta.remove();
+    }
+    $("d-kopiert").hidden = false;
+    setTimeout(() => { $("d-kopiert").hidden = true; }, 2000);
+};
+byggKommentar();
+teiknReadme();
+
+/* ---------- Steg 6: quiz ---------- */
+const QUIZ = [
+    { q: "Kva er eit testtilfelle?", v: ["Ei feilmelding frå programmet", "Inndata saman med svaret du ventar å få", "Ein kommentar i koden", "Ein kopi av programmet"], r: 1,
+      f: "Til dømes: alder 30 skal gi 120 kr." },
+    { q: "Alle testane dine er grøne. Kva veit du då?", v: ["At koden er heilt feilfri", "At koden er godt dokumentert", "At koden verkar for akkurat desse døma", "At kunden er nøgd"], r: 2,
+      f: "Nora hadde to grøne testar og ein feil i koden." },
+    { q: "Kravet seier «frå og med 18 år». Kva aldrar er viktigast å teste?", v: ["17 og 18", "1 og 100", "30 og 40", "18 og 81"], r: 0,
+      f: "Feil gøymer seg oftast på grensa, der svaret skal skifte." },
+    { q: "Programmet køyrer utan feilmelding, men svarar feil. Kva slags feil er det?", v: ["Syntaksfeil", "Køyretidsfeil", "Skrivefeil i README", "Logisk feil"], r: 3,
+      f: "Logiske feil får du ikkje feilmelding om. Du finn dei med testar." },
+    { q: "Du har nettopp retta ein feil. Kva gjer du no?", v: ["Leverer koden", "Køyrer alle testane på nytt", "Slettar testane", "Køyrer berre testen som var raud"], r: 1,
+      f: "Rettinga kan ha øydelagt noko som verka før." },
+    { q: "Kva er ein god kommentar?", v: ["Ein som forklarer kvifor koden er slik", "Ein som gjentek det koden seier", "Ein som er så lang som mogleg", "Ein som står på kvar einaste linje"], r: 0,
+      f: "Kva koden gjer, står alt i koden." },
+    { q: "Kva skal ei README minst fortelje?", v: ["Kor lang tid det tok å lage programmet", "Kven som fann feila", "Kva programmet gjer, og korleis ein bruker det", "Alle linjene i koden ein gong til"], r: 2,
+      f: "Skriv for den som opnar prosjektet for første gong." }
+];
+let quizRett, quizSvar;
+function byggQuiz() {
+    quizRett = 0; quizSvar = 0;
+    $("quiz").innerHTML = "";
+    $("quiz-sum").hidden = true;
+    QUIZ.forEach((s, nr) => {
+        const el = document.createElement("div");
+        el.className = "sporsmal";
+        el.innerHTML = `<p>${nr + 1}. ${s.q}</p><div class="val"></div><div class="msg" hidden></div>`;
+        const val = el.querySelector(".val"), msg = el.querySelector(".msg");
+        s.v.forEach((t, i) => {
+            const k = document.createElement("button");
+            k.className = "btn";
+            k.textContent = t;
+            k.onclick = () => {
+                val.querySelectorAll("button").forEach((b, j) => {
+                    b.disabled = true;
+                    if (j === s.r) b.classList.add("rett");
+                });
+                if (i === s.r) quizRett++; else k.classList.add("feil");
+                quizSvar++;
+                msg.hidden = false;
+                msg.className = "msg info";
+                msg.textContent = (i === s.r ? "Rett. " : "Ikkje heilt. ") + s.f;
+                if (quizSvar === QUIZ.length) {
+                    $("quiz-sum").hidden = false;
+                    $("quiz-sum").textContent = `Du fekk ${quizRett} av ${QUIZ.length} rette.` + (quizRett === QUIZ.length ? " Nora vil gjerne ha deg til å teste koden sin." : " Gå tilbake til stega du var usikker på, og prøv ein gong til.");
+                    ferdig(6);
+                }
+            };
+            val.appendChild(k);
+        });
+        $("quiz").appendChild(el);
+    });
+}
+$("quiz-nullstill").onclick = byggQuiz;
+byggQuiz();
+
+/* ---------- Start ---------- */
+visFerdige();
+visSteg(stegFraaAdresse(), false);
+</script>
+</body>
+</html>
