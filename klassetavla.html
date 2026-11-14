@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="nn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Klassetavla</title>
+<!-- Klassetavla: felles meldingstavle i sanntid med Supabase (Postgres + RLS + Realtime).
+     Nøkkelen under er OFFENTLEG med vilje. Tryggleiken ligg i RLS-reglane i databasen:
+     - alle kan lese meldingar og innstillingar
+     - innlegging (berre namn og tekst) er lov berre når innstillingar.open = true
+     - ingen kan endre eller slette frå nettsida
+     Brytaren slår læraren av og på i Supabase-dashbordet (Table Editor → innstillingar). -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root {
+    --gron: #2e7d32;
+    --gron-mork: #1b5e20;
+    --gron-lys: #e8f5e9;
+    --bg: #eef3ef;
+    --kort: #ffffff;
+    --tekst: #24302a;
+    --gra: #5f6b64;
+    --linje: #dfe6e1;
+    --raud: #c62828;
+    --raud-lys: #fdecea;
+    --font: system-ui, "Segoe UI", Arial, sans-serif;
+    --mono: Consolas, "Cascadia Mono", Menlo, monospace;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--tekst); font-family: var(--font); font-size: 16px; }
+
+header.topp { background: var(--gron); color: #fff; padding: 10px 16px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; border-bottom: 3px solid var(--gron-mork); }
+header.topp .tilbake { color: #fff; text-decoration: none; font-size: 14px; padding: 4px 10px; border: 1px solid rgba(255,255,255,.5); border-radius: 14px; white-space: nowrap; }
+header.topp .tilbake:hover { background: var(--gron-mork); }
+header.topp .titlar { flex: 1 1 220px; min-width: 0; }
+header.topp h1 { margin: 0; font-size: 22px; line-height: 1.2; }
+header.topp .under { margin: 2px 0 0; font-size: 13px; opacity: .9; }
+header.topp button { background: transparent; color: #fff; border: 1px solid rgba(255,255,255,.6); border-radius: 6px; padding: 6px 12px; font: inherit; font-size: 13px; cursor: pointer; }
+header.topp button:hover { background: var(--gron-mork); }
+
+.status { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px; padding: 5px 12px; border-radius: 16px; background: rgba(255,255,255,.15); white-space: nowrap; }
+.status .prikk { width: 11px; height: 11px; border-radius: 50%; background: #bbb; }
+.status.open .prikk { background: #7CFC7C; box-shadow: 0 0 8px #7CFC7C; }
+.status.stengd .prikk { background: #ff8a80; }
+
+main { max-width: 900px; margin: 0 auto; padding: 16px; display: grid; gap: 16px; }
+.kort { background: var(--kort); border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,.1); padding: 16px; }
+
+form { display: grid; gap: 10px; }
+.rad { display: grid; grid-template-columns: 180px 1fr auto; gap: 10px; align-items: start; }
+@media (max-width: 640px) { .rad { grid-template-columns: 1fr; } }
+label { font-size: 13px; color: var(--gra); display: block; margin-bottom: 3px; }
+input, textarea { width: 100%; font: inherit; padding: 8px 10px; border: 1px solid var(--linje); border-radius: 6px; background: #fff; color: var(--tekst); }
+textarea { resize: vertical; min-height: 42px; }
+input:focus, textarea:focus { outline: 2px solid var(--gron); border-color: transparent; }
+.teljar { font-size: 12px; color: var(--gra); text-align: right; margin-top: 2px; }
+button.send { background: var(--gron); color: #fff; border: 0; border-radius: 6px; padding: 10px 18px; font: inherit; font-weight: 600; cursor: pointer; margin-top: 20px; }
+button.send:hover { background: var(--gron-mork); }
+button.send:disabled { background: #9aa59f; cursor: not-allowed; }
+.melding-ut { font-size: 14px; min-height: 1.2em; }
+.melding-ut.feil { color: var(--raud); }
+.melding-ut.ok { color: var(--gron); }
+.stengd-boks { background: var(--raud-lys); border-left: 4px solid var(--raud); padding: 10px 12px; border-radius: 4px; font-size: 14px; display: none; }
+body.er-stengd .stengd-boks { display: block; }
+
+h2 { margin: 0 0 10px; font-size: 18px; }
+.liste { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.liste li { border: 1px solid var(--linje); border-radius: 8px; padding: 10px 12px; background: #fff; }
+.liste li.ny { animation: ny 1.6s ease-out; }
+@keyframes ny { from { background: var(--gron-lys); transform: translateY(-4px); } to { background: #fff; transform: none; } }
+.liste .hovud { display: flex; justify-content: space-between; gap: 10px; font-size: 13px; color: var(--gra); margin-bottom: 3px; }
+.liste .namn { font-weight: 700; color: var(--gron-mork); }
+.liste .tekst { white-space: pre-wrap; word-wrap: break-word; }
+.tom { color: var(--gra); font-style: italic; }
+
+details { font-size: 14px; }
+details summary { cursor: pointer; font-weight: 600; }
+details code, details pre { font-family: var(--mono); font-size: 13px; }
+details pre { background: #f4f6f5; padding: 10px; border-radius: 6px; overflow-x: auto; }
+
+/* Storskjerm: større tekst, skjul skjema og forklaring */
+body.storskjerm { font-size: 22px; }
+body.storskjerm main { max-width: 1400px; }
+body.storskjerm #skjemakort, body.storskjerm #forklaring { display: none; }
+body.storskjerm .liste { grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); }
+body.storskjerm .liste .hovud { font-size: 16px; }
+body.storskjerm h2 { font-size: 26px; }
+</style>
+</head>
+<body class="er-stengd">
+
+<header class="topp">
+    <a class="tilbake" href="index.html">← Sandkassa</a>
+    <div class="titlar">
+        <h1>Klassetavla</h1>
+        <p class="under">Felles meldingstavle i sanntid · Supabase</p>
+    </div>
+    <span class="status" id="status"><span class="prikk"></span><span id="statustekst">Koplar til …</span></span>
+    <button id="storskjermknapp" type="button">Storskjerm</button>
+</header>
+
+<main>
+    <section class="kort" id="skjemakort">
+        <div class="stengd-boks">Tavla er stengd. Læraren opnar ho når timen startar.</div>
+        <form id="skjema" autocomplete="off">
+            <div class="rad">
+                <div>
+                    <label for="namn">Namn</label>
+                    <input id="namn" maxlength="30" required>
+                </div>
+                <div>
+                    <label for="tekst">Melding</label>
+                    <textarea id="tekst" maxlength="200" rows="2" required></textarea>
+                    <div class="teljar"><span id="teljar">0</span> / 200</div>
+                </div>
+                <button class="send" id="sendknapp" type="submit">Send</button>
+            </div>
+            <div class="melding-ut" id="melding-ut"></div>
+        </form>
+    </section>
+
+    <section class="kort">
+        <h2>Meldingar <span id="tal" style="color:var(--gra);font-weight:400;font-size:.8em"></span></h2>
+        <ul class="liste" id="liste"><li class="tom">Hentar meldingar …</li></ul>
+    </section>
+
+    <section class="kort" id="forklaring">
+        <details>
+            <summary>Kva skjer bak kulissene?</summary>
+            <p>Sida er rein HTML og JavaScript på GitHub Pages. Ho snakkar direkte med ein Postgres-database hos Supabase. Nøkkelen i kjeldekoden er offentleg, så kven som helst kan finne han. Det er difor <strong>databasen</strong> som avgjer kva som er lov, med <em>Row Level Security</em> (RLS):</p>
+<pre>-- Alle kan lese
+create policy "Alle kan lese meldingar" on meldingar
+  for select using (true);
+
+-- Innlegging berre når brytaren er på
+create policy "Innlegging berre når tavla er open" on meldingar
+  for insert with check (
+    (select open from innstillingar where id = 1)
+  );</pre>
+            <p>Det finst ingen regel for <code>update</code> eller <code>delete</code>, så ingen kan endre eller slette meldingar frå nettsida. I tillegg har tabellen grenser på lengda (maks 30 teikn namn, 200 teikn tekst), og nettsida får berre lov å fylle ut <code>namn</code> og <code>tekst</code>. Tidspunktet set databasen sjølv.</p>
+            <p>Brytaren <code>open</code> i tabellen <code>innstillingar</code> kan berre læraren endre, i Supabase-dashbordet. Nye meldingar og endringar på brytaren kjem ut til alle med ein gong via <em>Realtime</em> (WebSocket).</p>
+            <p><strong>Prøv sjølv:</strong> Opne utviklarverktøya (F12) og sjå på nettverksfana når du sender. Prøv å sende når tavla er stengd: då svarar databasen med feilkode <code>42501</code> (brot på RLS).</p>
+        </details>
+    </section>
+</main>
+
+<script>
+const SUPABASE_URL = "https://jweqcrfxcfwknthwafiy.supabase.co";
+const SUPABASE_KEY = "sb_publishable_AVk07xriWcOERP6DBPpoQw_3NCktPNP"; // offentleg nøkkel – tryggleiken ligg i RLS
+
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const el = id => document.getElementById(id);
+const liste = el("liste");
+let erOpen = false;
+let tal = 0;
+const sett = new Set();
+
+function visStatus(open) {
+    erOpen = open;
+    const s = el("status");
+    s.classList.toggle("open", open);
+    s.classList.toggle("stengd", !open);
+    el("statustekst").textContent = open ? "Open" : "Stengd";
+    document.body.classList.toggle("er-stengd", !open);
+    el("sendknapp").disabled = !open;
+}
+
+function tid(iso) {
+    const d = new Date(iso);
+    const idag = new Date().toDateString() === d.toDateString();
+    const kl = d.toLocaleTimeString("nn-NO", { hour: "2-digit", minute: "2-digit" });
+    return idag ? kl : d.toLocaleDateString("nn-NO", { day: "numeric", month: "short" }) + " " + kl;
+}
+
+function lagElement(m, ny) {
+    const li = document.createElement("li");
+    if (ny) li.className = "ny";
+    const hovud = document.createElement("div");
+    hovud.className = "hovud";
+    const namn = document.createElement("span");
+    namn.className = "namn";
+    namn.textContent = m.namn;            // textContent: ingen HTML frå brukarar blir køyrd
+    const t = document.createElement("span");
+    t.textContent = tid(m.oppretta);
+    hovud.append(namn, t);
+    const tekst = document.createElement("div");
+    tekst.className = "tekst";
+    tekst.textContent = m.tekst;
+    li.append(hovud, tekst);
+    return li;
+}
+
+function oppdaterTal() { el("tal").textContent = tal ? `(${tal})` : ""; }
+
+function leggTil(m, ny) {
+    if (sett.has(m.id)) return;
+    sett.add(m.id);
+    const tom = liste.querySelector(".tom");
+    if (tom) tom.remove();
+    liste.prepend(lagElement(m, ny));
+    tal++;
+    oppdaterTal();
+}
+
+async function hentAlt() {
+    const [inn, mld] = await Promise.all([
+        db.from("innstillingar").select("open").eq("id", 1).single(),
+        db.from("meldingar").select("id, namn, tekst, oppretta").order("oppretta", { ascending: false }).limit(100)
+    ]);
+    if (inn.error) { el("statustekst").textContent = "Får ikkje kontakt"; console.error(inn.error); }
+    else visStatus(inn.data.open);
+
+    liste.innerHTML = "";
+    sett.clear(); tal = 0;
+    if (mld.error) { liste.innerHTML = '<li class="tom">Klarte ikkje hente meldingar.</li>'; console.error(mld.error); return; }
+    if (!mld.data.length) liste.innerHTML = '<li class="tom">Ingen meldingar enno. Ver den første!</li>';
+    mld.data.slice().reverse().forEach(m => leggTil(m, false));
+}
+
+// Sanntid: nye meldingar og endringar på brytaren
+db.channel("klassetavla")
+    .on("postgres_changes", { event: "INSERT", schema: "public", table: "meldingar" }, p => leggTil(p.new, true))
+    .on("postgres_changes", { event: "UPDATE", schema: "public", table: "innstillingar" }, p => visStatus(p.new.open))
+    .subscribe(status => { if (status === "SUBSCRIBED") hentAlt(); });
+
+hentAlt();
+
+// Skjema
+el("tekst").addEventListener("input", e => el("teljar").textContent = e.target.value.length);
+try { el("namn").value = localStorage.getItem("klassetavla-namn") || ""; } catch (e) {}
+
+el("skjema").addEventListener("submit", async e => {
+    e.preventDefault();
+    const ut = el("melding-ut");
+    const namn = el("namn").value.trim();
+    const tekst = el("tekst").value.trim();
+    if (!namn || !tekst) { ut.className = "melding-ut feil"; ut.textContent = "Fyll ut både namn og melding."; return; }
+
+    el("sendknapp").disabled = true;
+    ut.className = "melding-ut"; ut.textContent = "Sender …";
+    const { error } = await db.from("meldingar").insert({ namn, tekst });
+    el("sendknapp").disabled = !erOpen;
+
+    if (error) {
+        ut.className = "melding-ut feil";
+        if (error.code === "42501") ut.textContent = "Avvist av databasen: tavla er stengd (RLS, kode 42501).";
+        else if (error.code === "23514") ut.textContent = "Avvist: for lang eller tom tekst (kode 23514).";
+        else ut.textContent = "Noko gjekk gale: " + error.message;
+        return;
+    }
+    try { localStorage.setItem("klassetavla-namn", namn); } catch (e) {}
+    el("tekst").value = ""; el("teljar").textContent = "0";
+    ut.className = "melding-ut ok"; ut.textContent = "Sendt!";
+    setTimeout(() => { if (ut.textContent === "Sendt!") ut.textContent = ""; }, 2500);
+});
+
+// Storskjerm
+el("storskjermknapp").addEventListener("click", () => {
+    const på = document.body.classList.toggle("storskjerm");
+    el("storskjermknapp").textContent = på ? "Vanleg visning" : "Storskjerm";
+});
+</script>
+</body>
+</html>
