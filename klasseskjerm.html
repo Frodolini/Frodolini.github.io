@@ -118,7 +118,7 @@
 const SUPABASE_URL = "https://jweqcrfxcfwknthwafiy.supabase.co";
 const SUPABASE_KEY = "sb_publishable_AVk07xriWcOERP6DBPpoQw_3NCktPNP"; // offentleg nøkkel
 const FORSEINKING_MS = 1500, GRAFVINDAUGE_MS = 120000, Y_MIN = 20, Y_MAX = 100;
-const TIDSAVBROT_MS = 5000, GUL_MARGIN = 6;
+const TIDSAVBROT_MS = 5000, GUL_MARGIN = 8; // same gul-margin som i appen
 
 const $ = id => document.getElementById(id);
 const klient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
