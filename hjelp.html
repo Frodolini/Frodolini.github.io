@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="nn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#2e7d32">
+<title>Treng du hjelp? – IM-Stord</title>
+<!-- Elevside for hjelpelista. Opnast via QR-koden på klasseskjermen: hjelp.html?kode=123456 -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root { --tittel:#2e7d32; --gron:#34a853; --gul:#f9a825; --raud:#e53935; --bg:#f4f6f4; --kort:#fff; --tekst:#1c1b1f; --grå:#6b6b70; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#121612; --kort:#1e241e; --tekst:#e6ece6; --grå:#9aa59a; } }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:Roboto,system-ui,-apple-system,"Segoe UI",sans-serif; background:var(--bg); color:var(--tekst); }
+  header { background:var(--tittel); color:#fff; padding:16px 18px; padding-top:max(16px, env(safe-area-inset-top)); }
+  header h1 { margin:0; font-size:1.3rem; font-weight:500; }
+  main { max-width:520px; margin:0 auto; padding:16px; }
+  .kort { background:var(--kort); border-radius:16px; padding:18px; box-shadow:0 1px 4px rgba(0,0,0,.08); margin-bottom:14px; }
+  label { font-weight:600; display:block; margin:10px 0 6px; }
+  input, textarea { width:100%; font:inherit; font-size:1.05rem; padding:12px; border-radius:10px; border:1.5px solid #c9c5ce; background:var(--bg); color:var(--tekst); }
+  textarea { resize:none; height:70px; }
+  input:focus, textarea:focus { outline:none; border-color:var(--tittel); }
+  button { font:inherit; border:0; border-radius:28px; padding:14px 20px; font-size:1.05rem; font-weight:600; cursor:pointer; }
+  .stor { width:100%; background:var(--tittel); color:#fff; font-size:1.2rem; padding:16px; margin-top:14px; }
+  .stor:disabled { opacity:.5; }
+  .omriss { background:none; border:1.5px solid #79747e; color:var(--tittel); }
+  .gron { background:var(--gron); color:#fff; }
+  .liten { padding:8px 14px; font-size:.92rem; }
+  #mi { text-align:center; display:none; }
+  #mi .stort { font-size:3.2rem; font-weight:700; color:var(--tittel); line-height:1; margin:6px 0; }
+  #mi.paa-veg { background:#e8f5e9; } @media (prefers-color-scheme: dark) { #mi.paa-veg { background:#1f3a22; } }
+  #mi .knappar { display:flex; gap:10px; justify-content:center; margin-top:14px; }
+  h2 { font-size:1.05rem; margin:4px 0 10px; color:var(--grå); font-weight:600; }
+  ul { list-style:none; margin:0; padding:0; }
+  li { display:flex; align-items:center; gap:10px; padding:12px 0; border-top:1px solid rgba(128,128,128,.2); }
+  li:first-child { border-top:0; }
+  .nr { font-weight:700; color:var(--grå); width:1.6em; text-align:center; }
+  .info { flex:1; min-width:0; }
+  .namn { font-weight:700; }
+  .tekst { color:var(--grå); font-size:.92rem; overflow:hidden; text-overflow:ellipsis; }
+  .chip { color:var(--tittel); font-size:.85rem; font-weight:700; }
+  .tom { color:var(--grå); text-align:center; padding:10px 0; }
+  #feil { color:var(--raud); font-weight:600; margin-top:10px; min-height:1.2em; }
+  .skjult { display:none !important; }
+</style>
+</head>
+<body>
+<header><h1>🙋 Treng du hjelp?</h1></header>
+<main>
+  <div class="kort skjult" id="kodekort">
+    <label for="kode">Romkode (står på klasseskjermen)</label>
+    <input id="kode" inputmode="numeric" maxlength="6" placeholder="123456">
+    <button class="stor" id="kodeknapp">OK</button>
+  </div>
+
+  <div class="kort" id="mi">
+    <div id="mitekst1">Du er nummer</div>
+    <div class="stort" id="mitekst2">–</div>
+    <div id="mitekst3">i køen</div>
+    <div class="knappar">
+      <button class="gron" id="loyst">✅ Det er løyst</button>
+      <button class="omriss" id="avbryt">Avbryt</button>
+    </div>
+  </div>
+
+  <div class="kort" id="skjema">
+    <label for="namn">Namnet ditt</label>
+    <input id="namn" maxlength="30" autocomplete="given-name" placeholder="Fornamn">
+    <label for="melding">Kva treng du hjelp med? <span style="font-weight:400;color:var(--grå)">(valfritt)</span></label>
+    <textarea id="melding" maxlength="140" placeholder="T.d. «VLAN-oppgåva i Packet Tracer»"></textarea>
+    <button class="stor" id="send">🙋 Eg treng hjelp</button>
+    <div id="feil"></div>
+  </div>
+
+  <div class="kort">
+    <h2>Desse ventar på hjelp – kan du hjelpe nokon?</h2>
+    <ul id="liste"><li class="tom">Lastar …</li></ul>
+  </div>
+</main>
+
+<script>
+const SUPABASE_URL = "https://jweqcrfxcfwknthwafiy.supabase.co";
+const SUPABASE_KEY = "sb_publishable_AVk07xriWcOERP6DBPpoQw_3NCktPNP";
+const klient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const $ = id => document.getElementById(id);
+const lager = {
+  get: k => { try { return localStorage.getItem(k); } catch { return null; } },
+  set: (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch {} }
+};
+
+let kode = new URLSearchParams(location.search).get("kode") || lager.get("hjelp-kode");
+let minId = lager.get("hjelp-min-id");
+let liste = [], fekkHjelpVarsla = false;
+$("namn").value = lager.get("hjelp-namn") || "";
+
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+const mittNamn = () => $("namn").value.trim();
+
+async function sjekkKode() {
+  const { data: ok } = await klient.rpc("hjelp_sjekk_kode", { p_kode: kode });
+  if (!ok) { $("kodekort").classList.remove("skjult"); $("liste").innerHTML = `<li class="tom">Skriv inn romkoden først</li>`; return false; }
+  lager.set("hjelp-kode", kode);
+  $("kodekort").classList.add("skjult");
+  return true;
+}
+$("kodeknapp").onclick = async () => { kode = $("kode").value.trim(); if (await sjekkKode()) start(); };
+
+async function hent() {
+  const { data, error } = await klient.rpc("hjelp_hent", { p_kode: kode });
+  if (error) return;
+  liste = data || [];
+  teikn();
+}
+
+function teikn() {
+  // Min eigen førespurnad
+  const mi = liste.find(h => String(h.id) === String(minId));
+  if (minId && !mi) { minId = null; lager.set("hjelp-min-id", null); fekkHjelpVarsla = false; }
+  $("mi").style.display = mi ? "block" : "none";
+  $("skjema").classList.toggle("skjult", !!mi);
+  if (mi) {
+    if (mi.status === "hjelper") {
+      $("mi").classList.add("paa-veg");
+      $("mitekst1").textContent = "";
+      $("mitekst2").textContent = "🏃 " + (mi.hjelpar || "Nokon");
+      $("mitekst3").textContent = "er på veg til deg!";
+      if (!fekkHjelpVarsla) { navigator.vibrate?.([200, 100, 200]); fekkHjelpVarsla = true; }
+    } else {
+      $("mi").classList.remove("paa-veg");
+      const ventande = liste.filter(h => h.status === "ventar");
+      $("mitekst1").textContent = "Du er nummer";
+      $("mitekst2").textContent = ventande.findIndex(h => h.id === mi.id) + 1;
+      $("mitekst3").textContent = "i køen";
+      fekkHjelpVarsla = false;
+    }
+  }
+
+  // Lista
+  if (!liste.length) { $("liste").innerHTML = `<li class="tom">🎉 Ingen ventar på hjelp</li>`; return; }
+  let k = 0;
+  $("liste").innerHTML = liste.map(h => {
+    const nr = h.status === "hjelper" ? "🏃" : ++k;
+    const erMeg = String(h.id) === String(minId);
+    const egHjelper = h.status === "hjelper" && mittNamn() && (h.hjelpar || "").toLowerCase() === mittNamn().toLowerCase();
+    let knapp = "";
+    if (!erMeg) {
+      if (h.status === "ventar") knapp = `<button class="omriss liten" data-hjelp="${h.id}">Eg kan hjelpe</button>`;
+      else if (egHjelper) knapp = `<button class="gron liten" data-ferdig="${h.id}">Ferdig</button>`;
+    }
+    return `<li>
+      <span class="nr">${nr}</span>
+      <div class="info"><div class="namn">${esc(h.namn)}${erMeg ? " (deg)" : ""}</div>
+        ${h.melding ? `<div class="tekst">${esc(h.melding)}</div>` : ""}
+        ${h.status === "hjelper" ? `<div class="chip">${esc(h.hjelpar || "Nokon")} hjelper</div>` : ""}</div>
+      ${knapp}</li>`;
+  }).join("");
+}
+
+$("liste").onclick = async e => {
+  const hjelpId = e.target.dataset.hjelp, ferdigId = e.target.dataset.ferdig;
+  if (hjelpId) {
+    if (!mittNamn()) { $("namn").focus(); $("feil").textContent = "Skriv namnet ditt først, så ser dei kven som kjem."; return; }
+    lager.set("hjelp-namn", mittNamn());
+    await klient.rpc("hjelp_sett_status", { p_kode: kode, p_id: +hjelpId, p_status: "hjelper", p_hjelpar: mittNamn() });
+  } else if (ferdigId) {
+    await klient.rpc("hjelp_sett_status", { p_kode: kode, p_id: +ferdigId, p_status: "ferdig" });
+  }
+  hent();
+};
+
+$("send").onclick = async () => {
+  $("feil").textContent = "";
+  if (!mittNamn()) { $("feil").textContent = "Skriv namnet ditt."; $("namn").focus(); return; }
+  $("send").disabled = true;
+  const { data, error } = await klient.rpc("hjelp_be_om", { p_kode: kode, p_namn: mittNamn(), p_melding: $("melding").value.trim() });
+  $("send").disabled = false;
+  if (error) { $("feil").textContent = error.message.includes("full") ? "Lista er full – vent litt." : "Noko gjekk gale. Prøv igjen."; return; }
+  lager.set("hjelp-namn", mittNamn());
+  minId = data; lager.set("hjelp-min-id", minId);
+  $("melding").value = "";
+  hent();
+};
+
+async function ferdigMed() {
+  if (!minId) return;
+  await klient.rpc("hjelp_sett_status", { p_kode: kode, p_id: +minId, p_status: "ferdig" });
+  minId = null; lager.set("hjelp-min-id", null);
+  hent();
+}
+$("loyst").onclick = ferdigMed;
+$("avbryt").onclick = ferdigMed;
+
+function start() {
+  hent();
+  klient.channel("hjelpeliste").on("broadcast", { event: "endra" }, hent).subscribe();
+  setInterval(hent, 20000);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) hent(); });
+}
+
+(async () => { if (kode && await sjekkKode()) start(); else { $("kodekort").classList.remove("skjult"); } })();
+</script>
+</body>
+</html>

@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="nn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Klasseskjerm – IM-Stord</title>
+<!--
+  Klasseskjerm for TV: lydmålar (venstre) + hjelpeliste (høgre).
+  Opne med romkoden i adressa:  klasseskjerm.html?kode=123456
+  Elevane skannar QR-koden og kjem til hjelp.html med same kode.
+
+  Lydmålar – Supabase Realtime, PRIVAT kanal "sensorlab-live", event "lyd".
+    Sensorlab-appen sender éi melding i sekundet via RPC lyd_send(p_nokkel, p_data):
+      { t, dt, lyd: [dB...], grense, tidIRaudt }     (og { slutt: true } når sendinga blir slått av)
+    Berre den som har sendarnøkkelen kan sende. Denne sida kan berre lytte.
+  Hjelpeliste – RPC hjelp_hent(kode), oppdateringsvarsel på kanal "hjelpeliste" (event "endra").
+-->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+<style>
+  :root { --tittel:#2e7d32; --gron:#34a853; --gul:#f9a825; --raud:#e53935; --av:#78909c;
+          --kort:#fdf9fd; --tekst:#1c1b1f; --grå:#6b6b70; --linje:#e4e0e8; }
+  * { box-sizing:border-box; }
+  html, body { height:100%; margin:0; overflow:hidden; }
+  body { font-family:Roboto,system-ui,-apple-system,"Segoe UI",sans-serif; background:var(--kort); color:var(--tekst); display:flex; flex-direction:column; }
+  header { background:var(--tittel); color:#fff; padding:0 2.5vw; height:8vh; min-height:48px; display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+  header h1 { margin:0; font-weight:500; font-size:clamp(1.1rem,3.8vh,2.8rem); white-space:nowrap; }
+  #klokke { font-size:clamp(1rem,3.4vh,2.4rem); font-variant-numeric:tabular-nums; }
+  main { flex:1; display:grid; grid-template-columns:1fr 1fr; min-height:0; }
+
+  /* ---- Lydmålar ---- */
+  #lyd { display:flex; flex-direction:column; min-height:0; }
+  #panel { flex:1.4; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#fff; background:var(--av); transition:background .6s; text-align:center; position:relative; }
+  #panel .merke { position:absolute; top:2vh; left:2vw; font-weight:700; font-size:clamp(.8rem,2vh,1.4rem); background:rgba(0,0,0,.2); padding:.3em .8em; border-radius:2em; display:flex; gap:.5em; align-items:center; }
+  .prikk { width:.7em; height:.7em; border-radius:50%; background:#cfd8dc; }
+  .live .prikk { background:#ff5252; animation:puls 1.2s infinite; }
+  @keyframes puls { 0%{box-shadow:0 0 0 0 rgba(255,82,82,.7)} 70%{box-shadow:0 0 0 .6em rgba(255,82,82,0)} 100%{box-shadow:0 0 0 0 rgba(255,82,82,0)} }
+  #tal { font-size:clamp(4rem,26vh,20rem); font-weight:700; line-height:.95; font-variant-numeric:tabular-nums; }
+  #melding { font-size:clamp(1.2rem,5vh,4rem); font-weight:700; margin-top:.5vh; }
+  #panel.raud #tal { animation:blink 1s infinite; }
+  @keyframes blink { 50% { opacity:.55; } }
+  #lydkort { flex:1; padding:2vh 2vw; display:flex; flex-direction:column; gap:1.2vh; min-height:0; border-right:2px solid var(--linje); }
+  #graf { width:100%; flex:1; min-height:60px; }
+  .rad { display:flex; justify-content:space-between; font-size:clamp(1rem,3vh,2.2rem); }
+  .rad b { font-variant-numeric:tabular-nums; }
+
+  /* ---- Hjelpeliste ---- */
+  #hjelp { display:flex; flex-direction:column; padding:2.5vh 2vw; min-height:0; }
+  #hjelp h2 { margin:0 0 1.5vh; font-size:clamp(1.3rem,4.5vh,3.4rem); display:flex; align-items:center; gap:.4em; }
+  #antal { background:var(--tittel); color:#fff; border-radius:1em; padding:0 .55em; font-size:.75em; min-width:1.6em; text-align:center; }
+  #liste { flex:1; list-style:none; margin:0; padding:0; overflow:hidden; display:flex; flex-direction:column; gap:1.2vh; }
+  #liste li { display:flex; align-items:center; gap:1.2vw; background:#fff; border-radius:1.6vh; padding:1.4vh 1.2vw; box-shadow:0 1px 3px rgba(0,0,0,.08); border-left:.8vh solid var(--gul); animation:inn .4s ease-out; }
+  #liste li.hjelper { border-left-color:var(--gron); opacity:.85; }
+  @keyframes inn { from { transform:translateX(30px); opacity:0; } }
+  .nr { font-size:clamp(1.2rem,4.5vh,3.2rem); font-weight:700; color:var(--grå); min-width:1.6em; text-align:center; font-variant-numeric:tabular-nums; }
+  .info { flex:1; min-width:0; }
+  .namn { font-size:clamp(1.1rem,3.8vh,2.8rem); font-weight:700; }
+  .tekst { font-size:clamp(.9rem,2.6vh,1.9rem); color:var(--grå); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .hoyre { text-align:right; white-space:nowrap; }
+  .tid { font-size:clamp(.9rem,2.6vh,1.9rem); color:var(--grå); font-variant-numeric:tabular-nums; }
+  .chip { display:inline-block; background:#e8f5e9; color:var(--tittel); font-weight:700; border-radius:2em; padding:.15em .7em; font-size:clamp(.8rem,2.3vh,1.7rem); margin-top:.3vh; }
+  .tom { color:var(--grå); font-size:clamp(1.1rem,3.4vh,2.4rem); text-align:center; margin:auto; }
+  .tom div { font-size:2.5em; }
+  #botn { display:flex; align-items:center; gap:2vw; padding-top:1.5vh; border-top:2px solid var(--linje); margin-top:1.5vh; }
+  #qr { width:16vh; height:16vh; min-width:90px; min-height:90px; background:#fff; padding:.8vh; border-radius:1vh; flex-shrink:0; }
+  #qr svg, #qr img { width:100%; height:100%; display:block; }
+  #botn .tekst2 { font-size:clamp(1rem,3.2vh,2.4rem); font-weight:700; }
+  #botn .liten { font-size:clamp(.8rem,2.2vh,1.6rem); color:var(--grå); font-weight:400; margin-top:.5vh; word-break:break-all; }
+
+  #kodeboks { position:fixed; inset:0; background:rgba(0,0,0,.6); display:none; align-items:center; justify-content:center; }
+  #kodeboks form { background:#fff; padding:30px; border-radius:16px; text-align:center; }
+  #kodeboks input { font-size:2rem; width:8em; text-align:center; letter-spacing:.2em; margin:12px 0; }
+  #feil { color:var(--raud); font-weight:700; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Klasseskjerm · IM-Stord</h1>
+  <span id="klokke"></span>
+</header>
+
+<main>
+  <section id="lyd">
+    <div id="panel">
+      <div class="merke" id="lydstatus"><span class="prikk"></span><span id="lydstatustekst">Lydmålar av</span></div>
+      <div id="tal">–</div>
+      <div id="melding">Lydmålaren er av</div>
+    </div>
+    <div id="lydkort">
+      <canvas id="graf"></canvas>
+      <div class="rad"><span>Grense</span><b id="grense">–</b></div>
+      <div class="rad"><span>Tid i raudt</span><b id="raudtid">0:00</b></div>
+    </div>
+  </section>
+
+  <section id="hjelp">
+    <h2>🙋 Treng hjelp <span id="antal">0</span></h2>
+    <ul id="liste"></ul>
+    <div id="botn">
+      <div id="qr"></div>
+      <div>
+        <div class="tekst2">Står du fast? Skann koden</div>
+        <div class="liten" id="lenkje"></div>
+        <div class="liten" id="feil"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div id="kodeboks"><form id="kodeform">
+  <h2>Skriv inn romkode</h2>
+  <input id="kodeinput" inputmode="numeric" maxlength="6" autofocus><br>
+  <button>Start</button>
+</form></div>
+
+<script>
+// ================= Oppsett =================
+const SUPABASE_URL = "https://jweqcrfxcfwknthwafiy.supabase.co";
+const SUPABASE_KEY = "sb_publishable_AVk07xriWcOERP6DBPpoQw_3NCktPNP"; // offentleg nøkkel
+const FORSEINKING_MS = 1500, GRAFVINDAUGE_MS = 120000, Y_MIN = 20, Y_MAX = 100;
+const TIDSAVBROT_MS = 5000, GUL_MARGIN = 6;
+
+const $ = id => document.getElementById(id);
+const klient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ================= Romkode =================
+const param = new URLSearchParams(location.search).get("kode");
+let kode = param || (() => { try { return localStorage.getItem("klasseskjerm-kode"); } catch { return null; } })();
+let hjelpStarta = false;
+
+async function startHjelp() {
+  const { data: ok } = await klient.rpc("hjelp_sjekk_kode", { p_kode: kode });
+  if (!ok) { $("kodeboks").style.display = "flex"; return; }
+  try { localStorage.setItem("klasseskjerm-kode", kode); } catch {}
+  $("kodeboks").style.display = "none";
+  lagQR();
+  hentListe();
+  if (hjelpStarta) return;
+  hjelpStarta = true;
+  klient.channel("hjelpeliste").on("broadcast", { event: "endra" }, hentListe).subscribe();
+  setInterval(hentListe, 20000); // reserve om eit varsel skulle gå tapt
+}
+$("kodeform").onsubmit = e => { e.preventDefault(); kode = $("kodeinput").value.trim(); startHjelp(); };
+
+function lagQR() {
+  const url = new URL("hjelp.html", location.href);
+  url.search = "?kode=" + kode;
+  const qr = qrcode(0, "M");
+  qr.addData(url.href); qr.make();
+  $("qr").innerHTML = qr.createSvgTag({ cellSize: 4, margin: 0, scalable: true });
+  $("lenkje").textContent = url.href.replace(/^https?:\/\//, "");
+}
+
+// ================= Hjelpeliste =================
+let liste = [];
+async function hentListe() {
+  const { data, error } = await klient.rpc("hjelp_hent", { p_kode: kode });
+  if (error) { $("feil").textContent = "Får ikkje kontakt med lista"; return; }
+  $("feil").textContent = "";
+  liste = data || [];
+  teiknListe();
+}
+
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+function ventetid(iso) {
+  const min = Math.floor((Date.now() - new Date(iso)) / 60000);
+  return min < 1 ? "no" : min + " min";
+}
+function teiknListe() {
+  $("antal").textContent = liste.length;
+  if (!liste.length) {
+    $("liste").innerHTML = `<li class="tom" style="background:none;box-shadow:none;border:0"><span><div>🎉</div>Ingen ventar på hjelp</span></li>`;
+    return;
+  }
+  // behald eksisterande element (unngå at animasjonen spelar kvar gong)
+  const gamle = new Map([...$("liste").children].map(li => [li.dataset.id, li]));
+  let k = 0;
+  const nye = liste.map(h => {
+    const nr = h.status === "hjelper" ? "🏃" : ++k;
+    const html = `
+      <div class="nr">${nr}</div>
+      <div class="info"><div class="namn">${esc(h.namn)}</div>${h.melding ? `<div class="tekst">${esc(h.melding)}</div>` : ""}</div>
+      <div class="hoyre"><div class="tid">${ventetid(h.oppretta)}</div>${h.status === "hjelper" ? `<div class="chip">${esc(h.hjelpar || "Nokon")} hjelper</div>` : ""}</div>`;
+    let li = gamle.get(String(h.id));
+    if (!li) { li = document.createElement("li"); li.dataset.id = h.id; }
+    if (li.innerHTML !== html) li.innerHTML = html;
+    li.className = h.status === "hjelper" ? "hjelper" : "";
+    return li;
+  });
+  $("liste").replaceChildren(...nye);
+}
+setInterval(teiknListe, 30000); // oppdater ventetid
+
+// ================= Klokke =================
+setInterval(() => $("klokke").textContent = new Date().toLocaleTimeString("nn-NO", { hour: "2-digit", minute: "2-digit", hourCycle: "h23" }), 1000);
+
+// ================= Lydmålar =================
+// punkt[].t er klokka på TELEFONEN. klokkeAvvik = (klokka her) − (klokka på telefonen) + nettforseinking,
+// slik at det ikkje gjer noko om dei to klokkene ikkje går heilt likt.
+let punkt = [], grense = 58, tidIRaudtApp = null, sistMotteke = 0, klokkeAvvik = null, lokalRaudMs = 0, sistTikk = performance.now();
+
+function motta(p) {
+  if (!p) return;
+  if (p.slutt) { sistMotteke = 0; return; }            // appen slo av sendinga
+  if (!Array.isArray(p.lyd) || !p.lyd.length) return;
+  const no = Date.now();
+  if (no - sistMotteke > TIDSAVBROT_MS) { punkt = []; lokalRaudMs = 0; tidIRaudtApp = null; klokkeAvvik = null; } // ny økt
+  const dt = p.dt > 0 ? p.dt : 200, t = typeof p.t === "number" ? p.t : no;
+  const avvik = no - t;
+  // minste avvik = raskaste melding. Får krype sakte oppover, så det rettar seg om nettet blir tregare.
+  klokkeAvvik = klokkeAvvik === null ? avvik : Math.min(avvik, klokkeAvvik + 5);
+  p.lyd.forEach((db, i) => { if (typeof db === "number" && isFinite(db)) punkt.push({ t: t - (p.lyd.length - 1 - i) * dt, db }); });
+  if (typeof p.grense === "number") grense = p.grense;
+  tidIRaudtApp = typeof p.tidIRaudt === "number" ? p.tidIRaudt : null;
+  sistMotteke = no;
+  const eldst = no - klokkeAvvik - GRAFVINDAUGE_MS - 5000;
+  while (punkt.length && punkt[0].t < eldst) punkt.shift();
+}
+const fmtTid = s => { s = Math.floor(s); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); };
+
+const cv = $("graf"), ctx = cv.getContext("2d");
+function teiknGraf(no) {
+  const dpr = window.devicePixelRatio || 1, w = cv.clientWidth, h = cv.clientHeight;
+  if (cv.width !== w * dpr || cv.height !== h * dpr) { cv.width = w * dpr; cv.height = h * dpr; }
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, w, h);
+  const pad = 4, y = db => pad + (1 - (Math.min(Math.max(db, Y_MIN), Y_MAX) - Y_MIN) / (Y_MAX - Y_MIN)) * (h - 2 * pad);
+  const fs = Math.max(11, Math.min(22, h * 0.11));
+  ctx.strokeStyle = "#e4e0e8"; ctx.lineWidth = 1.5; ctx.fillStyle = "#6b6b70"; ctx.font = `${fs}px Roboto, sans-serif`;
+  for (const v of [20, 40, 60, 80, 100]) { ctx.beginPath(); ctx.moveTo(0, y(v)); ctx.lineTo(w, y(v)); ctx.stroke(); }
+  ctx.fillText("100", 2, y(100) + fs); ctx.fillText("20", 2, y(20) - 4);
+  ctx.strokeStyle = "#e53935"; ctx.lineWidth = Math.max(2.5, Math.min(5, h * 0.015));
+  ctx.beginPath(); ctx.moveTo(0, y(grense)); ctx.lineTo(w, y(grense)); ctx.stroke();
+  const start = no - GRAFVINDAUGE_MS, vis = punkt.filter(p => p.t >= start && p.t <= no);
+  if (vis.length > 1) {
+    ctx.strokeStyle = "#1c1b1f"; ctx.lineWidth = Math.max(2, Math.min(3.5, h * 0.01)); ctx.lineJoin = "round"; ctx.beginPath();
+    vis.forEach((p, i) => { const x = (p.t - start) / GRAFVINDAUGE_MS * w; i ? ctx.lineTo(x, y(p.db)) : ctx.moveTo(x, y(p.db)); });
+    ctx.stroke();
+  }
+}
+
+function tikk() {
+  const naa = performance.now(), dtMs = naa - sistTikk; sistTikk = naa;
+  const live = klokkeAvvik !== null && Date.now() - sistMotteke < TIDSAVBROT_MS;
+  $("lydstatus").classList.toggle("live", live);
+  $("lydstatustekst").textContent = live ? "LIVE" : "Lydmålar av";
+  const panel = $("panel");
+  if (live) {
+    const avspel = Date.now() - klokkeAvvik - FORSEINKING_MS;   // i telefonen si klokke
+    let gjeld = null;
+    for (let i = punkt.length - 1; i >= 0; i--) if (punkt[i].t <= avspel) { gjeld = punkt[i]; break; }
+    if (gjeld) {
+      const db = Math.round(gjeld.db);
+      let farge = "gron", tekst = "Fint arbeidsnivå";
+      if (db >= grense) { farge = "raud"; tekst = "For høgt no!"; lokalRaudMs += dtMs; }
+      else if (db >= grense - GUL_MARGIN) { farge = "gul"; tekst = "Litt høgt – dempe litt"; }
+      $("tal").textContent = db; $("melding").textContent = tekst;
+      panel.className = farge; panel.style.background = `var(--${farge})`;
+    }
+    $("grense").textContent = Math.round(grense) + " dB";
+    $("raudtid").textContent = fmtTid(tidIRaudtApp ?? lokalRaudMs / 1000);
+    teiknGraf(avspel);
+  } else {
+    panel.className = ""; panel.style.background = "var(--av)";
+    $("tal").textContent = "–"; $("melding").textContent = "Lydmålaren er av";
+  }
+  requestAnimationFrame(tikk);
+}
+requestAnimationFrame(tikk);
+
+// Privat kanal: databasen slepp berre gjennom meldingar som kjem via lyd_send() med rett sendarnøkkel.
+klient.channel("sensorlab-live", { config: { private: true } })
+  .on("broadcast", { event: "lyd" }, ({ payload }) => motta(payload))
+  .subscribe();
+
+// ================= Start =================
+if (kode) startHjelp(); else $("kodeboks").style.display = "flex";
+</script>
+</body>
+</html>
