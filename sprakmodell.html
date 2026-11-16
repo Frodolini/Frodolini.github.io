@@ -225,6 +225,17 @@ button:focus-visible, a:focus-visible, input:focus-visible, summary:focus-visibl
 .q .alt button:disabled { cursor: default; opacity: 1; }
 .q .fork { font-size: 14px; color: var(--muted); margin-top: 8px; font-weight: 400; }
 ul.tett { margin: 6px 0 4px; padding-left: 20px; } ul.tett li { margin-bottom: 4px; }
+.trinn { background: var(--panel2); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; margin: 10px 0 12px; min-height: 190px; }
+.trinn p:last-child { margin-bottom: 0; }
+#bane { flex-wrap: nowrap; gap: 3px; align-items: stretch; }
+#bane .arr { align-self: center; }
+#bane .box { flex: 1 1 0; min-width: 0; padding: 6px 3px; overflow-wrap: anywhere; font-size: 13px; font-weight: 600; transition: background .2s, border-color .2s; }
+#bane .box small { display: block; font-weight: 400; color: var(--muted); font-size: 11px; }
+#bane .box.key { border-width: 2px; }
+#bane .arr { flex: 0 0 auto; }
+.prikkar { display: flex; gap: 5px; }
+.prikkar i { width: 8px; height: 8px; border-radius: 50%; background: var(--border); }
+.prikkar i.on { background: var(--accent); }
 </style>
 </head>
 <body>
@@ -284,6 +295,31 @@ ul.tett { margin: 6px 0 4px; padding-left: 20px; } ul.tett li { margin-bottom: 4
         <li><b>Be om kjelder,</b> og opne dei. Modellen kan dikte opp kjelder òg.</li>
         <li><b>Godt språk er ikkje bevis.</b> Ei setning kan vere heilt feil og likevel høyrest klok ut.</li>
     </ul>
+</section>
+
+<section class="card">
+    <p class="steg">Steg 4</p>
+    <h2>Frå tastetrykk til svar</h2>
+    <p>Kva skjer eigentleg frå du trykkjer send til svaret dukkar opp? Den ferdige modellen er berre ei stor fil med tal. For å bruke han trengst to ting: <b>inferensprogramvare</b>, som er programmet som køyrer modellen, og <b>GPU-ar</b>, som gjer sjølve reknejobben. Bla gjennom trinna.</p>
+    <div class="flow" id="bane" aria-hidden="true"></div>
+    <div class="trinn" aria-live="polite">
+        <p class="small" id="trinnNr" style="margin:0"></p>
+        <h3 id="trinnTittel" style="margin:2px 0 6px"></h3>
+        <p id="trinnTekst"></p>
+    </div>
+    <div class="row" style="justify-content:space-between">
+        <button class="btn" id="trinnForrige">← Førre</button>
+        <span class="prikkar" id="prikkar"></span>
+        <button class="btn primary" id="trinnNeste">Neste →</button>
+    </div>
+    <div class="note" style="margin-top:14px"><b>Trening og inferens</b>Å lage modellen heiter <b>trening</b>. Det tek veker eller månader på tusenvis av GPU-ar, og blir gjort éin gong. Å bruke den ferdige modellen heiter <b>inferens</b>. Det er det som skjer kvar gong du sender ein prompt.</div>
+    <details><summary>Kvifor GPU og ikkje vanleg prosessor?</summary>
+        <p>Ein GPU (grafikkprosessor) vart laga for å teikne spelgrafikk: tusenvis av enkle reknestykke på likt. Ein språkmodell treng akkurat det same, berre mykje meir av det. Ein vanleg prosessor (CPU) gjer få ting om gongen og ville brukt minutt på eit svar som ein GPU lagar på sekund.</p>
+        <p>Modellen må òg få plass i minnet på GPU-en. Difor har dei store datasentera GPU-ar med svært mykje minne, og difor brukar KI så mykje straum.</p>
+    </details>
+    <details><summary>Kan eg køyre ein språkmodell heime?</summary>
+        <p>Ja, små modellar. Program som Ollama og LM Studio er inferensprogramvare du kan installere på din eigen PC. Med eit godt skjermkort går det fint. Då går ingenting ut på nettet, men modellen er mykje mindre enn dei store i datasentera.</p>
+    </details>
 </section>
 
 <section class="card">
@@ -546,12 +582,40 @@ $("demoar").onclick = e => {
     $("demoUt").innerHTML = `<div class="demo ${d.ok ? "ok" : "bad"}"><p class="setn">${esc(s0)}<span class="ny">${esc(sAlle.slice(s0.length))}</span></p><p>${esc(d.dom)}</p><p class="small">${esc(r.forste.kvifor)}</p></div>`;
 };
 
+/* ---------- Steg 4: frå tastetrykk til svar ---------- */
+const BANE = [["Du", "nett&shy;lesar"], ["Internett", "kryptert"], ["Inferens", "program&shy;vare"], ["GPU", "reknar"]];
+// [tittel, tekst, kva boksar som lyser]
+const TRINN = [
+    ["Du trykkjer send", "Prompten din blir sendt kryptert over internett til eit datasenter. Der står tusenvis av maskiner som deler på jobben. På di eiga maskin skjer det nesten ingenting.", [0, 1]],
+    ["Inferensprogrammet tek imot", "Programmet set meldinga di i kø og lagar éin lang tekst: instruksane frå tenesta, heile samtalen så langt og den nye meldinga di. Modellen hugsar nemleg ingenting sjølv. Alt blir sendt inn på nytt kvar gong.", [2]],
+    ["Teksten blir til token", "Den lange teksten blir delt i token, og kvart token blir bytt ut med nummeret sitt. Det er det same som du såg i steg 1.", [2]],
+    ["GPU-en reknar", "Modellen ligg klar i minnet på GPU-en: milliardar av tal som heiter parametrar. Token-nummera blir sende gjennom lag etter lag i det nevrale nettet. Det er milliardar av gongestykke, og GPU-en gjer tusenvis av dei på likt.", [3]],
+    ["Ut kjem ei liste med sannsyn", "Svaret frå GPU-en er ikkje ein tekst. Det er eitt tal for kvart token i tokenlista, om lag 100 000 tal, som seier kor sannsynleg det er at akkurat det tokenet kjem no. Det er søylene du såg i steg 2.", [3]],
+    ["Programmet vel eitt token, og så ein runde til", "Inferensprogrammet vel eitt token ut frå sannsyna og temperaturen. Tokenet blir lagt til bak teksten, og heile den nye teksten blir send gjennom GPU-en på nytt. Éin runde for kvart token i svaret.", [2, 3]],
+    ["Svaret strøymer tilbake til deg", "Kvart nytt token blir gjort om til tekst og sendt til deg med ein gong. Difor ser det ut som om svaret blir skrive medan du ser på. Rundane stoppar når modellen vel eit eige stopp-token, eller når svaret har vorte langt nok.", [0, 1, 2]],
+];
+let trinn = 0;
+function visTrinn() {
+    const [tittel, tekst, lys] = TRINN[trinn];
+    $("bane").innerHTML = BANE.map(([n, u], i) => `<div class="box${lys.includes(i) ? " key" : ""}">${n}<small>${u}</small></div>`).join('<span class="arr">⇄</span>');
+    $("trinnNr").textContent = `Trinn ${trinn + 1} av ${TRINN.length}`;
+    $("trinnTittel").textContent = tittel;
+    $("trinnTekst").textContent = tekst;
+    $("prikkar").innerHTML = TRINN.map((_, i) => `<i class="${i === trinn ? "on" : ""}"></i>`).join("");
+    $("trinnForrige").disabled = trinn === 0;
+    $("trinnNeste").textContent = trinn === TRINN.length - 1 ? "Frå start" : "Neste →";
+}
+$("trinnForrige").onclick = () => { if (trinn > 0) { trinn--; visTrinn(); } };
+$("trinnNeste").onclick = () => { trinn = trinn === TRINN.length - 1 ? 0 : trinn + 1; visTrinn(); };
+visTrinn();
+
 /* ---------- Sjekk deg sjølv ---------- */
 const QUIZ = [
     ["Kva er eit token?", "Ein bit av teksten, ofte eit ord eller ein del av eit ord", ["Eit passord til KI-tenesta", "Ei setning modellen har lært utanåt", "Eit svar som modellen har dikta opp"], "Teksten blir delt i token, og kvart token får eit tal. Modellen arbeider berre med tala."],
     ["Kva gjer ein språkmodell når han skriv eit svar?", "Gjettar det neste tokenet, om att og om att", ["Slår opp svaret i eit leksikon", "Kopierer ei ferdig setning frå nettet", "Tenkjer gjennom saka slik eit menneske gjer"], "Kvart ord i svaret er ei gjetting ut frå teksten som står framfor."],
     ["Kva skjer når du set temperaturen høgare?", "Ordvala blir meir tilfeldige og varierte", ["Svara blir meir korrekte", "Modellen svarar raskare", "Modellen les meir tekst før han svarar"], "Låg temperatur gir trygge og like svar. Høg temperatur gir meir variasjon, og meir tull."],
     ["Kvifor kan KI dikte opp svar?", "Modellen lagar tekst som passar i mønsteret, utan å sjekke om det er sant", ["Modellen lyg med vilje for å verke smart", "Internett var nede då spørsmålet kom inn", "Modellen er programmert til å tulle av og til"], "Modellen har lært mønster i språk, ikkje ei liste med fakta. Det heiter hallusinasjon når svaret er oppdikta."],
+    ["Kva gjer GPU-en når du har sendt ein prompt?", "Reknar ut kor sannsynleg kvart token er som det neste", ["Søkjer gjennom internett etter eit ferdig svar", "Teiknar bokstavane i svaret på skjermen din", "Lagrar samtalen din til neste gong du loggar inn"], "GPU-en gjer milliardar av gongestykke for kvart token. Inferensprogrammet vel så eitt token og startar ein ny runde."],
     ["Du får eit årstal frå ein KI og skal bruke det i ei oppgåve. Kva gjer du?", "Sjekkar det mot ei kjelde eg stolar på", ["Stolar på det, sidan svaret var langt og grundig", "Spør same KI om han er heilt sikker", "Stolar på det, sidan språket var feilfritt"], "Godt språk er ikkje bevis. Spør du modellen om han er sikker, gjettar han berre ein gong til."],
 ];
 function stokk(a) { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
