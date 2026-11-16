@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="nn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Slik verkar ein språkmodell</title>
+<meta name="description" content="Slik verkar ein språkmodell: token, gjetting av neste ord, temperatur og kvifor KI kan dikte opp svar. Prøv ein bitte liten språkmodell i nettlesaren.">
+<meta name="theme-color" content="#1f7a3f">
+<style>
+:root {
+    --bg: #eef2f6;
+    --panel: #ffffff;
+    --panel2: #f2f5f9;
+    --border: #d3dae3;
+    --text: #1b2230;
+    --muted: #5b6577;
+    --accent: #2e7d32;
+    --accent-soft: #e0f2e1;
+    --ok: #15803d;
+    --okbg: #dcfce7;
+    --bad: #b91c1c;
+    --badbg: #fee2e2;
+    --warn: #a16207;
+    --warnbg: #fef3c7;
+    --c1: #2563eb;
+    --c2: #c2410c;
+    --c3: #7c3aed;
+    --hl: #fde68a;
+    color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #171c26;
+        --panel: #222936;
+        --panel2: #2a3242;
+        --border: #3a4356;
+        --text: #e5e8ee;
+        --muted: #9aa3b4;
+        --accent: #81c784;
+        --accent-soft: #1e3d22;
+        --ok: #4ade80;
+        --okbg: #14391f;
+        --bad: #f87171;
+        --badbg: #4a1d22;
+        --warn: #fbbf24;
+        --warnbg: #3d3012;
+        --c1: #60a5fa;
+        --c2: #fb923c;
+        --c3: #a78bfa;
+        --hl: #6b5a12;
+        color-scheme: dark;
+    }
+}
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    line-height: 1.5;
+    padding: 16px;
+}
+main { max-width: 780px; margin: 0 auto; }
+a { color: var(--accent); }
+nav.top {
+    display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center;
+    justify-content: space-between; font-size: 14px; margin-bottom: 10px;
+}
+nav.top .serie { display: flex; flex-wrap: wrap; gap: 6px; }
+nav.top .serie a {
+    text-decoration: none; padding: 3px 10px; border-radius: 999px;
+    border: 1px solid var(--border); background: var(--panel); color: var(--text);
+}
+nav.top .serie a.anna { border-style: dashed; color: var(--accent); }
+nav.top .serie a.on { background: var(--accent); border-color: var(--accent); color: var(--panel); font-weight: 600; }
+h1 { margin: 4px 0 4px; font-size: 27px; }
+.lead { color: var(--muted); margin: 0 0 16px; font-size: 17px; }
+.card {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px; margin-bottom: 16px;
+}
+.card h2 { margin: 0 0 8px; font-size: 19px; }
+.card h3 { margin: 14px 0 6px; font-size: 16px; }
+.card p { margin: 0 0 10px; }
+.card > :last-child { margin-bottom: 0; }
+.small { font-size: 14px; color: var(--muted); }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+label { display: block; font-weight: 600; margin: 10px 0 4px; font-size: 15px; }
+textarea, input[type=text], input[type=password], input[type=number], select {
+    width: 100%; padding: 8px 10px; font: inherit;
+    border: 1px solid var(--border); border-radius: 8px;
+    background: var(--panel2); color: var(--text);
+}
+textarea { min-height: 70px; resize: vertical; }
+input[type=range] { width: 100%; accent-color: var(--accent); }
+.btn {
+    border: 1px solid var(--border); background: var(--panel2); color: var(--text);
+    padding: 8px 14px; border-radius: 8px; font: inherit; font-size: 15px; cursor: pointer;
+}
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--panel); font-weight: 600; }
+.btn.danger { border-color: var(--bad); color: var(--bad); }
+.btn:disabled { opacity: .5; cursor: default; }
+.seg { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.seg button {
+    border: 0; background: var(--panel2); color: var(--text);
+    padding: 8px 14px; font: inherit; font-size: 15px; cursor: pointer;
+    border-right: 1px solid var(--border);
+}
+.seg button:last-child { border-right: 0; }
+.seg button.on { background: var(--accent); color: var(--panel); font-weight: 600; }
+.mono, code { font-family: ui-monospace, Menlo, Consolas, monospace; }
+.out {
+    font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 15px;
+    background: var(--panel2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px; margin-top: 8px; word-break: break-all; white-space: pre-wrap; min-height: 42px;
+}
+.out.big { font-size: 18px; }
+.out.scroll { max-height: 140px; overflow: auto; }
+.msg { margin-top: 8px; padding: 8px 12px; border-radius: 8px; font-weight: 600; }
+.msg.ok { background: var(--okbg); color: var(--ok); }
+.msg.bad { background: var(--badbg); color: var(--bad); }
+.msg.info { background: var(--accent-soft); color: var(--text); font-weight: 400; }
+.badge { display: inline-block; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+.badge.ok { background: var(--okbg); color: var(--ok); }
+.badge.bad { background: var(--badbg); color: var(--bad); }
+.note {
+    background: var(--accent-soft); border-radius: 8px; padding: 10px 12px; margin: 10px 0;
+}
+.note b:first-child { display: block; margin-bottom: 2px; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; }
+td, th { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+th { font-size: 13px; color: var(--muted); font-weight: 600; }
+.flow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 8px 0; }
+.flow .box {
+    background: var(--panel2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 6px 10px; font-size: 14px; text-align: center;
+}
+.flow .box.key { background: var(--accent-soft); border-color: var(--accent); }
+.flow .arr { color: var(--muted); font-weight: 700; }
+details { background: var(--panel2); border-radius: 8px; padding: 8px 12px; margin: 6px 0; }
+details summary { cursor: pointer; font-weight: 600; }
+details p { margin: 6px 0 2px; }
+.who { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+footer { font-size: 13px; color: var(--muted); text-align: center; margin: 8px 0 20px; }
+@media (max-width: 480px) {
+    body { padding: 12px; }
+    h1 { font-size: 23px; }
+    .card { padding: 12px; }
+}
+.nivaa { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.nivaa button {
+    font: inherit; color: var(--text); text-align: center; cursor: pointer;
+    background: var(--panel2); border: 2px solid var(--border); border-radius: 12px; padding: 12px;
+}
+.nivaa button:hover, .nivaa button.on { border-color: var(--accent); }
+.nivaa button.on { background: var(--accent-soft); }
+.nivaa svg { width: 110px; height: 110px; display: block; margin: 0 auto 6px; }
+.nivaa b { display: block; font-size: 17px; }
+.nivaa .small { display: block; }
+.nivaa .tatt { color: var(--ok); font-weight: 700; font-size: 13px; }
+.framdrift { height: 8px; background: var(--panel2); border-radius: 4px; overflow: hidden; border: 1px solid var(--border); }
+.framdrift i { display: block; height: 100%; background: var(--accent); transition: width .2s; }
+.spm-topp { display: flex; justify-content: space-between; font-size: 14px; color: var(--muted); margin: 10px 0 4px; }
+.spm { font-size: 19px; font-weight: 600; margin: 4px 0 12px; }
+.alt { display: grid; gap: 8px; }
+.alt button {
+    font: inherit; text-align: left; color: var(--text); cursor: pointer;
+    background: var(--panel2); border: 2px solid var(--border); border-radius: 10px; padding: 10px 12px;
+}
+.alt button:hover { border-color: var(--accent); }
+.alt button.valt { border-color: var(--accent); background: var(--accent-soft); font-weight: 600; }
+.poeng { font-size: 44px; font-weight: 800; text-align: center; margin: 4px 0; }
+.poeng.ok { color: var(--ok); } .poeng.bad { color: var(--bad); }
+.knapp-stor { max-width: 320px; margin: 10px auto; }
+.knapp-stor svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 4px 10px rgba(0,0,0,.25)); }
+.feil { border-left: 4px solid var(--bad); padding: 6px 0 6px 12px; margin: 10px 0; }
+.feil p { margin: 2px 0; }
+.feil .ditt { color: var(--bad); }
+.feil .rett { color: var(--ok); font-weight: 600; }
+.center { text-align: center; }
+.mine { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+.mine svg { width: 90px; height: 90px; }
+/* Grøn tittellinje – same drakt som ROS-labben */
+body { padding: 0; }
+header.topp { background: #1f7a3f; color: #fff; padding: 18px 16px 20px; }
+header.topp .in { max-width: 780px; margin: 0 auto; }
+header.topp a { color: #fff; text-decoration: none; font-size: 14px; opacity: .9; }
+header.topp a:hover { text-decoration: underline; opacity: 1; }
+header.topp h1 { margin: 8px 0 4px; font-size: 30px; line-height: 1.1; }
+header.topp p { margin: 0; opacity: .92; font-size: 17px; max-width: 60ch; }
+main { padding: 16px; }
+button:focus-visible, a:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+@media (max-width: 480px) { header.topp h1 { font-size: 25px; } main { padding: 12px; } }
+.steg { font-size: 13px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: .06em; margin: 0 0 2px !important; }
+.tokens { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.tok { border-radius: 8px; padding: 4px 8px 3px; text-align: center; font-family: ui-monospace, Menlo, Consolas, monospace; border: 1px solid var(--border); }
+.tok b { display: block; font-size: 16px; white-space: pre; }
+.tok small { font-size: 11px; color: var(--muted); }
+.tok.a { background: var(--accent-soft); } .tok.b { background: var(--warnbg); } .tok.del { border-style: dashed; border-color: var(--c2); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 2px; }
+.chips button { font: inherit; font-size: 14px; cursor: pointer; color: var(--text); background: var(--panel2); border: 1px solid var(--border); border-radius: 999px; padding: 4px 12px; }
+.chips button:hover { border-color: var(--accent); }
+.skjerm { font-size: 21px; font-weight: 600; background: var(--panel2); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-top: 12px; min-height: 62px; line-height: 1.4; }
+.skjerm .ny { color: var(--accent); }
+.skjerm .mark { display: inline-block; width: 2px; height: 1em; background: var(--accent); vertical-align: -2px; margin-left: 3px; animation: blink 1s steps(2) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .skjerm .mark { animation: none; } }
+.kand { display: grid; gap: 6px; }
+.kand button { position: relative; overflow: hidden; font: inherit; text-align: left; cursor: pointer; color: var(--text); background: var(--panel2); border: 2px solid var(--border); border-radius: 8px; padding: 7px 10px; display: flex; justify-content: space-between; gap: 10px; }
+.kand button:hover { border-color: var(--accent); }
+.kand button i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--accent-soft); transition: width .2s; }
+.kand button span { position: relative; }
+.kand button .o { font-weight: 700; } .kand button .p { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 14px; color: var(--muted); }
+.demo { border-left: 4px solid var(--border); padding: 6px 0 6px 12px; margin: 12px 0; }
+.demo.ok { border-color: var(--ok); } .demo.bad { border-color: var(--bad); }
+.demo .setn { font-size: 19px; font-weight: 600; margin: 0 0 2px; } .demo .setn .ny { color: var(--accent); }
+.demo.bad .setn .ny { color: var(--bad); }
+.demo p { margin: 2px 0; }
+.q { border-top: 1px solid var(--border); padding: 12px 0; } .q:first-child { border-top: 0; padding-top: 0; }
+.q p { margin: 0 0 8px; font-weight: 600; }
+.q .alt button.rett { border-color: var(--ok); background: var(--okbg); font-weight: 600; }
+.q .alt button.gale { border-color: var(--bad); background: var(--badbg); }
+.q .alt button:disabled { cursor: default; opacity: 1; }
+.q .fork { font-size: 14px; color: var(--muted); margin-top: 8px; font-weight: 400; }
+ul.tett { margin: 6px 0 4px; padding-left: 20px; } ul.tett li { margin-bottom: 4px; }
+</style>
+</head>
+<body>
+<header class="topp"><div class="in">
+    <a href="index.html">← IMSTORD si sandkasse</a>
+    <h1>Slik verkar ein språkmodell</h1>
+    <p>Ein språkmodell gjer eigentleg berre éin ting: gjettar det neste ordet. Prøv sjølv, og sjå kvifor KI av og til diktar opp svar.</p>
+</div></header>
+<main>
+<nav class="top"><span class="small">Vg1 Teknologiforståing</span><span class="serie"><a href="blokkjede.html">Blokkjeder</a><a href="imstord/">VM i prompting</a><a href="sprakmodell.html" class="on">Språkmodell</a></span></nav>
+
+<section class="card">
+    <p class="steg">Steg 1</p>
+    <h2>Tekst blir til token</h2>
+    <p>Ein språkmodell les ikkje bokstavar eller ord. Teksten blir først delt opp i små bitar som heiter <b>token</b>, og kvart token får eit tal. Modellen ser berre tala.</p>
+    <label for="tokInn">Skriv noko her</label>
+    <input type="text" id="tokInn" value="Elevane på Stord lærer om kunstig intelligens og datamaskiner." autocomplete="off" maxlength="160">
+    <div class="tokens" id="tokUt"></div>
+    <p class="small" id="tokTal" style="margin-top:8px"></p>
+    <div class="note"><b>Legg merke til</b>Vanlege ord blir eitt token. Lange og sjeldne ord blir delte i fleire bitar. Prøv namnet ditt, eller eit langt ord som «fylkeskommunen».</div>
+    <p class="small">Oppdelinga her er forenkla. Ekte modellar har ei fast liste med rundt 100 000 token.</p>
+</section>
+
+<section class="card">
+    <p class="steg">Steg 2</p>
+    <h2>Modellen gjettar det neste ordet</h2>
+    <p>Denne sida har ein bitte liten språkmodell. Han har lese <span id="talSetn"></span> korte setningar og talt opp kva ord som plar kome etter kvarandre. Start ei setning, og sjå kva modellen trur kjem no.</p>
+    <div class="chips" id="startar"></div>
+    <label for="prompt">Starten på setninga</label>
+    <input type="text" id="prompt" autocomplete="off" maxlength="80">
+    <div class="skjerm" id="skjerm" aria-live="polite"></div>
+    <p class="small" id="kvifor" style="margin:8px 0"></p>
+    <div class="kand" id="kand"></div>
+    <div class="row" style="margin-top:12px">
+        <button class="btn primary" id="eitt">Modellen vel eitt ord</button>
+        <button class="btn" id="ferdig">Skriv ferdig setninga</button>
+        <button class="btn" id="nullstill">Start på nytt</button>
+    </div>
+    <h3>Temperatur: <span id="tempTekst"></span></h3>
+    <input type="range" id="temp" min="0" max="2" step="0.1" value="0.7" aria-label="Temperatur">
+    <p class="small" style="margin-top:4px">På 0 vel modellen alltid det mest sannsynlege ordet, og du får same setninga kvar gong. Høgare temperatur gir meir tilfeldige val: meir variert, men òg meir rart. Dra i glidaren og sjå søylene endre seg.</p>
+    <details style="margin-top:12px"><summary>Sjå alt modellen har lese</summary><p class="small" id="korpus" style="line-height:1.7"></p></details>
+</section>
+
+<section class="card">
+    <p class="steg">Steg 3</p>
+    <h2>Kvifor diktar KI opp svar?</h2>
+    <p>Modellen har ikkje noko leksikon å slå opp i. Han har berre lært kva ord som plar følgje kvarandre. Prøv dei tre setningane, og sjå kva som skjer når modellen ikkje har lese svaret.</p>
+    <div class="row" id="demoar"></div>
+    <div id="demoUt"></div>
+    <div class="note"><b>Dette heiter hallusinasjon</b>Modellen seier aldri «det veit eg ikkje» av seg sjølv. Han lagar alltid eit ord som passar i mønsteret, anten det er sant eller ikkje. Det feile svaret kjem like kjapt og like sjølvsikkert som det rette.</div>
+    <h3>Slik vernar du deg</h3>
+    <ul class="tett">
+        <li><b>Sjekk viktige fakta</b> mot ei kjelde du stolar på. Særleg namn, tal, årstal, sitat og lenkjer.</li>
+        <li><b>Ver ekstra vaken</b> når du spør om smale ting, som ei lita bygd eller ein lite kjend person. Der har modellen lese minst.</li>
+        <li><b>Be om kjelder,</b> og opne dei. Modellen kan dikte opp kjelder òg.</li>
+        <li><b>Godt språk er ikkje bevis.</b> Ei setning kan vere heilt feil og likevel høyrest klok ut.</li>
+    </ul>
+</section>
+
+<section class="card">
+    <h2>Den vesle og den store modellen</h2>
+    <p>ChatGPT, Claude, Copilot og Gemini er bygde på store språkmodellar. Dei er enormt mykje større enn modellen på denne sida, men oppgåva er den same.</p>
+    <table>
+        <tr><th></th><th>Modellen på sida</th><th>Ein stor språkmodell</th></tr>
+        <tr><th>Har lese</th><td><span id="talSetn2"></span> setningar</td><td>Milliardar av sider med tekst</td></tr>
+        <tr><th>Ser på</th><td>Dei tre–fire siste orda</td><td>Heile samtalen, mange tusen token</td></tr>
+        <tr><th>Minnet</th><td>Ei lita teljeliste</td><td>Milliardar av tal (parametrar) i eit nevralt nett</td></tr>
+        <tr><th>Oppgåva</th><td colspan="2"><b>Gjett det neste tokenet, om att og om att.</b></td></tr>
+    </table>
+    <p style="margin-top:10px">Fordi den store modellen ser på så mykje tekst om gongen, kan han følgje ein instruks, halde på eit tema og løyse oppgåver. Difor er det så viktig kva du skriv i prompten: det er alt modellen har å gjette ut frå.</p>
+    <p class="small">Mange KI-tenester kan no søkje på nettet og lese kjelder før dei svarar. Då blir det færre feil, men dei blir ikkje borte.</p>
+</section>
+
+<section class="card">
+    <h2>Sjekk deg sjølv</h2>
+    <div id="quiz"></div>
+    <p id="quizRes" style="font-weight:700; margin-top:12px"></p>
+</section>
+
+<footer>Frode · IM-Stord · Alt skjer i nettlesaren din. Sida brukar ingen KI-teneste og sender ingenting nokon stad.</footer>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+/* ---------- Treningsteksten: alt den vesle modellen har lese ---------- */
+const KORPUS = `Hovudstaden i Noreg er Oslo.
+Hovudstaden i Sverige er Stockholm.
+Hovudstaden i Danmark er København.
+Hovudstaden i Frankrike er Paris.
+Den største byen i Noreg er Oslo.
+Bergen er ein by i Noreg.
+Bergen ligg på Vestlandet.
+Stord er ei øy i Sunnhordland.
+Stord ligg på Vestlandet.
+Leirvik er ein by på Stord.
+Skulen ligg på Stord.
+Noreg er eit land i Europa.
+Sverige er eit land i Europa.
+Danmark er eit lite land i Europa.
+Frankrike er eit stort land i Europa.
+I dag er det regn på Stord.
+I dag er det sol i Bergen.
+I dag er det kaldt ute.
+I morgon blir det regn på Vestlandet.
+I morgon blir det sol og varmt.
+Om vinteren er det kaldt og mørkt.
+Om sommaren er det varmt og lyst.
+Det regnar ofte på Vestlandet.
+Det regnar ofte i Bergen.
+Det snør ofte om vinteren.
+Elevane lærer om nettverk på skulen.
+Elevane lærer om datamaskiner på skulen.
+Elevane lærer å programmere i Python.
+Elevane likar å spele på datamaskina.
+Læraren forklarer korleis eit nettverk verkar.
+Læraren forklarer korleis ei datamaskin verkar.
+Læraren likar å drikke kaffi.
+Læraren drikk kaffi kvar morgon.
+Ei datamaskin er ei maskin som reknar.
+Ei datamaskin treng straum for å verke.
+Ein ruter sender pakkar mellom nettverk.
+Ein svitsj sender pakkar i eit nettverk.
+Ein server er ei datamaskin som hjelper andre maskiner.
+Eit nettverk er fleire maskiner som snakkar saman.
+Eit passord bør vere langt og hemmeleg.
+Eit program er ei liste med instruksjonar.
+Python er eit språk for å programmere.
+Internett er eit stort nettverk av nettverk.
+Elevane brukar mobilen kvar dag.
+Elevane brukar datamaskina på skulen.
+Eg brukar mobilen kvar dag.
+Ein hund er eit dyr som likar å springe.
+Ein katt er eit dyr som likar å sove.
+Katten søv i sofaen heile dagen.
+Hunden spring i hagen kvar morgon.
+Hunden likar å leike med ein ball.
+Katten likar å drikke mjølk.
+Ei ku er eit dyr som gir mjølk.
+Fisken sym i sjøen.
+Fuglen flyg over sjøen.
+Eg likar å ete pizza på fredag.
+Eg likar å ete taco på fredag.
+Eg likar å drikke kaffi om morgonen.
+Vi et middag klokka fem kvar dag.
+Vi et fisk til middag på tysdag.
+Mor lagar middag kvar dag.
+Far lagar pizza på fredag.
+Elevane et lunsj i kantina.
+Læraren et lunsj i kantina.
+I kantina kan du kjøpe mat og drikke.
+Ein språkmodell gjettar det neste ordet.
+Ein språkmodell har lese mykje tekst.
+Ein språkmodell er eit program som lagar tekst.
+Kunstig intelligens er eit program som lærer av data.
+Kunstig intelligens kan lage tekst og bilete.
+Modellen gjettar det neste ordet om att og om att.
+Modellen veit ikkje kva som er sant.
+Modellen har lese mykje tekst frå internett.
+Eg bur på Stord.
+Eg bur i eit hus ved sjøen.
+Vi bur i eit hus på Stord.
+Eg går på skulen kvar dag.
+Eg tek bussen til skulen kvar morgon.
+Bussen går til Leirvik kvar morgon.
+Båten går til Bergen kvar morgon.
+Sola skin på Stord i dag.
+Sola skin om sommaren.
+Fotball er ein sport med ein ball.
+Eg likar å spele fotball med vener.
+Vi likar å spele fotball på skulen.
+Brann er eit fotballag frå Bergen.
+Om kvelden likar eg å sjå film.
+Om kvelden likar eg å spele på datamaskina.
+I helga skal vi på tur til fjellet.
+I helga skal eg sove lenge.
+På fjellet er det kaldt om vinteren.
+På fjellet er det mykje snø.`.split("\n");
+const EIGENNAMN = new Set(["Noreg", "Sverige", "Danmark", "Frankrike", "Europa", "Oslo", "Stockholm", "København", "Paris", "Bergen", "Stord", "Leirvik", "Sunnhordland", "Vestlandet", "Python", "Brann"]);
+
+/* ---------- Trening: tel kva ord som kjem etter kvarandre ---------- */
+// Fire teljelister, frå mest til minst samanheng: tre ord, to ord, mønster med hol («hovudstaden i … er»), eitt ord.
+const M3 = new Map(), M2 = new Map(), MW = new Map(), M1 = new Map(), M0 = new Map();
+const VOKAB = new Map(); // ord med små bokstavar -> nummer
+function tel(tab, nokkel, ord) {
+    if (!tab.has(nokkel)) tab.set(nokkel, new Map());
+    const m = tab.get(nokkel); m.set(ord, (m.get(ord) || 0) + 1);
+}
+for (const setn of KORPUS) {
+    const ord = setn.replace(".", "").split(" ");
+    if (!EIGENNAMN.has(ord[0])) ord[0] = ord[0].toLowerCase();
+    const t = ["^", ...ord, "."];
+    for (let i = 1; i < t.length; i++) {
+        const w = t[i], k = t.slice(0, i).map(x => x.toLowerCase());
+        const n = k.length;
+        tel(M1, k[n - 1], w);
+        if (n >= 2) tel(M2, k[n - 2] + " " + k[n - 1], w);
+        if (n >= 3) tel(M3, k[n - 3] + " " + k[n - 2] + " " + k[n - 1], w);
+        if (n >= 4) tel(MW, k[n - 4] + " " + k[n - 3] + " * " + k[n - 1], w);
+        if (w !== ".") { tel(M0, "", w); if (!VOKAB.has(w.toLowerCase())) VOKAB.set(w.toLowerCase(), VOKAB.size + 100); }
+    }
+}
+
+/* Kva trur modellen kjem no? Prøver den lengste samanhengen først. */
+function gjett(ord) {
+    const k = ["^", ...ord].map(x => x.toLowerCase()), n = k.length;
+    const siste = ord.length ? ord[ord.length - 1] : "";
+    const to = ord.slice(-2).join(" ");
+    if (n >= 3 && M3.has(k.slice(-3).join(" "))) return { tab: M3.get(k.slice(-3).join(" ")), niva: 3, kvifor: `Modellen kjenner att «${ord.slice(-3).join(" ")}» frå det han har lese.` };
+    if (n >= 2 && M2.has(k.slice(-2).join(" "))) return { tab: M2.get(k.slice(-2).join(" ")), niva: 2, kvifor: ord.length ? `Modellen kjenner att «${to}» frå det han har lese.` : "Slik plar setningane modellen har lese, starte." };
+    if (n >= 4 && MW.has(k[n - 4] + " " + k[n - 3] + " * " + k[n - 1])) return { tab: MW.get(k[n - 4] + " " + k[n - 3] + " * " + k[n - 1]), niva: 1, kvifor: `Modellen har aldri lese «${to}». Men mønsteret «${ord[ord.length - 4] ? ord[ord.length - 4] + " " : ""}${ord[ord.length - 3]} … ${siste}» har han sett, så han gjettar likevel.` };
+    if (M1.has(k[n - 1])) return { tab: M1.get(k[n - 1]), niva: 1, kvifor: ord.length > 1 ? `Modellen har aldri lese «${to}». Han ser berre på det siste ordet, «${siste}», og gjettar likevel.` : ord.length ? `Modellen ser på ordet «${siste}».` : "Slik plar setningane modellen har lese, starte." };
+    return { tab: M0.get(""), niva: 0, kvifor: `Modellen har aldri lese ordet «${siste}». Han gjettar likevel, på dei orda han har sett oftast.` };
+}
+/* Sannsyn for kvart ord. Temperatur 0 = alt på det vanlegaste ordet. */
+function sannsyn(tab, T) {
+    const l = [...tab.entries()].sort((a, b) => b[1] - a[1]);
+    if (T < 0.05) return l.map(([o], i) => [o, i === 0 ? 1 : 0]);
+    const v = l.map(([o, c]) => [o, Math.pow(c, 1 / T)]), s = v.reduce((a, x) => a + x[1], 0);
+    return v.map(([o, x]) => [o, x / s]);
+}
+function trekk(p) { let r = Math.random(); for (const [o, x] of p) { r -= x; if (r <= 0) return o; } return p[0][0]; }
+function tilTekst(ord) { const s = ord.join(" ").replace(/ \./g, "."); return s.charAt(0).toUpperCase() + s.slice(1); }
+function les(tekst) { return (tekst.match(/[A-Za-zÀ-ÿ0-9-]+/g) || []); }
+
+/* ---------- Steg 2: skrivemaskina ---------- */
+const STARTAR = ["Eg likar å", "I dag er det", "Ein hund er", "Elevane lærer", "Læraren", "Om kvelden"];
+let start = [], nye = [], gar = false;
+const MAKS = 25;
+const ferdigSetn = () => nye[nye.length - 1] === "." || nye.length >= MAKS;
+function visMaskin() {
+    const T = +$("temp").value;
+    $("tempTekst").textContent = T.toFixed(1).replace(".", ",") + (T < 0.05 ? " – alltid det vanlegaste ordet" : T <= 0.8 ? " – trygg" : T <= 1.3 ? " – variert" : " – vill");
+    const alle = [...start, ...nye];
+    const s0 = tilTekst(start), sAlle = tilTekst(alle);
+    $("skjerm").innerHTML = esc(s0) + `<span class="ny">${esc(sAlle.slice(s0.length))}</span>` + (ferdigSetn() ? "" : '<span class="mark"></span>');
+    $("eitt").disabled = $("ferdig").disabled = ferdigSetn() || gar;
+    if (ferdigSetn()) {
+        $("kvifor").textContent = "Setninga er ferdig. Trykk «Start på nytt» og sjå om du får det same ein gong til.";
+        $("kand").innerHTML = ""; return;
+    }
+    const g = gjett(alle), p = sannsyn(g.tab, T);
+    $("kvifor").textContent = g.kvifor + " Det neste ordet kan bli:";
+    $("kand").innerHTML = p.slice(0, 6).map(([o, x]) => `<button type="button" data-o="${esc(o)}"><i style="width:${(x * 100).toFixed(1)}%"></i><span class="o">${o === "." ? "punktum (slutt)" : esc(o)}</span><span class="p">${x > 0 && x < 0.005 ? "<1" : Math.round(x * 100)} %</span></button>`).join("")
+        + (p.length > 6 ? `<p class="small" style="margin:2px 0 0">… og ${p.length - 6} ord til.</p>` : "");
+}
+function leggTil(o) { nye.push(o); visMaskin(); }
+function modellenVel() { const alle = [...start, ...nye]; leggTil(trekk(sannsyn(gjett(alle).tab, +$("temp").value))); }
+function nyStart(tekst, oppdaterFelt) {
+    gar = false; start = les(tekst); nye = [];
+    if (oppdaterFelt) $("prompt").value = tekst;
+    visMaskin();
+}
+$("startar").innerHTML = STARTAR.map(s => `<button type="button">${esc(s)}</button>`).join("");
+$("startar").onclick = e => { const b = e.target.closest("button"); if (b) nyStart(b.textContent, true); };
+$("prompt").oninput = () => nyStart($("prompt").value, false);
+$("kand").onclick = e => { const b = e.target.closest("button"); if (b && !gar) leggTil(b.dataset.o); };
+$("eitt").onclick = () => { if (!ferdigSetn()) modellenVel(); };
+$("ferdig").onclick = () => {
+    if (gar || ferdigSetn()) return;
+    gar = true;
+    const steg = () => { if (!gar) return; modellenVel(); if (ferdigSetn()) { gar = false; visMaskin(); } else setTimeout(steg, 260); };
+    steg();
+};
+$("nullstill").onclick = () => nyStart($("prompt").value, false);
+$("temp").oninput = visMaskin;
+
+/* ---------- Steg 1: token ---------- */
+const BITAR = ["skule", "buss", "data", "maskin", "nett", "verk", "språk", "modell", "elev", "lærar", "fylkes", "fylke", "kommune", "kommunen", "intelligens", "kunst", "program", "norsk", "land", "hus", "bil", "veg", "sjø", "fjell", "ane", "ene", "ar", "er", "en", "et", "or", "ing", "heit", "leg", "lege", "ande", "else", "for", "be", "an", "un", "ig", "sk", "st", "te", "de", "re", "le", "ne", "na", "et"];
+const KJENDE = new Set([...VOKAB.keys(), ...BITAR]);
+function hashId(s) { let h = 7; for (const c of s) h = (h * 31 + c.codePointAt(0)) % 39989; return h + 1000; }
+function delOrd(ord) {
+    const l = ord.toLowerCase();
+    if (VOKAB.has(l)) return [[ord, VOKAB.get(l), false]];
+    const ut = []; let i = 0;
+    while (i < ord.length) {
+        let len = 0;
+        for (let j = Math.min(ord.length, i + 12); j > i + 1; j--) if (KJENDE.has(l.slice(i, j))) { len = j - i; break; }
+        if (!len) len = Math.min(ord.length - i <= 4 ? ord.length - i : 3, ord.length - i);
+        const bit = ord.slice(i, i + len);
+        ut.push([bit, VOKAB.get(bit.toLowerCase()) || hashId(bit.toLowerCase()), true]);
+        i += len;
+    }
+    return ut;
+}
+function visToken() {
+    const tekst = $("tokInn").value;
+    const deler = tekst.match(/[A-Za-zÀ-ÿ]+|\d+|[^\sA-Za-zÀ-ÿ\d]/g) || [];
+    let n = 0, html = "";
+    deler.forEach((d, i) => {
+        const bitar = /[A-Za-zÀ-ÿ]/.test(d) ? delOrd(d) : [[d, hashId(d), false]];
+        for (const [b, id, del] of bitar) { n++; html += `<span class="tok ${i % 2 ? "b" : "a"}${del ? " del" : ""}"><b>${esc(b)}</b><small>${id}</small></span>`; }
+    });
+    $("tokUt").innerHTML = html;
+    $("tokTal").textContent = n ? `${tekst.length} teikn blir til ${n} token. Tala under er det modellen får sjå. Stipla kant viser ord som vart delte.` : "Skriv noko i feltet.";
+}
+$("tokInn").oninput = visToken;
+
+/* ---------- Steg 3: hallusinasjon ---------- */
+const DEMOAR = [
+    { start: "Hovudstaden i Noreg er", ok: true, dom: "Rett. Denne setninga har modellen lese ordrett." },
+    { start: "Hovudstaden i Finland er", ok: false, dom: "Feil. Finland stod ikkje i teksten, men modellen har lært mønsteret «Hovudstaden i … er» og fyller inn ein hovudstad han kjenner. Det rette svaret er Helsingfors." },
+    { start: "Hunden likar å drikke", ok: false, dom: "Oppdikta. Modellen har lese at læraren likar å drikke kaffi og at katten likar å drikke mjølk. Han blandar mønstera og lagar ei setning som høyrest rett ut." },
+];
+function fullfor(tekst) {
+    const ord = les(tekst), ny = [];
+    while (ny[ny.length - 1] !== "." && ny.length < MAKS) ny.push(sannsyn(gjett([...ord, ...ny]).tab, 0)[0][0]);
+    return { ord, ny, forste: gjett(ord) };
+}
+$("demoar").innerHTML = DEMOAR.map((d, i) => `<button type="button" class="btn" data-i="${i}">${esc(d.start)} …</button>`).join("");
+$("demoar").onclick = e => {
+    const b = e.target.closest("button"); if (!b) return;
+    const d = DEMOAR[+b.dataset.i], r = fullfor(d.start);
+    const s0 = tilTekst(r.ord), sAlle = tilTekst([...r.ord, ...r.ny]);
+    $("demoUt").innerHTML = `<div class="demo ${d.ok ? "ok" : "bad"}"><p class="setn">${esc(s0)}<span class="ny">${esc(sAlle.slice(s0.length))}</span></p><p>${esc(d.dom)}</p><p class="small">${esc(r.forste.kvifor)}</p></div>`;
+};
+
+/* ---------- Sjekk deg sjølv ---------- */
+const QUIZ = [
+    ["Kva er eit token?", "Ein bit av teksten, ofte eit ord eller ein del av eit ord", ["Eit passord til KI-tenesta", "Ei setning modellen har lært utanåt", "Eit svar som modellen har dikta opp"], "Teksten blir delt i token, og kvart token får eit tal. Modellen arbeider berre med tala."],
+    ["Kva gjer ein språkmodell når han skriv eit svar?", "Gjettar det neste tokenet, om att og om att", ["Slår opp svaret i eit leksikon", "Kopierer ei ferdig setning frå nettet", "Tenkjer gjennom saka slik eit menneske gjer"], "Kvart ord i svaret er ei gjetting ut frå teksten som står framfor."],
+    ["Kva skjer når du set temperaturen høgare?", "Ordvala blir meir tilfeldige og varierte", ["Svara blir meir korrekte", "Modellen svarar raskare", "Modellen les meir tekst før han svarar"], "Låg temperatur gir trygge og like svar. Høg temperatur gir meir variasjon, og meir tull."],
+    ["Kvifor kan KI dikte opp svar?", "Modellen lagar tekst som passar i mønsteret, utan å sjekke om det er sant", ["Modellen lyg med vilje for å verke smart", "Internett var nede då spørsmålet kom inn", "Modellen er programmert til å tulle av og til"], "Modellen har lært mønster i språk, ikkje ei liste med fakta. Det heiter hallusinasjon når svaret er oppdikta."],
+    ["Du får eit årstal frå ein KI og skal bruke det i ei oppgåve. Kva gjer du?", "Sjekkar det mot ei kjelde eg stolar på", ["Stolar på det, sidan svaret var langt og grundig", "Spør same KI om han er heilt sikker", "Stolar på det, sidan språket var feilfritt"], "Godt språk er ikkje bevis. Spør du modellen om han er sikker, gjettar han berre ein gong til."],
+];
+function stokk(a) { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+let qSvar = 0, qRett = 0;
+$("quiz").innerHTML = QUIZ.map(([q, rett, galne], i) => `<div class="q" data-q="${i}"><p>${i + 1}. ${esc(q)}</p><div class="alt">${stokk([rett, ...galne]).map(a => `<button type="button" data-r="${a === rett ? 1 : 0}">${esc(a)}</button>`).join("")}</div><div class="fork"></div></div>`).join("");
+$("quiz").onclick = e => {
+    const b = e.target.closest(".alt button"); if (!b || b.disabled) return;
+    const q = b.closest(".q"), rett = b.dataset.r === "1";
+    q.querySelectorAll("button").forEach(x => { x.disabled = true; if (x.dataset.r === "1") x.classList.add("rett"); });
+    if (!rett) b.classList.add("gale");
+    q.querySelector(".fork").textContent = (rett ? "Rett. " : "Ikkje heilt. ") + QUIZ[+q.dataset.q][3];
+    qSvar++; if (rett) qRett++;
+    if (qSvar === QUIZ.length) $("quizRes").textContent = `Du fekk ${qRett} av ${QUIZ.length} rette.` + (qRett === QUIZ.length ? " Du veit korleis ein språkmodell verkar!" : " Les stega ein gong til og prøv på nytt.");
+};
+
+$("talSetn").textContent = $("talSetn2").textContent = KORPUS.length;
+$("korpus").textContent = KORPUS.join(" ");
+visToken();
+nyStart(STARTAR[0], true);
+</script>
+</body>
+</html>
