@@ -511,6 +511,7 @@ function delOrd(ord) {
         ut.push([bit, VOKAB.get(bit.toLowerCase()) || hashId(bit.toLowerCase()), true]);
         i += len;
     }
+    if (ut.length === 1) ut[0][2] = false; // ordet vart ikkje delt
     return ut;
 }
 function visToken() {
