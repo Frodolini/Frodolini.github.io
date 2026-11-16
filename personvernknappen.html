@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="nn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Personvernknappen</title>
+<meta name="description" content="Personvernknappen: lær GDPR og innebygd personvern, finn ut kva data ein app eigentleg treng, og ta knappen i bronse, sølv og gull.">
+<meta name="theme-color" content="#1f7a3f">
+<style>
+:root {
+    --bg: #eef2f6;
+    --panel: #ffffff;
+    --panel2: #f2f5f9;
+    --border: #d3dae3;
+    --text: #1b2230;
+    --muted: #5b6577;
+    --accent: #2e7d32;
+    --accent-soft: #e0f2e1;
+    --ok: #15803d;
+    --okbg: #dcfce7;
+    --bad: #b91c1c;
+    --badbg: #fee2e2;
+    --warn: #a16207;
+    --warnbg: #fef3c7;
+    --c1: #2563eb;
+    --c2: #c2410c;
+    --c3: #7c3aed;
+    --hl: #fde68a;
+    color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #171c26;
+        --panel: #222936;
+        --panel2: #2a3242;
+        --border: #3a4356;
+        --text: #e5e8ee;
+        --muted: #9aa3b4;
+        --accent: #81c784;
+        --accent-soft: #1e3d22;
+        --ok: #4ade80;
+        --okbg: #14391f;
+        --bad: #f87171;
+        --badbg: #4a1d22;
+        --warn: #fbbf24;
+        --warnbg: #3d3012;
+        --c1: #60a5fa;
+        --c2: #fb923c;
+        --c3: #a78bfa;
+        --hl: #6b5a12;
+        color-scheme: dark;
+    }
+}
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    line-height: 1.5;
+    padding: 16px;
+}
+main { max-width: 780px; margin: 0 auto; }
+a { color: var(--accent); }
+nav.top {
+    display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center;
+    justify-content: space-between; font-size: 14px; margin-bottom: 10px;
+}
+nav.top .serie { display: flex; flex-wrap: wrap; gap: 6px; }
+nav.top .serie a {
+    text-decoration: none; padding: 3px 10px; border-radius: 999px;
+    border: 1px solid var(--border); background: var(--panel); color: var(--text);
+}
+nav.top .serie a.anna { border-style: dashed; color: var(--accent); }
+nav.top .serie a.on { background: var(--accent); border-color: var(--accent); color: var(--panel); font-weight: 600; }
+h1 { margin: 4px 0 4px; font-size: 27px; }
+.lead { color: var(--muted); margin: 0 0 16px; font-size: 17px; }
+.card {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px; margin-bottom: 16px;
+}
+.card h2 { margin: 0 0 8px; font-size: 19px; }
+.card h3 { margin: 14px 0 6px; font-size: 16px; }
+.card p { margin: 0 0 10px; }
+.card > :last-child { margin-bottom: 0; }
+.small { font-size: 14px; color: var(--muted); }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+label { display: block; font-weight: 600; margin: 10px 0 4px; font-size: 15px; }
+textarea, input[type=text], input[type=password], input[type=number], select {
+    width: 100%; padding: 8px 10px; font: inherit;
+    border: 1px solid var(--border); border-radius: 8px;
+    background: var(--panel2); color: var(--text);
+}
+textarea { min-height: 70px; resize: vertical; }
+input[type=range] { width: 100%; accent-color: var(--accent); }
+.btn {
+    border: 1px solid var(--border); background: var(--panel2); color: var(--text);
+    padding: 8px 14px; border-radius: 8px; font: inherit; font-size: 15px; cursor: pointer;
+}
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--panel); font-weight: 600; }
+.btn.danger { border-color: var(--bad); color: var(--bad); }
+.btn:disabled { opacity: .5; cursor: default; }
+.seg { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.seg button {
+    border: 0; background: var(--panel2); color: var(--text);
+    padding: 8px 14px; font: inherit; font-size: 15px; cursor: pointer;
+    border-right: 1px solid var(--border);
+}
+.seg button:last-child { border-right: 0; }
+.seg button.on { background: var(--accent); color: var(--panel); font-weight: 600; }
+.mono, code { font-family: ui-monospace, Menlo, Consolas, monospace; }
+.out {
+    font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 15px;
+    background: var(--panel2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px; margin-top: 8px; word-break: break-all; white-space: pre-wrap; min-height: 42px;
+}
+.out.big { font-size: 18px; }
+.out.scroll { max-height: 140px; overflow: auto; }
+.msg { margin-top: 8px; padding: 8px 12px; border-radius: 8px; font-weight: 600; }
+.msg.ok { background: var(--okbg); color: var(--ok); }
+.msg.bad { background: var(--badbg); color: var(--bad); }
+.msg.info { background: var(--accent-soft); color: var(--text); font-weight: 400; }
+.badge { display: inline-block; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+.badge.ok { background: var(--okbg); color: var(--ok); }
+.badge.bad { background: var(--badbg); color: var(--bad); }
+.note {
+    background: var(--accent-soft); border-radius: 8px; padding: 10px 12px; margin: 10px 0;
+}
+.note b:first-child { display: block; margin-bottom: 2px; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; }
+td, th { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+th { font-size: 13px; color: var(--muted); font-weight: 600; }
+.flow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 8px 0; }
+.flow .box {
+    background: var(--panel2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 6px 10px; font-size: 14px; text-align: center;
+}
+.flow .box.key { background: var(--accent-soft); border-color: var(--accent); }
+.flow .arr { color: var(--muted); font-weight: 700; }
+details { background: var(--panel2); border-radius: 8px; padding: 8px 12px; margin: 6px 0; }
+details summary { cursor: pointer; font-weight: 600; }
+details p { margin: 6px 0 2px; }
+.who { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+footer { font-size: 13px; color: var(--muted); text-align: center; margin: 8px 0 20px; }
+@media (max-width: 480px) {
+    body { padding: 12px; }
+    h1 { font-size: 23px; }
+    .card { padding: 12px; }
+}
+.nivaa { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.nivaa button {
+    font: inherit; color: var(--text); text-align: center; cursor: pointer;
+    background: var(--panel2); border: 2px solid var(--border); border-radius: 12px; padding: 12px;
+}
+.nivaa button:hover, .nivaa button.on { border-color: var(--accent); }
+.nivaa button.on { background: var(--accent-soft); }
+.nivaa svg { width: 110px; height: 110px; display: block; margin: 0 auto 6px; }
+.nivaa b { display: block; font-size: 17px; }
+.nivaa .small { display: block; }
+.nivaa .tatt { color: var(--ok); font-weight: 700; font-size: 13px; }
+.framdrift { height: 8px; background: var(--panel2); border-radius: 4px; overflow: hidden; border: 1px solid var(--border); }
+.framdrift i { display: block; height: 100%; background: var(--accent); transition: width .2s; }
+.spm-topp { display: flex; justify-content: space-between; font-size: 14px; color: var(--muted); margin: 10px 0 4px; }
+.spm { font-size: 19px; font-weight: 600; margin: 4px 0 12px; }
+.alt { display: grid; gap: 8px; }
+.alt button {
+    font: inherit; text-align: left; color: var(--text); cursor: pointer;
+    background: var(--panel2); border: 2px solid var(--border); border-radius: 10px; padding: 10px 12px;
+}
+.alt button:hover { border-color: var(--accent); }
+.alt button.valt { border-color: var(--accent); background: var(--accent-soft); font-weight: 600; }
+.poeng { font-size: 44px; font-weight: 800; text-align: center; margin: 4px 0; }
+.poeng.ok { color: var(--ok); } .poeng.bad { color: var(--bad); }
+.knapp-stor { max-width: 320px; margin: 10px auto; }
+.knapp-stor svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 4px 10px rgba(0,0,0,.25)); }
+.feil { border-left: 4px solid var(--bad); padding: 6px 0 6px 12px; margin: 10px 0; }
+.feil p { margin: 2px 0; }
+.feil .ditt { color: var(--bad); }
+.feil .rett { color: var(--ok); font-weight: 600; }
+.center { text-align: center; }
+.mine { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+.mine svg { width: 90px; height: 90px; }
+/* Grøn tittellinje – same drakt som ROS-labben */
+body { padding: 0; }
+header.topp { background: #1f7a3f; color: #fff; padding: 18px 16px 20px; }
+header.topp .in { max-width: 780px; margin: 0 auto; }
+header.topp a { color: #fff; text-decoration: none; font-size: 14px; opacity: .9; }
+header.topp a:hover { text-decoration: underline; opacity: 1; }
+header.topp h1 { margin: 8px 0 4px; font-size: 30px; line-height: 1.1; }
+header.topp p { margin: 0; opacity: .92; font-size: 17px; max-width: 60ch; }
+main { padding: 16px; }
+button:focus-visible, a:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+@media (max-width: 480px) { header.topp h1 { font-size: 25px; } main { padding: 12px; } }
+/* Labben: kva treng appen? */
+.formal { background: var(--accent-soft); border-radius: 8px; padding: 10px 12px; margin: 12px 0; }
+.formal b { display: block; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+.datliste { display: grid; gap: 8px; }
+.dat {
+    font: inherit; color: var(--text); text-align: left; cursor: pointer; width: 100%;
+    background: var(--panel2); border: 2px solid var(--border); border-radius: 10px; padding: 9px 12px;
+    display: grid; grid-template-columns: 26px 1fr; gap: 4px 8px; align-items: start;
+}
+.dat:hover { border-color: var(--accent); }
+.dat .boks { width: 22px; height: 22px; border: 2px solid var(--muted); border-radius: 5px; display: grid; place-items: center; font-weight: 800; font-size: 15px; line-height: 1; margin-top: 1px; }
+.dat[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+.dat[aria-pressed="true"] .boks { background: var(--accent); border-color: var(--accent); color: var(--panel); }
+.dat .kva { font-weight: 600; }
+.dat .kvifor { grid-column: 2; font-size: 14px; color: var(--muted); }
+.dat .dom { font-weight: 700; }
+.dat.rett { border-color: var(--ok); } .dat.rett .dom { color: var(--ok); }
+.dat.gale { border-color: var(--bad); background: var(--badbg); } .dat.gale .dom { color: var(--bad); }
+.dat:disabled { cursor: default; opacity: 1; }
+.seg { flex-wrap: wrap; }
+ul.tett { margin: 6px 0 4px; padding-left: 20px; } ul.tett li { margin-bottom: 3px; }
+</style>
+</head>
+<body>
+<header class="topp"><div class="in">
+    <a href="index.html">← Frode sin Sandkasse</a>
+    <h1>Personvernknappen</h1>
+    <p>Kva data treng ein app eigentleg? Lær reglane, øv i labben, og svar rett på minst 11 av 12 spørsmål for å få Personvernknappen.</p>
+</div></header>
+<main>
+<nav class="top"><span class="small">Vg1 Teknologiforståing · Vg2 Utvikling</span><span class="serie"><a href="phishingknappen.html">Phishing-detektiven</a><a href="roslabben.html">ROS-labben</a><a href="personvernknappen.html" class="on">Personvernknappen</a></span></nav>
+
+<!-- START -->
+<section id="start">
+    <section class="card">
+        <h2>Les først: GDPR på fem minutt</h2>
+        <p>GDPR er personvernreglane i EU og EØS. Dei gjeld i Noreg òg, og <b>Datatilsynet</b> passar på at dei blir følgde. Hovudtanken er enkel: opplysningar om deg er dine, og den som vil bruke dei, må ha ein god grunn og ta godt vare på dei.</p>
+        <details><summary>Kva er ei personopplysning?</summary>
+            <p>Alt som kan knytast til ein bestemt person: namn, bilete, telefonnummer, posisjon, IP-adresse, ein unik ID i ein informasjonskapsel. Fleire små opplysningar kan til saman peike ut éin person, sjølv utan namn.</p>
+            <p><b>Særlege kategoriar</b> er ekstra verna: helse, religion, politisk syn, etnisk opphav, seksuell orientering, fagforeiningsmedlemskap, og gen- og biometridata.</p>
+            <p><b>Anonyme</b> data kan ikkje knytast til nokon, og då gjeld ikkje GDPR. <b>Pseudonyme</b> data har fått namnet bytt ut med ein kode, men kan koplast tilbake. Dei er framleis personopplysningar.</p>
+        </details>
+        <details><summary>Dei sju prinsippa</summary>
+            <ul class="tett">
+                <li><b>Lovleg, rettferdig og ope:</b> du skal vite kva som skjer med opplysningane dine.</li>
+                <li><b>Føremålsavgrensing:</b> opplysningane skal berre brukast til det dei vart samla inn for.</li>
+                <li><b>Dataminimering:</b> samle berre det du treng.</li>
+                <li><b>Riktigheit:</b> opplysningane skal vere rette og oppdaterte.</li>
+                <li><b>Lagringsavgrensing:</b> slett når du ikkje treng dei lenger.</li>
+                <li><b>Tryggleik:</b> vern opplysningane mot uvedkomande.</li>
+                <li><b>Ansvar:</b> verksemda må kunne vise at ho følgjer reglane.</li>
+            </ul>
+        </details>
+        <details><summary>Seks lovlege grunnar (behandlingsgrunnlag)</summary>
+            <p>Ei verksemd må ha minst éin av desse for å bruke personopplysningar:</p>
+            <ul class="tett">
+                <li><b>Samtykke:</b> du har sagt ja. Det må vere frivillig, spesifikt, informert og utvitydig, og du kan trekkje det tilbake.</li>
+                <li><b>Avtale:</b> nettbutikken treng adressa di for å sende pakken.</li>
+                <li><b>Rettsleg plikt:</b> lova krev det. Skulen må føre fråvær og karakterar.</li>
+                <li><b>Vitale interesser:</b> det står om liv og helse.</li>
+                <li><b>Allmenn interesse:</b> offentlege oppgåver.</li>
+                <li><b>Berettiga interesse:</b> verksemda har ein god grunn som veg tyngre enn personvernet ditt.</li>
+            </ul>
+            <p>At opplysningane ligg ope på nettet, er <b>ikkje</b> ein lovleg grunn.</p>
+        </details>
+        <details><summary>Rettane dine</summary>
+            <ul class="tett">
+                <li><b>Informasjon:</b> personvernerklæringa skal seie kva som blir samla inn, og kvifor.</li>
+                <li><b>Innsyn:</b> du kan få ein kopi av det verksemda har om deg. Det er gratis, og ho har éin månad på å svare.</li>
+                <li><b>Retting:</b> feil skal rettast.</li>
+                <li><b>Sletting</b> («retten til å bli gløymd»): men ikkje når lova krev at opplysningane blir tekne vare på.</li>
+                <li><b>Dataportabilitet:</b> du kan ta med deg dataa dine til ei anna teneste.</li>
+                <li><b>Protestere:</b> til dømes mot direkte marknadsføring.</li>
+                <li><b>Klage:</b> til Datatilsynet.</li>
+            </ul>
+        </details>
+        <details><summary>Innebygd personvern</summary>
+            <p>Personvern skal vere tenkt inn i appen frå første dag, i alle fasar frå krav og design til drift. Det er eit krav i GDPR (artikkel 25), ikkje noko ein legg på til slutt.</p>
+            <ul class="tett">
+                <li><b>Spør for kvart felt:</b> treng appen dette for å gjere jobben sin? Viss ikkje, ta det bort. Det som ikkje er lagra, kan ikkje lekke.</li>
+                <li><b>Personvern som standardinnstilling:</b> det tryggaste valet er slått på frå start. Brukaren skal ikkje måtte leite i innstillingane.</li>
+                <li><b>Slett automatisk</b> det appen ikkje treng lenger.</li>
+                <li><b>Styr tilgangen:</b> berre dei som må, får sjå opplysningane.</li>
+                <li><b>Test med oppdikta data,</b> ikkje med ekte kundar.</li>
+            </ul>
+        </details>
+        <details><summary>Roller, avvik og bøter</summary>
+            <p><b>Behandlingsansvarleg</b> er verksemda som bestemmer kva opplysningane skal brukast til. <b>Databehandlar</b> er ein som behandlar dei på oppdrag, til dømes eit skyfirma. Dei to må ha ein <b>databehandlaravtale</b>.</p>
+            <p>Lek opplysningar ut, skal verksemda normalt melde frå til Datatilsynet <b>innan 72 timar</b>. Er risikoen høg for dei det gjeld, skal dei òg få beskjed.</p>
+            <p>Bøtene kan bli opp til <b>20 millionar euro eller 4 % av global årsomsetnad</b>.</p>
+        </details>
+    </section>
+    <section class="card">
+        <h2>Øv først: kva treng appen eigentleg?</h2>
+        <p>Du er utviklaren. Vel ein app, og kryss av for det appen <b>må ha</b> for å gjere jobben sin. Alt anna let du stå tomt.</p>
+        <div class="seg" id="appval"></div>
+        <div class="formal" id="formal"></div>
+        <div class="datliste" id="datliste"></div>
+        <div class="row" style="margin-top:12px">
+            <button class="btn primary" id="labSjekk">Sjekk</button>
+            <button class="btn" id="labNy" style="display:none">Prøv på nytt</button>
+            <span id="labRes" style="font-weight:600"></span>
+        </div>
+        <p class="small" style="margin-top:10px">Regelen heiter <b>dataminimering</b>: samle berre det du treng til føremålet.</p>
+    </section>
+    <section class="card">
+        <h2>1. Vel nivå</h2>
+        <div class="nivaa" id="nivaval"></div>
+    </section>
+    <section class="card">
+        <h2>2. Skriv fornamnet ditt</h2>
+        <input type="text" id="namn" maxlength="20" placeholder="Fornamn" autocomplete="given-name">
+        <p class="small" style="margin-top:6px">Namnet kjem på knappen din. Det blir berre lagra i nettlesaren din.</p>
+        <div class="row" style="margin-top:10px">
+            <button class="btn primary" id="startknapp">Start testen</button>
+            <span class="small" id="startmsg"></span>
+        </div>
+    </section>
+    <section class="card">
+        <h2>Reglar</h2>
+        <ul style="margin:0; padding-left:20px">
+            <li>12 spørsmål, tre frå kvart tema: personopplysningar, reglane, rettane dine og innebygd personvern.</li>
+            <li>Du må ha minst 11 rette (90 %) for å få knappen.</li>
+            <li>Du ser ikkje om svaret er rett før du har levert. Du kan gå tilbake og endre svar.</li>
+            <li>Prøver du på nytt, blir spørsmåla trekte på nytt.</li>
+            <li>Teksten og labben er gøymde medan testen går.</li>
+        </ul>
+    </section>
+    <section class="card" id="mineKort" style="display:none">
+        <h2>Knappane dine</h2>
+        <div class="mine" id="mine"></div>
+        <p class="small center" style="margin-top:6px">Lagra i denne nettlesaren.</p>
+    </section>
+</section>
+
+<!-- QUIZ -->
+<section id="quiz" class="card" style="display:none">
+    <div class="framdrift"><i id="bar"></i></div>
+    <div class="spm-topp"><span id="nr"></span><span id="tema"></span></div>
+    <div class="spm" id="spm"></div>
+    <div class="alt" id="alt"></div>
+    <div class="row" style="margin-top:14px; justify-content:space-between">
+        <button class="btn" id="forrige">← Førre</button>
+        <button class="btn primary" id="neste">Neste →</button>
+    </div>
+</section>
+
+<!-- RESULTAT -->
+<section id="resultat" style="display:none">
+    <section class="card center">
+        <div class="poeng" id="poeng"></div>
+        <p id="resTekst" style="font-size:18px"></p>
+        <div class="knapp-stor" id="stor"></div>
+        <div class="row" style="justify-content:center" id="resKnappar"></div>
+    </section>
+    <section class="card" id="feilKort" style="display:none">
+        <h2>Det du svara feil på</h2>
+        <div id="feilliste"></div>
+    </section>
+</section>
+
+<footer>Frode · IM-Stord · Denne sida samlar ikkje inn noko. Fornamnet og knappane dine ligg berre i nettlesaren din, og sida hentar ingenting utanfrå.</footer>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+const K_NAMN = "Personvernknappen";
+const K_SVGTEKST = "PERSONVERNKNAPPEN";
+const K_LAGER = "personvernknappen";
+
+const SIDER = {
+    po: { namn: "Personopplysningar" },
+    pr: { namn: "Reglane" },
+    re: { namn: "Rettane dine" },
+    ip: { namn: "Innebygd personvern" },
+};
+
+/* Eitt spørsmål: [spørsmål, rett svar, [tre feil svar], forklaring]. Svara blir stokka når testen startar. */
+const BANK = {
+bronse: {
+    po: [
+        ["Kva er ei personopplysning?", "Ei opplysning som kan knytast til ein bestemt person", ["Berre namn og fødselsnummer", "Alt som ligg lagra på ein mobil eller ei datamaskin", "Berre opplysningar som er hemmelege eller sensitive"], "Alt som kan knytast til deg, direkte eller indirekte, er ei personopplysning. Ho treng ikkje vere hemmeleg."],
+        ["Kva for ei av desse er ei personopplysning?", "Eit bilete av deg", ["Temperaturen på Stord i dag", "Talet på elevar i Noreg", "Prisen på ein bussbillett"], "Eit bilete av deg kan knytast til deg. Dei andre seier ingenting om ein bestemt person."],
+        ["Kva står forkortinga GDPR for?", "General Data Protection Regulation", ["Global Data Privacy Rules", "General Digital Privacy Rights", "Government Data Protection Register"], "På norsk heiter ho personvernforordninga. Ho gjeld i heile EU og EØS."],
+        ["Kven fører tilsyn med personvernreglane i Noreg?", "Datatilsynet", ["Forbrukartilsynet", "Politiet", "Nasjonal kommunikasjonsmyndigheit (Nkom)"], "Datatilsynet kontrollerer at reglane blir følgde, og tek imot klager."],
+        ["Kva for ei opplysning er i ein særleg kategori og ekstra verna?", "Helseopplysningar", ["E-postadresse", "Telefonnummer", "Kva klasse du går i"], "Helse, religion, politisk syn og nokre andre opplysningar er ekstra verna fordi dei kan gjere stor skade om dei kjem på avvegar."],
+        ["Kven må følgje GDPR?", "Alle verksemder som behandlar personopplysningar", ["Berre store, internasjonale selskap som Google og Meta", "Berre offentlege etatar", "Berre selskap som tener pengar på å selje opplysningar"], "Reglane gjeld både den vesle idrettsklubben og dei store selskapa."],
+    ],
+    pr: [
+        ["Kva betyr dataminimering?", "Å samle inn berre dei opplysningane ein treng", ["Å komprimere data så dei tek mindre plass", "Å slette alle data kvar kveld", "Å lagre data på færrast mogleg serverar"], "Treng du det ikkje til føremålet, skal du ikkje samle det inn."],
+        ["Kva er eit samtykke?", "Eit frivillig og tydeleg ja frå deg", ["At du har lasta ned appen", "At du ikkje har klaga", "Ei rute som er kryssa av på førehand"], "Du må sjølv gjere noko aktivt for å seie ja. Å teie er ikkje å samtykke."],
+        ["Kva betyr føremålsavgrensing?", "Opplysningane skal berre brukast til det dei vart samla inn for", ["Berre éin person i verksemda får lov til å sjå opplysningane", "Opplysningane skal slettast når det har gått éin månad", "Opplysningane skal lagrast i Noreg"], "Har du gitt adressa di for å få ein pakke, kan ho ikkje utan vidare brukast til noko heilt anna."],
+        ["Kor lenge kan ei verksemd lagre personopplysningar?", "Så lenge dei trengst til føremålet", ["Alltid nøyaktig eitt år", "Så lenge verksemda har lagringsplass", "Så lenge ho vil, om ingen klagar"], "Prinsippet heiter lagringsavgrensing. Når føremålet er oppfylt, skal opplysningane slettast."],
+        ["Ei verksemd vil bruke opplysningane dine. Kva må ho ha?", "Ein lovleg grunn, til dømes samtykke", ["Skriftleg løyve frå politiet eller kommunen", "Ein eigen server i Noreg", "Minst tusen brukarar"], "Den lovlege grunnen heiter behandlingsgrunnlag. GDPR har seks slike."],
+        ["Kva krev GDPR om tryggleik?", "Opplysningane skal vernast mot uvedkomande", ["Opplysningane skal berre lagrast på papir", "Alle brukarar må byte passord kvar veke", "Opplysningane skal lagrast i minst tre land"], "Verksemda må sikre opplysningane, til dømes med tilgangsstyring og kryptering."],
+    ],
+    re: [
+        ["Kva betyr retten til innsyn?", "Du kan få vite kva ei verksemd har lagra om deg", ["Du kan sjå opplysningane til dei andre brukarane", "Verksemda kan sjå gjennom mobilen din", "Du kan lese kjeldekoden til appen"], "Du kan be om ein kopi av opplysningane om deg."],
+        ["Ein app har lagra feil fødselsdato på deg. Kva rett har du?", "Retten til retting", ["Retten til erstatning", "Retten til dataportabilitet", "Ingen, det er appen som bestemmer"], "Feil opplysningar om deg skal rettast."],
+        ["Du har samtykka til å få nyhendebrev. Kan du ombestemme deg?", "Ja, når som helst", ["Nei, eit samtykke gjeld for alltid", "Ja, men berre det første døgnet", "Ja, men berre om du betaler eit gebyr"], "Det skal vere like lett å trekkje eit samtykke tilbake som å gi det."],
+        ["Kva blir retten til sletting ofte kalla?", "Retten til å bli gløymd", ["Retten til å vere anonym", "Retten til å bli hugsa", "Retten til å vere fråkopla"], "Du kan be om at opplysningar om deg blir sletta når dei ikkje trengst lenger."],
+        ["Kvar kan du klage om ei verksemd bryt personvernreglane?", "Til Datatilsynet", ["Til Lånekassen", "Til Skatteetaten", "Til Språkrådet"], "Ta det først opp med verksemda. Hjelper ikkje det, kan du klage til Datatilsynet."],
+        ["Kva skal ei personvernerklæring fortelje deg?", "Kva som blir samla inn, og kva det blir brukt til", ["Kor mykje verksemda tener på opplysningane kvart år", "Korleis appen er programmert", "Kven dei andre brukarane er"], "Du har rett til informasjon i eit klart og enkelt språk."],
+    ],
+    ip: [
+        ["Kva betyr innebygd personvern?", "At personvern er tenkt inn i appen frå første dag", ["At appen har ei lang personvernerklæring", "At personvern blir lagt til etter lanseringa", "At appen berre verkar utan nett"], "Personvern skal vere med i heile utviklinga, ikkje limt på til slutt."],
+        ["Ein lommelykt-app ber om tilgang til kontaktlista di. Kva er rett?", "Nei, appen treng ikkje kontaktane for å lyse", ["Det er greitt, alle appar treng kontaktlista", "Det er greitt så lenge appen er gratis", "Det er greitt om appen har mange nedlastingar"], "Dataminimering: appen skal berre ha det han treng til føremålet."],
+        ["Kva betyr personvern som standardinnstilling?", "Dei tryggaste vala er slått på frå start", ["Alle brukarar har same passord", "Brukaren må sjølv slå av all deling", "Appen har ingen innstillingar"], "Brukaren skal vere verna utan å måtte leite i innstillingane."],
+        ["Du lagar ein quiz-app for klassen. Kva er det minste du treng til ei toppliste?", "Eit kallenamn og poengsummen", ["Fullt namn og fødselsdato", "E-postadresse og telefonnummer", "Posisjon og bilete"], "Topplista verkar like godt med kallenamn. Meir enn det er unødvendig."],
+        ["Ein vêr-app vil vise vêret der du er. Kva er minst inngripande?", "Omtrentleg posisjon medan appen er i bruk", ["Nøyaktig posisjon heile døgnet, òg om natta", "Nøyaktig posisjon og kontaktlista", "Heimeadressa og fødselsdatoen din"], "Vêret er det same i heile bygda. Appen treng ikkje vite kva hus du står i."],
+        ["Kvifor er det lurt å samle inn få opplysningar?", "Det som ikkje er lagra, kan ikkje lekke", ["Då slepp verksemda å følgje reglane i GDPR", "Då treng ikkje appen innlogging", "Då blir appen gratis å drifte"], "Få opplysningar gir mindre skade om noko går gale, og mindre å passe på."],
+    ],
+},
+solv: {
+    po: [
+        ["Er ei IP-adresse ei personopplysning?", "Ja, når ho kan knytast til ein person", ["Nei, ho høyrer berre til ei maskin", "Berre om ho er ei IPv6-adresse", "Berre om ho er ei privat adresse"], "Nettleverandøren veit kven som hadde adressa. Difor kan ho knytast til ein person."],
+        ["Kva er skilnaden på anonyme og pseudonyme data?", "Pseudonyme data kan koplast tilbake til personen", ["Det er to ord for det same", "Anonyme data er krypterte, pseudonyme er ikkje det", "Pseudonyme data er alltid oppdikta"], "Pseudonyme data er framleis personopplysningar. Anonyme data kan ikkje knytast til nokon."],
+        ["Gjeld GDPR for heilt anonyme data?", "Nei, berre for personopplysningar", ["Ja, for alle data på ei datamaskin", "Ja, om dei er lagra i skya", "Berre om det er meir enn tusen rader"], "Kan ingen finne ut kven opplysningane gjeld, er dei ikkje personopplysningar."],
+        ["Kva for ei av desse høyrer til dei særlege kategoriane?", "Fagforeiningsmedlemskap", ["Bustadadresse og telefonnummer", "Kontonummer", "Bilnummer"], "Særlege kategoriar er mellom anna helse, religion, politisk syn, etnisk opphav og fagforeiningsmedlemskap."],
+        ["Ei bedrift byter ut namna i ei liste med tilsettnummer. Ei anna liste koplar nummer og namn. Kva er den første lista?", "Pseudonymisert, så GDPR gjeld", ["Anonym, så GDPR gjeld ikkje", "Kryptert, så GDPR gjeld ikkje", "Offentleg, så alle kan bruke ho"], "Så lenge nokon kan kople nummeret tilbake til namnet, er det personopplysningar."],
+        ["«Eleven som bur i det raude huset ved kaia og har ein grå puddel.» Er dette ei personopplysning?", "Ja, fordi dei til saman peikar ut éin person", ["Nei, fordi namnet ikkje er med", "Nei, fordi det ikkje er lagra digitalt nokon stad", "Berre om eleven er over 18 år"], "Det held at personen kan identifiserast indirekte."],
+    ],
+    pr: [
+        ["Kva for ein av desse er IKKJE ein lovleg grunn til å bruke personopplysningar?", "At opplysningane ligg ope på nettet", ["At personen har samtykka", "At det trengst for å oppfylle ein avtale", "At lova krev det"], "Dei seks grunnane er samtykke, avtale, rettsleg plikt, vitale interesser, allmenn interesse og berettiga interesse."],
+        ["Ein nettbutikk treng adressa di for å sende pakken. Kva grunnlag passar best?", "Avtale", ["Samtykke", "Allmenn interesse", "Vitale interesser"], "Butikken kan ikkje levere det du har kjøpt utan adressa. Då trengst ikkje samtykke."],
+        ["Skulen registrerer fråværet ditt. Kva er grunnlaget?", "Lova pålegg skulen å gjere det", ["Du har samtykka", "Skulen har ein avtale med deg", "Skulen treng ikkje noko grunnlag"], "Skulen har ei rettsleg plikt. Difor kan du ikkje nekte at fråværet blir ført."],
+        ["Kva krav gjeld for eit gyldig samtykke?", "Frivillig, spesifikt, informert og utvitydig", ["Skriftleg, signert og stempla", "Munnleg, med to vitne og stadfesta på e-post", "Gitt av ein vaksen over 18 år"], "Du skal vite kva du seier ja til, og ha eit reelt val."],
+        ["Ein treningsapp sel posisjonsdata til reklamefirma utan å seie frå. Kva prinsipp er brote?", "Føremålsavgrensing og openheit", ["Riktigheit og lagringsavgrensing", "Dataportabilitet og retting", "Riktigheit og dataportabilitet"], "Dataa vart samla inn for å vise treningsturar, ikkje for reklame, og brukarane fekk ikkje vite det."],
+        ["Kva betyr ansvarsprinsippet?", "Verksemda må kunne vise at ho følgjer reglane", ["Brukaren har ansvaret for eigne data", "Datatilsynet har ansvaret for alle appar", "Utviklaren er personleg ansvarleg for alle feil"], "Det held ikkje å følgje reglane. Verksemda må kunne dokumentere det."],
+        ["Eit skjema har ruta «Ja takk til reklame» kryssa av på førehand. Er det eit gyldig samtykke?", "Nei, brukaren må krysse av sjølv", ["Ja, så lenge krysset kan fjernast", "Ja, om skjemaet er på norsk", "Ja, om reklamen er relevant"], "Eit samtykke må vere ei aktiv handling. Ferdig kryssa ruter tel ikkje."],
+    ],
+    re: [
+        ["Kor lang tid har ei verksemd normalt på å svare når du ber om innsyn?", "Éin månad", ["72 timar", "Éi veke", "Eitt år"], "Fristen er éin månad. 72 timar er fristen for å melde avvik til Datatilsynet."],
+        ["Kva er dataportabilitet?", "Retten til å ta dataa dine med til ei anna teneste", ["Retten til å bruke appen på fleire einingar", "At data fritt kan flyttast til ein server i utlandet", "At data blir lagra på ein minnepinne"], "Du skal kunne byte teneste utan å miste det du har lagt inn."],
+        ["Kostar det noko å be om innsyn?", "Nei, det er normalt gratis", ["Ja, 100 kroner kvar gong", "Ja, verksemda bestemmer prisen", "Berre første gongen er gratis"], "Verksemda kan berre ta betalt om krava er openbert grunnlause eller overdrivne."],
+        ["Kan du alltid krevje at opplysningar om deg blir sletta?", "Nei, ikkje når lova krev lagring", ["Ja, alltid og med ein gong", "Nei, aldri", "Ja, men berre i appar du betaler for"], "Skulen må til dømes ta vare på karakterane dine, og butikkar må ta vare på rekneskapen."],
+        ["Du får reklame i posten frå ein butikk du har handla i. Kva kan du gjere?", "Protestere, og då må reklamen stoppe", ["Ingenting, sidan du sjølv har handla der", "Berre kaste reklamen", "Krevje at butikken blir stengd"], "Du har alltid rett til å protestere mot direkte marknadsføring."],
+        ["Ei verksemd avslår kravet ditt om sletting, og du meiner det er feil. Kva kan du gjere?", "Klage til Datatilsynet", ["Ingenting, avgjerda er endeleg", "Logge inn og slette opplysningane sjølv", "Krevje at verksemda betaler deg ei bot"], "Datatilsynet behandlar klager på brot på personvernreglane."],
+    ],
+    ip: [
+        ["Registreringsskjemaet til ein spel-app spør om fødselsnummer. Kva bør utviklaren gjere?", "Fjerne feltet, spelet treng det ikkje", ["Gjere feltet valfritt", "Kryptere feltet", "Flytte feltet til slutten av skjemaet"], "Kryptering og valfrie felt hjelper ikkje når opplysninga ikkje trengst i det heile."],
+        ["Kva er best personvern som standard i ein app for bilete-deling?", "Nye kontoar er private til brukaren vel noko anna", ["Nye kontoar er opne, men kan gjerast private", "Alle kontoar er alltid opne", "Appen spør om innstillinga etter eitt år"], "Det tryggaste valet skal gjelde frå start."],
+        ["Ein app må vite at brukaren er over 16 år. Kva er minst inngripande?", "Lagre berre ja eller nei", ["Lagre heile fødselsdatoen", "Lagre fødselsnummeret", "Lagre eit bilete av passet"], "Appen treng svaret, ikkje datoen. Lagre det minste som løyser oppgåva."],
+        ["Kvar i utviklinga høyrer personvern heime?", "I alle fasar, frå krav til drift", ["Berre i testinga", "Berre like før appen skal lanserast", "Berre når nokon klagar"], "Det er billegast og tryggast å tenkje på personvern frå starten."],
+        ["Kva gjer ein med opplysningar appen ikkje treng lenger?", "Slettar dei, helst automatisk", ["Tek backup og let dei liggje", "Flyttar dei til ein billegare server", "Gøymer dei for brukaren"], "Lagringsavgrensing: det ein ikkje treng, skal bort."],
+        ["Ein app loggar alle feil til feilsøking. Kva er lurt?", "Halde namn og e-post ute av loggane", ["Logge alt, i tilfelle det trengst seinare", "Sende loggane til alle utviklarane på e-post", "Lagre loggane ope så brukarane kan sjå dei"], "Loggar blir lett gløymde. Hald personopplysningar ute, og slett loggane etter ei stund."],
+    ],
+},
+gull: {
+    po: [
+        ["Eit selskap fjernar namna frå eit datasett, men let fødselsdato, postnummer og kjønn stå. Er det anonymt?", "Nei, kombinasjonen kan peike ut personar", ["Ja, utan namn er data alltid anonyme", "Ja, om datasettet er kryptert", "Ja, så lenge det er færre enn hundre rader"], "Få personar deler fødselsdato, postnummer og kjønn. Koplar ein med andre kjelder, finn ein ofte personen."],
+        ["Kva for ei av desse er IKKJE i dei særlege kategoriane i GDPR?", "Fødselsnummer", ["Religion", "Seksuell orientering", "Biometri brukt til å identifisere deg"], "Fødselsnummer har eigne reglar i norsk lov, men står ikkje på lista over særlege kategoriar."],
+        ["Ein app lagrar fingeravtrykket ditt på ein server for å logge deg inn. Kva slags opplysning er det?", "Ei biometrisk opplysning i særleg kategori", ["Ei vanleg personopplysning, som eit brukarnamn", "Anonym, fordi det berre er eit mønster", "Tekniske data som GDPR ikkje gjeld for"], "Biometri brukt til å identifisere deg er ekstra verna. Eit fingeravtrykk kan du heller ikkje byte ut."],
+        ["Ein informasjonskapsel har ein unik ID som følgjer deg frå nettside til nettside. Er ID-en ei personopplysning?", "Ja, fordi ID-en skil deg ut frå alle andre", ["Nei, fordi han ikkje inneheld namn", "Nei, kapslar er berre tekniske filer", "Berre om du er logga inn"], "Ein treng ikkje vite namnet ditt for å kjenne deg att og byggje ein profil."],
+        ["Du hashar e-postadressene med SHA-256 og lagrar berre hashen. Er hashen anonym?", "Nei, same adresse gir alltid same hash", ["Ja, ein hash kan aldri knytast til nokon", "Ja, så lenge SHA-256 ikkje er knekt", "Ja, om saltet er lagra i same tabell"], "Alle som kjenner e-postadressa, kan hashe ho og finne rada. Det er pseudonymisering, ikkje anonymisering."],
+        ["Når gjeld GDPR ikkje?", "Når du lagrar telefonnummera til venene dine", ["Når bedrifta har færre enn ti tilsette", "Når opplysningane ligg i eit arkivskap på papir", "Når serveren står utanfor EU"], "Reint private gjeremål er unnatekne. Storleiken på bedrifta, papirarkiv og plasseringa av serveren gir ikkje fritak."],
+    ],
+    pr: [
+        ["Kva er den høgaste bota etter GDPR?", "20 millionar euro eller 4 % av global årsomsetnad", ["2 millionar euro eller 10 % av global årsomsetnad", "100 000 euro for kvar brukar", "10 % av overskotet i landet brotet skjedde"], "Det er det høgaste av dei to beløpa som gjeld."],
+        ["Ein nettbutikk vil sende reklame på e-post til folk som aldri har handla der. Kva grunnlag trengst?", "Samtykke", ["Avtale", "Rettsleg plikt", "Vitale interesser"], "Det finst ingen avtale med desse personane, og inga lov som krev reklame. Dei må sjølve ha sagt ja."],
+        ["Ei verksemd brukar eit skyfirma til å lagre kundedata. Kva rolle har skyfirmaet?", "Databehandlar", ["Behandlingsansvarleg", "Personvernombod", "Tilsynsmyndigheit"], "Skyfirmaet behandlar opplysningane på oppdrag. Verksemda er framleis behandlingsansvarleg."],
+        ["Kva må vere på plass mellom ein behandlingsansvarleg og ein databehandlar?", "Ein databehandlaravtale", ["Ei felles personvernerklæring", "Ei godkjenning frå Datatilsynet", "Ein felles brukardatabase"], "Avtalen seier kva databehandlaren har lov til å gjere med opplysningane."],
+        ["Når må ei verksemd vurdere personvernkonsekvensane (DPIA) før ho startar?", "Når behandlinga truleg gir høg risiko", ["Kvar gong ein ny brukar registrerer seg", "Berre når Datatilsynet ber om det", "Berre når opplysningane skal seljast"], "Til dømes ved overvaking, særlege kategoriar i stor skala eller ny teknologi."],
+        ["Kvifor er samtykke sjeldan eit godt grunnlag mellom arbeidsgjevar og tilsett?", "Samtykket er sjeldan reelt frivillig", ["Tilsette har ikkje lov til å samtykke", "Samtykke gjeld berre for barn", "Arbeidsgjevaren treng ikkje noko grunnlag"], "Arbeidsgjevaren har makta. Den som er redd for jobben, torer ikkje alltid seie nei. Det same kan gjelde mellom skule og elev."],
+        ["Kva gjer eit personvernombod?", "Gir verksemda råd om personvernreglane", ["Godkjenner alle nye appar før lansering", "Skriv ut bøter for Datatilsynet", "Tek over ansvaret om noko går gale"], "Ombodet gir råd og følgjer med på at reglane blir haldne. Ansvaret ligg framleis hos leiinga i verksemda."],
+    ],
+    re: [
+        ["Ei verksemd oppdagar at kundedata har lekt ut. Kor fort må ho normalt melde frå til Datatilsynet?", "Innan 72 timar", ["Innan 24 timar", "Innan éin månad", "Når ho er ferdig med å undersøkje"], "Fristen er 72 timar etter at verksemda vart kjend med brotet."],
+        ["Når må dei registrerte sjølve få beskjed om eit brot på tryggleiken?", "Når brotet truleg gir høg risiko for dei", ["Alltid, uansett kor lite brotet er", "Aldri, det held å melde til Datatilsynet", "Berre om media skriv om det"], "Er passord eller helseopplysningar på avvegar, må folk få vite det så dei kan verne seg."],
+        ["Eit dataprogram avslår lånesøknaden din heilt automatisk. Kva rett har du?", "Å krevje at eit menneske ser på saka", ["Å få lånet likevel", "Å få utlevert kjeldekoden til programmet", "Ingen, programmet avgjer"], "Du har rett til ikkje å vere underlagd reint automatiske avgjerder som får stor verknad for deg."],
+        ["Du ber om innsyn. Kva har du krav på?", "Ein kopi og informasjon om bruken", ["Berre ei stadfesting på at dei finst", "Tilgang til heile databasen", "Ein kopi, men berre på papir"], "Du får ein kopi og får vite kva opplysningane blir brukte til, kven dei er delte med, og kor lenge dei blir lagra."],
+        ["Kan fristen på éin månad for å svare på innsyn forlengjast?", "Ja, med inntil to månader", ["Nei, aldri", "Ja, så lenge verksemda treng", "Ja, om du betaler eit gebyr"], "Det gjeld når kravet er komplisert. Verksemda må gi deg beskjed om forlenginga og grunnen innan den første månaden."],
+        ["Du trekkjer tilbake eit samtykke. Kva gjeld for det verksemda gjorde før?", "Det var lovleg, men ho må stoppe frå no", ["Alt ho gjorde før, blir ulovleg i ettertid", "Ingenting endrar seg", "Ho kan halde fram som før i eitt år til"], "Å trekkje samtykket verkar framover i tid."],
+    ],
+    ip: [
+        ["Kvar i GDPR står kravet om innebygd personvern?", "Artikkel 25", ["Artikkel 5", "Artikkel 17", "Artikkel 33"], "Artikkel 5 har prinsippa, 17 er sletting og 33 er melding om avvik."],
+        ["Ei teneste treng statistikk over kor mykje kvar funksjon blir brukt. Kva er best?", "Telje bruken utan å lagre kven som gjorde kva", ["Lagre alle klikk med brukar-ID, for sikkerheits skuld", "Lagre klikk med e-postadresse, men kryptert", "Lagre alle klikk i eitt år og så sjå kva som trengst"], "Føremålet er å telje. Då treng ein ikkje vite kven som klikka."],
+        ["Du lagar ein medlemsdatabase for ein idrettsklubb. Kva er godt innebygd personvern?", "Trenarane ser berre sitt eige lag", ["Alle trenarane ser alle medlemmene", "Alle trenarane deler éi felles innlogging", "Databasen ligg ope, men adressa er hemmeleg"], "Tilgangen blir styrt med roller: ingen skal sjå meir enn dei treng for å gjere jobben."],
+        ["Kva må tabellen brukarar minst innehalde for at innlogging skal verke?", "Brukarnamn og hasha passord", ["Brukarnamn og passord i klartekst", "Brukarnamn, passord og fødselsnummer", "Fullt namn, adresse og telefonnummer"], "Innlogging treng berre noko å kjenne deg att på og ein hash å samanlikne passordet med."],
+        ["Testmiljøet treng data. Kva er best?", "Oppdikta testdata", ["Ein kopi av produksjonsdatabasen", "Ekte data frå dei ti siste kundane", "Ekte data, men berre på PC-en til utviklaren"], "Testmiljø er ofte dårlegare sikra. Ekte personopplysningar høyrer ikkje heime der."],
+        ["Ein app skal finne næraste busstopp. Kva design er best for personvernet?", "Rekne ut på mobilen, utan å sende posisjonen til serveren", ["Sende posisjonen til serveren og lagre han i eitt år", "Sende posisjonen kvart minutt, òg når appen er lukka", "Lagre posisjonen saman med namnet i loggen"], "Lista over busstopp kan lastast ned. Då treng ikkje serveren vite kvar du er."],
+    ],
+},
+};
+function lagSpm(nivaa, tema) { return stokk(BANK[nivaa][tema]).slice(0, 3); }
+
+const NIVA = {
+    bronse: { namn: "Bronse", tekst: "Omgrepa og enkle døme", lys: "#f0b27a", mid: "#c07a3e", mork: "#7a4518", tekstfarge: "#3d2008" },
+    solv:   { namn: "Sølv",   tekst: "Reglane brukte i kvardagen", lys: "#f4f6f8", mid: "#b8c0c8", mork: "#6b7480", tekstfarge: "#2a3038" },
+    gull:   { namn: "Gull",   tekst: "Tenk som ein utviklar", lys: "#fff1a8", mid: "#e2b53c", mork: "#9a6b0a", tekstfarge: "#4a3300" },
+};
+
+/* ---------- Teikning av knappen ---------- */
+let svgTeljar = 0;
+function knappSVG(nivaa, namn, dato, liten) {
+    const N = NIVA[nivaa], u = "k" + (++svgTeljar);
+    // Takkar rundt kanten, som ein vevd svømmeknapp
+    let takk = "";
+    for (let i = 0; i < 72; i++) {
+        const a = i / 72 * 2 * Math.PI, r = i % 2 ? 196 : 188;
+        takk += (i ? "L" : "M") + (200 + r * Math.cos(a)).toFixed(1) + " " + (200 + r * Math.sin(a)).toFixed(1);
+    }
+    const tom = !namn;
+    return `<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${K_NAMN} ${esc(N.namn)}${tom ? "" : " – " + esc(namn)}">
+  <defs>
+    <radialGradient id="${u}g" cx="38%" cy="32%" r="75%">
+      <stop offset="0" stop-color="${N.lys}"/><stop offset=".55" stop-color="${N.mid}"/><stop offset="1" stop-color="${N.mork}"/>
+    </radialGradient>
+    <path id="${u}top" d="M 70 200 A 130 130 0 0 1 330 200"/>
+    <path id="${u}bot" d="M 58 200 A 142 142 0 0 0 342 200"/>
+  </defs>
+  <path d="${takk}Z" fill="${N.mork}"/>
+  <circle cx="200" cy="200" r="182" fill="url(#${u}g)"/>
+  <circle cx="200" cy="200" r="170" fill="none" stroke="${N.tekstfarge}" stroke-width="3" stroke-dasharray="7 6" opacity=".55"/>
+  <circle cx="200" cy="200" r="110" fill="#ffffff" opacity=".22"/>
+  <text font-family="Arial, Helvetica, sans-serif" font-weight="bold" font-size="25" letter-spacing="3" fill="${N.tekstfarge}">
+    <textPath href="#${u}top" startOffset="50%" text-anchor="middle">${K_SVGTEKST}</textPath></text>
+  <text font-family="Arial, Helvetica, sans-serif" font-weight="bold" font-size="19" letter-spacing="4" fill="${N.tekstfarge}">
+    <textPath href="#${u}bot" startOffset="50%" text-anchor="middle">STORD VGS</textPath></text>
+  <g fill="${N.tekstfarge}" transform="translate(200 ${tom ? 166 : 126})">
+    <path d="M 0 -36 L 32 -24 V 2 C 32 22 16 34 0 40 C -16 34 -32 22 -32 2 V -24 Z"/>
+    <circle cx="0" cy="-6" r="8" fill="${N.mid}"/><path d="M -4 -2 H 4 L 6 18 H -6 Z" fill="${N.mid}"/>
+  </g>
+  <text x="200" y="${tom ? 250 : 210}" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="bold" font-size="${tom ? 40 : 34}" fill="${N.tekstfarge}">${esc(N.namn.toUpperCase())}</text>
+  ${tom ? "" : `<text x="200" y="256" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="bold" font-size="${namn.length > 12 ? 26 : 34}" fill="${N.tekstfarge}">${esc(namn)}</text>
+  <text x="200" y="288" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="${N.tekstfarge}">${esc(dato)}</text>`}
+</svg>`;
+}
+
+/* ---------- Lagra knappar (berre i denne nettlesaren) ---------- */
+function hentMine() { try { return JSON.parse(localStorage.getItem(K_LAGER) || "{}"); } catch { return {}; } }
+function lagreMin(nivaa, namn, dato) {
+    try { const m = hentMine(); m[nivaa] = { namn, dato }; localStorage.setItem(K_LAGER, JSON.stringify(m)); } catch {}
+}
+
+/* ---------- Startskjerm ---------- */
+let valtNivaa = "bronse";
+function visStart() {
+    const mine = hentMine();
+    $("nivaval").innerHTML = Object.keys(NIVA).map(k => `<button data-n="${k}" class="${k === valtNivaa ? "on" : ""}">
+        ${knappSVG(k)}<b>${NIVA[k].namn}</b><span class="small">${NIVA[k].tekst}</span>
+        ${mine[k] ? `<span class="tatt">✓ Teken ${esc(mine[k].dato)}</span>` : ""}</button>`).join("");
+    const har = Object.keys(NIVA).filter(k => mine[k]);
+    $("mineKort").style.display = har.length ? "block" : "none";
+    $("mine").innerHTML = har.map(k => knappSVG(k, mine[k].namn, mine[k].dato)).join("");
+    $("start").style.display = "block"; $("quiz").style.display = "none"; $("resultat").style.display = "none";
+}
+$("nivaval").onclick = e => {
+    const b = e.target.closest("button"); if (!b) return;
+    valtNivaa = b.dataset.n; visStart();
+};
+
+/* ---------- Quiz ---------- */
+function stokk(a) { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
+let spm = [], svar = [], idx = 0, namn = "";
+$("startknapp").onclick = () => {
+    namn = $("namn").value.trim().replace(/\s+/g, " ");
+    if (!namn) { $("startmsg").textContent = "Skriv fornamnet ditt først."; $("namn").focus(); return; }
+    $("startmsg").textContent = "";
+    spm = [];
+    for (const side of Object.keys(SIDER)) {
+        for (const [q, rett, galne, forklaring] of lagSpm(valtNivaa, side)) {
+            const alt = stokk([rett, ...galne]);
+            spm.push({ side, q, alt, rett: alt.indexOf(rett), forklaring });
+        }
+    }
+    svar = new Array(spm.length).fill(null);
+    idx = 0;
+    $("start").style.display = "none"; $("quiz").style.display = "block";
+    visSpm();
+    window.scrollTo(0, 0);
+};
+
+function visSpm() {
+    const s = spm[idx];
+    $("bar").style.width = (idx / spm.length * 100) + "%";
+    $("nr").textContent = `Spørsmål ${idx + 1} av ${spm.length} · ${NIVA[valtNivaa].namn}`;
+    $("tema").textContent = SIDER[s.side].namn;
+    $("spm").textContent = s.q;
+    $("alt").innerHTML = s.alt.map((a, i) => `<button data-i="${i}" class="${svar[idx] === i ? "valt" : ""}">${esc(a)}</button>`).join("");
+    $("forrige").disabled = idx === 0;
+    $("neste").textContent = idx === spm.length - 1 ? "Lever" : "Neste →";
+    $("neste").disabled = svar[idx] === null;
+}
+$("alt").onclick = e => {
+    const b = e.target.closest("button"); if (!b) return;
+    svar[idx] = +b.dataset.i; visSpm();
+};
+$("forrige").onclick = () => { if (idx > 0) { idx--; visSpm(); } };
+$("neste").onclick = () => {
+    if (svar[idx] === null) return;
+    if (idx < spm.length - 1) { idx++; visSpm(); } else visResultat();
+};
+
+/* ---------- Resultat ---------- */
+const KRAV = 11;
+function visResultat() {
+    const rette = spm.filter((s, i) => svar[i] === s.rett).length;
+    const ok = rette >= KRAV;
+    const N = NIVA[valtNivaa];
+    const dato = new Date().toLocaleDateString("nb-NO", { day: "2-digit", month: "2-digit", year: "numeric" });
+    $("quiz").style.display = "none"; $("resultat").style.display = "block";
+    $("poeng").textContent = `${rette} / ${spm.length}`;
+    $("poeng").className = "poeng " + (ok ? "ok" : "bad");
+
+    const nesteNivaa = { bronse: "solv", solv: "gull" }[valtNivaa];
+    let knappar = "";
+    if (ok) {
+        lagreMin(valtNivaa, namn, dato);
+        $("resTekst").innerHTML = `Gratulerer, ${esc(namn)}! Du har teke <b>${K_NAMN} i ${N.namn.toLowerCase()}</b>.`;
+        $("stor").innerHTML = knappSVG(valtNivaa, namn, dato);
+        knappar += `<button class="btn primary" id="lastned">Last ned knappen</button>`;
+        if (nesteNivaa) knappar += `<button class="btn" id="neste-nivaa">Prøv ${NIVA[nesteNivaa].namn.toLowerCase()}</button>`;
+    } else {
+        $("resTekst").innerHTML = `Du treng ${KRAV} rette for å få knappen. Les gjennom det du svara feil på, les teksten ein gong til, og prøv igjen.`;
+        $("stor").innerHTML = "";
+        knappar += `<button class="btn primary" id="igjen">Prøv igjen</button>`;
+    }
+    knappar += `<button class="btn" id="tilstart">Til start</button>`;
+    $("resKnappar").innerHTML = knappar;
+
+    const feil = spm.map((s, i) => ({ s, i })).filter(({ s, i }) => svar[i] !== s.rett);
+    $("feilKort").style.display = feil.length ? "block" : "none";
+    $("feilliste").innerHTML = feil.map(({ s, i }) => `<div class="feil">
+        <p><b>${esc(s.q)}</b></p>
+        <p class="ditt">Ditt svar: ${esc(s.alt[svar[i]])}</p>
+        <p class="rett">Rett svar: ${esc(s.alt[s.rett])}</p>
+        <p class="small">${esc(s.forklaring)}</p></div>`).join("");
+
+    if (ok) {
+        $("lastned").onclick = () => lastNed(valtNivaa, namn, dato);
+        if (nesteNivaa) $("neste-nivaa").onclick = () => { valtNivaa = nesteNivaa; visStart(); $("namn").value = namn; window.scrollTo(0, 0); };
+    } else {
+        $("igjen").onclick = () => { $("namn").value = namn; $("startknapp").click(); };
+    }
+    $("tilstart").onclick = () => { visStart(); window.scrollTo(0, 0); };
+    window.scrollTo(0, 0);
+}
+
+function lastNed(nivaa, namn, dato) {
+    const svg = knappSVG(nivaa, namn, dato);
+    const img = new Image();
+    img.onload = () => {
+        const c = document.createElement("canvas");
+        c.width = c.height = 800;
+        c.getContext("2d").drawImage(img, 0, 0, 800, 800);
+        const a = document.createElement("a");
+        a.download = `${K_LAGER}-${nivaa}-${namn.toLowerCase().replace(/[^a-zæøå0-9]+/g, "-")}.png`;
+        a.href = c.toDataURL("image/png");
+        a.click();
+    };
+    img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+}
+
+$("namn").onkeydown = e => { if (e.key === "Enter") $("startknapp").click(); };
+
+/* ---------- Labben: kva treng appen eigentleg? ---------- */
+const APPAR = {
+    lykt: { namn: "Lommelykta", formal: "Lyse med blitsen på mobilen.", data: [
+        ["Kamera (blitsen)", true, "Blitsen høyrer til kameraet. Utan han blir det ikkje noko lys."],
+        ["Posisjon", false, "Lykta lyser like godt same kvar du er."],
+        ["Kontaktlista", false, "Kontaktane dine har ingenting med lys å gjere."],
+        ["Mikrofon", false, "Ei lykt treng ikkje høyre noko."],
+        ["Namn og e-post", false, "Du treng ikkje konto for å slå på eit lys."],
+        ["Reklame-ID", false, "Han trengst til målretta reklame, ikkje til å lyse."],
+    ] },
+    kantine: { namn: "Kantine-appen", formal: "Bestille og betale lunsj i skulekantina, og hente maten på fornamn.", data: [
+        ["Fornamn", true, "Kantina må vite kven som skal ha maten."],
+        ["Kva du har bestilt", true, "Utan bestillinga blir det ingen lunsj."],
+        ["Betaling via Vipps", true, "Maten må betalast. Vipps tek seg av kortet, så appen slepp å lagre kortnummer."],
+        ["Fødselsnummer", false, "Eit fornamn held for å finne rett matpakke."],
+        ["Posisjon", false, "Du hentar maten i kantina. Appen treng ikkje vite kvar du er."],
+        ["Allergiar", false, "Helseopplysning i særleg kategori. Kan vere eit frivillig felt, men appen verkar utan."],
+    ] },
+    lop: { namn: "Løpeappen", formal: "Vise kor langt og kor fort du har sprunge, på eit kart.", data: [
+        ["Posisjon medan du spring", true, "Utan posisjon, inga rute på kartet."],
+        ["Tid og distanse", true, "Det er dette appen skal vise deg."],
+        ["Posisjon heile døgnet", false, "Appen treng berre posisjonen medan økta går."],
+        ["Kontaktlista", false, "Å finne vener må vere noko du vel sjølv, ikkje eit krav."],
+        ["Puls", false, "Helseopplysning. Fint som frivillig tillegg, men ruta og farten treng han ikkje."],
+        ["Heimeadresse", false, "Trengst ikkje. Ein god app gøymer til og med starten og slutten av turen som standard."],
+    ] },
+};
+let valtApp = "lykt", kryss = new Set(), sjekka = false;
+function visApp() {
+    const A = APPAR[valtApp];
+    $("appval").innerHTML = Object.keys(APPAR).map(k => `<button type="button" data-a="${k}" class="${k === valtApp ? "on" : ""}">${APPAR[k].namn}</button>`).join("");
+    $("formal").innerHTML = `<b>Føremålet med appen</b>${esc(A.formal)}`;
+    let treff = 0;
+    $("datliste").innerHTML = A.data.map(([kva, treng, kvifor], i) => {
+        const pa = kryss.has(i), ok = pa === treng;
+        if (ok) treff++;
+        const dom = treng ? "Må ha." : "Treng ikkje.";
+        return `<button type="button" class="dat${sjekka ? (ok ? " rett" : " gale") : ""}" data-i="${i}" aria-pressed="${pa}"${sjekka ? " disabled" : ""}>
+            <span class="boks">${pa ? "✓" : ""}</span><span class="kva">${esc(kva)}</span>
+            ${sjekka ? `<span class="kvifor"><span class="dom">${ok ? "Rett. " : "Feil. "}${dom}</span> ${esc(kvifor)}</span>` : ""}</button>`;
+    }).join("");
+    $("labSjekk").style.display = sjekka ? "none" : "";
+    $("labNy").style.display = sjekka ? "" : "none";
+    $("labRes").textContent = sjekka ? (treff === A.data.length ? "Alle rette! Du tenkjer som ein personvernvenleg utviklar." : `${treff} av ${A.data.length} rette.`) : "";
+}
+$("appval").onclick = e => { const b = e.target.closest("button"); if (!b) return; valtApp = b.dataset.a; kryss = new Set(); sjekka = false; visApp(); };
+$("datliste").onclick = e => { const b = e.target.closest("button"); if (!b || sjekka) return; const i = +b.dataset.i; kryss.has(i) ? kryss.delete(i) : kryss.add(i); visApp(); };
+$("labSjekk").onclick = () => { sjekka = true; visApp(); };
+$("labNy").onclick = () => { kryss = new Set(); sjekka = false; visApp(); };
+
+visApp();
+visStart();
+</script>
+</body>
+</html>
