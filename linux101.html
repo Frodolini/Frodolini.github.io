@@ -1,0 +1,2391 @@
+<!DOCTYPE html>
+<html lang="nn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Linux 101</title>
+<!-- Kode 101: Linux 101 – simulert Bash-terminal på ein Ubuntu-server for Vg1/Vg2 IM. Éi sjølvstendig fil. -->
+<meta name="description" content="Linux 101: lær terminalen i Linux i ein trygg simulator – filer, rettar, sudo, pakkar, tenester, nettverk og SSH.">
+<style>
+:root {
+    --gron: #2e7d32;
+    --gron-mork: #1b5e20;
+    --gron-lys: #e8f5e9;
+    --bg: #eef3ef;
+    --kort: #ffffff;
+    --tekst: #24302a;
+    --grå: #5f6b64;
+    --linje: #dfe6e1;
+    --lenke: #0066cc;
+    --gul: #fff6d6;
+    --gul-kant: #e8c547;
+    --kode-bg: #f4f6f5;
+    --font: system-ui, "Segoe UI", Arial, sans-serif;
+    --mono: Consolas, "Cascadia Mono", "Cascadia Code", Menlo, monospace;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body { margin: 0; background: var(--bg); color: var(--tekst); font-family: var(--font); font-size: 15px; display: flex; flex-direction: column; }
+
+/* ---------- Grøn tittellinje ---------- */
+header.topp { background: var(--gron); color: #fff; padding: 10px 16px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; border-bottom: 3px solid var(--gron-mork); }
+header.topp .tilbake { color: #fff; text-decoration: none; font-size: 14px; padding: 4px 10px; border: 1px solid rgba(255,255,255,.5); border-radius: 14px; white-space: nowrap; }
+header.topp .tilbake:hover { background: var(--gron-mork); }
+header.topp .titlar { flex: 1 1 260px; min-width: 0; }
+header.topp h1 { margin: 0; font-size: 21px; line-height: 1.2; }
+header.topp .under { margin: 2px 0 0; font-size: 13px; opacity: .9; }
+header.topp .hogre { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.framdrift { font-size: 13px; min-width: 130px; }
+.framdrift .linje { height: 6px; background: rgba(255,255,255,.3); border-radius: 3px; margin-top: 4px; overflow: hidden; }
+.framdrift .linje div { height: 100%; width: 0; background: #fff; transition: width .4s; }
+header.topp button { background: transparent; color: #fff; border: 1px solid rgba(255,255,255,.6); border-radius: 6px; padding: 6px 12px; font: inherit; font-size: 13px; cursor: pointer; }
+header.topp button:hover { background: var(--gron-mork); }
+
+/* ---------- To kolonnar ---------- */
+main.oppsett { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(320px, 40%) 1fr; gap: 14px; padding: 14px; }
+.kort { background: var(--kort); border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,.1); }
+#leksjonspanel { overflow-y: auto; min-height: 0; padding: 0; display: flex; flex-direction: column; }
+#sim { min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
+@media (max-width: 900px) {
+    body { height: auto; display: block; }
+    main.oppsett { display: flex; flex-direction: column; padding: 10px; }
+    #leksjonspanel { overflow: visible; }
+    #sim { height: 78vh; min-height: 460px; }
+}
+
+/* ---------- Leksjonsliste ---------- */
+#leksjonsliste { list-style: none; margin: 0; padding: 8px; border-bottom: 1px solid var(--linje); display: flex; flex-direction: column; gap: 2px; }
+#leksjonsliste li button { width: 100%; text-align: left; background: none; border: none; font: inherit; font-size: 14px; padding: 5px 8px; border-radius: 6px; cursor: pointer; display: flex; gap: 8px; align-items: baseline; color: var(--tekst); }
+#leksjonsliste li button:hover { background: var(--gron-lys); }
+#leksjonsliste li.aktiv button { background: var(--gron); color: #fff; }
+#leksjonsliste .status { width: 1.2em; text-align: center; flex: none; }
+#leksjonsliste .sirkel { display: inline-block; width: 11px; height: 11px; border-radius: 50%; border: 2px solid currentColor; vertical-align: -1px; opacity: .75; }
+#leksjonsliste .sirkel.halv { background: linear-gradient(90deg, currentColor 50%, transparent 50%); opacity: 1; }
+@media (max-width: 600px) { #leksjon .eksempel pre { padding-right: 12px; padding-top: 34px; } }
+#leksjonsliste .nr { color: var(--grå); width: 1.6em; flex: none; }
+#leksjonsliste li.aktiv .nr { color: #dfeee0; }
+#leksjonsliste .tal { margin-left: auto; font-size: 12px; color: var(--grå); }
+#leksjonsliste li.aktiv .tal { color: #dfeee0; }
+#leksjonsliste .ferdig .status { color: var(--gron); }
+#leksjonsliste li.aktiv.ferdig .status { color: #fff; }
+
+/* ---------- Leksjonsinnhald ---------- */
+#leksjon { padding: 14px 18px 18px; line-height: 1.5; }
+#leksjon h2 { font-size: 20px; margin: 0 0 4px; padding-bottom: 6px; border-bottom: 2px solid var(--gron); }
+#leksjon .laerer { color: var(--grå); font-size: 14px; margin: 6px 0 12px; }
+#leksjon .laerer b { color: var(--gron-mork); }
+#leksjon p { margin: 8px 0; }
+#leksjon code { font-family: var(--mono); background: var(--kode-bg); padding: 1px 4px; border-radius: 3px; font-size: 13.5px; }
+#leksjon h3 { font-size: 15px; margin: 18px 0 6px; color: var(--gron-mork); }
+.eksempel { position: relative; margin: 8px 0 12px; }
+.eksempel pre { margin: 0; background: #1e1e1e; color: #e6e6e6; font-family: var(--mono); font-size: 13.5px; padding: 10px 12px; padding-right: 70px; border-radius: 6px; overflow-x: auto; line-height: 1.4; }
+.eksempel .prov { position: absolute; top: 6px; right: 6px; background: var(--gron); color: #fff; border: none; border-radius: 4px; padding: 3px 9px; font: inherit; font-size: 12.5px; cursor: pointer; }
+.eksempel .prov:hover { background: var(--gron-mork); }
+.tips { background: var(--gul); border-left: 4px solid var(--gul-kant); padding: 8px 12px; border-radius: 4px; margin: 10px 0; }
+table.juks { border-collapse: collapse; width: 100%; font-size: 13.5px; margin: 8px 0; }
+table.juks td, table.juks th { border-bottom: 1px solid var(--linje); padding: 4px 6px; text-align: left; vertical-align: top; }
+table.juks td:first-child { font-family: var(--mono); white-space: nowrap; }
+
+/* ---------- Oppgåver ---------- */
+.oppgaver { list-style: none; padding: 0; margin: 6px 0; display: flex; flex-direction: column; gap: 8px; }
+.oppgave { border: 1px solid var(--linje); border-radius: 8px; padding: 9px 12px; display: grid; grid-template-columns: 1.4em 1fr auto; gap: 4px 8px; align-items: start; transition: background .4s, border-color .4s; }
+.oppgave .ikon { font-size: 16px; line-height: 1.4; color: #9aa59f; }
+.oppgave.loyst { background: var(--gron-lys); border-color: #a5d6a7; }
+.oppgave.loyst .ikon { color: var(--gron); }
+.oppgave .hintknapp { background: #fff; border: 1px solid var(--linje); border-radius: 5px; padding: 2px 9px; font: inherit; font-size: 12.5px; cursor: pointer; color: var(--grå); }
+.oppgave .hintknapp:hover { border-color: var(--gron); color: var(--gron-mork); }
+.oppgave .hint { grid-column: 2 / 4; font-size: 13.5px; background: var(--gul); border-radius: 5px; padding: 5px 9px; }
+.oppgave .bra { grid-column: 2 / 4; color: var(--gron-mork); font-weight: bold; font-size: 14px; animation: bra 2.6s forwards; }
+@keyframes bra { 0% { opacity: 0; } 10% { opacity: 1; } 75% { opacity: 1; } 100% { opacity: 0; } }
+.fullfort { background: var(--gron); color: #fff; border-radius: 8px; padding: 10px 14px; margin: 14px 0 6px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.fullfort button { background: #fff; color: var(--gron-mork); border: none; border-radius: 5px; padding: 5px 12px; font: inherit; font-weight: bold; cursor: pointer; }
+.navknappar { display: flex; justify-content: space-between; margin: 18px 0 8px; }
+.navknappar button { background: #fff; border: 1px solid var(--gron); color: var(--gron-mork); border-radius: 6px; padding: 6px 14px; font: inherit; cursor: pointer; }
+.navknappar button:hover:not(:disabled) { background: var(--gron); color: #fff; }
+.navknappar button:disabled { opacity: .35; cursor: default; }
+details.laerar { margin: 16px 0 0; border: 1px solid var(--linje); border-radius: 8px; padding: 8px 12px; font-size: 14px; background: #fafcfb; }
+details.laerar summary { cursor: pointer; font-weight: bold; color: var(--grå); }
+details.laerar ul { padding-left: 20px; margin: 6px 0; }
+
+/* ---------- Toast ---------- */
+#toast { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%) translateY(20px); background: var(--gron-mork); color: #fff; padding: 9px 16px; border-radius: 8px; box-shadow: 0 4px 14px rgba(0,0,0,.25); opacity: 0; pointer-events: none; transition: opacity .3s, transform .3s; z-index: 50; max-width: 90vw; font-size: 14px; }
+#toast.vis { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ---------- Kursbevis ---------- */
+#bevisbakgrunn { position: fixed; inset: 0; background: rgba(0,0,0,.5); display: none; align-items: center; justify-content: center; z-index: 100; padding: 16px; }
+#bevisbakgrunn.vis { display: flex; }
+#bevisboks { background: #fff; border-radius: 10px; max-width: 640px; width: 100%; max-height: 92vh; overflow-y: auto; padding: 18px; }
+.namnrad { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; font-size: 14px; }
+.namnrad input { flex: 1; min-width: 160px; padding: 7px 10px; font: inherit; border: 1px solid #bbb; border-radius: 6px; }
+#bevis { border: 3px solid var(--gron); border-radius: 6px; padding: 0 22px 18px; position: relative; text-align: center; }
+#bevis .stripe { height: 14px; background: var(--gron); margin: 0 -22px 16px; }
+#bevis h2 { margin: 6px 0 2px; font-size: 26px; color: var(--gron-mork); letter-spacing: .02em; }
+#bevis .bnamn { font-size: 24px; margin: 14px 0 2px; font-family: Georgia, serif; border-bottom: 1px solid #999; display: inline-block; min-width: 60%; padding: 0 10px 2px; }
+#bevis .skule { color: var(--grå); font-size: 14px; }
+#bevis ul { list-style: none; padding: 0; text-align: left; margin: 14px auto 6px; max-width: 420px; font-size: 14px; }
+#bevis ul li { padding: 2px 0; }
+#bevis .sum { font-weight: bold; margin-top: 8px; }
+#bevis .segl { position: absolute; right: 14px; top: 26px; width: 84px; height: 84px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #ffe680, #d4a017 60%, #a87900); color: #5a3d00; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 13px; box-shadow: 0 0 0 4px #f3d36b, 0 2px 6px rgba(0,0,0,.3); transform: rotate(-12deg); }
+#bevis .delvis { position: absolute; right: 14px; top: 30px; border: 2px dashed var(--grå); color: var(--grå); border-radius: 6px; padding: 4px 8px; font-size: 13px; transform: rotate(-8deg); }
+#bevis .manglar { font-size: 13px; color: var(--grå); }
+.bevisknappar { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+.bevisknappar button { padding: 7px 14px; font: inherit; border-radius: 6px; border: 1px solid var(--gron); background: #fff; color: var(--gron-mork); cursor: pointer; }
+.bevisknappar button.hoved { background: var(--gron); color: #fff; }
+@media print {
+    @page { size: A4; margin: 15mm; }
+    /* display:none (ikkje visibility:hidden) – elles tek resten av sida plass og gir fleire tomme sider */
+    html, body { height: auto !important; min-height: 0 !important; overflow: visible !important; background: #fff !important; }
+    body { display: block !important; }
+    body > *:not(#bevisbakgrunn) { display: none !important; }
+    #bevisbakgrunn { position: static !important; inset: auto; background: none !important; display: block !important; padding: 0 !important; }
+    #bevisboks { box-shadow: none; max-width: none; max-height: none; overflow: visible; padding: 0; border-radius: 0; }
+    #bevisboks .namnrad, #bevisboks .bevisknappar { display: none !important; }
+    #bevis { break-inside: avoid; page-break-inside: avoid; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+
+/* ---------- Felles 💡-hjelpetekst (bruk i simulatoren) ---------- */
+.hjelp { color: #ffe9a8; font-family: var(--font); font-size: 14px; background: rgba(255, 214, 90, .08); border-left: 3px solid #f2c94c; padding: 4px 10px; margin: 4px 0 6px; white-space: pre-wrap; border-radius: 0 4px 4px 0; }
+
+/* ---------- CMD-simulator ---------- */
+#sim { background: #0c0c0c; position: relative; }
+.vtittel { display: flex; align-items: center; gap: 8px; background: #202020; color: #e6e6e6; font-size: 12.5px; height: 32px; padding-left: 10px; flex: none; user-select: none; border-radius: 8px 8px 0 0; }
+.vtittel .vikon { width: 18px; height: 14px; background: #0c0c0c; border: 1px solid #9a9a9a; border-radius: 2px; color: #ddd; font: bold 8px/12px var(--mono); text-align: center; flex: none; }
+.vtittel .vnamn { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vtittel .vknapp { width: 42px; line-height: 32px; text-align: center; color: #bbb; font-size: 13px; flex: none; }
+#term { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; padding: 6px 10px 12px; font-family: var(--mono); font-size: 15px; line-height: 1.32; color: #cccccc; background: #0c0c0c; white-space: pre-wrap; word-break: normal; overflow-wrap: anywhere; cursor: text; position: relative; -webkit-tap-highlight-color: transparent; }
+#term::-webkit-scrollbar { width: 10px; }
+#term::-webkit-scrollbar-thumb { background: #3a3a3a; border-radius: 5px; }
+#termUt > div { min-height: 1.32em; }
+#termAktiv { position: relative; min-height: 1.32em; }
+#termInn { position: absolute; left: 0; top: 0; width: 2px; height: 1.3em; opacity: 0; border: 0; padding: 0; margin: 0; resize: none; overflow: hidden; font-size: 16px; color: transparent; background: transparent; caret-color: transparent; outline: none; }
+.markor { position: relative; }
+.markor::after { content: ""; position: absolute; left: 0; right: 0; bottom: 1px; height: 3px; background: currentColor; animation: blink 1.06s steps(1) infinite; }
+.markor.tom::after { width: .6em; right: auto; }
+#term.ufokus .markor::after { animation: none; opacity: .45; }
+@keyframes blink { 0% { opacity: 1; } 50% { opacity: 0; } }
+#term .hjelp { word-break: normal; overflow-wrap: break-word; line-height: 1.45; }
+#term .hjelp code { font-family: var(--mono); background: rgba(255,255,255,.1); padding: 0 4px; border-radius: 3px; color: #fff3c4; }
+#term ::selection { background: #f2f2f2; color: #0c0c0c; }
+.mobilrad { display: none; gap: 6px; padding: 6px 8px; background: #1a1a1a; flex: none; overflow-x: auto; }
+.mobilrad button { background: #2d2d2d; color: #e6e6e6; border: 1px solid #444; border-radius: 6px; padding: 6px 12px; font: 13px var(--mono); flex: none; }
+@media (max-width: 900px), (pointer: coarse) { .mobilrad { display: flex; } }
+@media (max-width: 600px) { #term { font-size: 13px; padding: 4px 6px 10px; } }
+#leksjon pre.fil { background: #1e1e1e; color: #e6e6e6; font-family: var(--mono); font-size: 13.5px; padding: 10px 12px; border-radius: 6px; overflow-x: auto; line-height: 1.4; margin: 8px 0 12px; border-left: 4px solid #6a6a6a; }
+#leksjon pre.fil::before { content: attr(data-fil); display: block; color: #9a9a9a; font-size: 12px; margin-bottom: 4px; }
+
+
+/* ---------- Linux-terminal (Ubuntu-fargar) ---------- */
+#sim { background: #300a24; }
+#term { background: #300a24; color: #eeeeec; }
+.vtittel { background: #2b2b2b; }
+.vtittel .vikon { border-color: #e95420; color: #e95420; background: #2b2b2b; }
+.p-bruk { color: #8ae234; font-weight: bold; }
+.p-sti { color: #729fcf; font-weight: bold; }
+#termUt .ls-d { color: #729fcf; font-weight: bold; }
+#termUt .ls-x { color: #8ae234; font-weight: bold; }
+#termUt .raud { color: #ef2929; font-weight: bold; }
+
+/* ---------- nano ---------- */
+#nano { position: absolute; left: 0; right: 0; top: 32px; bottom: 0; background: #300a24; color: #eeeeec; display: none; flex-direction: column; z-index: 6; font-family: var(--mono); font-size: 15px; }
+#nano.vis { display: flex; }
+#nano .ntopp { background: #d3d7cf; color: #2e3436; padding: 1px 10px; display: flex; gap: 20px; flex: none; }
+#nano .ntopp span:nth-child(2) { flex: 1; text-align: center; }
+#nanoTekst { flex: 1; min-height: 0; border: 0; outline: none; resize: none; padding: 6px 10px; font: inherit; line-height: 1.32; color: #eeeeec; background: #300a24; white-space: pre; overflow: auto; }
+#nano .nmeld { min-height: 1.5em; padding: 1px 10px; flex: none; }
+#nano .nmeld span { background: #d3d7cf; color: #2e3436; padding: 0 6px; }
+#nano .nbotn { display: flex; gap: 8px; padding: 6px 8px; background: #1f0617; flex: none; flex-wrap: wrap; }
+#nano .nbotn button { background: transparent; color: #eeeeec; border: 1px solid #77576b; border-radius: 5px; padding: 4px 10px; font: 13px var(--mono); cursor: pointer; }
+#nano .nbotn button b { background: #d3d7cf; color: #2e3436; padding: 0 4px; margin-right: 6px; font-weight: normal; }
+#nano .nbotn button:hover { background: #4a1a3a; }
+@media (max-width: 600px) { #nano, #nanoTekst { font-size: 13px; } }
+</style>
+</head>
+<body>
+
+<header class="topp">
+    <a class="tilbake" href="index.html">← Sandkassa</a>
+    <div class="titlar">
+        <h1>Linux 101 – terminalen i Linux</h1>
+        <p class="under">Lær å styre ein Linux-server med tastaturet – i ein trygg simulator</p>
+    </div>
+    <div class="hogre">
+        <div class="framdrift" title="Løyste oppgåver">
+            <span id="framdriftTekst">0 / 0 oppgåver</span>
+            <div class="linje"><div id="framdriftLinje"></div></div>
+        </div>
+        <button id="knappBevis" type="button">Kursbevis</button>
+        <button id="knappNullstill" type="button">Start på nytt</button>
+    </div>
+</header>
+
+<main class="oppsett">
+    <aside id="leksjonspanel" class="kort">
+        <ol id="leksjonsliste"></ol>
+        <div id="leksjon"></div>
+    </aside>
+    <section id="sim" class="kort">
+        <div class="vtittel"><span class="vikon">&gt;_</span><span class="vnamn" id="vTittel">elev@im-srv01: ~</span><span class="vknapp">&#8211;</span><span class="vknapp">&#9744;</span><span class="vknapp">&#10005;</span></div>
+        <div id="term" class="ufokus" aria-label="Linux-terminal – klikk og skriv"><div id="termUt"></div><div id="termAktiv"><span id="aktivTekst"></span><textarea id="termInn" rows="1" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" aria-label="Skriv ein kommando"></textarea></div></div>
+        <div class="mobilrad" aria-label="Ekstra tastar">
+            <button type="button" data-tast="Tab">Tab</button>
+            <button type="button" data-tast="ArrowUp">&#8593;</button>
+            <button type="button" data-tast="ArrowDown">&#8595;</button>
+            <button type="button" data-tast="CtrlC">Ctrl+C</button>
+            <button type="button" data-tast="CtrlL">Ctrl+L</button>
+            <button type="button" data-tekst="/">/</button>
+            <button type="button" data-tekst="|">|</button>
+            <button type="button" data-tekst=">">&gt;</button>
+            <button type="button" data-tekst="~">~</button>
+            <button type="button" data-tekst="-">-</button>
+        </div>
+        <div id="nano" role="dialog" aria-label="Teksteditoren nano">
+            <div class="ntopp"><span>GNU nano 7.2</span><span id="nanoNamn">New Buffer</span><span id="nanoEndra"></span></div>
+            <textarea id="nanoTekst" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="Tekst i nano"></textarea>
+            <div class="nmeld" id="nanoMeld"></div>
+            <div class="nbotn">
+                <button type="button" id="nanoLagre"><b>^O</b>Lagre</button>
+                <button type="button" id="nanoUt"><b>^X</b>Avslutt</button>
+                <button type="button" id="nanoJa" hidden><b>J</b>Ja, lagre</button>
+                <button type="button" id="nanoNei" hidden><b>N</b>Nei, forkast</button>
+            </div>
+        </div>
+    </section>
+</main>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<div id="bevisbakgrunn">
+    <div id="bevisboks" role="dialog" aria-modal="true" aria-label="Kursbevis">
+        <div class="namnrad">
+            <label for="bevisNamn">Fornamnet ditt:</label>
+            <input id="bevisNamn" type="text" maxlength="40" placeholder="Skriv fornamnet ditt">
+        </div>
+        <div id="bevis"></div>
+        <div class="bevisknappar">
+            <button type="button" id="bevisLukk">Lukk</button>
+            <button type="button" id="bevisSkriv" class="hoved">Skriv ut</button>
+        </div>
+    </div>
+</div>
+
+<script>
+"use strict";
+/* ================== KURSOPPSETT ================== */
+const KURS = {
+    namn: "Linux 101",
+    prefiks: "kode101-linux-",
+};
+
+/* Hjelparar for oppgåvesjekk (ctx = { logg, fs, S }). Kvar loggoppføring:
+   { namn, args, ok, utdata, cwdFor, cwdEtter, sudo, vert } */
+const kL = ctx => ctx.logg || [];
+const koyrt = (ctx, namn, pred = () => true) => kL(ctx).some(e => (Array.isArray(namn) ? namn.includes(e.namn) : e.namn === namn) && pred(e));
+const harFlagg = (e, bokstav) => e.args.some(a => /^-[A-Za-z]+$/.test(a) && a.includes(bokstav));
+const nodeI = (ctx, sti) => hentFra(ctx.fs, sti);
+const erFil = (ctx, sti) => { const n = nodeI(ctx, sti); return !!n && n.t === "f"; };
+const erMappe = (ctx, sti) => { const n = nodeI(ctx, sti); return !!n && n.t === "d"; };
+const linjer = n => (n && n.t === "f" ? n.d.split("\n").filter(l => l.trim()).length : 0);
+const H = "/home/elev";
+const escH = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const ex = (k) => `<div class="eksempel"><pre>${escH(k)}</pre></div>`;
+
+const LEKSJONAR = [
+  { id: "l1", tittel: "Velkomen til terminalen", laerer: "kva terminalen er, og dei første kommandoane <code>whoami</code>, <code>hostname</code>, <code>echo</code>, <code>man</code> og <code>clear</code>.",
+    html: `
+<p>Dei fleste serverane i verda køyrer <b>Linux</b>, og dei har ofte ikkje skjerm, mus eller vindauge. Du styrer dei ved å <b>skrive kommandoar</b> i ein terminal. Programmet som les kommandoane dine, heiter <b>Bash</b>.</p>
+<p>I det mørke feltet ser du ein simulert Ubuntu-server. Linja <code>elev@im-srv01:~$</code> heiter <b>ledeteksten</b> (prompt). Ho fortel tre ting: du er brukaren <code>elev</code>, maskinen heiter <code>im-srv01</code>, og du står i heimemappa di (<code>~</code>). Skriv ein kommando og trykk <b>Enter</b>:</p>
+${ex("whoami")}
+${ex("hostname")}
+<p><code>echo</code> skriv ut tekst:</p>
+${ex("echo Hei, Linux!")}
+<p>Lurer du på kva ein kommando gjer? <code>man</code> (manual) viser ei kort forklaring. Er skjermen full, tømmer du han med <code>clear</code>.</p>
+${ex("man ls")}
+${ex("clear")}
+<div class="tips"><b>Linux skil mellom store og små bokstavar.</b> <code>whoami</code> verkar, <code>WHOAMI</code> gjer det ikkje. Du kan ikkje øydeleggje noko her – alt er simulert. Knappen <b>Prøv</b> limer inn kommandoen, så trykkjer du sjølv Enter.</div>`,
+    oppgaver: [
+      { id: "l1o1", tekst: "Finn ut kven du er logga inn som, med <code>whoami</code>.", hint: ["Klikk i det mørke feltet, skriv <code>whoami</code> og trykk Enter."],
+        sjekk: ctx => koyrt(ctx, "whoami", e => e.ok) },
+      { id: "l1o2", tekst: "Finn namnet på maskinen med <code>hostname</code>.", hint: ["Skriv <code>hostname</code> og trykk Enter."],
+        sjekk: ctx => koyrt(ctx, "hostname", e => e.ok) },
+      { id: "l1o3", tekst: "Bruk <code>echo</code> til å skrive ut ein tekst om deg sjølv.", hint: ["Start med <code>echo</code> og eit mellomrom, og skriv så teksten.", "Skriv: <code>echo Hei, eg heiter Kari</code>"],
+        sjekk: ctx => koyrt(ctx, "echo", e => e.utdata.trim().length > 1) },
+      { id: "l1o4", tekst: "Slå opp ein kommando i manualen, t.d. <code>man ls</code>.", hint: ["Skriv <code>man</code> og så namnet på kommandoen du lurer på.", "Du kan også skrive <code>ls --help</code>."],
+        sjekk: ctx => koyrt(ctx, "man", e => e.ok) || kL(ctx).some(e => e.args.includes("--help")) },
+    ]},
+
+  { id: "l2", tittel: "Kvar er eg?", laerer: "å finne fram i filsystemet med <code>pwd</code>, <code>ls</code> og <code>cd</code>.",
+    html: `
+<p>I Linux finst det ingen <code>C:</code>-disk. Alt heng på <b>eitt tre</b> som startar i rota, skriven som éin skråstrek: <code>/</code>. Mappene dine ligg i <code>/home/elev</code>. Legg merke til at Linux brukar <code>/</code>, ikkje <code>\\</code> som i Windows.</p>
+<p><code>pwd</code> (print working directory) viser kvar du står. <code>ls</code> (list) viser kva som ligg der.</p>
+${ex("pwd")}
+${ex("ls")}
+<p><code>cd</code> (change directory) flyttar deg. <code>cd ..</code> går eitt steg opp, og <code>cd</code> åleine tek deg alltid heim. Teiknet <code>~</code> er ei forkorting for heimemappa di.</p>
+${ex("cd Dokument")}
+${ex("cd ..")}
+<p>Ein <b>relativ</b> sti startar der du står (<code>cd Dokument</code>). Ein <b>absolutt</b> sti startar i rota (<code>cd /var/log</code>) og verkar same kvar du er.</p>
+${ex("cd /var/log")}
+<p>Kommandoar kan få <b>val</b> (flagg) som startar med bindestrek. <code>ls -l</code> gir ei lang liste med detaljar, og <code>ls -a</code> viser også <b>gøymde filer</b> – dei som startar med punktum.</p>
+${ex("ls -la ~")}
+<table class="juks"><tr><th>Mappe</th><th>Kva ligg der</th></tr>
+<tr><td>/home</td><td>Heimemappene til brukarane</td></tr>
+<tr><td>/etc</td><td>Innstillingar (konfigurasjon)</td></tr>
+<tr><td>/var/log</td><td>Loggar</td></tr>
+<tr><td>/tmp</td><td>Mellombelse filer</td></tr>
+<tr><td>/root</td><td>Heimemappa til administratoren</td></tr></table>
+<div class="tips"><b>Tab-tasten</b> er venen din! Skriv <code>cd Dok</code> og trykk Tab, så fullfører Bash namnet. Med pil opp (↑) hentar du førre kommando.</div>`,
+    oppgaver: [
+      { id: "l2o1", tekst: "Vis kvar du står, med <code>pwd</code>.", hint: ["Skriv <code>pwd</code> og trykk Enter."],
+        sjekk: ctx => koyrt(ctx, "pwd", e => e.ok) },
+      { id: "l2o2", tekst: "Gå inn i mappa <code>Dokument</code> og sjå kva som ligg der med <code>ls</code>.", hint: ["Først <code>cd Dokument</code>, så <code>ls</code>.", "Står du ein annan stad? Skriv <code>cd</code> åleine for å kome heim først."],
+        sjekk: ctx => koyrt(ctx, "ls", e => e.ok && (e.cwdFor === H + "/Dokument" && !e.args.some(a => !a.startsWith("-")) || e.args.some(a => /Dokument\/?$/.test(a)))) },
+      { id: "l2o3", tekst: "Gå til loggmappa <code>/var/log</code> med ein absolutt sti.", hint: ["Ein absolutt sti startar med <code>/</code>.", "Skriv: <code>cd /var/log</code>"],
+        sjekk: ctx => koyrt(ctx, "cd", e => e.ok && e.cwdEtter === "/var/log") },
+      { id: "l2o4", tekst: "Gå heim att, og vis <b>alle</b> filene der – også dei gøymde.", hint: ["<code>cd</code> åleine tek deg heim. Gøymde filer ser du med flagget <code>-a</code>.", "Skriv <code>cd</code> og så <code>ls -a</code> (eller <code>ls -la</code>)."],
+        sjekk: ctx => koyrt(ctx, "ls", e => e.ok && harFlagg(e, "a") && (e.cwdFor === H && !e.args.some(a => !a.startsWith("-")) || e.args.some(a => a === "~" || a === H || a === H + "/"))) },
+    ]},
+
+  { id: "l3", tittel: "Filer og mapper", laerer: "å lage, kopiere, flytte og slette med <code>mkdir</code>, <code>touch</code>, <code>cp</code>, <code>mv</code> og <code>rm</code>.",
+    html: `
+<p><code>mkdir</code> (make directory) lagar ei mappe, og <code>touch</code> lagar ei tom fil.</p>
+${ex("mkdir lab")}
+${ex("touch lab/plan.txt")}
+<p><code>cp</code> (copy) kopierer. Først kva du kopierer, så kvar det skal.</p>
+${ex("cp velkomen.txt lab/")}
+<p><code>mv</code> (move) flyttar – og det er også slik du <b>gir nytt namn</b>. Linux har ingen eigen kommando for å døype om.</p>
+${ex("mv lab/plan.txt lab/vekeplan.txt")}
+<p><code>rm</code> (remove) slettar filer. Mapper med innhald slettar du med <code>rm -r</code> («rekursivt», altså alt inni òg).</p>
+${ex("rm lab/velkomen.txt")}
+<div class="tips"><b>Linux har ingen papirkorg.</b> Det du slettar med <code>rm</code>, er borte, og du får ikkje noko «Er du sikker?». Les kommandoen ein gong til før du trykkjer Enter – særleg når du brukar <code>rm -r</code>.</div>
+<p>Stjerna <code>*</code> er eit <b>jokerteikn</b> som passar til kva som helst. <code>ls Dokument/*.txt</code> viser alle tekstfilene i mappa.</p>
+${ex("ls Dokument/*.txt")}`,
+    oppgaver: [
+      { id: "l3o1", tekst: "Lag mappa <code>lab</code> i heimemappa di.", hint: ["Gå heim med <code>cd</code>, og bruk <code>mkdir</code>.", "Skriv: <code>mkdir lab</code>"],
+        sjekk: ctx => erMappe(ctx, H + "/lab") },
+      { id: "l3o2", tekst: "Lag ei tom fil som heiter <code>plan.txt</code> inni <code>lab</code>.", hint: ["<code>touch</code> lagar tomme filer.", "Skriv: <code>touch lab/plan.txt</code>"],
+        sjekk: ctx => erFil(ctx, H + "/lab/plan.txt") || koyrt(ctx, "touch", e => e.ok && e.args.some(a => /plan\.txt$/.test(a))) },
+      { id: "l3o3", tekst: "Kopier <code>velkomen.txt</code> frå heimemappa og inn i <code>lab</code>.", hint: ["Bruk <code>cp</code>: først fila, så målet.", "Skriv: <code>cp velkomen.txt lab/</code>"],
+        sjekk: ctx => koyrt(ctx, "cp", e => e.ok) && (erFil(ctx, H + "/lab/velkomen.txt") || koyrt(ctx, "cp", e => e.ok && e.args.some(a => /velkomen\.txt$/.test(a)))) },
+      { id: "l3o4", tekst: "Gi <code>plan.txt</code> det nye namnet <code>vekeplan.txt</code>.", hint: ["I Linux døyper du om med <code>mv</code>.", "Skriv: <code>mv lab/plan.txt lab/vekeplan.txt</code>"],
+        sjekk: ctx => koyrt(ctx, "mv", e => e.ok && e.args.some(a => /vekeplan\.txt$/.test(a))) },
+      { id: "l3o5", tekst: "Slett heile mappa <code>lab</code> med alt innhaldet.", hint: ["<code>rm</code> åleine slettar berre filer. Du treng flagget <code>-r</code>.", "Skriv: <code>rm -r lab</code>"],
+        sjekk: ctx => koyrt(ctx, "rm", e => e.ok && (harFlagg(e, "r") || harFlagg(e, "R")) && e.args.some(a => /(^|\/)lab\/?$/.test(a))) && !nodeI(ctx, H + "/lab") },
+    ]},
+
+  { id: "l4", tittel: "Lese og skrive filer", laerer: "å sjå i filer med <code>cat</code>, <code>head</code> og <code>tail</code>, og å skrive med <code>&gt;</code>, <code>&gt;&gt;</code> og editoren <code>nano</code>.",
+    html: `
+<p>På ein server er nesten alt <b>tekstfiler</b>: innstillingar, loggar og skript. <code>cat</code> skriv ut heile fila.</p>
+${ex("cat velkomen.txt")}
+<p>Loggar kan vere tusenvis av linjer. <code>head</code> viser dei første ti linjene, <code>tail</code> dei siste ti. Med <code>-n</code> vel du talet sjølv. Dei nyaste hendingane står nedst, så <code>tail</code> er den du brukar mest.</p>
+${ex("tail -n 5 /var/log/syslog")}
+<p><code>wc -l</code> (word count, lines) tel linjene i ei fil.</p>
+${ex("wc -l /var/log/syslog")}
+<p>Med <code>&gt;</code> sender du det ein kommando skriv ut, til ei fil i staden for til skjermen. Finst fila frå før, blir ho <b>overskriven</b>. Med <code>&gt;&gt;</code> legg du til på slutten.</p>
+${ex('echo "Måndag: Linux 101" > dagbok.txt')}
+${ex('echo "Tysdag: Docker 101" >> dagbok.txt')}
+<p>Skal du skrive meir, brukar du ein teksteditor. <code>nano</code> er den enklaste. Nedst står snarvegane: <code>^O</code> betyr <b>Ctrl+O</b> (lagre), <code>^X</code> betyr <b>Ctrl+X</b> (avslutt).</p>
+${ex("nano hugseliste.txt")}
+<div class="tips">Fekk du opp noko du ikkje kjem ut av? <b>Ctrl+C</b> avbryt det meste i terminalen.</div>`,
+    oppgaver: [
+      { id: "l4o1", tekst: "Les fila <code>velkomen.txt</code> i heimemappa di.", hint: ["Bruk <code>cat</code> og namnet på fila.", "Står du ein annan stad, kan du skrive <code>cat ~/velkomen.txt</code>."],
+        sjekk: ctx => koyrt(ctx, ["cat", "less", "more"], e => e.ok && e.args.some(a => /velkomen\.txt$/.test(a))) },
+      { id: "l4o2", tekst: "Vis dei <b>tre siste</b> linjene i <code>/var/log/syslog</code>.", hint: ["<code>tail</code> viser slutten av ei fil. Talet på linjer set du med <code>-n</code>.", "Skriv: <code>tail -n 3 /var/log/syslog</code>"],
+        sjekk: ctx => koyrt(ctx, "tail", e => e.ok && /syslog/.test(e.args.join(" ")) && e.utdata.trim().split("\n").length === 3) },
+      { id: "l4o3", tekst: "Lag fila <code>dagbok.txt</code> i heimemappa med <code>echo</code> og <code>&gt;</code>.", hint: ["Teksten etter <code>echo</code> blir send til fila med <code>&gt;</code>.", 'Skriv: <code>echo "Måndag: Linux 101" &gt; dagbok.txt</code>'],
+        sjekk: ctx => linjer(nodeI(ctx, H + "/dagbok.txt")) >= 1 },
+      { id: "l4o4", tekst: "Legg til ei linje til i <code>dagbok.txt</code> utan å overskrive den første.", hint: ["To piler, <code>&gt;&gt;</code>, legg til på slutten.", 'Skriv: <code>echo "Tysdag: Docker 101" &gt;&gt; dagbok.txt</code>'],
+        sjekk: ctx => linjer(nodeI(ctx, H + "/dagbok.txt")) >= 2 },
+      { id: "l4o5", tekst: "Lag ei fil med <code>nano</code>, skriv noko i ho, og lagre.", hint: ["Skriv <code>nano hugseliste.txt</code>, skriv litt tekst, og lagre med Ctrl+O. Avslutt med Ctrl+X.", "Du kan også bruke knappane nedst i nano."],
+        sjekk: ctx => koyrt(ctx, "nano", e => e.lagra) },
+    ]},
+
+  { id: "l5", tittel: "Søk og røyr", laerer: "å finne det du leitar etter med <code>grep</code> og <code>find</code>, og å kople kommandoar saman med <code>|</code>.",
+    html: `
+<p><code>grep</code> leitar etter ein tekst og viser berre linjene som inneheld han. Her finn vi alle mislukka innloggingsforsøk i tryggleiksloggen:</p>
+${ex('grep "Failed" /var/log/auth.log')}
+<p>Med <b>røyr</b> (pipe), teiknet <code>|</code>, sender du resultatet frå éin kommando vidare til den neste. Slik tel vi kor mange forsøk det var:</p>
+${ex('grep "Failed" /var/log/auth.log | wc -l')}
+<p>Dette er styrken til Linux: små kommandoar som gjer éin ting godt, kopla saman til det du treng. <code>sort</code> sorterer linjer, og <code>uniq</code> fjernar like linjer som står etter kvarandre.</p>
+${ex("sort Dokument/handleliste.txt | uniq")}
+<p><code>find</code> leitar etter filer. Punktumet betyr «frå mappa eg står i».</p>
+${ex('find . -name "*.txt"')}
+<table class="juks"><tr><th>Flagg til grep</th><th>Verknad</th></tr>
+<tr><td>-i</td><td>Bryr seg ikkje om store og små bokstavar</td></tr>
+<tr><td>-n</td><td>Viser linjenummer</td></tr>
+<tr><td>-v</td><td>Viser linjene som <b>ikkje</b> passar</td></tr>
+<tr><td>-c</td><td>Tel linjene som passar</td></tr></table>
+<div class="tips">På norsk tastatur finn du <code>|</code> til venstre for 1-tasten.</div>`,
+    oppgaver: [
+      { id: "l5o1", tekst: "Finn alle linjene med <code>Failed</code> i <code>/var/log/auth.log</code>.", hint: ["<code>grep</code> tek først søkjeordet, så fila.", 'Skriv: <code>grep "Failed" /var/log/auth.log</code>'],
+        sjekk: ctx => koyrt(ctx, "grep", e => e.ok && /auth\.log/.test(e.args.join(" ")) && /failed/i.test(e.args.join(" "))) },
+      { id: "l5o2", tekst: "Tel kor mange mislukka innloggingar det er, ved å sende resultatet vidare til <code>wc -l</code>.", hint: ["Set <code>|</code> mellom dei to kommandoane.", 'Skriv: <code>grep "Failed" /var/log/auth.log | wc -l</code> (<code>grep -c</code> verkar også).'],
+        sjekk: ctx => koyrt(ctx, "wc", e => e.ok && e.royrFra === "grep" && e.utdata.trim() === "7") || koyrt(ctx, "grep", e => e.ok && harFlagg(e, "c") && e.utdata.trim() === "7") },
+      { id: "l5o3", tekst: "Kva IP-adresse står bak angrepet? Finn linjene med <code>Failed</code> som <b>ikkje</b> kjem frå <code>10.120</code>-nettet til skulen.", hint: ["Du treng to <code>grep</code> etter kvarandre med røyr mellom. Flagget <code>-v</code> snur søket.", 'Skriv: <code>grep "Failed" /var/log/auth.log | grep -v "10.120"</code>'],
+        sjekk: ctx => koyrt(ctx, "grep", e => e.ok && harFlagg(e, "v") && /203\.0\.113\.45/.test(e.utdata) && e.utdata.trim().split("\n").every(l => /Failed/.test(l) && !/from 10\.120\./.test(l))) },
+      { id: "l5o4", tekst: "Sorter <code>handleliste.txt</code> i <code>Dokument</code> alfabetisk.", hint: ["Bruk <code>sort</code> og stien til fila.", "Skriv: <code>sort ~/Dokument/handleliste.txt</code>"],
+        sjekk: ctx => koyrt(ctx, "sort", e => e.ok && /brød/.test(e.utdata)) },
+      { id: "l5o5", tekst: "Finn alle <code>.txt</code>-filene under heimemappa di med <code>find</code>.", hint: ["<code>find</code> treng ein stad å starte og eit namn å leite etter.", 'Skriv: <code>find ~ -name "*.txt"</code>'],
+        sjekk: ctx => koyrt(ctx, "find", e => e.ok && /notat\.txt/.test(e.utdata) && /velkomen\.txt/.test(e.utdata)) },
+    ]},
+
+  { id: "l6", tittel: "Rettar og skript", laerer: "å lese rettane i <code>ls -l</code>, endre dei med <code>chmod</code>, og køyre ditt første skript.",
+    html: `
+<p>Alle filer i Linux har ein <b>eigar</b> og eit sett med <b>rettar</b>. Du ser dei med <code>ls -l</code>:</p>
+${ex("ls -l prosjekt")}
+<p>Ta linja <code>-rw-r--r-- 1 elev elev 103 … hei.sh</code>. Dei ti første teikna les du slik:</p>
+<table class="juks"><tr><th>Teikn</th><th>Tyding</th></tr>
+<tr><td>-</td><td>Type: <code>-</code> er fil, <code>d</code> er mappe</td></tr>
+<tr><td>rw-</td><td>Eigaren kan lese (r) og skrive (w)</td></tr>
+<tr><td>r--</td><td>Gruppa kan berre lese</td></tr>
+<tr><td>r--</td><td>Alle andre kan berre lese</td></tr></table>
+<p>Den tredje bokstaven, <code>x</code> (execute), betyr at fila kan <b>køyrast</b> som eit program. Fila <code>hei.sh</code> er eit <b>skript</b>: ei tekstfil med kommandoar. Prøv å køyre ho:</p>
+${ex("./prosjekt/hei.sh")}
+<p>Du får <code>Permission denied</code>, fordi fila manglar <code>x</code>. Det ordnar du med <code>chmod</code> (change mode):</p>
+${ex("chmod +x prosjekt/hei.sh")}
+<p>Rettar kan også skrivast som tre tal. Kvart tal er summen av <b>r = 4</b>, <b>w = 2</b> og <b>x = 1</b>, for eigar, gruppe og andre:</p>
+<table class="juks"><tr><th>Tal</th><th>Rettar</th><th>Brukt til</th></tr>
+<tr><td>644</td><td>rw-r--r--</td><td>Vanlege filer</td></tr>
+<tr><td>755</td><td>rwxr-xr-x</td><td>Skript og mapper</td></tr>
+<tr><td>600</td><td>rw-------</td><td>Private filer, t.d. nøklar</td></tr></table>
+${ex("chmod 600 Dokument/notat.txt")}
+<div class="tips">Kvifor <code>./</code> framfor skriptet? Bash leitar berre etter program i faste mapper som <code>/usr/bin</code>. <code>./</code> betyr «her, i denne mappa».</div>`,
+    oppgaver: [
+      { id: "l6o1", tekst: "Vis rettane til filene i mappa <code>prosjekt</code>.", hint: ["Flagget <code>-l</code> gir den lange lista.", "Skriv: <code>ls -l ~/prosjekt</code>"],
+        sjekk: ctx => koyrt(ctx, ["ls", "ll"], e => e.ok && (e.namn === "ll" || harFlagg(e, "l")) && /hei\.sh/.test(e.utdata)) },
+      { id: "l6o2", tekst: "Gjer skriptet <code>hei.sh</code> køyrbart.", hint: ["<code>chmod +x</code> legg til køyreretten.", "Skriv: <code>chmod +x ~/prosjekt/hei.sh</code>"],
+        sjekk: ctx => { const n = nodeI(ctx, H + "/prosjekt/hei.sh"); return !!n && (n.m & 0o100) !== 0; } },
+      { id: "l6o3", tekst: "Køyr skriptet.", hint: ["Du må fortelje Bash kvar skriptet ligg.", "Gå inn i mappa med <code>cd ~/prosjekt</code> og skriv <code>./hei.sh</code>."],
+        sjekk: ctx => kL(ctx).some(e => e.skript && e.ok && /hei\.sh$/.test(e.namn)) },
+      { id: "l6o4", tekst: "Gjer <code>notat.txt</code> i <code>Dokument</code> privat, slik at berre du kan lese og skrive (<code>rw-------</code>).", hint: ["Lese + skrive for eigaren er 4 + 2 = 6. Dei andre skal ha 0.", "Skriv: <code>chmod 600 ~/Dokument/notat.txt</code>"],
+        sjekk: ctx => { const n = nodeI(ctx, H + "/Dokument/notat.txt"); return !!n && (n.m & 0o777) === 0o600; } },
+    ]},
+
+  { id: "l7", tittel: "sudo og pakkar", laerer: "kven <code>root</code> er, korleis du låner rettane hans med <code>sudo</code>, og korleis du installerer program med <code>apt</code>.",
+    html: `
+<p>Administratoren i Linux heiter <b>root</b> og har lov til alt. Ein vanleg brukar som <code>elev</code> har ikkje lov til å endre systemet, og heller ikkje lese alt. Fila med passord-hashane er eit godt døme:</p>
+${ex("cat /etc/shadow")}
+<p>Med <code>sudo</code> framfor ein kommando køyrer du <b>akkurat den kommandoen</b> som root. Første gongen må du skrive passordet ditt. Du ser ingenting medan du skriv – ikkje eingong stjerner. Det er meint slik.</p>
+${ex("sudo cat /etc/shadow")}
+<p>Program i Linux kjem som <b>pakkar</b> frå eit sentralt lager, litt som ein appbutikk. På Ubuntu heiter verktøyet <code>apt</code>. Først hentar du den ferske lista over pakkar, så installerer du:</p>
+${ex("sudo apt update")}
+${ex("sudo apt install nginx")}
+<p><code>nginx</code> er ein vevtenar. Når han er installert, kan du sjå at han svarar:</p>
+${ex("curl localhost")}
+<table class="juks"><tr><th>Kommando</th><th>Verknad</th></tr>
+<tr><td>sudo apt update</td><td>Hentar fersk pakkeliste</td></tr>
+<tr><td>sudo apt upgrade</td><td>Oppdaterer alt som er installert</td></tr>
+<tr><td>sudo apt install namn</td><td>Installerer ein pakke</td></tr>
+<tr><td>sudo apt remove namn</td><td>Fjernar ein pakke</td></tr>
+<tr><td>apt list --installed</td><td>Viser kva som er installert</td></tr></table>
+<div class="tips">Bruk <code>sudo</code> berre når du må. Ein skrivefeil som root kan øydeleggje heile serveren. I simulatoren godtek vi kva passord som helst.</div>`,
+    oppgaver: [
+      { id: "l7o1", tekst: "Prøv å lese <code>/etc/shadow</code> som vanleg brukar, og sjå kva som skjer.", hint: ["Skriv: <code>cat /etc/shadow</code>. Du skal få ei feilmelding."],
+        sjekk: ctx => koyrt(ctx, "cat", e => !e.ok && !e.sudo && /shadow/.test(e.args.join(" "))) || koyrt(ctx, "cat", e => e.sudo && e.ok && /shadow/.test(e.args.join(" "))) },
+      { id: "l7o2", tekst: "Les fila med <code>sudo</code>.", hint: ["Set <code>sudo</code> framfor same kommandoen.", "Skriv: <code>sudo cat /etc/shadow</code> og skriv eit passord (kva som helst)."],
+        sjekk: ctx => kL(ctx).some(e => e.sudo && e.ok && /shadow/.test(e.args.join(" "))) },
+      { id: "l7o3", tekst: "Hent den ferske pakkelista.", hint: ["Dette endrar systemet, så du treng <code>sudo</code>.", "Skriv: <code>sudo apt update</code>"],
+        sjekk: ctx => koyrt(ctx, ["apt", "apt-get"], e => e.ok && e.sudo && e.args[0] === "update") },
+      { id: "l7o4", tekst: "Installer vevtenaren <code>nginx</code>.", hint: ["Bruk <code>apt install</code> med <code>sudo</code> framfor.", "Skriv: <code>sudo apt install nginx</code>"],
+        sjekk: ctx => ctx.sys.pakkar.includes("nginx") },
+    ]},
+
+  { id: "l8", tittel: "Prosessar og tenester", laerer: "å sjå kva som køyrer med <code>ps</code> og <code>top</code>, stoppe det med <code>kill</code>, og styre tenester med <code>systemctl</code>.",
+    html: `
+<p>Eit program som køyrer, heiter ein <b>prosess</b>. Kvar prosess har eit nummer, ein <b>PID</b>. <code>ps aux</code> viser alle prosessane, og <code>top</code> viser dei som brukar mest ressursar.</p>
+${ex("ps aux")}
+${ex("top")}
+<p>Sjå etter kolonnen <code>%CPU</code>. Éin prosess på denne serveren har gått i ei evig løkke og brukar nesten heile prosessoren. Ein prosess stoppar du med <code>kill</code> og PID-en hans:</p>
+${ex("kill 2417")}
+<p>Ei <b>teneste</b> (service) er eit program som køyrer i bakgrunnen heile tida, t.d. ein vevtenar eller SSH. Tenestene styrer du med <code>systemctl</code>:</p>
+${ex("systemctl status ssh")}
+<table class="juks"><tr><th>Kommando</th><th>Verknad</th></tr>
+<tr><td>systemctl status namn</td><td>Køyrer tenesta? Viser også dei siste logglinjene</td></tr>
+<tr><td>sudo systemctl stop namn</td><td>Stoppar tenesta</td></tr>
+<tr><td>sudo systemctl start namn</td><td>Startar tenesta</td></tr>
+<tr><td>sudo systemctl restart namn</td><td>Startar på nytt, t.d. etter endra innstillingar</td></tr>
+<tr><td>sudo systemctl enable namn</td><td>Startar automatisk når maskinen startar</td></tr></table>
+<p>To kjappe helsesjekkar til: <code>df -h</code> viser kor fulle diskane er, og <code>free -h</code> viser minnet. <code>-h</code> betyr «human readable», altså GB og MB i staden for byte.</p>
+${ex("df -h")}
+<div class="tips">Full disk er ei av dei vanlegaste årsakene til at ein server sluttar å verke. <code>df -h</code> er noko av det første du sjekkar.</div>`,
+    oppgaver: [
+      { id: "l8o1", tekst: "Vis alle prosessane som køyrer.", hint: ["Skriv: <code>ps aux</code> (eller <code>top</code>)."],
+        sjekk: ctx => koyrt(ctx, "ps", e => e.ok && e.args.length > 0) || koyrt(ctx, ["top", "htop"], e => e.ok) },
+      { id: "l8o2", tekst: "Finn prosessen som brukar nesten all CPU, og stopp han.", hint: ["Sjå i kolonnen <code>%CPU</code> i <code>ps aux</code> eller <code>top</code>. Noter PID-en.", "Skriv <code>kill</code> og PID-en til <code>teljar.py</code>."],
+        sjekk: ctx => !ctx.S.prosessar.some(p => /teljar\.py/.test(p.cmd)) },
+      { id: "l8o3", tekst: "Sjekk om SSH-tenesta køyrer.", hint: ["Skriv: <code>systemctl status ssh</code>. Sjå etter <code>active (running)</code>."],
+        sjekk: ctx => koyrt(ctx, "systemctl", e => e.args[0] === "status" && /^(ssh|sshd)(\.service)?$/.test(e.args[1] || "") && /Active:/.test(e.utdata)) },
+      { id: "l8o4", tekst: "Start tenesta <code>cron</code> på nytt.", hint: ["Å styre tenester krev <code>sudo</code>.", "Skriv: <code>sudo systemctl restart cron</code>"],
+        sjekk: ctx => koyrt(ctx, "systemctl", e => e.ok && e.sudo && e.args[0] === "restart") },
+      { id: "l8o5", tekst: "Sjekk kor mykje ledig plass det er på disken.", hint: ["Skriv: <code>df -h</code>"],
+        sjekk: ctx => koyrt(ctx, "df", e => e.ok) },
+    ]},
+
+  { id: "l9", tittel: "Nettverk og SSH", laerer: "å finne IP-adressa med <code>ip a</code>, teste sambandet med <code>ping</code>, og logge inn på ein annan server med <code>ssh</code>.",
+    html: `
+<p>I Windows skriv du <code>ipconfig</code>. I Linux heiter det <code>ip a</code> (kort for <code>ip address</code>). Sjå etter linja som startar med <code>inet</code> under nettverkskortet <code>eth0</code>.</p>
+${ex("ip a")}
+<p><code>ping</code> sender små pakkar og ventar på svar. I Linux held <code>ping</code> fram til du stoppar han med <b>Ctrl+C</b>, så det er lurt å setje talet sjølv med <code>-c</code> (count).</p>
+${ex("ping -c 4 8.8.8.8")}
+<p>Feilsøk nedanfrå og opp: først ruteren (<code>ip route</code> viser adressa hans etter <code>default via</code>), så ei IP-adresse på Internett, og til slutt eit namn. Verkar IP-adressa, men ikkje namnet, er det DNS som er problemet.</p>
+${ex("ping -c 2 vg.no")}
+<p>Serverar står i eit datarom, og du sit ein annan stad. Med <b>SSH</b> (secure shell) loggar du inn på ein annan maskin over ei kryptert kopling og får ein terminal der. Skrivemåten er <code>brukar@maskin</code>:</p>
+${ex("ssh elev@im-srv02")}
+<p>Sjå på ledeteksten etter at du er inne: no står det <code>im-srv02</code>. Alt du skriv, skjer på den andre maskinen. Med <code>exit</code> loggar du ut og kjem tilbake.</p>
+<div class="tips">Sjekk alltid ledeteksten før du gjer noko alvorleg. Det er lett å gløyme kva maskin ein er logga inn på.</div>`,
+    oppgaver: [
+      { id: "l9o1", tekst: "Finn IP-adressa til serveren.", hint: ["Skriv: <code>ip a</code>"],
+        sjekk: ctx => koyrt(ctx, "ip", e => e.ok && /^(a|addr|address)$/.test(e.args.filter(a => !a.startsWith("-"))[0] || "")) || koyrt(ctx, "hostname", e => e.ok && e.args.includes("-I")) },
+      { id: "l9o2", tekst: "Send fire ping til <code>8.8.8.8</code>.", hint: ["Talet set du med <code>-c</code>.", "Skriv: <code>ping -c 4 8.8.8.8</code>"],
+        sjekk: ctx => koyrt(ctx, "ping", e => e.ok && e.args.includes("8.8.8.8")) },
+      { id: "l9o3", tekst: "Logg inn på den andre serveren, <code>im-srv02</code>, med SSH.", hint: ["Skriv: <code>ssh elev@im-srv02</code>", "Svar <code>yes</code> på spørsmålet om fingeravtrykket, og skriv eit passord (kva som helst)."],
+        sjekk: ctx => koyrt(ctx, "ssh", e => e.ok) },
+      { id: "l9o4", tekst: "Kontroller at du verkeleg er på <code>im-srv02</code>, og logg ut att.", hint: ["<code>hostname</code> viser kva maskin du er på.", "Skriv <code>hostname</code> og så <code>exit</code>."],
+        sjekk: ctx => koyrt(ctx, "hostname", e => e.ok && e.vert === "im-srv02") && koyrt(ctx, ["exit", "logout"], e => e.vert === "im-srv02") },
+    ]},
+];
+
+const LAERAR_HTML = `<ul>
+<li>Alt er simulert i nettlesaren: filsystem, pakkar, prosessar og nettverk er påfunne (Ubuntu-serveren <code>im-srv01</code>). Ingenting blir sendt ut på nettet, og ingenting på elevmaskinen blir endra.</li>
+<li>Kommandoane gir engelsk utskrift og feilmeldingar som i ekte Bash, med ei nynorsk 💡-forklaring under.</li>
+<li>Framdrifta og filene blir berre lagra i nettlesaren til eleven (localStorage). «Start på nytt» slettar alt.</li>
+<li>Oppgåvene blir sjekka automatisk etter kvar kommando, og dei fleste sjekkar resultatet (t.d. at fila finst), ikkje nøyaktig kva eleven skreiv.</li>
+<li>Kurset passar før Docker 101 og container-demoen. Avslutt gjerne med å gjere leksjon 8 og 9 på ein ekte Linux-maskin.</li>
+<li>Ikkje med: løkker og vilkår i skript, brukaradministrasjon, <code>vim</code>, SSH-nøklar og ekte nettverkstrafikk.</li>
+</ul>`;
+
+/* Simulatoren (lenger nede) definerer simLim(tekst) og kallar sjekkOppgaver(ctx) etter kvar kommando. */
+
+/* ================== LAGRING ================== */
+const lager = {
+    hent(nokkel, standard) {
+        try { const v = localStorage.getItem(KURS.prefiks + nokkel); return v === null ? standard : JSON.parse(v); }
+        catch (e) { return standard; }
+    },
+    set(nokkel, verdi) { try { localStorage.setItem(KURS.prefiks + nokkel, JSON.stringify(verdi)); } catch (e) {} },
+    slettAlle() {
+        try {
+            const ut = [];
+            for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.startsWith(KURS.prefiks)) ut.push(k); }
+            ut.forEach(k => localStorage.removeItem(k));
+        } catch (e) {}
+    }
+};
+
+/* ================== TILSTAND ================== */
+let loyste = new Set(lager.hent("loyste", []));
+let besokt = new Set(lager.hent("besokt", []));
+let hintNiva = lager.hent("hint", {});
+let aktivIndeks = Math.min(Math.max(0, LEKSJONAR.findIndex(l => l.id === lager.hent("aktiv", LEKSJONAR[0].id))), LEKSJONAR.length - 1);
+const ALLE_OPPGAVER = LEKSJONAR.flatMap(l => l.oppgaver.map(o => ({ ...o, leksjon: l })));
+
+function lagreTilstand() {
+    lager.set("loyste", [...loyste]);
+    lager.set("besokt", [...besokt]);
+    lager.set("hint", hintNiva);
+    lager.set("aktiv", LEKSJONAR[aktivIndeks].id);
+}
+
+function leksjonStatus(l) {
+    const n = l.oppgaver.length, ok = l.oppgaver.filter(o => loyste.has(o.id)).length;
+    if (n === 0) return besokt.has(l.id) ? "ferdig" : "ny";
+    if (ok === n) return "ferdig";
+    if (ok > 0 || besokt.has(l.id)) return "igang";
+    return "ny";
+}
+const STATUSIKON = { ny: '<span class="sirkel"></span>', igang: '<span class="sirkel halv"></span>', ferdig: "✔" };
+
+/* ================== VISING ================== */
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+function oppdaterFramdrift() {
+    const n = ALLE_OPPGAVER.length, ok = ALLE_OPPGAVER.filter(o => loyste.has(o.id)).length;
+    document.getElementById("framdriftTekst").textContent = `${ok} / ${n} oppgåver`;
+    document.getElementById("framdriftLinje").style.width = (n ? 100 * ok / n : 0) + "%";
+}
+
+function teiknListe() {
+    const ol = document.getElementById("leksjonsliste");
+    ol.innerHTML = "";
+    LEKSJONAR.forEach((l, i) => {
+        const st = leksjonStatus(l);
+        const ok = l.oppgaver.filter(o => loyste.has(o.id)).length;
+        const li = document.createElement("li");
+        li.className = (i === aktivIndeks ? "aktiv " : "") + st;
+        li.innerHTML = `<button type="button"><span class="status" title="${st === "ferdig" ? "Ferdig" : st === "igang" ? "I gang" : "Ikkje starta"}">${STATUSIKON[st]}</span><span class="nr">${i + 1}.</span><span>${esc(l.tittel)}</span>${l.oppgaver.length ? `<span class="tal">${ok}/${l.oppgaver.length}</span>` : ""}</button>`;
+        li.querySelector("button").onclick = () => visLeksjon(i);
+        ol.appendChild(li);
+    });
+    oppdaterFramdrift();
+}
+
+function visLeksjon(i, rull = true) {
+    aktivIndeks = i;
+    const l = LEKSJONAR[i];
+    besokt.add(l.id);
+    lagreTilstand();
+    const el = document.getElementById("leksjon");
+    el.innerHTML = `
+        <h2>${i + 1}. ${esc(l.tittel)}</h2>
+        <p class="laerer"><b>Dette lærer du:</b> ${l.laerer}</p>
+        <div class="forklaring">${l.html}</div>
+        ${l.oppgaver.length ? `<h3>Oppgåver</h3><ul class="oppgaver"></ul>` : ""}
+        <div class="fullfortplass"></div>
+        <div class="navknappar">
+            <button type="button" class="forre" ${i === 0 ? "disabled" : ""}>◀ Førre</button>
+            <button type="button" class="neste" ${i === LEKSJONAR.length - 1 ? "disabled" : ""}>Neste ▶</button>
+        </div>
+        <details class="laerar"><summary>For læraren</summary>${LAERAR_HTML}</details>`;
+    el.querySelectorAll(".eksempel").forEach(ex => {
+        const pre = ex.querySelector("pre");
+        const b = document.createElement("button");
+        b.type = "button"; b.className = "prov"; b.textContent = "Prøv";
+        b.title = "Lim inn koden (du køyrer sjølv)";
+        b.onclick = () => { if (typeof simLim === "function") simLim(pre.dataset.kode ?? pre.textContent); };
+        ex.appendChild(b);
+    });
+    const ul = el.querySelector(".oppgaver");
+    if (ul) l.oppgaver.forEach(o => ul.appendChild(lagOppgaveEl(o)));
+    el.querySelector(".forre").onclick = () => visLeksjon(i - 1);
+    el.querySelector(".neste").onclick = () => visLeksjon(i + 1);
+    teiknFullfort();
+    teiknListe();
+    if (rull) document.getElementById("leksjonspanel").scrollTop = 0;
+    if (typeof simByttLeksjon === "function") simByttLeksjon(l);   // valfri krok (t.d. startkode i editoren)
+}
+
+function lagOppgaveEl(o) {
+    const li = document.createElement("li");
+    li.className = "oppgave" + (loyste.has(o.id) ? " loyst" : "");
+    li.dataset.id = o.id;
+    li.innerHTML = `<span class="ikon">${loyste.has(o.id) ? "✔" : "○"}</span><span class="tekst">${o.tekst}</span>` +
+        (o.hint && o.hint.length ? `<button type="button" class="hintknapp">Hint</button>` : "<span></span>");
+    const vis = () => {
+        li.querySelectorAll(".hint").forEach(h => h.remove());
+        const n = hintNiva[o.id] || 0;
+        for (let k = 0; k < n; k++) {
+            const d = document.createElement("div");
+            d.className = "hint"; d.innerHTML = "💡 " + o.hint[k];
+            li.appendChild(d);
+        }
+        const b = li.querySelector(".hintknapp");
+        if (b) { b.textContent = n === 0 ? "Hint" : n < o.hint.length ? "Meir hjelp" : "Hint"; b.disabled = n >= o.hint.length; b.style.opacity = n >= o.hint.length ? .4 : 1; }
+    };
+    const b = li.querySelector(".hintknapp");
+    if (b) b.onclick = () => { hintNiva[o.id] = Math.min((hintNiva[o.id] || 0) + 1, o.hint.length); lagreTilstand(); vis(); };
+    vis();
+    return li;
+}
+
+function teiknFullfort() {
+    const l = LEKSJONAR[aktivIndeks];
+    const plass = document.querySelector("#leksjon .fullfortplass");
+    if (!plass) return;
+    plass.innerHTML = "";
+    if (l.oppgaver.length && leksjonStatus(l) === "ferdig") {
+        const d = document.createElement("div");
+        d.className = "fullfort";
+        d.innerHTML = `<span>✔ Leksjon fullført!</span>` + (aktivIndeks < LEKSJONAR.length - 1 ? `<button type="button">Neste leksjon ▶</button>` : "");
+        const b = d.querySelector("button");
+        if (b) b.onclick = () => visLeksjon(aktivIndeks + 1);
+        plass.appendChild(d);
+    }
+}
+
+let toastTid = null;
+function toast(tekst) {
+    const t = document.getElementById("toast");
+    t.textContent = tekst; t.classList.add("vis");
+    clearTimeout(toastTid); toastTid = setTimeout(() => t.classList.remove("vis"), 3200);
+}
+
+/* ================== OPPGÅVESJEKK ================== */
+/* Kall etter KVAR kommando/køyring. Sjekkar alle oppgåver i alle leksjonar. */
+function sjekkOppgaver(ctx) {
+    const nye = [];
+    for (const o of ALLE_OPPGAVER) {
+        if (loyste.has(o.id)) continue;
+        let ok = false;
+        try { ok = !!o.sjekk(ctx); } catch (e) { ok = false; }
+        if (ok) { loyste.add(o.id); nye.push(o); }
+    }
+    if (!nye.length) return nye;
+    lagreTilstand();
+    const aktiv = LEKSJONAR[aktivIndeks];
+    for (const o of nye) {
+        const li = document.querySelector(`#leksjon .oppgave[data-id="${o.id}"]`);
+        if (li) {
+            li.classList.add("loyst");
+            li.querySelector(".ikon").textContent = "✔";
+            const bra = document.createElement("div");
+            bra.className = "bra"; bra.textContent = "✔ Bra!";
+            li.appendChild(bra);
+            setTimeout(() => bra.remove(), 2700);
+        }
+    }
+    const andre = nye.filter(o => o.leksjon !== aktiv);
+    if (andre.length) {
+        const o = andre[0];
+        toast(`✔ Bra! Du løyste ei oppgåve i leksjon ${LEKSJONAR.indexOf(o.leksjon) + 1}: ${o.leksjon.tittel}`);
+    }
+    teiknFullfort();
+    teiknListe();
+    return nye;
+}
+
+/* ================== KURSBEVIS ================== */
+function datoTekst(d = new Date()) {
+    return String(d.getDate()).padStart(2, "0") + "." + String(d.getMonth() + 1).padStart(2, "0") + "." + d.getFullYear();
+}
+function hentNamn() { try { return localStorage.getItem("kode101-namn") || ""; } catch (e) { return ""; } }
+function teiknBevis() {
+    const namn = document.getElementById("bevisNamn").value.trim();
+    const n = ALLE_OPPGAVER.length, ok = ALLE_OPPGAVER.filter(o => loyste.has(o.id)).length;
+    const alt = ok === n;
+    const leks = LEKSJONAR.filter(l => l.oppgaver.length);
+    const manglar = leks.filter(l => leksjonStatus(l) !== "ferdig");
+    document.getElementById("bevis").innerHTML = `
+        <div class="stripe"></div>
+        ${alt ? `<div class="segl">Fullført</div>` : `<div class="delvis">Delvis fullført</div>`}
+        <h2>Kursbevis – ${esc(KURS.namn)}</h2>
+        <div class="skule">Stord vidaregåande skule – IM</div>
+        <div class="bnamn">${namn ? esc(namn) : "&nbsp;"}</div>
+        <div class="skule">Dato: ${datoTekst()}</div>
+        <ul>${leks.map((l, i) => {
+            const lok = l.oppgaver.filter(o => loyste.has(o.id)).length;
+            return `<li>${lok === l.oppgaver.length ? "✔" : "○"} ${LEKSJONAR.indexOf(l) + 1}. ${esc(l.tittel)} <span style="color:#888">(${lok}/${l.oppgaver.length})</span></li>`;
+        }).join("")}</ul>
+        <div class="sum">${ok} av ${n} oppgåver</div>
+        ${alt ? "" : `<div class="manglar">Manglar: ${manglar.map(l => esc(l.tittel)).join(", ")}</div>`}`;
+}
+function opneBevis() {
+    document.getElementById("bevisNamn").value = hentNamn();
+    teiknBevis();
+    document.getElementById("bevisbakgrunn").classList.add("vis");
+    document.getElementById("bevisNamn").focus();
+}
+document.getElementById("bevisNamn").addEventListener("input", e => {
+    try { localStorage.setItem("kode101-namn", e.target.value.trim()); } catch (er) {}
+    teiknBevis();
+});
+document.getElementById("knappBevis").onclick = opneBevis;
+document.getElementById("bevisLukk").onclick = () => document.getElementById("bevisbakgrunn").classList.remove("vis");
+document.getElementById("bevisbakgrunn").addEventListener("click", e => { if (e.target.id === "bevisbakgrunn") e.target.classList.remove("vis"); });
+document.getElementById("bevisSkriv").onclick = () => window.print();
+document.addEventListener("keydown", e => { if (e.key === "Escape") document.getElementById("bevisbakgrunn").classList.remove("vis"); });
+
+
+/* ================== START PÅ NYTT ================== */
+document.getElementById("knappNullstill").onclick = () => {
+    if (!confirm("Vil du starte på nytt? All framdrift på denne sida blir sletta, og filene og mappene du har laga blir borte.")) return;
+    lager.slettAlle();
+    location.reload();
+};
+
+/* =====================================================================
+   LINUX-SIMULATOR
+   Del 1: filsystem, rettar og systemtilstand
+   ===================================================================== */
+const lc = s => String(s).toLowerCase();
+const HEIM = "/home/elev";
+const T0 = "2026-11-02T07:15:00.000Z";
+const M_D = "", M_X = "", M_R = "", M_E = "", STJ = "", SPM = "";
+const rein = s => String(s).replace(/[-]/g, "");
+const FEIL = { ENOENT: "No such file or directory", EACCES: "Permission denied", ENOTDIR: "Not a directory", EISDIR: "Is a directory", EEXIST: "File exists" };
+
+const mappe = (c = {}, o = "root", m = 0o755) => ({ t: "d", c, o, m, mt: T0 });
+const fil = (d = "", o = "root", m = 0o644, s) => (s ? { t: "f", d, o, m, mt: T0, s } : { t: "f", d, o, m, mt: T0 });
+const e_ = (c, m = 0o755) => mappe(c, "elev", m);
+const ef = (d, m = 0o644, s) => fil(d, "elev", m, s);
+
+const AUTHLOGG = `Nov 16 06:25:01 im-srv01 CRON[1802]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
+Nov 16 07:02:11 im-srv01 sshd[1911]: Accepted password for elev from 10.120.14.57 port 51122 ssh2
+Nov 16 07:02:11 im-srv01 sshd[1911]: pam_unix(sshd:session): session opened for user elev(uid=1000) by (uid=0)
+Nov 16 07:14:40 im-srv01 sshd[1987]: Failed password for elev from 10.120.14.61 port 49810 ssh2
+Nov 16 07:14:52 im-srv01 sshd[1987]: Accepted password for elev from 10.120.14.61 port 49810 ssh2
+Nov 16 07:31:05 im-srv01 sshd[2054]: Failed password for invalid user admin from 203.0.113.45 port 40022 ssh2
+Nov 16 07:31:07 im-srv01 sshd[2054]: Failed password for invalid user admin from 203.0.113.45 port 40022 ssh2
+Nov 16 07:31:09 im-srv01 sshd[2056]: Failed password for root from 203.0.113.45 port 40031 ssh2
+Nov 16 07:31:12 im-srv01 sshd[2056]: Failed password for root from 203.0.113.45 port 40031 ssh2
+Nov 16 07:31:14 im-srv01 sshd[2058]: Failed password for invalid user test from 203.0.113.45 port 40040 ssh2
+Nov 16 07:31:15 im-srv01 sshd[2058]: Connection closed by invalid user test 203.0.113.45 port 40040 [preauth]
+Nov 16 07:48:30 im-srv01 sudo:     elev : TTY=pts/0 ; PWD=/home/elev ; USER=root ; COMMAND=/usr/bin/apt update
+Nov 16 08:03:19 im-srv01 sshd[2290]: Failed password for elev from 10.120.14.57 port 51340 ssh2
+Nov 16 08:03:27 im-srv01 sshd[2290]: Accepted password for elev from 10.120.14.57 port 51340 ssh2
+`;
+const SYSLOGG = `Nov 16 06:00:01 im-srv01 systemd[1]: Starting logrotate.service - Rotate log files...
+Nov 16 06:00:01 im-srv01 systemd[1]: logrotate.service: Deactivated successfully.
+Nov 16 06:25:01 im-srv01 CRON[1803]: (root) CMD (test -x /usr/sbin/anacron || run-parts /etc/cron.daily)
+Nov 16 06:47:12 im-srv01 systemd[1]: Starting apt-daily.service - Daily apt download activities...
+Nov 16 06:47:14 im-srv01 systemd[1]: Finished apt-daily.service - Daily apt download activities.
+Nov 16 07:02:11 im-srv01 systemd-logind[701]: New session 14 of user elev.
+Nov 16 07:17:01 im-srv01 CRON[2001]: (root) CMD (cd / && run-parts --report /etc/cron.hourly)
+Nov 16 07:31:15 im-srv01 kernel: [UFW BLOCK] IN=eth0 SRC=203.0.113.45 DST=10.120.20.11 PROTO=TCP DPT=23
+Nov 16 07:55:42 im-srv01 systemd[1]: Started session-15.scope - Session 15 of User elev.
+Nov 16 08:03:27 im-srv01 systemd-logind[701]: New session 16 of user elev.
+Nov 16 08:05:00 im-srv01 python3[2417]: teljar.py: starta teljing
+Nov 16 08:17:01 im-srv01 CRON[2466]: (root) CMD (cd / && run-parts --report /etc/cron.hourly)
+`;
+const NGINX_HTML = `<!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to nginx!</title>
+</head>
+<body>
+<h1>Welcome to nginx!</h1>
+<p>If you see this page, the nginx web server is successfully installed and working.</p>
+</body>
+</html>
+`;
+
+function standardFs() {
+    return mappe({
+        bin: mappe(), boot: mappe(), dev: mappe(),
+        etc: mappe({
+            hostname: fil("im-srv01\n"),
+            hosts: fil("127.0.0.1 localhost\n127.0.1.1 im-srv01\n10.120.20.12 im-srv02\n"),
+            "os-release": fil('PRETTY_NAME="Ubuntu 24.04.3 LTS"\nNAME="Ubuntu"\nVERSION_ID="24.04"\nVERSION="24.04.3 LTS (Noble Numbat)"\nID=ubuntu\nID_LIKE=debian\n'),
+            passwd: fil("root:x:0:0:root:/root:/bin/bash\ndaemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin\nwww-data:x:33:33:www-data:/var/www:/usr/sbin/nologin\nsshd:x:106:65534::/run/sshd:/usr/sbin/nologin\nelev:x:1000:1000:Elev ved IM-Stord:/home/elev:/bin/bash\n"),
+            shadow: fil("root:!:20394:0:99999:7:::\ndaemon:*:20394:0:99999:7:::\nwww-data:*:20394:0:99999:7:::\nsshd:!:20394::::::\nelev:$6$Xk3pQ9vL$h8Zc0uYwq1TtB7nJrE2mVd5sAaGf6KoP4xWlI9yNbCeRjHuMzD1/:20394:0:99999:7:::\n", "root", 0o640),
+            "resolv.conf": fil("nameserver 10.120.20.1\nsearch stord.vgs.no\n"),
+            ssh: mappe({ sshd_config: fil("# Innstillingar for SSH-tenaren\nPort 22\nPermitRootLogin no\nPasswordAuthentication yes\n") }),
+        }),
+        home: mappe({
+            elev: e_({
+                ".bashrc": ef("# ~/.bashrc: køyrer kvar gong du opnar ein terminal\nalias ll='ls -alF'\n"),
+                ".profile": ef("# ~/.profile: køyrer når du loggar inn\n"),
+                "velkomen.txt": ef("Velkomen til im-srv01!\n\nDette er ein Ubuntu-server på IM-Stord.\nHer kan du øve deg utan å øydeleggje noko.\nLukke til med Linux 101!\n"),
+                Dokument: e_({
+                    "notat.txt": ef("Hugs: ta backup før du endrar innstillingar.\nServeren har IP-adressa 10.120.20.11.\n"),
+                    "handleliste.txt": ef("mjølk\nbrød\negg\nkaffi\nbrød\neple\nost\negg\n"),
+                    "elevar.txt": ef("Kari;2ITA;Stord\nOla;1IMA;Fitjar\nAmina;2ITA;Bømlo\nJonas;1IMB;Stord\nSara;2ITA;Tysnes\n"),
+                }),
+                Bilete: e_({ "stord.jpg": ef("", 0o644, 2483712), "klasse.png": ef("", 0o644, 845120) }),
+                prosjekt: e_({
+                    "README.md": ef("# Prosjekt\n\nHer ligg skripta mine.\n"),
+                    "hei.sh": ef('#!/bin/bash\n# Mitt første skript\necho "Hei frå skriptet!"\necho "Eg køyrer som $USER på $HOSTNAME."\n'),
+                    "teljar.py": ef("# Tel til evig tid (ein feil!)\ni = 0\nwhile True:\n    i += 1\n"),
+                }),
+            }),
+        }),
+        root: mappe({}, "root", 0o700),
+        tmp: mappe({}, "root", 0o777),
+        usr: mappe({ bin: mappe(), share: mappe() }),
+        var: mappe({
+            log: mappe({ syslog: fil(SYSLOGG), "auth.log": fil(AUTHLOGG), "dpkg.log": fil("2026-11-02 08:14:55 status installed openssh-server:amd64 1:9.6p1-3ubuntu13\n") }),
+            www: mappe(),
+        }),
+    });
+}
+function fjernFs() {
+    return mappe({
+        etc: mappe({ hostname: fil("im-srv02\n") }),
+        home: mappe({ elev: e_({
+            "les-meg.txt": ef("Du er no på im-srv02.\nDenne serveren køyrer databasen til skulen.\nSkriv exit for å logge ut.\n"),
+            backup: e_({ "db-2026-11-15.sql.gz": ef("", 0o600, 18874368) }),
+        }) }),
+        tmp: mappe({}, "root", 0o777), var: mappe({ log: mappe({ syslog: fil("Nov 16 08:00:01 im-srv02 systemd[1]: Started postgresql.service.\n") }) }),
+    });
+}
+
+let FS;
+const SYS_STD = { pakkar: ["bash", "coreutils", "cron", "curl", "nano", "openssh-server", "python3", "sudo"], tenester: { ssh: { aktiv: true, paa: true }, cron: { aktiv: true, paa: true } }, kjende: [] };
+let SYS;
+function lagreFs() { try { localStorage.setItem(KURS.prefiks + "fs-v1", JSON.stringify(S.lokal ? S.lokal.fs : FS)); } catch (e) {} }
+function lagreSys() { lager.set("sys", SYS); }
+function fyllInn(maal, std) {   // legg tilbake standardfiler som manglar (t.d. etter rm)
+    for (const k of Object.keys(std.c)) {
+        if (!Object.hasOwn(maal.c, k)) maal.c[k] = std.c[k];
+        else if (std.c[k].t === "d" && maal.c[k].t === "d") fyllInn(maal.c[k], std.c[k]);
+    }
+}
+function lesFs() {
+    let f = null;
+    try { f = JSON.parse(localStorage.getItem(KURS.prefiks + "fs-v1")); } catch (e) {}
+    const std = standardFs();
+    if (!f || f.t !== "d" || !f.c) return std;
+    fyllInn(f, std);
+    return f;
+}
+
+function norm(p, cwd = S.cwd) {
+    const deler = (String(p).startsWith("/") ? p : cwd + "/" + p).split("/"), ut = [];
+    for (const x of deler) { if (!x || x === ".") continue; if (x === "..") ut.pop(); else ut.push(x); }
+    return "/" + ut.join("/");
+}
+function hentFra(rot, abs) {
+    let n = rot;
+    for (const x of abs.split("/").filter(Boolean)) {
+        if (!n || n.t !== "d" || !Object.hasOwn(n.c, x)) return null;
+        n = n.c[x];
+    }
+    return n;
+}
+const hent = abs => hentFra(FS, abs);
+function kan(node, bit) {
+    if (S.root) return true;
+    return node.o === S.brukar ? !!(node.m & (bit << 6)) : !!(node.m & bit);
+}
+/* Slår opp ein sti og sjekkar at vi har lov til å gå gjennom mappene. Gir { n } eller { e } */
+function slaa(abs) {
+    let n = FS;
+    for (const x of abs.split("/").filter(Boolean)) {
+        if (n.t !== "d") return { e: "ENOTDIR" };
+        if (!kan(n, 1)) return { e: "EACCES" };
+        if (!Object.hasOwn(n.c, x)) return { e: "ENOENT" };
+        n = n.c[x];
+    }
+    return { n };
+}
+function forelder(abs) { const i = abs.lastIndexOf("/"); return { sti: i <= 0 ? "/" : abs.slice(0, i), namn: abs.slice(i + 1) }; }
+const eigar = () => (S.root ? "root" : S.brukar);
+const no = () => new Date().toISOString();
+/* Kan vi lage/slette noko i forelderen? Gir feilkode eller null */
+function kanEndreI(abs) {
+    if (abs === "/") return "EACCES";
+    const f = forelder(abs), r = slaa(f.sti);
+    if (r.e) return r.e;
+    if (r.n.t !== "d") return "ENOTDIR";
+    if (!kan(r.n, 2) || !kan(r.n, 1)) return "EACCES";
+    return null;
+}
+function kanSkriveTil(abs) {
+    const r = slaa(abs);
+    if (r.e === "ENOENT") return kanEndreI(abs);
+    if (r.e) return r.e;
+    if (r.n.t === "d") return "EISDIR";
+    return kan(r.n, 2) ? null : "EACCES";
+}
+function skrivFil(abs, tekst, leggTil = false) {
+    const e = kanSkriveTil(abs);
+    if (e) return e;
+    const f = forelder(abs), p = hent(f.sti);
+    if (Object.hasOwn(p.c, f.namn)) { const n = p.c[f.namn]; n.d = leggTil ? n.d + tekst : tekst; n.mt = no(); delete n.s; }
+    else p.c[f.namn] = { t: "f", d: tekst, o: eigar(), m: 0o644, mt: no() };
+    return null;
+}
+const byteLen = s => new TextEncoder().encode(s).length;
+const storleik = n => (n.t === "d" ? 4096 : n.s ?? byteLen(n.d));
+function totalStorleik(n) { return n.t === "d" ? 4096 + Object.values(n.c).reduce((a, b) => a + totalStorleik(b), 0) : storleik(n); }
+function kopi(n) { const k = JSON.parse(JSON.stringify(n)); (function f(x) { x.o = eigar(); x.mt = no(); if (x.t === "d") Object.values(x.c).forEach(f); })(k); return k; }
+function modusTekst(n) {
+    const b = "rwxrwxrwx"; let s = n.t === "d" ? "d" : "-";
+    for (let i = 0; i < 9; i++) s += n.m & (1 << (8 - i)) ? b[i] : "-";
+    return s;
+}
+function menneske(b) {
+    if (b < 1024) return String(b);
+    const e = ["K", "M", "G", "T"]; let i = -1;
+    do { b /= 1024; i++; } while (b >= 1024 && i < 3);
+    return (b < 10 ? b.toFixed(1) : Math.round(b)) + e[i];
+}
+const MND = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const DAG = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const to = n => String(n).padStart(2, "0");
+function lsDato(iso) { const d = new Date(iso); return MND[d.getMonth()] + " " + String(d.getDate()).padStart(2, " ") + " " + to(d.getHours()) + ":" + to(d.getMinutes()); }
+const visSti = abs => (abs === S.vars.HOME ? "~" : abs.startsWith(S.vars.HOME + "/") ? "~" + abs.slice(S.vars.HOME.length) : abs);
+const sorter = a => a.sort((x, y) => x.replace(/^\./, "").localeCompare(y.replace(/^\./, ""), "en", { sensitivity: "base" }) || (x < y ? -1 : 1));
+
+/* ---------- tilstand ---------- */
+const PROSESSAR = [
+    { pid: 1, u: "root", cpu: 0.0, mem: 0.3, tid: "0:04", cmd: "/sbin/init" },
+    { pid: 412, u: "root", cpu: 0.0, mem: 0.6, tid: "0:01", cmd: "/usr/lib/systemd/systemd-journald" },
+    { pid: 701, u: "root", cpu: 0.0, mem: 0.2, tid: "0:00", cmd: "/usr/lib/systemd/systemd-logind" },
+    { pid: 2290, u: "root", cpu: 0.0, mem: 0.3, tid: "0:00", cmd: "sshd: elev [priv]" },
+    { pid: 2301, u: "elev", cpu: 0.0, mem: 0.1, tid: "0:00", cmd: "-bash" },
+    { pid: 2417, u: "elev", cpu: 97.3, mem: 1.2, tid: "23:41", cmd: "python3 teljar.py" },
+];
+const TENESTER = {
+    ssh: { tekst: "OpenBSD Secure Shell server", pid: 812, cmd: "sshd: /usr/sbin/sshd -D [listener] 0 of 10-100 startups", u: "root" },
+    cron: { tekst: "Regular background program processing daemon", pid: 790, cmd: "/usr/sbin/cron -f -P", u: "root" },
+    nginx: { tekst: "A high performance web server and a reverse proxy server", pid: 3120, cmd: "nginx: master process /usr/sbin/nginx -g daemon on; master_process on;", u: "root" },
+};
+function nyTilstand() {
+    return { cwd: HEIM, forrige: HEIM, brukar: "elev", root: false, sudoOk: false, vert: "im-srv01", lokal: null,
+        vars: { HOME: HEIM, USER: "elev", SHELL: "/bin/bash", PATH: "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin", PWD: HEIM, HOSTNAME: "im-srv01", LANG: "nn_NO.UTF-8" },
+        prosessar: PROSESSAR.map(p => ({ ...p })), logg: [], hjelpar: [], avbrote: false, sisteKode: 0, hintGitt: new Set(), djupn: 0 };
+}
+let S = nyTilstand();
+function prosessliste() {
+    const ut = [...S.prosessar];
+    for (const [namn, t] of Object.entries(TENESTER)) {
+        if (SYS.tenester[namn] && SYS.tenester[namn].aktiv) {
+            ut.push({ pid: t.pid, u: t.u, cpu: 0.0, mem: 0.4, tid: "0:00", cmd: t.cmd, teneste: namn });
+            if (namn === "nginx") ut.push({ pid: t.pid + 1, u: "www-data", cpu: 0.0, mem: 0.3, tid: "0:00", cmd: "nginx: worker process", teneste: namn });
+        }
+    }
+    return ut.sort((a, b) => a.pid - b.pid);
+}
+
+class Avbrot extends Error { constructor(stille) { super("avbrote"); this.stille = stille; } }
+const ventarar = new Set();
+function fart() { const f = Number(window.SIMFART); return isFinite(f) && f >= 0 ? f : 1; }
+function sjekkAvbrot() { if (S.avbrote) throw new Avbrot(); }
+function vent(ms) {
+    sjekkAvbrot();
+    return new Promise((res, rej) => {
+        const o = { rej };
+        o.t = setTimeout(() => { ventarar.delete(o); res(); }, ms * fart());
+        ventarar.add(o);
+    });
+}
+function avbrytAlle() {
+    S.avbrote = true;
+    for (const o of [...ventarar]) { clearTimeout(o.t); if (o.rydd) o.rydd(); ventarar.delete(o); o.rej(new Avbrot(o.vist)); }
+}
+
+/* =====================================================================
+   Del 2: terminalen
+   ===================================================================== */
+const termEl = document.getElementById("term");
+const termUt = document.getElementById("termUt");
+const aktivTekst = document.getElementById("aktivTekst");
+const inn = document.getElementById("termInn");
+const T = { modus: "prompt", delvis: "", skjult: false, lesRes: null, ko: [], restBuffer: null };
+let historikk = [];
+let histPos = -1, histUtkast = "";
+const MAKS_LINJER = 2500;
+
+const fargeHtml = t => esc(t).replace(//g, '<span class="ls-d">').replace(//g, '<span class="ls-x">').replace(//g, '<span class="raud">').replace(//g, "</span>");
+function promptHtml() {
+    return `<span class="p-bruk">${esc(S.brukar)}@${esc(S.vert)}</span>:<span class="p-sti">${esc(visSti(S.cwd))}</span>$ `;
+}
+function leggTilHtml(html) {
+    const d = document.createElement("div");
+    d.innerHTML = html;
+    termUt.appendChild(d);
+    while (termUt.childElementCount > MAKS_LINJER) termUt.firstElementChild.remove();
+}
+function skriv(t) {
+    t = String(t);
+    if (!t) return;
+    const deler = (T.delvis + t).split("\n");
+    T.delvis = deler.pop();
+    for (const l of deler) leggTilHtml(fargeHtml(l));
+    teikn();
+}
+function flushLinje() { if (T.delvis) { leggTilHtml(fargeHtml(T.delvis)); T.delvis = ""; } }
+function hjelpHtml(t) { return esc(t).replace(/`([^`]+)`/g, "<code>$1</code>"); }
+function skrivHjelp(t) {
+    if (!t) return;
+    flushLinje();
+    const d = document.createElement("div");
+    d.className = "hjelp";
+    d.innerHTML = "💡 " + hjelpHtml(t);
+    termUt.appendChild(d);
+    S.hjelpar.push(t);
+    teikn();
+}
+/* Éi forklaring per type per kommandolinje, så skjermen ikkje blir full */
+function hint(nokkel, t) { if (S.hintGitt.has(nokkel)) return; S.hintGitt.add(nokkel); skrivHjelp(t); }
+function tomSkjerm() { termUt.innerHTML = ""; T.delvis = ""; teikn(); }
+
+function teikn() {
+    let prefiks = "", buf = "", pos = 0, visBuf = false;
+    if (T.modus === "prompt") { prefiks = promptHtml(); visBuf = true; }
+    else { prefiks = fargeHtml(T.delvis); visBuf = T.modus === "les" && !T.skjult; }
+    if (visBuf) { buf = inn.value; pos = Math.min(inn.selectionStart ?? buf.length, buf.length); }
+    const foer = buf.slice(0, pos), under = buf.slice(pos, pos + 1), etter = buf.slice(pos + 1);
+    aktivTekst.innerHTML = prefiks + esc(foer) + `<span class="markor${under ? "" : " tom"}">${under ? esc(under) : "&#8203;"}</span>` + esc(etter);
+    termEl.scrollTop = termEl.scrollHeight;
+}
+function oppdaterTittel() { document.getElementById("vTittel").textContent = `${S.brukar}@${S.vert}: ${visSti(S.cwd)}`; }
+
+function lesLinje(ledetekst, skjult = false) {
+    sjekkAvbrot();
+    skriv(ledetekst);
+    T.modus = "les"; T.skjult = skjult; inn.value = ""; teikn();
+    return new Promise((res, rej) => {
+        const o = { rej, t: null, rydd: () => { inn.value = ""; T.modus = "opptatt"; T.lesRes = null; } };
+        ventarar.add(o);
+        T.lesRes = v => { ventarar.delete(o); res(v); };
+    });
+}
+
+function sendInn() {
+    const linje = inn.value.replace(/\r?\n/g, "");
+    if (T.modus === "les") {
+        inn.value = "";
+        const r = T.lesRes; T.lesRes = null; T.modus = "opptatt";
+        skriv((T.skjult ? "" : linje) + "\n");
+        if (r) r(linje);
+        return;
+    }
+    if (T.modus !== "prompt") return;
+    inn.value = "";
+    histPos = -1;
+    leggTilHtml(promptHtml() + esc(linje));
+    if (linje.trim()) {
+        if (historikk[historikk.length - 1] !== linje) historikk.push(linje);
+        if (historikk.length > 200) historikk = historikk.slice(-200);
+        lager.set("historikk", historikk);
+        koyrTopp(linje);
+    } else { teikn(); nesteIKo(); }
+}
+function nesteIKo() {
+    if (T.modus !== "prompt") return;
+    if (T.ko.length) { inn.value = T.ko.shift(); setTimeout(sendInn, 30); }
+    else if (T.restBuffer !== null) { inn.value = T.restBuffer; T.restBuffer = null; inn.setSelectionRange(inn.value.length, inn.value.length); teikn(); }
+}
+function ctrlC() {
+    if (T.modus === "prompt") {
+        leggTilHtml(promptHtml() + esc(inn.value) + "^C");
+        inn.value = ""; T.ko = []; T.restBuffer = null; teikn();
+        return;
+    }
+    T.ko = []; T.restBuffer = null;
+    avbrytAlle();
+}
+function historikkSteg(r) {
+    if (T.modus !== "prompt" || !historikk.length) return;
+    if (histPos === -1) { if (r > 0) return; histUtkast = inn.value; histPos = historikk.length; }
+    histPos += r;
+    if (histPos < 0) histPos = 0;
+    if (histPos >= historikk.length) { histPos = -1; inn.value = histUtkast; }
+    else inn.value = historikk[histPos];
+    inn.setSelectionRange(inn.value.length, inn.value.length);
+    teikn();
+}
+function fullfor() {
+    if (T.modus !== "prompt") return;
+    const v = inn.value, pos = inn.selectionStart ?? v.length;
+    let start = 0;
+    for (let i = 0; i < pos; i++) if (" |;&<>".includes(v[i]) && v[i - 1] !== "\\") start = i + 1;
+    const tok = v.slice(start, pos).replace(/\\ /g, " ");
+    const foerste = !/\S/.test(v.slice(0, start).replace(/^.*[|;&]/, "").replace(/^\s*sudo\s+/, ""));
+    let kand, dirDel = "", namnDel = tok;
+    if (foerste && !tok.includes("/")) {
+        kand = sorter(Object.keys(K).filter(k => k.startsWith(tok) && tilgjengeleg(k))).map(k => ({ namn: k, d: false }));
+    } else {
+        const i = tok.lastIndexOf("/");
+        dirDel = i >= 0 ? tok.slice(0, i + 1) : ""; namnDel = tok.slice(dirDel.length);
+        const r = slaa(norm((dirDel || ".").replace(/^~(?=\/|$)/, S.vars.HOME)));
+        if (r.e || r.n.t !== "d" || !kan(r.n, 4)) return;
+        kand = sorter(Object.keys(r.n.c).filter(k => k.startsWith(namnDel) && (namnDel.startsWith(".") || !k.startsWith(".")))).map(k => ({ namn: k, d: r.n.c[k].t === "d" }));
+    }
+    if (!kand.length) return;
+    let felles = kand[0].namn;
+    for (const k of kand) while (!k.namn.startsWith(felles)) felles = felles.slice(0, -1);
+    let ny = felles;
+    if (kand.length === 1) ny += kand[0].d ? "/" : " ";
+    else if (felles === namnDel) {
+        leggTilHtml(promptHtml() + esc(v));
+        leggTilHtml(fargeHtml(kand.map(k => (k.d ? M_D + k.namn + "/" + M_E : k.namn)).join("  ")));
+    }
+    const full = (dirDel + ny).replace(/ (?=.)/g, "\\ ");
+    inn.value = v.slice(0, start) + full + v.slice(pos);
+    const p = start + full.length;
+    inn.setSelectionRange(p, p);
+    S.brukteTab = true;
+    teikn();
+}
+function settInnTekst(tekst) {
+    const v = inn.value, a = inn.selectionStart ?? v.length, b = inn.selectionEnd ?? v.length;
+    inn.value = v.slice(0, a) + tekst + v.slice(b);
+    inn.setSelectionRange(a + tekst.length, a + tekst.length);
+    teikn();
+}
+function limInnFleire(tekst) {
+    const deler = tekst.replace(/\r\n?/g, "\n").split("\n");
+    settInnTekst(deler[0]);
+    if (deler.length === 1) return;
+    T.ko.push(...deler.slice(1, -1));
+    T.restBuffer = deler[deler.length - 1] || null;
+    sendInn();
+}
+
+inn.addEventListener("keydown", e => {
+    if (e.ctrlKey && !e.altKey && lc(e.key) === "c") {
+        if (inn.selectionStart !== inn.selectionEnd) return;
+        e.preventDefault(); ctrlC(); return;
+    }
+    if (e.ctrlKey && !e.altKey && lc(e.key) === "l") { e.preventDefault(); if (T.modus === "prompt") tomSkjerm(); return; }
+    if (e.key === "Enter") { e.preventDefault(); sendInn(); return; }
+    if (e.key === "Tab") { e.preventDefault(); fullfor(); return; }
+    if (e.key === "ArrowUp") { e.preventDefault(); historikkSteg(-1); return; }
+    if (e.key === "ArrowDown") { e.preventDefault(); historikkSteg(1); return; }
+    if (T.modus === "opptatt" && !e.ctrlKey && e.key.length === 1) { e.preventDefault(); return; }
+    requestAnimationFrame(teikn);
+});
+inn.addEventListener("input", () => {
+    if (T.modus === "opptatt") { inn.value = ""; teikn(); return; }
+    if (/\n/.test(inn.value)) {
+        const deler = inn.value.split("\n");
+        inn.value = deler[0];
+        if (deler.length > 2) T.ko.push(...deler.slice(1, -1));
+        sendInn();
+        return;
+    }
+    teikn();
+});
+inn.addEventListener("paste", e => {
+    const t = (e.clipboardData || window.clipboardData)?.getData("text");
+    if (t === undefined || t === null) return;
+    e.preventDefault();
+    if (T.modus === "prompt" || T.modus === "les") limInnFleire(t);
+});
+["select", "keyup", "click"].forEach(ev => inn.addEventListener(ev, () => teikn()));
+inn.addEventListener("focus", () => { termEl.classList.remove("ufokus"); teikn(); });
+inn.addEventListener("blur", () => termEl.classList.add("ufokus"));
+function fokuserTerm() { try { inn.focus({ preventScroll: true }); } catch (e) { inn.focus(); } }
+termEl.addEventListener("click", () => { if (!String(window.getSelection ? window.getSelection() : "")) fokuserTerm(); });
+document.querySelectorAll(".mobilrad button").forEach(b => {
+    b.addEventListener("pointerdown", e => e.preventDefault());
+    b.addEventListener("click", () => {
+        fokuserTerm();
+        const t = b.dataset.tast;
+        if (b.dataset.tekst) { if (T.modus === "prompt" || T.modus === "les") settInnTekst(b.dataset.tekst); return; }
+        if (t === "Tab") fullfor();
+        else if (t === "ArrowUp") historikkSteg(-1);
+        else if (t === "ArrowDown") historikkSteg(1);
+        else if (t === "CtrlC") ctrlC();
+        else if (t === "CtrlL") { if (T.modus === "prompt") tomSkjerm(); }
+    });
+});
+/* Malen kallar simLim når eleven trykkjer «Prøv» */
+function simLim(tekst) {
+    const t = tekst.replace(/\r\n?/g, "\n").trim().split("\n").map(s => s.trim()).filter(Boolean).join("; ");
+    if (T.modus === "prompt") { inn.value = t; inn.setSelectionRange(t.length, t.length); }
+    fokuserTerm();
+    teikn();
+}
+
+/* =====================================================================
+   Del 3: tolking av kommandolinja
+   ===================================================================== */
+function lesVar(l, j) {   // l[j] === "$"
+    const r = l.slice(j + 1);
+    if (r[0] === "?") return { v: String(S.sisteKode), j: j + 2 };
+    if (r[0] === "(") throw new Error("denne simulatoren støttar ikkje $( … )");
+    let m = /^\{([A-Za-z_]\w*)\}/.exec(r);
+    if (m) return { v: S.vars[m[1]] ?? "", j: j + 1 + m[0].length };
+    m = /^[A-Za-z_]\w*/.exec(r);
+    if (m) return { v: S.vars[m[0]] ?? "", j: j + 1 + m[0].length };
+    return { v: "$", j: j + 1 };
+}
+function tokeniser(l) {
+    const tok = []; let i = 0, cur = null;
+    const push = () => { if (cur !== null) { tok.push({ t: "w", v: cur }); cur = null; } };
+    const legg = s => { cur = (cur ?? "") + s; };
+    while (i < l.length) {
+        const c = l[i];
+        if (c === " " || c === "\t") { push(); i++; continue; }
+        if (c === "#" && cur === null) break;
+        if (c === "'") { const j = l.indexOf("'", i + 1); if (j < 0) throw new Error("unexpected EOF while looking for matching `''"); legg(l.slice(i + 1, j)); i = j + 1; continue; }
+        if (c === '"') {
+            let j = i + 1, s = "";
+            while (j < l.length && l[j] !== '"') {
+                if (l[j] === "\\" && '"\\$`'.includes(l[j + 1] || "")) { s += l[j + 1]; j += 2; continue; }
+                if (l[j] === "$") { const r = lesVar(l, j); s += r.v; j = r.j; continue; }
+                s += l[j++];
+            }
+            if (j >= l.length) throw new Error("unexpected EOF while looking for matching `\"'");
+            legg(s); i = j + 1; continue;
+        }
+        if (c === "\\") { legg(l[i + 1] ?? ""); i += 2; continue; }
+        if (c === "$") { const r = lesVar(l, i); legg(r.v); i = r.j; continue; }
+        if (c === "*") { legg(STJ); i++; continue; }
+        if (c === "?") { legg(SPM); i++; continue; }
+        if (c === "~" && cur === null && (i + 1 >= l.length || " /;|&<>".includes(l[i + 1]))) { legg(S.vars.HOME); i++; continue; }
+        const two = l.slice(i, i + 2);
+        if (cur === null && l.slice(i, i + 4) === "2>&1") { tok.push({ t: "o", v: "2>&1" }); i += 4; continue; }
+        if (cur === null && two === "2>") { tok.push({ t: "o", v: "2>" }); i += 2; continue; }
+        if (two === "&&" || two === "||" || two === ">>") { push(); tok.push({ t: "o", v: two }); i += 2; continue; }
+        if ("|;<>&".includes(c)) { push(); tok.push({ t: "o", v: c }); i++; continue; }
+        legg(c); i++;
+    }
+    push();
+    return tok;
+}
+const utanJoker = s => s.replace(//g, "*").replace(//g, "?");
+function globRegex(m) {
+    return new RegExp("^" + [...m].map(c => (c === STJ ? ".*" : c === SPM ? "." : c.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))).join("") + "$");
+}
+/* Mønster frå brukaren (t.d. til find -name), der * og ? kan vere skrivne i hermeteikn */
+function monsterRegex(m, flagg = "") {
+    return new RegExp("^" + [...utanJoker(m)].map(c => (c === "*" ? ".*" : c === "?" ? "." : c.replace(/[.+^${}()|[\]\\]/g, "\\$&"))).join("") + "$", flagg);
+}
+function ekspanderGlob(ord) {
+    const ut = [];
+    for (const o of ord) {
+        if (!/[]/.test(o)) { ut.push(o); continue; }
+        const i = o.lastIndexOf("/"), dirDel = i >= 0 ? o.slice(0, i + 1) : "", m = o.slice(dirDel.length);
+        const r = /[]/.test(dirDel) ? { e: 1 } : slaa(norm(dirDel || "."));
+        let treff = [];
+        if (!r.e && r.n.t === "d" && kan(r.n, 4)) {
+            const re = globRegex(m);
+            treff = sorter(Object.keys(r.n.c).filter(k => re.test(k) && (m.startsWith(".") || !k.startsWith("."))));
+        }
+        if (treff.length) ut.push(...treff.map(k => dirDel + k)); else ut.push(utanJoker(o));
+    }
+    return ut;
+}
+function parse(tok) {
+    const liste = []; let pl = [], op = null;
+    const ny = () => ({ ord: [], inn: null, ut: null, feilVekk: false });
+    let cmd = ny();
+    const syn = v => new Error(`syntax error near unexpected token \`${v}'`);
+    const tom = c => !c.ord.length && !c.ut && !c.inn;
+    for (let i = 0; i < tok.length; i++) {
+        const t = tok[i];
+        if (t.t === "w") { cmd.ord.push(t.v); continue; }
+        const neste = () => { const n = tok[++i]; if (!n || n.t !== "w") throw syn(n ? n.v : "newline"); return utanJoker(n.v); };
+        switch (t.v) {
+            case "|": if (tom(cmd)) throw syn("|"); pl.push(cmd); cmd = ny(); break;
+            case ">": cmd.ut = { sti: neste(), leggTil: false }; break;
+            case ">>": cmd.ut = { sti: neste(), leggTil: true }; break;
+            case "<": cmd.inn = neste(); break;
+            case "2>": neste(); cmd.feilVekk = true; break;
+            case "2>&1": break;
+            case "&": hint("bg", "Denne simulatoren køyrer ikkje program i bakgrunnen med `&`. Kommandoen blir køyrd på vanleg måte.");   // fell gjennom
+            case ";": case "&&": case "||":
+                if (!tom(cmd)) pl.push(cmd);
+                if (!pl.length) { if (t.v === ";" || t.v === "&") { cmd = ny(); break; } throw syn(t.v); }
+                liste.push({ pl, op }); op = t.v === "&" ? ";" : t.v; pl = []; cmd = ny(); break;
+        }
+    }
+    if (!tom(cmd)) pl.push(cmd);
+    if (pl.length) liste.push({ pl, op });
+    return liste;
+}
+
+async function koyrLinje(linje) {
+    let liste;
+    try { liste = parse(tokeniser(linje)); }
+    catch (e) { if (e instanceof Avbrot) throw e; skriv("bash: " + e.message + "\n"); S.sisteKode = 2; return 2; }
+    for (const { pl, op } of liste) {
+        if (op === "&&" && S.sisteKode !== 0) continue;
+        if (op === "||" && S.sisteKode === 0) continue;
+        S.sisteKode = await koyrRoyr(pl);
+    }
+    return S.sisteKode;
+}
+function feilHint(e, kva) {
+    if (e === "EACCES") hint("eacces", "`Permission denied` betyr at brukaren din ikkje har lov. Treng du verkeleg dette, kan du setje `sudo` framfor kommandoen.");
+    else if (e === "ENOENT") hint("enoent", `Linux finn ikkje ${kva || "fila eller mappa"}. Sjekk skrivemåten (store og små bokstavar tel!), og bruk \`ls\` for å sjå kva som finst.`);
+}
+async function koyrRoyr(pl) {
+    let stdin = null, kode = 0, forrige = null;
+    for (let i = 0; i < pl.length; i++) {
+        const c = pl[i], sist = i === pl.length - 1, tilTerm = sist && !c.ut;
+        let inndata = stdin, buf = "", utAbs = null;
+        if (c.inn) {
+            const r = slaa(norm(c.inn));
+            const e = r.e || (r.n.t === "d" ? "EISDIR" : !kan(r.n, 4) ? "EACCES" : null);
+            if (e) { skriv(`bash: ${c.inn}: ${FEIL[e]}\n`); feilHint(e); kode = 1; stdin = ""; forrige = null; continue; }
+            inndata = r.n.d;
+        }
+        if (c.ut) {
+            utAbs = norm(c.ut.sti);
+            const e = utAbs === "/dev/null" ? null : kanSkriveTil(utAbs);
+            if (e) {
+                skriv(`bash: ${c.ut.sti}: ${FEIL[e]}\n`);
+                if (e === "EACCES" && c.ord[0] === "sudo") hint("sudoredir", "`sudo` gjeld berre kommandoen, ikkje `>`. Det er ditt eige skal (utan root-rettar) som opnar fila.");
+                else feilHint(e);
+                kode = 1; stdin = ""; forrige = null; continue;
+            }
+        }
+        const io = { inn: inndata, tty: tilTerm, royrFra: forrige,
+            ut: s => { if (tilTerm) skriv(s); else buf += rein(s); },
+            feil: s => { if (!c.feilVekk) skriv(s.endsWith("\n") ? s : s + "\n"); } };
+        kode = await koyrEnkel(ekspanderGlob(c.ord), io);
+        if (c.ut) { if (utAbs !== "/dev/null") skrivFil(utAbs, buf, c.ut.leggTil); stdin = ""; } else stdin = buf;
+        forrige = c.ord[0] || null;
+    }
+    return kode;
+}
+
+const PAKKEKMD = { tree: "tree", htop: "htop", cowsay: "cowsay", git: "git", nginx: "nginx" };
+const tilgjengeleg = namn => !PAKKEKMD[namn] || SYS.pakkar.includes(PAKKEKMD[namn]);
+const K = {};
+
+async function koyrEnkel(ord, io, opt = {}) {
+    if (!ord.length) return 0;
+    if (ord.length === 1 && /^[A-Za-z_]\w*=/.test(ord[0])) { const i = ord[0].indexOf("="); S.vars[ord[0].slice(0, i)] = ord[0].slice(i + 1); return 0; }
+    const namn = ord[0], args = ord.slice(1);
+    const oppf = { namn, args, ok: false, utdata: "", cwdFor: S.cwd, sudo: !!opt.sudo || S.root, vert: S.vert, royrFra: io.royrFra };
+    const io2 = { ...io, ut: s => { oppf.utdata += rein(s); io.ut(s); } };
+    let kode;
+    if (namn.includes("/")) kode = await koyrFil(namn, args, io2, oppf);
+    else if (Object.hasOwn(K, namn) && tilgjengeleg(namn)) {
+        if (args.includes("--help") && MAN[namn]) { visMan(namn, io2); kode = 0; }
+        else kode = await K[namn](args, io2, oppf);
+    } else kode = ukjend(namn, io2);
+    oppf.ok = kode === 0; oppf.cwdEtter = S.cwd;
+    S.logg.push(oppf);
+    return kode;
+}
+async function koyrSkript(tekst, io) {
+    if (S.djupn >= 5) { io.feil("bash: for mange skript inni kvarandre"); return 1; }
+    S.djupn++;
+    let kode = 0;
+    try {
+        for (const rl of tekst.split("\n")) {
+            const l = rl.trim();
+            if (!l || l.startsWith("#")) continue;
+            if (/^(if|for|while|until|case|function)\b|^(then|else|fi|do|done|esac)\b/.test(l)) {
+                io.feil(`bash: simulatoren støttar ikkje \`${l.split(/\s/)[0]}\` i skript enno`);
+                hint("skript", "Skript i denne simulatoren kan berre innehalde vanlege kommandoar, éin per linje. Løkker og vilkår lærer du i Python 101.");
+                kode = 2; break;
+            }
+            sjekkAvbrot();
+            kode = await koyrLinje(l);
+        }
+    } finally { S.djupn--; }
+    return kode;
+}
+async function koyrFil(namn, args, io, oppf) {
+    const r = slaa(norm(namn));
+    if (r.e) { io.feil(`bash: ${namn}: ${FEIL[r.e]}`); feilHint(r.e, "skriptet"); return r.e === "ENOENT" ? 127 : 126; }
+    if (r.n.t === "d") { io.feil(`bash: ${namn}: Is a directory`); return 126; }
+    if (!kan(r.n, 1)) {
+        io.feil(`bash: ${namn}: Permission denied`);
+        hint("ikkjex", "Fila manglar køyreretten `x`. Sjå rettane med `ls -l`, og legg til retten med `chmod +x " + namn.replace(/^\.\//, "") + "`.");
+        return 126;
+    }
+    oppf.skript = true;
+    return koyrSkript(r.n.d, io);
+}
+const WINDOWS = { dir: "ls", cls: "clear", ipconfig: "ip a", type: "cat", copy: "cp", del: "rm", move: "mv", ren: "mv", md: "mkdir", rd: "rmdir", tracert: "traceroute", tasklist: "ps aux", taskkill: "kill", ver: "uname -a", notepad: "nano", findstr: "grep", help: "man", edit: "nano" };
+function levenshtein(a, b) {
+    const d = Array.from({ length: a.length + 1 }, (_, i) => [i]);
+    for (let j = 1; j <= b.length; j++) d[0][j] = j;
+    for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++)
+        d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    return d[a.length][b.length];
+}
+function ukjend(namn, io) {
+    if (PAKKEKMD[namn] && Object.hasOwn(K, namn)) {
+        io.feil(`Command '${namn}' not found, but can be installed with:\nsudo apt install ${PAKKEKMD[namn]}`);
+        hint("ikkjeinst", `Programmet \`${namn}\` er ikkje installert enno. Linux fortel deg sjølv korleis du installerer det.`);
+        return 127;
+    }
+    io.feil(`${namn}: command not found`);
+    const l = lc(namn);
+    if (namn !== l && Object.hasOwn(K, l)) hint("ukjend", `Linux skil mellom store og små bokstavar. Prøv \`${l}\`.`);
+    else if (WINDOWS[l]) hint("ukjend", `\`${namn}\` er ein Windows-kommando. I Linux heiter det \`${WINDOWS[l]}\`.`);
+    else if (l === "ifconfig") hint("ukjend", "`ifconfig` er den gamle kommandoen. På nye Linux-system skriv du `ip a`.");
+    else if (l === "vim" || l === "vi") hint("ukjend", "`vim` er ikkje med i simulatoren. Bruk `nano` – han er enklare å kome ut av.");
+    else {
+        const n = Object.keys(K).filter(k => tilgjengeleg(k)).map(k => [levenshtein(l, k), k]).sort((a, b) => a[0] - b[0])[0];
+        if (n && n[0] <= 2 && l.length > 2) hint("ukjend", `Meinte du \`${n[1]}\`? Sjekk skrivemåten.`);
+        else hint("ukjend", "Bash kjenner ikkje denne kommandoen. Sjekk skrivemåten, eller sjå i leksjonen kva kommandoane heiter.");
+    }
+    return 127;
+}
+
+/* =====================================================================
+   Del 4: kommandoane
+   ===================================================================== */
+/* Deler argument i flagg (einbokstavs), lange val og resten */
+function del(a, medVerdi = "") {
+    const f = new Set(), lang = new Set(), rest = [], v = {};
+    for (let i = 0; i < a.length; i++) {
+        const x = a[i];
+        if (x === "--") { rest.push(...a.slice(i + 1)); break; }
+        if (x.startsWith("--")) lang.add(x.slice(2));
+        else if (/^-[A-Za-z]/.test(x)) {
+            for (let j = 1; j < x.length; j++) {
+                const c = x[j];
+                if (medVerdi.includes(c)) { v[c] = x.slice(j + 1) || a[++i]; break; }
+                f.add(c);
+            }
+        } else rest.push(x);
+    }
+    return { f, lang, rest, v };
+}
+/* Les filer (eller stdin) for cat, head, grep … Gir [{ namn, tekst }] og skriv feil undervegs */
+function lesFiler(kmd, filer, io) {
+    const ut = []; let feil = false;
+    if (!filer.length) {
+        if (io.inn === null) {
+            io.feil(`${kmd}: manglar fil`);
+            hint("manglarfil", `\`${kmd}\` treng ei fil å lese, t.d. \`${kmd} velkomen.txt\`. (Ekte ${kmd} ville venta på at du skreiv noko – då kjem du ut med Ctrl+C.)`);
+            return { ut, feil: true };
+        }
+        return { ut: [{ namn: null, tekst: io.inn }], feil };
+    }
+    for (const fn of filer) {
+        const r = slaa(norm(fn));
+        const e = r.e || (r.n.t === "d" ? "EISDIR" : !kan(r.n, 4) ? "EACCES" : null);
+        if (e) { io.feil(`${kmd}: ${fn}: ${FEIL[e]}`); feilHint(e); if (e === "EISDIR") hint("eisdir", `\`${fn}\` er ei mappe, ikkje ei fil. Bruk \`ls ${fn}\` for å sjå kva som ligg i ho.`); feil = true; continue; }
+        if (r.n.s) { io.feil(`${kmd}: ${fn}: binary file`); hint("binar", "Dette er ikkje ei tekstfil (t.d. eit bilete), så ho kan ikkje visast i terminalen."); feil = true; continue; }
+        ut.push({ namn: fn, tekst: r.n.d });
+    }
+    return { ut, feil };
+}
+const linjerAv = t => { const l = t.split("\n"); if (l[l.length - 1] === "") l.pop(); return l; };
+
+K.pwd = (a, io) => { io.ut(S.cwd + "\n"); return 0; };
+K.whoami = (a, io) => { io.ut(eigar() + "\n"); return 0; };
+K.id = (a, io) => { io.ut(S.root ? "uid=0(root) gid=0(root) groups=0(root)\n" : "uid=1000(elev) gid=1000(elev) groups=1000(elev),27(sudo)\n"); return 0; };
+K.hostname = (a, io) => { io.ut((a.includes("-I") ? (S.vert === "im-srv02" ? "10.120.20.12 " : "10.120.20.11 ") : S.vert) + "\n"); return 0; };
+K.uname = (a, io) => {
+    const d = del(a);
+    io.ut((d.f.has("a") ? `Linux ${S.vert} 6.8.0-87-generic #88-Ubuntu SMP PREEMPT_DYNAMIC Sat Oct 11 09:28:41 UTC 2025 x86_64 x86_64 x86_64 GNU/Linux` : d.f.has("r") ? "6.8.0-87-generic" : d.f.has("n") ? S.vert : "Linux") + "\n");
+    return 0;
+};
+K.lsb_release = (a, io) => { io.ut("Distributor ID:\tUbuntu\nDescription:\tUbuntu 24.04.3 LTS\nRelease:\t24.04\nCodename:\tnoble\n"); return 0; };
+K.date = (a, io) => { const d = new Date(); io.ut(`${DAG[d.getDay()]} ${MND[d.getMonth()]} ${String(d.getDate()).padStart(2, " ")} ${to(d.getHours())}:${to(d.getMinutes())}:${to(d.getSeconds())} CET ${d.getFullYear()}\n`); return 0; };
+K.uptime = (a, io) => { const d = new Date(); io.ut(` ${to(d.getHours())}:${to(d.getMinutes())}:${to(d.getSeconds())} up 14 days,  0:12,  1 user,  load average: ${S.prosessar.some(p => p.cpu > 50) ? "1.02, 0.98, 0.91" : "0.03, 0.12, 0.40"}\n`); return 0; };
+K.clear = () => { tomSkjerm(); return 0; };
+K.true = () => 0;
+K.false = () => 1;
+K.echo = (a, io) => {
+    let nl = true, e = false;
+    while (a.length && /^-[neE]+$/.test(a[0])) { if (a[0].includes("n")) nl = false; if (a[0].includes("e")) e = true; a = a.slice(1); }
+    let t = a.join(" ");
+    if (e) t = t.replace(/\\n/g, "\n").replace(/\\t/g, "\t");
+    io.ut(t + (nl ? "\n" : ""));
+    return 0;
+};
+K.history = (a, io) => { historikk.forEach((h, i) => io.ut(String(i + 1).padStart(5, " ") + "  " + h + "\n")); return 0; };
+K.env = K.printenv = (a, io) => { if (a[0]) { if (S.vars[a[0]] === undefined) return 1; io.ut(S.vars[a[0]] + "\n"); return 0; } for (const [k, v] of Object.entries(S.vars)) io.ut(`${k}=${v}\n`); return 0; };
+K.export = (a) => { for (const x of a) { const i = x.indexOf("="); if (i > 0) S.vars[x.slice(0, i)] = x.slice(i + 1); } return 0; };
+K.which = (a, io) => { let k = 0; for (const x of a) { if (Object.hasOwn(K, x) && tilgjengeleg(x) && !["cd", "exit", "export", "history"].includes(x)) io.ut(`/usr/bin/${x}\n`); else k = 1; } return k; };
+K.sleep = async (a) => { await vent(Math.min(Number(a[0]) || 1, 30) * 1000); return 0; };
+
+K.cd = (a, io) => {
+    if (a.length > 1) { io.feil("bash: cd: too many arguments"); return 1; }
+    let maal = a[0] ?? S.vars.HOME, vis = false;
+    if (maal === "-") { maal = S.forrige; vis = true; }
+    const abs = norm(maal), r = slaa(abs);
+    const e = r.e || (r.n.t !== "d" ? "ENOTDIR" : !kan(r.n, 1) ? "EACCES" : null);
+    if (e) {
+        io.feil(`bash: cd: ${maal}: ${FEIL[e]}`);
+        if (e === "ENOTDIR") hint("enotdir", `\`${maal}\` er ei fil, ikkje ei mappe. Du kan berre gå inn i mapper. Bruk \`cat ${maal}\` for å lese fila.`);
+        else feilHint(e, "mappa");
+        return 1;
+    }
+    S.forrige = S.cwd; S.cwd = abs; S.vars.PWD = abs;
+    if (vis) io.ut(abs + "\n");
+    return 0;
+};
+function lsNamn(namn, n, io, F) {
+    if (!io.tty) return namn;
+    if (n.t === "d") return M_D + namn + M_E + (F ? "/" : "");
+    if (n.m & 0o111) return M_X + namn + M_E + (F ? "*" : "");
+    return namn;
+}
+function lsLang(namn, n, h, io, F) {
+    const st = storleik(n);
+    return `${modusTekst(n)} ${n.t === "d" ? 2 : 1} ${n.o.padEnd(5)} ${(namn === "shadow" ? "shadow" : n.o).padEnd(5)} ${(h ? menneske(st) : String(st)).padStart(h ? 5 : 8)} ${lsDato(n.mt)} ${lsNamn(namn, n, io, F)}`;
+}
+K.ls = (a, io) => {
+    const d = del(a), l = d.f.has("l"), alle = d.f.has("a") || d.f.has("A"), h = d.f.has("h"), F = d.f.has("F");
+    const maal = d.rest.length ? d.rest : ["."];
+    let kode = 0; const filer = [], mapper = [];
+    for (const m of maal) {
+        const abs = norm(m), r = slaa(abs);
+        if (r.e) { io.feil(`ls: cannot access '${m}': ${FEIL[r.e]}`); feilHint(r.e); kode = 2; continue; }
+        if (r.n.t === "d" && !d.f.has("d")) {
+            if (!kan(r.n, 4)) { io.feil(`ls: cannot open directory '${m}': Permission denied`); feilHint("EACCES"); kode = 2; continue; }
+            mapper.push({ m, n: r.n, abs });
+        } else filer.push({ m, n: r.n });
+    }
+    const skrivListe = innslag => {
+        if (!innslag.length) return;
+        if (l) for (const x of innslag) io.ut(lsLang(x.m, x.n, h, io, F) + "\n");
+        else io.ut(innslag.map(x => lsNamn(x.m, x.n, io, F)).join(io.tty ? "  " : "\n") + "\n");
+    };
+    skrivListe(filer);
+    mapper.forEach((x, i) => {
+        if (maal.length > 1) io.ut((i || filer.length ? "\n" : "") + x.m + ":\n");
+        let innslag = sorter(Object.keys(x.n.c).filter(k => alle || !k.startsWith("."))).map(k => ({ m: k, n: x.n.c[k] }));
+        if (d.f.has("a")) innslag = [{ m: ".", n: x.n }, { m: "..", n: hent(forelder(x.abs).sti) || x.n }, ...innslag];
+        if (l) io.ut(`total ${Math.ceil(innslag.reduce((s, y) => s + storleik(y.n), 0) / 1024)}\n`);
+        skrivListe(innslag);
+    });
+    return kode;
+};
+K.ll = (a, io) => K.ls(["-alF", ...a], io);
+K.mkdir = (a, io) => {
+    const d = del(a); let kode = 0;
+    if (!d.rest.length) { io.feil("mkdir: missing operand"); return 1; }
+    for (const m of d.rest) {
+        const abs = norm(m);
+        if (d.f.has("p")) {
+            let sti = "";
+            for (const x of abs.split("/").filter(Boolean)) {
+                sti += "/" + x;
+                const n = hent(sti);
+                if (n) { if (n.t !== "d") { io.feil(`mkdir: cannot create directory ‘${m}’: Not a directory`); kode = 1; break; } continue; }
+                const e = kanEndreI(sti);
+                if (e) { io.feil(`mkdir: cannot create directory ‘${m}’: ${FEIL[e]}`); feilHint(e); kode = 1; break; }
+                hent(forelder(sti).sti).c[x] = { t: "d", c: {}, o: eigar(), m: 0o755, mt: no() };
+            }
+            continue;
+        }
+        const e = hent(abs) ? "EEXIST" : kanEndreI(abs);
+        if (e) {
+            io.feil(`mkdir: cannot create directory ‘${m}’: ${FEIL[e]}`); kode = 1;
+            if (e === "EEXIST") hint("eexist", "Det finst alt noko med det namnet her. Sjå med `ls`.");
+            else if (e === "ENOENT") hint("enoent", "Mappa over finst ikkje. Med `mkdir -p` lagar du heile stien i éin operasjon.");
+            else feilHint(e);
+            continue;
+        }
+        const f = forelder(abs);
+        hent(f.sti).c[f.namn] = { t: "d", c: {}, o: eigar(), m: 0o755, mt: no() };
+    }
+    return kode;
+};
+K.rmdir = (a, io) => {
+    let kode = 0;
+    for (const m of a) {
+        const abs = norm(m), r = slaa(abs);
+        const e = r.e || (r.n.t !== "d" ? "ENOTDIR" : null);
+        if (e) { io.feil(`rmdir: failed to remove '${m}': ${FEIL[e]}`); kode = 1; continue; }
+        if (Object.keys(r.n.c).length) { io.feil(`rmdir: failed to remove '${m}': Directory not empty`); hint("ikkjetom", "`rmdir` slettar berre tomme mapper. Skal alt innhaldet òg bort, brukar du `rm -r`."); kode = 1; continue; }
+        const e2 = kanEndreI(abs);
+        if (e2) { io.feil(`rmdir: failed to remove '${m}': ${FEIL[e2]}`); kode = 1; continue; }
+        const f = forelder(abs); delete hent(f.sti).c[f.namn];
+    }
+    return kode;
+};
+K.touch = (a, io) => {
+    let kode = 0;
+    if (!a.length) { io.feil("touch: missing file operand"); return 1; }
+    for (const m of a) {
+        const abs = norm(m), n = hent(abs);
+        if (n) { n.mt = no(); continue; }
+        const e = kanEndreI(abs);
+        if (e) { io.feil(`touch: cannot touch '${m}': ${FEIL[e]}`); feilHint(e, "mappa fila skal liggje i"); kode = 1; continue; }
+        const f = forelder(abs);
+        hent(f.sti).c[f.namn] = { t: "f", d: "", o: eigar(), m: 0o644, mt: no() };
+    }
+    return kode;
+};
+function kopierFlytt(kmd, a, io, flytt) {
+    const d = del(a), rek = d.f.has("r") || d.f.has("R") || d.f.has("a");
+    if (d.rest.length < 2) {
+        io.feil(d.rest.length ? `${kmd}: missing destination file operand after '${d.rest[0]}'` : `${kmd}: missing file operand`);
+        hint("toarg", `\`${kmd}\` treng to ting: først kva, så kvar. T.d. \`${kmd} fil.txt mappe/\`.`);
+        return 1;
+    }
+    const maal = d.rest[d.rest.length - 1], kjelder = d.rest.slice(0, -1), maalAbs = norm(maal), maalNode = hent(maalAbs);
+    const tilMappe = !!maalNode && maalNode.t === "d";
+    if (kjelder.length > 1 && !tilMappe) { io.feil(`${kmd}: target '${maal}' is not a directory`); return 1; }
+    let kode = 0;
+    for (const k of kjelder) {
+        const kAbs = norm(k), r = slaa(kAbs);
+        if (r.e) { io.feil(`${kmd}: cannot stat '${k}': ${FEIL[r.e]}`); feilHint(r.e); kode = 1; continue; }
+        if (r.n.t === "d" && !rek && !flytt) { io.feil(`cp: -r not specified; omitting directory '${k}'`); hint("cpr", "Mapper kopierer du med `cp -r` (rekursivt – alt inni blir med)."); kode = 1; continue; }
+        if (!flytt && !kan(r.n, 4)) { io.feil(`cp: cannot open '${k}' for reading: Permission denied`); feilHint("EACCES"); kode = 1; continue; }
+        const dAbs = tilMappe ? norm(forelder(kAbs).namn, maalAbs) : maalAbs;
+        if (dAbs === kAbs) { io.feil(`${kmd}: '${k}' and '${tilMappe ? maal.replace(/\/$/, "") + "/" + forelder(kAbs).namn : maal}' are the same file`); kode = 1; continue; }
+        if ((dAbs + "/").startsWith(kAbs + "/")) { io.feil(`${kmd}: cannot ${flytt ? "move" : "copy"} '${k}' to a subdirectory of itself`); kode = 1; continue; }
+        const e = kanEndreI(dAbs) || (flytt ? kanEndreI(kAbs) : null);
+        if (e) { io.feil(`${kmd}: cannot ${flytt ? "move" : "create regular file"} '${flytt ? k : maal}': ${FEIL[e]}`); feilHint(e, "målmappa"); kode = 1; continue; }
+        const df = forelder(dAbs);
+        hent(df.sti).c[df.namn] = flytt ? r.n : kopi(r.n);
+        if (flytt) { const kf = forelder(kAbs); delete hent(kf.sti).c[kf.namn]; }
+    }
+    return kode;
+}
+K.cp = (a, io) => kopierFlytt("cp", a, io, false);
+K.mv = (a, io) => kopierFlytt("mv", a, io, true);
+K.rm = (a, io) => {
+    const d = del(a), rek = d.f.has("r") || d.f.has("R"), tving = d.f.has("f");
+    if (!d.rest.length) { if (tving) return 0; io.feil("rm: missing operand"); return 1; }
+    let kode = 0;
+    for (const m of d.rest) {
+        const abs = norm(m);
+        if (abs === "/") { io.feil("rm: it is dangerous to operate recursively on '/'\nrm: use --no-preserve-root to override this failsafe"); hint("rmrot", "Denne kommandoen ville sletta HEILE serveren. Linux stoppar deg her – men ikkje stol på at du alltid blir redda."); kode = 1; continue; }
+        const r = slaa(abs);
+        if (r.e) { if (!(tving && r.e === "ENOENT")) { io.feil(`rm: cannot remove '${m}': ${FEIL[r.e]}`); feilHint(r.e); kode = 1; } continue; }
+        if (r.n.t === "d" && !rek) { io.feil(`rm: cannot remove '${m}': Is a directory`); hint("rmdir", "`rm` åleine slettar berre filer. Ei mappe med innhald slettar du med `rm -r`."); kode = 1; continue; }
+        const e = kanEndreI(abs);
+        if (e) { io.feil(`rm: cannot remove '${m}': ${FEIL[e]}`); feilHint(e); kode = 1; continue; }
+        const f = forelder(abs); delete hent(f.sti).c[f.namn];
+    }
+    return kode;
+};
+K.cat = (a, io) => {
+    const d = del(a), r = lesFiler("cat", d.rest, io);
+    for (const x of r.ut) {
+        if (d.f.has("n")) io.ut(linjerAv(x.tekst).map((l, i) => String(i + 1).padStart(6, " ") + "\t" + l).join("\n") + "\n");
+        else io.ut(x.tekst);
+    }
+    return r.feil ? 1 : 0;
+};
+K.less = K.more = (a, io) => {
+    const r = lesFiler("less", a.filter(x => !x.startsWith("-")), io);
+    for (const x of r.ut) io.ut(x.tekst);
+    if (io.tty && r.ut.length) hint("less", "Ekte `less` viser éi side om gongen: bla med piltastane eller mellomrom, og avslutt med `q`. Her får du heile fila på éin gong.");
+    return r.feil ? 1 : 0;
+};
+function hovudHale(kmd, a, io, hale) {
+    let n = 10; const filer = [];
+    for (let i = 0; i < a.length; i++) {
+        if (a[i] === "-n") n = parseInt(a[++i], 10);
+        else if (/^-n\d+$/.test(a[i])) n = parseInt(a[i].slice(2), 10);
+        else if (/^-\d+$/.test(a[i])) n = parseInt(a[i].slice(1), 10);
+        else if (a[i] === "-f") hint("tailf", "`tail -f` følgjer fila og viser nye linjer etter kvart (avslutt med Ctrl+C). I simulatoren får du berre dei siste linjene.");
+        else filer.push(a[i]);
+    }
+    if (!Number.isFinite(n) || n < 0) { io.feil(`${kmd}: invalid number of lines`); hint("nlinjer", `Skriv talet etter \`-n\`, t.d. \`${kmd} -n 5 fil.txt\`.`); return 1; }
+    const r = lesFiler(kmd, filer, io);
+    r.ut.forEach((x, i) => {
+        if (r.ut.length > 1) io.ut((i ? "\n" : "") + `==> ${x.namn} <==\n`);
+        const l = linjerAv(x.tekst), u = hale ? (n ? l.slice(-n) : []) : l.slice(0, n);
+        if (u.length) io.ut(u.join("\n") + "\n");
+    });
+    return r.feil ? 1 : 0;
+}
+K.head = (a, io) => hovudHale("head", a, io, false);
+K.tail = (a, io) => hovudHale("tail", a, io, true);
+K.wc = (a, io) => {
+    const d = del(a), r = lesFiler("wc", d.rest, io);
+    const vel = d.f.size ? ["l", "w", "c"].filter(x => d.f.has(x)) : ["l", "w", "c"];
+    const rad = r.ut.map(x => ({ l: (x.tekst.match(/\n/g) || []).length, w: (x.tekst.match(/\S+/g) || []).length, c: byteLen(x.tekst), namn: x.namn }));
+    if (rad.length > 1) rad.push({ l: rad.reduce((s, x) => s + x.l, 0), w: rad.reduce((s, x) => s + x.w, 0), c: rad.reduce((s, x) => s + x.c, 0), namn: "total" });
+    const br = vel.length === 1 && rad.length === 1 ? 0 : Math.max(...rad.map(x => String(Math.max(x.l, x.w, x.c)).length), 1);
+    for (const x of rad) io.ut(vel.map(k => String(x[k]).padStart(br, " ")).join(" ") + (x.namn ? " " + x.namn : "") + "\n");
+    return r.feil ? 1 : 0;
+};
+function samleFiler(abs, vis, ut) {   // til grep -r
+    const n = hent(abs);
+    if (!n || !kan(n, 4)) return;
+    if (n.t === "f") { if (!n.s) ut.push({ namn: vis, tekst: n.d }); return; }
+    for (const k of sorter(Object.keys(n.c))) samleFiler(abs + "/" + k, vis.replace(/\/$/, "") + "/" + k, ut);
+}
+K.grep = (a, io) => {
+    const d = del(a, "e");
+    const m = d.v.e ?? d.rest.shift();
+    if (m === undefined) { io.feil("Usage: grep [OPTION]... PATTERNS [FILE]..."); hint("grepbruk", "`grep` treng eit søkjeord og ei fil: `grep \"ord\" fil.txt`."); return 2; }
+    let re;
+    try { re = new RegExp(utanJoker(m), d.f.has("i") ? "i" : ""); } catch (e) { re = new RegExp(m.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), d.f.has("i") ? "i" : ""); }
+    let kjelder, feil = false;
+    if (d.f.has("r") || d.f.has("R")) { kjelder = []; for (const f of d.rest.length ? d.rest : ["."]) samleFiler(norm(f), f, kjelder); }
+    else { const r = lesFiler("grep", d.rest, io); kjelder = r.ut; feil = r.feil; }
+    const medNamn = kjelder.length > 1 || d.f.has("r") || d.f.has("R");
+    let treff = 0;
+    for (const x of kjelder) {
+        let n = 0;
+        linjerAv(x.tekst).forEach((l, i) => {
+            if (re.test(l) === d.f.has("v")) return;
+            n++; treff++;
+            if (!d.f.has("c") && !d.f.has("q")) io.ut((medNamn ? x.namn + ":" : "") + (d.f.has("n") ? (i + 1) + ":" : "") + l + "\n");
+        });
+        if (d.f.has("c")) io.ut((medNamn ? x.namn + ":" : "") + n + "\n");
+    }
+    return feil ? 2 : treff ? 0 : 1;
+};
+K.sort = (a, io) => {
+    const d = del(a), r = lesFiler("sort", d.rest, io);
+    let l = r.ut.flatMap(x => linjerAv(x.tekst));
+    if (d.f.has("n")) l.sort((x, y) => (parseFloat(x) || 0) - (parseFloat(y) || 0)); else l.sort((x, y) => x.localeCompare(y, "nn"));
+    if (d.f.has("r")) l.reverse();
+    if (d.f.has("u")) l = l.filter((x, i) => i === 0 || x !== l[i - 1]);
+    if (l.length) io.ut(l.join("\n") + "\n");
+    return r.feil ? 2 : 0;
+};
+K.uniq = (a, io) => {
+    const d = del(a), r = lesFiler("uniq", d.rest, io);
+    const l = r.ut.flatMap(x => linjerAv(x.tekst)), ut = [];
+    for (const x of l) { if (ut.length && ut[ut.length - 1].l === x) ut[ut.length - 1].n++; else ut.push({ l: x, n: 1 }); }
+    for (const x of ut) io.ut((d.f.has("c") ? String(x.n).padStart(7, " ") + " " : "") + x.l + "\n");
+    return r.feil ? 1 : 0;
+};
+K.cut = (a, io) => {
+    const d = del(a, "df");
+    if (!d.v.f) { io.feil("cut: you must specify a list of bytes, characters, or fields"); hint("cut", "Døme: `cut -d \";\" -f 1 Dokument/elevar.txt` hentar første felt når felta er skilde med semikolon."); return 1; }
+    const skilje = d.v.d ?? "\t", felt = d.v.f.split(",").map(x => parseInt(x, 10) - 1);
+    const r = lesFiler("cut", d.rest, io);
+    for (const x of r.ut) for (const l of linjerAv(x.tekst)) { const p = l.split(skilje); io.ut((p.length === 1 ? l : felt.map(i => p[i] ?? "").join(skilje)) + "\n"); }
+    return r.feil ? 1 : 0;
+};
+K.find = (a, io) => {
+    const startar = []; let namn = null, type = null, i = 0;
+    while (i < a.length && !a[i].startsWith("-")) startar.push(a[i++]);
+    for (; i < a.length; i++) {
+        if (a[i] === "-name" || a[i] === "-iname") { namn = { re: monsterRegex(a[i + 1] ?? "", a[i] === "-iname" ? "i" : "") }; i++; }
+        else if (a[i] === "-type") type = a[++i];
+        else { io.feil(`find: unknown predicate \`${a[i]}'`); hint("find", "Simulatoren kan `find sti -name \"mønster\"` og `-type f` eller `-type d`."); return 1; }
+    }
+    let kode = 0;
+    const gaa = (abs, vis) => {
+        const n = hent(abs), bn = forelder(abs).namn;
+        if ((!namn || namn.re.test(utanJoker(bn))) && (!type || (type === "d") === (n.t === "d"))) io.ut(vis + "\n");
+        if (n.t !== "d") return;
+        if (!kan(n, 4) || !kan(n, 1)) { io.feil(`find: ‘${vis}’: Permission denied`); kode = 1; return; }
+        for (const k of sorter(Object.keys(n.c))) gaa(abs === "/" ? "/" + k : abs + "/" + k, vis.replace(/\/$/, "") + "/" + k);
+    };
+    for (const s of startar.length ? startar : ["."]) {
+        const r = slaa(norm(s));
+        if (r.e) { io.feil(`find: ‘${s}’: ${FEIL[r.e]}`); feilHint(r.e); kode = 1; continue; }
+        gaa(norm(s), s);
+    }
+    if (kode && !S.root) hint("findperm", "`find` får ikkje sjå inn i mapper du ikkje har rettar til. Det er normalt når du søkjer frå `/`.");
+    return kode;
+};
+K.tree = (a, io) => {
+    const s = a.find(x => !x.startsWith("-")) ?? ".", r = slaa(norm(s));
+    if (r.e || r.n.t !== "d") { io.ut(`${s}  [error opening dir]\n\n0 directories, 0 files\n`); return 2; }
+    let nd = 0, nf = 0;
+    io.ut((io.tty ? M_D + s + M_E : s) + "\n");
+    const gaa = (n, pre) => {
+        const ks = sorter(Object.keys(n.c).filter(k => !k.startsWith(".")));
+        ks.forEach((k, i) => {
+            const b = n.c[k], sist = i === ks.length - 1;
+            io.ut(pre + (sist ? "└── " : "├── ") + lsNamn(k, b, io) + "\n");
+            if (b.t === "d") { nd++; if (kan(b, 4)) gaa(b, pre + (sist ? "    " : "│   ")); } else nf++;
+        });
+    };
+    gaa(r.n, "");
+    io.ut(`\n${nd} director${nd === 1 ? "y" : "ies"}, ${nf} file${nf === 1 ? "" : "s"}\n`);
+    return 0;
+};
+K.du = (a, io) => {
+    const d = del(a), h = d.f.has("h"); let kode = 0;
+    for (const m of d.rest.length ? d.rest : ["."]) {
+        const r = slaa(norm(m));
+        if (r.e) { io.feil(`du: cannot access '${m}': ${FEIL[r.e]}`); kode = 1; continue; }
+        const b = totalStorleik(r.n);
+        io.ut((h ? menneske(b) : String(Math.ceil(b / 1024))) + "\t" + m + "\n");
+    }
+    return kode;
+};
+K.df = (a, io) => {
+    io.ut(del(a).f.has("h")
+        ? "Filesystem      Size  Used Avail Use% Mounted on\ntmpfs           393M  1.1M  392M   1% /run\n/dev/sda2        39G   14G   24G  37% /\ntmpfs           2.0G     0  2.0G   0% /dev/shm\n/dev/sda1       1.1G  6.2M  1.1G   1% /boot/efi\n"
+        : "Filesystem     1K-blocks     Used Available Use% Mounted on\ntmpfs             401944     1104    400840   1% /run\n/dev/sda2       40453608 14021380  24345024  37% /\ntmpfs            2009708        0   2009708   0% /dev/shm\n/dev/sda1        1098632     6288   1092344   1% /boot/efi\n");
+    return 0;
+};
+K.free = (a, io) => {
+    io.ut(del(a).f.has("h")
+        ? "               total        used        free      shared  buff/cache   available\nMem:           3.8Gi       612Mi       2.1Gi       1.0Mi       1.3Gi       3.2Gi\nSwap:          2.0Gi          0B       2.0Gi\n"
+        : "               total        used        free      shared  buff/cache   available\nMem:         4019416      626892     2203340        1104     1362144     3392524\nSwap:        2097148           0     2097148\n");
+    return 0;
+};
+
+/* ---------- rettar ---------- */
+K.chmod = (a, io) => {
+    const rest = a.filter(x => !/^-[Rvf]+$/.test(x));
+    if (rest.length < 2) { io.feil(rest.length ? `chmod: missing operand after ‘${rest[0]}’` : "chmod: missing operand"); hint("chmodbruk", "`chmod` treng rettane først og så fila: `chmod +x skript.sh` eller `chmod 600 fil.txt`."); return 1; }
+    const modus = rest[0]; let kode = 0, f;
+    if (/^[0-7]{3,4}$/.test(modus)) { const v = parseInt(modus, 8) & 0o777; f = () => v; }
+    else if (/^([ugoa]*[+\-=][rwx]*)(,[ugoa]*[+\-=][rwx]*)*$/.test(modus)) {
+        f = m => {
+            for (const del_ of modus.split(",")) {
+                const [, kven, op, kva] = /^([ugoa]*)([+\-=])([rwx]*)$/.exec(del_);
+                const k = !kven || kven.includes("a") ? "ugo" : kven;
+                let bit = 0;
+                for (const c of kva) bit |= { r: 4, w: 2, x: 1 }[c];
+                for (const c of k) {
+                    const sk = { u: 6, g: 3, o: 0 }[c];
+                    if (op === "+") m |= bit << sk; else if (op === "-") m &= ~(bit << sk); else m = (m & ~(7 << sk)) | (bit << sk);
+                }
+            }
+            return m;
+        };
+    } else { io.feil(`chmod: invalid mode: ‘${modus}’`); hint("chmodmodus", "Rettane skriv du som tre tal (t.d. `644`, `755`) eller med bokstavar (t.d. `+x`, `u+w`, `go-r`)."); return 1; }
+    for (const m of rest.slice(1)) {
+        const r = slaa(norm(m));
+        if (r.e) { io.feil(`chmod: cannot access '${m}': ${FEIL[r.e]}`); feilHint(r.e); kode = 1; continue; }
+        if (!S.root && r.n.o !== S.brukar) { io.feil(`chmod: changing permissions of '${m}': Operation not permitted`); hint("chmodeigar", "Berre eigaren av fila (eller root) kan endre rettane. Sjå kven som eig ho med `ls -l`."); kode = 1; continue; }
+        r.n.m = f(r.n.m);
+    }
+    return kode;
+};
+K.chown = (a, io) => {
+    const rest = a.filter(x => !/^-[Rvf]+$/.test(x));
+    if (rest.length < 2) { io.feil("chown: missing operand"); return 1; }
+    const ny = rest[0].split(":")[0]; let kode = 0;
+    if (!["elev", "root", "www-data"].includes(ny)) { io.feil(`chown: invalid user: ‘${rest[0]}’`); return 1; }
+    for (const m of rest.slice(1)) {
+        const r = slaa(norm(m));
+        if (r.e) { io.feil(`chown: cannot access '${m}': ${FEIL[r.e]}`); kode = 1; continue; }
+        if (!S.root) { io.feil(`chown: changing ownership of '${m}': Operation not permitted`); hint("chown", "Berre root kan gi bort filer til andre brukarar. Bruk `sudo chown …`."); kode = 1; continue; }
+        (function f(n) { n.o = ny; if (a.includes("-R") && n.t === "d") Object.values(n.c).forEach(f); })(r.n);
+    }
+    return kode;
+};
+K.sudo = async (a, io) => {
+    if (!a.length || a[0] === "-h") { io.ut("usage: sudo command\n"); return 1; }
+    if (S.vert !== "im-srv01") { await lesLinje("[sudo] password for elev: ", true); io.feil("elev is not in the sudoers file."); hint("sudoers", "På im-srv02 er du ein vanleg brukar utan lov til å bruke `sudo`. Kven som får lov, er styrt av fila `/etc/sudoers`."); return 1; }
+    if (["su", "-i", "-s", "bash"].includes(a[0])) { hint("sudosu", "I simulatoren kan du ikkje bli root heile tida. Set `sudo` framfor kvar kommando som treng det – det er uansett den tryggaste vanen."); return 1; }
+    if (!S.sudoOk) {
+        await lesLinje("[sudo] password for elev: ", true);
+        S.sudoOk = true;
+        hint("sudopw", "Du såg ingenting medan du skreiv passordet – slik skal det vere. Linux hugsar passordet ei stund, så du slepp å skrive det kvar gong.");
+    }
+    const foer = S.root;
+    S.root = true;
+    try { return await koyrEnkel(a, io, { sudo: true }); } finally { S.root = foer; }
+};
+K.su = (a, io) => { io.feil("su: Authentication failure"); hint("su", "På Ubuntu har ikkje root noko passord, så `su` verkar ikkje. Bruk `sudo` framfor kommandoen i staden."); return 1; };
+K.passwd = (a, io) => { hint("passwd", "`passwd` byter passordet ditt. Det er ikkje med i simulatoren."); return 0; };
+K.reboot = K.shutdown = K.poweroff = (a, io, o) => {
+    if (!S.root) { io.feil("Call to Reboot failed: Interactive authentication required."); feilHint("EACCES"); return 1; }
+    hint("reboot", "Stopp! På ein ekte server ville alle som brukar han, blitt kasta ut no. Simulatoren let serveren stå på.");
+    return 0;
+};
+
+/* ---------- pakkar ---------- */
+const PAKKAR = {
+    nginx: { v: "1.24.0-2ubuntu7.5", t: "small, powerful, scalable web/proxy server", kb: 1836 },
+    htop: { v: "3.3.0-4build1", t: "interactive processes viewer", kb: 434 },
+    tree: { v: "2.1.1-2ubuntu3", t: "displays an indented directory tree, in color", kb: 111 },
+    cowsay: { v: "3.03+dfsg2-8", t: "configurable talking cow", kb: 93 },
+    git: { v: "1:2.43.0-1ubuntu7.3", t: "fast, scalable, distributed revision control system", kb: 22400 },
+    curl: { v: "8.5.0-2ubuntu10.6", t: "command line tool for transferring data with URL syntax", kb: 530 },
+    nano: { v: "7.2-2ubuntu0.1", t: "small, friendly text editor inspired by Pico", kb: 856 },
+    python3: { v: "3.12.3-0ubuntu2", t: "interactive high-level object-oriented language", kb: 90 },
+    "openssh-server": { v: "1:9.6p1-3ubuntu13.14", t: "secure shell (SSH) server, for secure access from remote machines", kb: 1500 },
+    cron: { v: "3.0pl1-184ubuntu2", t: "process scheduling daemon", kb: 250 },
+    sudo: { v: "1.9.15p5-3ubuntu5", t: "Provide limited super user privileges to specific users", kb: 3100 },
+    bash: { v: "5.2.21-2ubuntu4", t: "GNU Bourne Again SHell", kb: 1900 },
+    coreutils: { v: "9.4-3ubuntu6.1", t: "GNU core utilities", kb: 7300 },
+};
+function installerNginx() {
+    const www = hent("/var/www");
+    if (www && !www.c.html) www.c.html = mappe({ "index.html": fil(NGINX_HTML) });
+    const etc = hent("/etc");
+    if (etc && !etc.c.nginx) etc.c.nginx = mappe({ "nginx.conf": fil("user www-data;\nworker_processes auto;\n\nhttp {\n    server {\n        listen 80;\n        root /var/www/html;\n    }\n}\n") });
+    SYS.tenester.nginx = { aktiv: true, paa: true, sidan: no() };
+}
+K.apt = K["apt-get"] = async (a, io) => {
+    const ja = a.some(x => /^(-y|--yes)$/.test(x));
+    const [under, ...pk] = a.filter(x => !x.startsWith("-"));
+    const laas = (fil_, dir) => { io.feil(`E: Could not open lock file ${fil_} - open (13: Permission denied)\nE: Unable to ${dir}`); hint("aptsudo", "Å installere og oppdatere program endrar systemet. Då må du ha `sudo` framfor: `sudo apt " + a.join(" ") + "`."); return 100; };
+    if (S.vert !== "im-srv01") { io.feil("E: Denne delen av simulatoren har ikkje pakkelager. Logg ut med exit først."); return 100; }
+    if (under === "update") {
+        if (!S.root) return laas("/var/lib/apt/lists/lock", "lock directory /var/lib/apt/lists/");
+        for (const l of ["Hit:1 http://no.archive.ubuntu.com/ubuntu noble InRelease", "Get:2 http://no.archive.ubuntu.com/ubuntu noble-updates InRelease [126 kB]", "Get:3 http://security.ubuntu.com/ubuntu noble-security InRelease [126 kB]", "Get:4 http://no.archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages [1,214 kB]"]) { io.ut(l + "\n"); await vent(260); }
+        io.ut("Fetched 1,466 kB in 1s (1,712 kB/s)\nReading package lists... Done\nBuilding dependency tree... Done\nReading state information... Done\n" + (SYS.oppgradert ? "All packages are up to date.\n" : "12 packages can be upgraded. Run 'apt list --upgradable' to see them.\n"));
+        SYS.oppdatert = true;
+        return 0;
+    }
+    if (under === "upgrade" || under === "full-upgrade" || under === "dist-upgrade") {
+        if (!S.root) return laas("/var/lib/dpkg/lock-frontend", "acquire the dpkg frontend lock (/var/lib/dpkg/lock-frontend), are you root?");
+        io.ut("Reading package lists... Done\nBuilding dependency tree... Done\nCalculating upgrade... Done\n");
+        if (SYS.oppgradert) { io.ut("0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.\n"); return 0; }
+        io.ut("12 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.\nNeed to get 24.8 MB of archives.\n");
+        if (!ja && !/^(|y|yes|j|ja)$/i.test((await lesLinje("Do you want to continue? [Y/n] ")).trim())) { io.ut("Abort.\n"); return 1; }
+        for (let i = 1; i <= 4; i++) { io.ut(`Unpacking and setting up packages (${i * 3}/12) ...\n`); await vent(350); }
+        SYS.oppgradert = true;
+        return 0;
+    }
+    if (under === "install" || under === "remove" || under === "purge") {
+        if (!S.root) return laas("/var/lib/dpkg/lock-frontend", "acquire the dpkg frontend lock (/var/lib/dpkg/lock-frontend), are you root?");
+        if (!pk.length) { io.ut("0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.\n"); return 0; }
+        io.ut("Reading package lists... Done\nBuilding dependency tree... Done\nReading state information... Done\n");
+        const ukjende = pk.filter(p => !PAKKAR[p]);
+        if (ukjende.length) { ukjende.forEach(p => io.feil(`E: Unable to locate package ${p}`)); hint("aptukjend", "Pakken finst ikkje i lageret til simulatoren. Prøv t.d. `nginx`, `htop`, `tree`, `cowsay` eller `git`. `apt search ord` leitar etter pakkar."); return 100; }
+        if (under === "install") {
+            const nye = pk.filter(p => !SYS.pakkar.includes(p));
+            pk.filter(p => SYS.pakkar.includes(p)).forEach(p => io.ut(`${p} is already the newest version (${PAKKAR[p].v}).\n`));
+            if (!nye.length) { io.ut("0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.\n"); return 0; }
+            const kb = nye.reduce((s, p) => s + PAKKAR[p].kb, 0);
+            io.ut(`The following NEW packages will be installed:\n  ${nye.join(" ")}\n0 upgraded, ${nye.length} newly installed, 0 to remove and 0 not upgraded.\nNeed to get ${kb.toLocaleString("en")} kB of archives.\nAfter this operation, ${(kb * 3.1).toLocaleString("en", { maximumFractionDigits: 0 })} kB of additional disk space will be used.\n`);
+            if (!ja && !/^(|y|yes|j|ja)$/i.test((await lesLinje("Do you want to continue? [Y/n] ")).trim())) { io.ut("Abort.\n"); return 1; }
+            for (const p of nye) {
+                io.ut(`Get:1 http://no.archive.ubuntu.com/ubuntu noble/main amd64 ${p} amd64 ${PAKKAR[p].v} [${PAKKAR[p].kb} kB]\n`); await vent(400);
+                io.ut(`Selecting previously unselected package ${p}.\nUnpacking ${p} (${PAKKAR[p].v}) ...\n`); await vent(400);
+                io.ut(`Setting up ${p} (${PAKKAR[p].v}) ...\n`); await vent(300);
+                SYS.pakkar.push(p);
+                if (p === "nginx") { installerNginx(); io.ut("Created symlink /etc/systemd/system/multi-user.target.wants/nginx.service → /usr/lib/systemd/system/nginx.service.\n"); }
+            }
+            io.ut("Processing triggers for man-db (2.12.0-4build2) ...\n");
+            if (nye.includes("nginx")) hint("nginxinst", "nginx er installert og starta som ei teneste. Prøv `curl localhost` for å sjå at vevtenaren svarar, og `systemctl status nginx` for å sjå tenesta.");
+            return 0;
+        }
+        const fins = pk.filter(p => SYS.pakkar.includes(p));
+        pk.filter(p => !SYS.pakkar.includes(p)).forEach(p => io.ut(`Package '${p}' is not installed, so not removed\n`));
+        if (!fins.length) return 0;
+        const vern = fins.filter(p => SYS_STD.pakkar.includes(p));
+        if (vern.length) { io.feil(`E: Simulatoren let deg ikkje fjerne ${vern.join(", ")} – då sluttar kurset å verke.`); return 100; }
+        io.ut(`The following packages will be REMOVED:\n  ${fins.join(" ")}\n0 upgraded, 0 newly installed, ${fins.length} to remove and 0 not upgraded.\n`);
+        if (!ja && !/^(|y|yes|j|ja)$/i.test((await lesLinje("Do you want to continue? [Y/n] ")).trim())) { io.ut("Abort.\n"); return 1; }
+        for (const p of fins) { io.ut(`Removing ${p} (${PAKKAR[p].v}) ...\n`); await vent(350); SYS.pakkar = SYS.pakkar.filter(x => x !== p); if (p === "nginx") delete SYS.tenester.nginx; }
+        return 0;
+    }
+    if (under === "list") {
+        io.ut("Listing... Done\n");
+        const alle = a.includes("--installed") ? [...SYS.pakkar].sort() : Object.keys(PAKKAR).sort();
+        for (const p of alle) io.ut(`${p}/noble${SYS.pakkar.includes(p) ? ",now" : ""} ${PAKKAR[p].v} amd64${SYS.pakkar.includes(p) ? " [installed]" : ""}\n`);
+        return 0;
+    }
+    if (under === "search") {
+        io.ut("Sorting... Done\nFull Text Search... Done\n");
+        for (const p of Object.keys(PAKKAR).sort()) if (!pk[0] || p.includes(lc(pk[0])) || lc(PAKKAR[p].t).includes(lc(pk[0]))) io.ut(`${p}/noble ${PAKKAR[p].v} amd64\n  ${PAKKAR[p].t}\n\n`);
+        return 0;
+    }
+    io.ut("apt 2.8.3 (amd64)\nUsage: apt [options] command\n\nMost used commands:\n  list - list packages based on package names\n  search - search in package descriptions\n  install - install packages\n  remove - remove packages\n  update - update list of available packages\n  upgrade - upgrade the system by installing/upgrading packages\n");
+    return under ? 100 : 0;
+};
+
+/* ---------- prosessar og tenester ---------- */
+K.ps = (a, io) => {
+    const alle = a.some(x => /^-?[auxef]+$/.test(x));
+    if (!alle) { io.ut("    PID TTY          TIME CMD\n   2301 pts/0    00:00:00 bash\n" + (S.prosessar.some(p => p.pid === 2417) ? "   2417 pts/0    00:23:41 python3\n" : "") + "   2502 pts/0    00:00:00 ps\n"); hint("ps", "`ps` åleine viser berre dine eigne prosessar i denne terminalen. Med `ps aux` ser du alt som køyrer på maskinen."); return 0; }
+    io.ut("USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND\n");
+    for (const p of [...prosessliste(), { pid: 2502, u: eigar(), cpu: 0.0, mem: 0.1, tid: "0:00", cmd: "ps " + a.join(" ") }])
+        io.ut(`${p.u.padEnd(8)} ${String(p.pid).padStart(7)} ${p.cpu.toFixed(1).padStart(4)} ${p.mem.toFixed(1).padStart(4)} ${String(Math.round(8000 + p.pid * 7.3)).padStart(6)} ${String(Math.round(p.mem * 4000 + 900)).padStart(5)} ${(p.u === "elev" ? "pts/0" : "?").padEnd(8)} ${p.cpu > 50 ? "R " : "S" + (p.pid < 1000 ? "s" : " ")}   ${p.pid < 2000 ? "Nov02" : "08:0" + (p.pid % 9)} ${p.tid.padStart(6)} ${p.cmd}\n`);
+    return 0;
+};
+K.top = K.htop = (a, io) => {
+    const pl = prosessliste().sort((x, y) => y.cpu - x.cpu), travel = pl[0].cpu > 50, d = new Date();
+    io.ut(`top - ${to(d.getHours())}:${to(d.getMinutes())}:${to(d.getSeconds())} up 14 days,  0:12,  1 user,  load average: ${travel ? "1.02, 0.98, 0.91" : "0.03, 0.12, 0.40"}\nTasks: ${pl.length + 88} total,   ${travel ? 2 : 1} running, ${pl.length + (travel ? 86 : 87)} sleeping,   0 stopped,   0 zombie\n%Cpu(s): ${travel ? "49.2 us,  0.8 sy,  0.0 ni, 50.0 id" : " 0.3 us,  0.2 sy,  0.0 ni, 99.5 id"},  0.0 wa,  0.0 hi,  0.0 si,  0.0 st\nMiB Mem :   3925.2 total,   2151.7 free,    612.2 used,   1330.2 buff/cache\n\n    PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND\n`);
+    for (const p of pl.slice(0, 8)) io.ut(`${p.cpu > 50 && io.tty ? M_R : ""}${String(p.pid).padStart(7)} ${p.u.padEnd(9)} 20   0 ${String(Math.round(8000 + p.pid * 7.3)).padStart(7)} ${String(Math.round(p.mem * 4000 + 900)).padStart(6)}   3200 ${p.cpu > 50 ? "R" : "S"} ${p.cpu.toFixed(1).padStart(5)} ${p.mem.toFixed(1).padStart(5)} ${(p.tid + ".00").padStart(9)} ${p.cmd.split(" ")[0].replace(/:$/, "")}${p.cpu > 50 && io.tty ? M_E : ""}\n`);
+    hint("top", "Ekte `top` oppdaterer seg kvart tredje sekund og blir verande til du trykkjer `q`. Her får du eit augneblinksbilete. Prosessen øvst brukar mest CPU.");
+    return 0;
+};
+K.kill = (a, io) => {
+    const pidar = a.filter(x => !x.startsWith("-"));
+    if (!pidar.length) { io.feil("kill: usage: kill [-s sigspec | -n signum | -sigspec] pid | jobspec ... or kill -l [sigspec]"); hint("killbruk", "`kill` treng PID-en til prosessen, t.d. `kill 2417`. PID-en finn du med `ps aux`."); return 2; }
+    let kode = 0;
+    for (const x of pidar) {
+        const pid = Number(x), p = prosessliste().find(q => q.pid === pid);
+        if (!/^\d+$/.test(x)) { io.feil(`bash: kill: ${x}: arguments must be process or job IDs`); hint("killnamn", "`kill` brukar nummeret (PID), ikkje namnet på programmet."); kode = 1; continue; }
+        if (!p) { io.feil(`bash: kill: (${x}) - No such process`); hint("killingen", "Det finst ingen prosess med den PID-en. Sjekk nummeret med `ps aux`."); kode = 1; continue; }
+        if (!S.root && p.u !== S.brukar) { io.feil(`bash: kill: (${x}) - Operation not permitted`); hint("killperm", "Du kan berre stoppe dine eigne prosessar. Andre sine krev `sudo` – og tenester stoppar du heller med `sudo systemctl stop namn`."); kode = 1; continue; }
+        if (pid === 2301 || pid === 1 || pid === 2290) { hint("killsjolv", "Den prosessen held deg innlogga (eller held heile systemet i gang). Simulatoren let han leve."); continue; }
+        if (p.teneste) SYS.tenester[p.teneste].aktiv = false;
+        else S.prosessar = S.prosessar.filter(q => q.pid !== pid);
+        if (/teljar/.test(p.cmd)) hint("killok", "Prosessen er stoppa. Sjekk med `top` eller `ps aux` at CPU-bruken har gått ned.");
+    }
+    return kode;
+};
+function tenesteStatus(namn, io) {
+    const t = TENESTER[namn], s = SYS.tenester[namn];
+    let sidan = "Mon 2026-11-02 08:15:02 CET; 2 weeks 0 days ago";
+    if (s.sidan) {
+        const d = new Date(s.sidan), sek = Math.max(0, Math.round((Date.now() - d) / 1000));
+        sidan = `${DAG[d.getDay()]} ${d.getFullYear()}-${to(d.getMonth() + 1)}-${to(d.getDate())} ${to(d.getHours())}:${to(d.getMinutes())}:${to(d.getSeconds())} CET; ${sek < 60 ? sek + "s" : sek < 3600 ? Math.floor(sek / 60) + "min" : Math.floor(sek / 3600) + "h"} ago`;
+    }
+    io.ut(`${s.aktiv ? (io.tty ? M_X + "●" + M_E : "●") : "○"} ${namn}.service - ${t.tekst}\n     Loaded: loaded (/usr/lib/systemd/system/${namn}.service; ${s.paa ? "enabled" : "disabled"}; preset: enabled)\n`);
+    if (s.aktiv) io.ut(`     Active: ${io.tty ? M_X : ""}active (running)${io.tty ? M_E : ""} since ${sidan}\n   Main PID: ${t.pid} (${t.cmd.split(/[: ]/)[0].replace(/^.*\//, "")})\n      Tasks: ${namn === "nginx" ? 2 : 1} (limit: 4611)\n     Memory: ${namn === "nginx" ? "2.4M" : "5.2M"}\n        CPU: 143ms\n     CGroup: /system.slice/${namn}.service\n             └─${t.pid} "${t.cmd}"\n`);
+    else io.ut(`     Active: inactive (dead)\n`);
+    return s.aktiv ? 0 : 3;
+}
+K.systemctl = async (a, io) => {
+    const [under, raa] = a.filter(x => !x.startsWith("-"));
+    const namn = raa ? raa.replace(/\.service$/, "").replace(/^sshd$/, "ssh") : null;
+    if (!under || under === "list-units") {
+        io.ut("  UNIT             LOAD   ACTIVE SUB     DESCRIPTION\n");
+        for (const [k, s] of Object.entries(SYS.tenester)) io.ut(`  ${(k + ".service").padEnd(16)} loaded ${s.aktiv ? "active running" : "inactive dead  "} ${TENESTER[k].tekst}\n`);
+        return 0;
+    }
+    if (!["status", "start", "stop", "restart", "reload", "enable", "disable", "is-active", "is-enabled"].includes(under)) { io.feil(`Unknown command verb '${under}'.`); return 1; }
+    if (!namn) { io.feil("Too few arguments."); hint("sysctlnamn", "Du må seie kva teneste det gjeld, t.d. `systemctl status ssh`."); return 1; }
+    if (!SYS.tenester[namn] || !TENESTER[namn]) {
+        io.feil(under === "status" ? `Unit ${namn}.service could not be found.` : `Failed to ${under} ${namn}.service: Unit ${namn}.service not found.`);
+        hint("sysctlukjend", `Det finst inga teneste som heiter \`${namn}\` på denne serveren.` + (namn === "nginx" ? " Installer ho først med `sudo apt install nginx`." : " Tenestene her er `ssh` og `cron`" + (SYS.tenester.nginx ? " og `nginx`." : ".")));
+        return under === "status" ? 4 : 5;
+    }
+    const s = SYS.tenester[namn];
+    if (under === "status") return tenesteStatus(namn, io);
+    if (under === "is-active") { io.ut((s.aktiv ? "active" : "inactive") + "\n"); return s.aktiv ? 0 : 3; }
+    if (under === "is-enabled") { io.ut((s.paa ? "enabled" : "disabled") + "\n"); return s.paa ? 0 : 1; }
+    if (!S.root) {
+        io.feil(`Failed to ${under} ${namn}.service: Interactive authentication required.\nSee system logs and 'systemctl status ${namn}.service' for details.`);
+        hint("sysctlsudo", `Alle kan sjå status, men å endre ei teneste krev root: \`sudo systemctl ${under} ${namn}\`.`);
+        return 1;
+    }
+    await vent(450);
+    if (under === "start" || under === "restart") { if (under === "restart" || !s.aktiv) s.sidan = no(); s.aktiv = true; }
+    else if (under === "reload") s.aktiv = true;
+    else if (under === "stop") { s.aktiv = false; if (namn === "ssh") hint("stoppssh", "Forsiktig! Stoppar du SSH på ein ekte server, kjem ingen seg inn på han lenger – heller ikkje du."); }
+    else if (under === "enable") { s.paa = true; io.ut(`Created symlink /etc/systemd/system/multi-user.target.wants/${namn}.service → /usr/lib/systemd/system/${namn}.service.\n`); }
+    else if (under === "disable") { s.paa = false; io.ut(`Removed "/etc/systemd/system/multi-user.target.wants/${namn}.service".\n`); }
+    if (["start", "stop", "restart"].includes(under)) hint("sysctlstille", `Ingen melding betyr at det gjekk bra. Sjekk med \`systemctl status ${namn}\`.`);
+    return 0;
+};
+K.service = (a, io) => { hint("service", "`service` er den gamle måten. På nye system skriv du `systemctl status namn` eller `sudo systemctl restart namn`."); return 1; };
+K.journalctl = (a, io) => {
+    const r = slaa("/var/log/syslog");
+    if (r.n) io.ut(linjerAv(r.n.d).slice(-10).join("\n") + "\n");
+    hint("journal", "`journalctl` viser systemloggen. Med `journalctl -u ssh` ser du berre linjene frå éi teneste.");
+    return 0;
+};
+
+/* ---------- nettverk ---------- */
+const VERTAR = { localhost: ["127.0.0.1", 0.04], "im-srv01": ["10.120.20.11", 0.05], "im-srv02": ["10.120.20.12", 0.41], "8.8.8.8": ["8.8.8.8", 11.2], "1.1.1.1": ["1.1.1.1", 9.8], "10.120.20.1": ["10.120.20.1", 0.62],
+    "vg.no": ["195.88.54.16", 12.9], "nrk.no": ["23.36.77.137", 10.4], "google.com": ["142.250.74.46", 11.6], "stord.vgs.no": ["51.120.83.10", 13.7], "vlfk.no": ["51.120.83.10", 13.7], "ubuntu.com": ["185.125.190.21", 31.8] };
+const erIp = s => /^\d{1,3}(\.\d{1,3}){3}$/.test(s);
+function slaaOppVert(m) {
+    const k = lc(m).replace(/^www\./, "");
+    if (VERTAR[k]) return { ip: VERTAR[k][0], ms: VERTAR[k][1], namn: m };
+    const v = Object.values(VERTAR).find(x => x[0] === m);
+    if (v) return { ip: v[0], ms: v[1], namn: m };
+    if (m === "127.0.0.1") return { ip: m, ms: 0.04, namn: m };
+    return null;
+}
+K.ip = (a, io) => {
+    const u = a.filter(x => !x.startsWith("-"))[0] ?? "", ip = S.vert === "im-srv02" ? "10.120.20.12" : "10.120.20.11", mac = S.vert === "im-srv02" ? "00:15:5d:14:0c:22" : "00:15:5d:14:0b:17";
+    if (/^(a|addr|address)$/.test(u)) { io.ut(`1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000\n    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00\n    inet 127.0.0.1/8 scope host lo\n       valid_lft forever preferred_lft forever\n2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP group default qlen 1000\n    link/ether ${mac} brd ff:ff:ff:ff:ff:ff\n    inet ${ip}/24 brd 10.120.20.255 scope global dynamic eth0\n       valid_lft 84211sec preferred_lft 84211sec\n    inet6 fe80::215:5dff:fe14:b17/64 scope link\n       valid_lft forever preferred_lft forever\n`); return 0; }
+    if (/^(r|route)$/.test(u)) { io.ut(`default via 10.120.20.1 dev eth0 proto dhcp src ${ip} metric 100\n10.120.20.0/24 dev eth0 proto kernel scope link src ${ip} metric 100\n`); return 0; }
+    if (/^(l|link)$/.test(u)) { io.ut(`1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN mode DEFAULT group default qlen 1000\n    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00\n2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP mode DEFAULT group default qlen 1000\n    link/ether ${mac} brd ff:ff:ff:ff:ff:ff\n`); return 0; }
+    io.feil("Usage: ip [ OPTIONS ] OBJECT { COMMAND | help }\nwhere  OBJECT := { address | link | route }");
+    hint("ipbruk", "Dei vanlegaste er `ip a` (adresser) og `ip route` (kvar pakkane blir sende – standardruta er ruteren).");
+    return u ? 1 : 255;
+};
+K.ping = async (a, io) => {
+    const d = del(a, "ciW"), maal = d.rest[0];
+    if (!maal) { io.feil("ping: usage error: Destination address required"); hint("pingbruk", "`ping` treng ei adresse, t.d. `ping -c 4 8.8.8.8`."); return 2; }
+    const n = d.v.c ? parseInt(d.v.c, 10) : 4;
+    if (!(n > 0)) { io.feil(`ping: invalid argument: '${d.v.c}'`); return 2; }
+    if (!d.v.c) hint("pingc", "Ekte `ping` i Linux held fram til du trykkjer Ctrl+C. Simulatoren stoppar etter fire pakkar. Med `-c 4` bestemmer du talet sjølv.");
+    const v = slaaOppVert(maal);
+    if (!v && !erIp(maal)) { io.feil(`ping: ${maal}: Temporary failure in name resolution`); hint("pingdns", "Namnet let seg ikkje slå opp i DNS. Sjekk skrivemåten. Verkar `ping 8.8.8.8`, men ikkje namn, er det DNS som er problemet."); return 2; }
+    const ip = v ? v.ip : maal, lokal = /^10\.120\.20\./.test(ip);
+    io.ut(`PING ${maal} (${ip}) 56(84) bytes of data.\n`);
+    let sendt = 0, fekk = 0; const tider = [];
+    try {
+        for (let i = 1; i <= n; i++) {
+            sendt++;
+            await vent(i === 1 ? 250 : 900);
+            if (v) { const ms = Math.max(0.02, v.ms * (0.9 + Math.random() * 0.25)); tider.push(ms); fekk++; io.ut(`64 bytes from ${v.namn !== ip && !erIp(maal) ? maal + " (" + ip + ")" : ip}: icmp_seq=${i} ttl=${v.ms < 1 ? 64 : 117} time=${ms.toFixed(ms < 1 ? 3 : 1)} ms\n`); }
+            else if (lokal) io.ut(`From 10.120.20.11 icmp_seq=${i} Destination Host Unreachable\n`);
+        }
+    } catch (e) { if (!(e instanceof Avbrot)) throw e; S.avbrote = false; io.ut("^C\n"); }
+    io.ut(`\n--- ${maal} ping statistics ---\n${sendt} packets transmitted, ${fekk} received, ${fekk || !lokal ? "" : "+" + sendt + " errors, "}${Math.round(100 * (sendt - fekk) / sendt)}% packet loss, time ${Math.max(0, sendt - 1) * 1001}ms\n`);
+    if (fekk) io.ut(`rtt min/avg/max/mdev = ${Math.min(...tider).toFixed(3)}/${(tider.reduce((s, x) => s + x, 0) / fekk).toFixed(3)}/${Math.max(...tider).toFixed(3)}/${(v.ms * 0.06).toFixed(3)} ms\n`);
+    else hint("pingtapt", lokal ? "`Destination Host Unreachable` betyr at ingen maskin på lokalnettet har denne adressa (eller at ho er avslått)." : "Ingen svar. Anten finst ikkje adressa, eller så slepper ein brannmur ikkje ping gjennom.");
+    return fekk ? 0 : 1;
+};
+K.curl = (a, io) => {
+    const url = a.find(x => !x.startsWith("-"));
+    if (!url) { io.feil("curl: try 'curl --help' for more information"); return 2; }
+    const vert = url.replace(/^https?:\/\//, "").replace(/[:/].*$/, "");
+    if (["localhost", "127.0.0.1", "im-srv01", "10.120.20.11"].includes(vert)) {
+        const s = SYS.tenester.nginx, n = hent("/var/www/html/index.html");
+        if (S.vert === "im-srv01" && s && s.aktiv && n) { io.ut(n.d); return 0; }
+        io.feil(`curl: (7) Failed to connect to ${vert} port 80 after 0 ms: Couldn't connect to server`);
+        hint("curl7", s ? "Ingen svarar på port 80, fordi tenesta nginx er stoppa. Start ho med `sudo systemctl start nginx`." : "Ingen svarar på port 80, fordi det ikkje køyrer nokon vevtenar her. Installer ein med `sudo apt install nginx`.");
+        return 7;
+    }
+    io.feil(`curl: (6) Could not resolve host: ${vert}`);
+    hint("curl6", "Simulatoren har ikkje ekte Internett. Du kan hente frå `localhost` når nginx er installert.");
+    return 6;
+};
+K.ssh = async (a, io) => {
+    const maal = a.find(x => !x.startsWith("-"));
+    if (!maal) { io.ut("usage: ssh [-p port] [user@]hostname\n"); return 255; }
+    if (S.vert !== "im-srv01") { hint("sshalt", "Du er alt innlogga på ein annan maskin. Logg ut med `exit` før du koplar til på nytt."); return 255; }
+    const [b, v] = maal.includes("@") ? maal.split("@") : ["elev", maal];
+    const vert = slaaOppVert(v);
+    if (!vert && !erIp(v)) { io.feil(`ssh: Could not resolve hostname ${v}: Temporary failure in name resolution`); hint("sshnamn", "Maskinnamnet finst ikkje. Den andre serveren heiter `im-srv02`."); return 255; }
+    if (!vert || vert.ip !== "10.120.20.12") {
+        if (vert && ["127.0.0.1", "10.120.20.11"].includes(vert.ip)) hint("sshsjolv", "Det er maskinen du alt sit på. Prøv `ssh elev@im-srv02`.");
+        else { await vent(900); io.feil(`ssh: connect to host ${v} port 22: ${vert ? "Connection timed out" : "No route to host"}`); hint("sshrute", "Simulatoren har berre éin server til å logge inn på: `im-srv02`."); }
+        return 255;
+    }
+    if (!SYS.kjende.includes("im-srv02")) {
+        io.ut(`The authenticity of host '${v} (10.120.20.12)' can't be established.\nED25519 key fingerprint is SHA256:q1Lm8cZ0vJw3nTtYb5RkU2eHs9XoPa7dGfN4iCyEu6A.\nThis key is not known by any other names.\n`);
+        let svar;
+        do { svar = lc((await lesLinje(svar === undefined ? "Are you sure you want to continue connecting (yes/no/[fingerprint])? " : "Please type 'yes', 'no' or the fingerprint: ")).trim()); } while (svar !== "yes" && svar !== "no");
+        if (svar === "no") { io.feil("Host key verification failed."); return 255; }
+        io.ut(`Warning: Permanently added '${v}' (ED25519) to the list of known hosts.\n`);
+        SYS.kjende.push("im-srv02");
+        hint("sshfinger", "Første gong du koplar til ein ny maskin, spør SSH om du stoler på han. Fingeravtrykket er ID-en til maskinen. Seinare åtvarar SSH deg om det plutseleg endrar seg.");
+    }
+    if (b !== "elev") { await lesLinje(`${b}@${v}'s password: `, true); await vent(700); io.feil("Permission denied, please try again."); hint("sshbrukar", `Brukaren \`${b}\` får ikkje logge inn på im-srv02. Prøv \`ssh elev@im-srv02\`.`); return 255; }
+    await lesLinje(`elev@${v}'s password: `, true);
+    await vent(500);
+    S.lokal = { fs: FS, cwd: S.cwd, forrige: S.forrige };
+    FS = fjernFs(); S.vert = "im-srv02"; S.cwd = HEIM; S.forrige = HEIM; S.vars.HOSTNAME = "im-srv02"; S.vars.PWD = HEIM;
+    io.ut("Welcome to Ubuntu 24.04.3 LTS (GNU/Linux 6.8.0-87-generic x86_64)\n\n  System load:  0.08              Processes:             112\n  Usage of /:   61.4% of 78.19GB  Users logged in:       0\n  Memory usage: 44%               IPv4 address for eth0: 10.120.20.12\n\nLast login: Fri Nov 13 14:02:51 2026 from 10.120.14.57\n");
+    hint("sshinne", "Du er no på im-srv02 – sjå på ledeteksten. Alt du skriv, skjer der. Skriv `exit` for å logge ut.");
+    return 0;
+};
+K.exit = K.logout = (a, io) => {
+    if (S.lokal) {
+        FS = S.lokal.fs; S.cwd = S.lokal.cwd; S.forrige = S.lokal.forrige; S.lokal = null; S.vert = "im-srv01"; S.vars.HOSTNAME = "im-srv01"; S.vars.PWD = S.cwd;
+        io.ut("logout\nConnection to im-srv02 closed.\n");
+        return 0;
+    }
+    hint("exit", "På ein ekte server ville `exit` logga deg ut og lukka sambandet. Her blir du verande, så du kan halde fram med kurset.");
+    return 0;
+};
+
+/* ---------- ymse ---------- */
+K.bash = K.sh = async (a, io, oppf) => {
+    if (!a.length) { hint("bash", "Du er alt i Bash. Skal du køyre eit skript, skriv du `bash skript.sh` eller `./skript.sh`."); return 0; }
+    const r = lesFiler("bash", [a[0]], io);
+    if (r.feil) return 127;
+    oppf.skript = true; oppf.namn = a[0];
+    return koyrSkript(r.ut[0].tekst, io);
+};
+K.python3 = K.python = (a, io) => {
+    if (a[0] && /teljar\.py$/.test(a[0])) { hint("teljar", "Dette skriptet tel til evig tid og ville låst terminalen. Det køyrer alt i bakgrunnen – finn det med `ps aux`."); return 0; }
+    hint("python", "Python finst på serveren, men er ikkje med i denne simulatoren. Prøv Python 101 i Sandkassa."); return 0;
+};
+K.git = (a, io) => { if (a[0] === "--version") { io.ut("git version 2.43.0\n"); return 0; } hint("git", "Git er installert! Sjølve Git lærer du i Git 101 i Sandkassa."); return 0; };
+K.nginx = (a, io) => { if (a[0] === "-v") { io.ut("nginx version: nginx/1.24.0 (Ubuntu)\n"); return 0; } hint("nginxkmd", "nginx køyrer som ei teneste. Styr han med `sudo systemctl restart nginx`, og sjå status med `systemctl status nginx`."); return 0; };
+K.cowsay = (a, io) => {
+    const t = a.join(" ") || (io.inn ?? "").trim() || "Muuu!";
+    io.ut(` ${"_".repeat(t.length + 2)}\n< ${t} >\n ${"-".repeat(t.length + 2)}\n        \\   ^__^\n         \\  (oo)\\_______\n            (__)\\       )\\/\\\n                ||----w |\n                ||     ||\n`);
+    return 0;
+};
+
+const MAN = {
+    ls: ["ls [flagg] [mappe]", "viser innhaldet i ei mappe", [["-l", "lang liste med rettar, eigar, storleik og dato"], ["-a", "vis også gøymde filer (dei som startar med punktum)"], ["-h", "storleik i K, M og G (saman med -l)"]]],
+    cd: ["cd [mappe]", "byter mappe", [["cd ..", "eitt steg opp"], ["cd", "heim til heimemappa"], ["cd -", "tilbake til førre mappe"]]],
+    pwd: ["pwd", "viser kva mappe du står i"],
+    mkdir: ["mkdir [flagg] mappe", "lagar ei ny mappe", [["-p", "lag også mappene over, om dei manglar"]]],
+    rmdir: ["rmdir mappe", "slettar ei tom mappe"],
+    touch: ["touch fil", "lagar ei tom fil (eller oppdaterer tidsstempelet)"],
+    cp: ["cp [flagg] kjelde mål", "kopierer filer og mapper", [["-r", "kopier mapper med alt innhald"]]],
+    mv: ["mv kjelde mål", "flyttar filer og mapper, eller gir dei nytt namn"],
+    rm: ["rm [flagg] fil", "slettar filer. Det finst ingen papirkorg!", [["-r", "slett mapper med alt innhald"], ["-f", "ikkje klag om fila manglar"]]],
+    cat: ["cat fil", "skriv ut innhaldet i ei fil", [["-n", "vis linjenummer"]]],
+    head: ["head [-n tal] fil", "viser dei første linjene i ei fil (10 om du ikkje seier noko)"],
+    tail: ["tail [-n tal] fil", "viser dei siste linjene i ei fil (10 om du ikkje seier noko)"],
+    less: ["less fil", "viser ei fil side for side. Avslutt med q"],
+    wc: ["wc [flagg] fil", "tel linjer, ord og byte", [["-l", "berre linjer"], ["-w", "berre ord"]]],
+    grep: ["grep [flagg] mønster [fil]", "finn linjer som inneheld ein tekst", [["-i", "skil ikkje mellom store og små bokstavar"], ["-n", "vis linjenummer"], ["-v", "vis linjene som IKKJE passar"], ["-c", "tel treffa"], ["-r", "søk i alle filer under ei mappe"]]],
+    sort: ["sort [flagg] fil", "sorterer linjene", [["-r", "omvend rekkjefølgje"], ["-n", "sorter som tal"]]],
+    uniq: ["uniq [flagg]", "fjernar like linjer som står etter kvarandre", [["-c", "tel kor mange gonger kvar linje står"]]],
+    cut: ["cut -d skilje -f felt fil", "plukkar ut kolonnar frå kvar linje"],
+    find: ["find [sti] -name \"mønster\"", "leitar etter filer og mapper", [["-type f", "berre filer"], ["-type d", "berre mapper"]]],
+    echo: ["echo tekst", "skriv ut tekst"],
+    nano: ["nano fil", "enkel teksteditor. Ctrl+O lagrar, Ctrl+X avsluttar"],
+    chmod: ["chmod rettar fil", "endrar rettane til ei fil", [["+x", "gjer fila køyrbar"], ["644", "rw-r--r-- (vanleg fil)"], ["755", "rwxr-xr-x (skript, mapper)"], ["600", "rw------- (privat)"]]],
+    chown: ["chown brukar fil", "byter eigar på ei fil (krev sudo)"],
+    sudo: ["sudo kommando", "køyrer éin kommando som root (administrator)"],
+    apt: ["apt underkommando [pakke]", "installerer og oppdaterer program", [["update", "hent fersk pakkeliste"], ["install", "installer ein pakke"], ["remove", "fjern ein pakke"], ["list --installed", "vis installerte pakkar"]]],
+    ps: ["ps aux", "viser prosessane som køyrer"],
+    top: ["top", "viser prosessane som brukar mest ressursar. Avslutt med q"],
+    kill: ["kill PID", "stoppar ein prosess", [["-9", "tving prosessen til å stoppe med ein gong"]]],
+    systemctl: ["systemctl underkommando teneste", "styrer tenester", [["status", "køyrer tenesta?"], ["start / stop / restart", "start, stopp eller start på nytt (krev sudo)"], ["enable / disable", "start automatisk ved oppstart eller ikkje (krev sudo)"]]],
+    df: ["df -h", "viser ledig plass på diskane"],
+    du: ["du -sh mappe", "viser kor mykje plass ei mappe brukar"],
+    free: ["free -h", "viser ledig minne"],
+    ip: ["ip a | ip route", "viser IP-adresser og ruter"],
+    ping: ["ping [-c tal] adresse", "testar sambandet til ein annan maskin", [["-c 4", "send fire pakkar og stopp"]]],
+    ssh: ["ssh brukar@maskin", "loggar inn på ein annan maskin over ei kryptert kopling"],
+    curl: ["curl adresse", "hentar ei nettside og skriv ho ut som tekst"],
+    whoami: ["whoami", "viser kva brukar du er logga inn som"],
+    hostname: ["hostname", "viser namnet på maskinen"],
+    uname: ["uname -a", "viser kva system og kjerne som køyrer"],
+    history: ["history", "viser kommandoane du har skrive"],
+    man: ["man kommando", "viser manualen til ein kommando"],
+    clear: ["clear", "tømmer skjermen (Ctrl+L gjer det same)"],
+    tree: ["tree [mappe]", "viser mapper og filer som eit tre"],
+};
+function visMan(namn, io) {
+    const m = MAN[namn];
+    io.ut(`${namn.toUpperCase()}(1)\n\nNAMN\n       ${namn} – ${m[1]}\n\nBRUK\n       ${m[0]}\n`);
+    if (m[2]) io.ut("\nVANLEGE VAL\n" + m[2].map(x => `       ${x[0].padEnd(Math.max(...m[2].map(y => y[0].length)) + 3)}${x[1]}`).join("\n") + "\n");
+}
+K.man = K.help = (a, io) => {
+    if (!a.length) {
+        io.ut("Kommandoar i simulatoren:\n\n");
+        const ks = Object.keys(MAN).sort(), br = Math.max(...ks.map(k => k.length)) + 2;
+        for (const k of ks) io.ut(`  ${k.padEnd(br)}${MAN[k][1]}\n`);
+        io.ut("\nSkriv man og namnet på ein kommando for å lese meir, t.d. man ls\n");
+        return 0;
+    }
+    if (!MAN[a[0]]) { io.feil(`No manual entry for ${a[0]}`); hint("manukjend", "Simulatoren har ikkje manual for den kommandoen. Skriv `man` åleine for å sjå lista."); return 16; }
+    visMan(a[0], io);
+    if (io.tty) hint("man", "Ekte `man` viser heile den engelske manualen, side for side. Avslutt med `q`. Her får du ei kort nynorsk utgåve.");
+    return 0;
+};
+
+/* =====================================================================
+   Del 5: nano
+   ===================================================================== */
+const NA = { sti: null, vis: "", orig: "", res: null, oppf: null, spor: false };
+const nanoEl = document.getElementById("nano"), nanoTekst = document.getElementById("nanoTekst");
+function nanoMeld(t) { document.getElementById("nanoMeld").innerHTML = t ? `<span>[ ${esc(t)} ]</span>` : ""; }
+function nanoSpor(paa) {
+    NA.spor = paa;
+    document.getElementById("nanoJa").hidden = !paa; document.getElementById("nanoNei").hidden = !paa;
+    document.getElementById("nanoLagre").hidden = paa; document.getElementById("nanoUt").hidden = paa;
+    if (paa) document.getElementById("nanoMeld").innerHTML = "<span>Save modified buffer?  J = ja, N = nei, Esc = avbryt</span>";
+}
+function nanoEndra() { document.getElementById("nanoEndra").textContent = nanoTekst.value !== NA.orig ? "Modified" : ""; }
+function nanoLagre() {
+    let t = nanoTekst.value;
+    if (t && !t.endsWith("\n")) t += "\n";
+    const e = skrivFil(NA.sti, t);
+    if (e) { nanoMeld(`Error writing ${NA.vis}: ${FEIL[e]}`); return false; }
+    NA.orig = nanoTekst.value; NA.oppf.lagra = true;
+    nanoMeld(`Wrote ${linjerAv(t).length} line${linjerAv(t).length === 1 ? "" : "s"}`);
+    nanoEndra();
+    return true;
+}
+function nanoLukk() {
+    nanoSpor(false);
+    nanoEl.classList.remove("vis");
+    const r = NA.res; NA.res = null;
+    fokuserTerm();
+    if (r) r(0);
+}
+function nanoUt() { if (nanoTekst.value !== NA.orig) nanoSpor(true); else nanoLukk(); }
+document.getElementById("nanoLagre").onclick = () => { nanoLagre(); nanoTekst.focus(); };
+document.getElementById("nanoUt").onclick = nanoUt;
+document.getElementById("nanoJa").onclick = () => { nanoSpor(false); if (nanoLagre()) nanoLukk(); };
+document.getElementById("nanoNei").onclick = nanoLukk;
+nanoTekst.addEventListener("input", () => { if (!NA.spor) { nanoMeld(""); nanoEndra(); } });
+nanoTekst.addEventListener("keydown", e => {
+    const k = lc(e.key);
+    if (NA.spor) {
+        e.preventDefault();
+        if (k === "j" || k === "y") { nanoSpor(false); if (nanoLagre()) nanoLukk(); }
+        else if (k === "n") nanoLukk();
+        else if (k === "escape" || (e.ctrlKey && k === "c")) { nanoSpor(false); nanoMeld("Cancelled"); }
+        return;
+    }
+    if (e.ctrlKey && !e.altKey && (k === "o" || k === "s")) { e.preventDefault(); nanoLagre(); }
+    else if (e.ctrlKey && !e.altKey && k === "x") { e.preventDefault(); nanoUt(); }
+    else if (e.key === "Tab") { e.preventDefault(); nanoTekst.setRangeText("    ", nanoTekst.selectionStart, nanoTekst.selectionEnd, "end"); nanoEndra(); }
+});
+K.nano = (a, io, oppf) => {
+    const fn = a.find(x => !x.startsWith("-"));
+    if (!fn) { hint("nanonamn", "Gi fila eit namn når du startar nano, t.d. `nano hugseliste.txt`."); return 1; }
+    const abs = norm(fn), r = slaa(abs);
+    if (r.n && r.n.t === "d") { io.feil(`nano: ${fn}: Is a directory`); return 1; }
+    if (r.e && r.e !== "ENOENT") { io.feil(`nano: ${fn}: ${FEIL[r.e]}`); feilHint(r.e); return 1; }
+    if (r.n && !kan(r.n, 4)) { io.feil(`nano: ${fn}: Permission denied`); feilHint("EACCES"); return 1; }
+    if (r.n && r.n.s) { io.feil(`nano: ${fn}: binary file`); return 1; }
+    NA.sti = abs; NA.vis = fn; NA.oppf = oppf; NA.orig = r.n ? r.n.d.replace(/\n$/, "") : "";
+    nanoTekst.value = NA.orig;
+    document.getElementById("nanoNamn").textContent = fn;
+    nanoSpor(false); nanoEndra();
+    nanoMeld(r.n ? (kan(r.n, 2) ? `Read ${linjerAv(r.n.d).length} lines` : `File '${fn}' is unwritable`) : "New File");
+    nanoEl.classList.add("vis");
+    nanoTekst.focus();
+    return new Promise(res => { NA.res = res; });
+};
+
+/* =====================================================================
+   Del 6: køyring frå ledeteksten og oppstart
+   ===================================================================== */
+async function koyrTopp(linje) {
+    T.modus = "opptatt"; S.avbrote = false; S.hintGitt = new Set(); teikn();
+    try { await koyrLinje(linje); }
+    catch (e) {
+        if (e instanceof Avbrot) { flushLinje(); skriv("^C\n"); S.sisteKode = 130; }
+        else { flushLinje(); skriv("bash: intern feil i simulatoren: " + e.message + "\n"); console.error(e); }
+    }
+    flushLinje();
+    S.avbrote = false;
+    while (!hent(S.cwd) && S.cwd !== "/") S.cwd = forelder(S.cwd).sti;
+    lagreFs(); lagreSys();
+    sjekkOppgaver({ logg: S.logg, fs: S.lokal ? S.lokal.fs : FS, S, sys: SYS });
+    if (S.logg.length > 400) S.logg = S.logg.slice(-300);
+    T.modus = "prompt";
+    oppdaterTittel(); teikn(); nesteIKo();
+}
+function startSimulator() {
+    FS = lesFs();
+    SYS = lager.hent("sys", null);
+    if (!SYS || !Array.isArray(SYS.pakkar) || !SYS.tenester) SYS = JSON.parse(JSON.stringify(SYS_STD));
+    if (!Array.isArray(SYS.kjende)) SYS.kjende = [];
+    if (SYS.pakkar.includes("nginx") && !SYS.tenester.nginx) SYS.tenester.nginx = { aktiv: true, paa: true };
+    historikk = lager.hent("historikk", []);
+    if (!Array.isArray(historikk)) historikk = [];
+    skriv("Welcome to Ubuntu 24.04.3 LTS (GNU/Linux 6.8.0-87-generic x86_64)\n\nLast login: Mon Nov 16 08:03:27 2026 from 10.120.14.57\n");
+    skrivHjelp("Klikk her og skriv ein kommando, til dømes `whoami`, og trykk Enter. Følg leksjonane steg for steg.");
+    T.modus = "prompt";
+    oppdaterTittel(); teikn();
+}
+
+/* ================== OPPSTART ================== */
+visLeksjon(aktivIndeks, false);
+startSimulator();
+</script>
+</body>
+</html>
