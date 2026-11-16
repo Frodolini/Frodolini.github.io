@@ -244,6 +244,7 @@ ul.tett { margin: 6px 0 4px; padding-left: 20px; } ul.tett li { margin-bottom: 4
     <input type="text" id="tokInn" value="Elevane på Stord lærer om kunstig intelligens og datamaskiner." autocomplete="off" maxlength="160">
     <div class="tokens" id="tokUt"></div>
     <p class="small" id="tokTal" style="margin-top:8px"></p>
+    <div class="note"><b>Kva er talet under?</b>Modellen har ei fast liste over alle token han kjenner. Talet er nummeret tokenet har i lista. Same token får same nummer kvar gong: «og» er alltid nummer <span id="ogNr"></span>. Det er desse nummera modellen reknar med, ikkje bokstavane.</div>
     <div class="note"><b>Legg merke til</b>Vanlege ord blir eitt token. Lange og sjeldne ord blir delte i fleire bitar. Prøv namnet ditt, eller eit langt ord som «fylkeskommunen».</div>
     <p class="small">Oppdelinga her er forenkla. Ekte modellar har ei fast liste med rundt 100 000 token.</p>
 </section>
@@ -521,7 +522,7 @@ function visToken() {
         for (const [b, id, del] of bitar) { n++; html += `<span class="tok ${i % 2 ? "b" : "a"}${del ? " del" : ""}"><b>${esc(b)}</b><small>${id}</small></span>`; }
     });
     $("tokUt").innerHTML = html;
-    $("tokTal").textContent = n ? `${tekst.length} teikn blir til ${n} token. Tala under er det modellen får sjå. Stipla kant viser ord som vart delte.` : "Skriv noko i feltet.";
+    $("tokTal").textContent = n ? `${tekst.length} teikn blir til ${n} token. Stipla kant viser ord som vart delte.` : "Skriv noko i feltet.";
 }
 $("tokInn").oninput = visToken;
 
@@ -565,6 +566,7 @@ $("quiz").onclick = e => {
     if (qSvar === QUIZ.length) $("quizRes").textContent = `Du fekk ${qRett} av ${QUIZ.length} rette.` + (qRett === QUIZ.length ? " Du veit korleis ein språkmodell verkar!" : " Les stega ein gong til og prøv på nytt.");
 };
 
+$("ogNr").textContent = VOKAB.get("og");
 $("talSetn").textContent = $("talSetn2").textContent = KORPUS.length;
 $("korpus").textContent = KORPUS.join(" ");
 visToken();
