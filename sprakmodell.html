@@ -236,6 +236,7 @@ ul.tett { margin: 6px 0 4px; padding-left: 20px; } ul.tett li { margin-bottom: 4
 .prikkar { display: flex; gap: 5px; }
 .prikkar i { width: 8px; height: 8px; border-radius: 50%; background: var(--border); }
 .prikkar i.on { background: var(--accent); }
+#videoRamme iframe { display: block; width: 100%; aspect-ratio: 16 / 9; border: 0; border-radius: 10px; margin-top: 12px; background: #000; }
 </style>
 </head>
 <body>
@@ -313,6 +314,14 @@ ul.tett { margin: 6px 0 4px; padding-left: 20px; } ul.tett li { margin-bottom: 4
         <button class="btn primary" id="trinnNeste">Neste →</button>
     </div>
     <div class="note" style="margin-top:14px"><b>Trening og inferens</b>Å lage modellen heiter <b>trening</b>. Det tek veker eller månader på tusenvis av GPU-ar, og blir gjort éin gong. Å bruke den ferdige modellen heiter <b>inferens</b>. Det er det som skjer kvar gong du sender ein prompt.</div>
+    <h3>Mythbusters viser skilnaden på CPU og GPU</h3>
+    <p>I 2008 bygde Adam og Jamie frå Mythbusters to paintball-robotar for NVIDIA. Den første skyt éi og éi kule og brukar lang tid på eit smilefjes. Slik jobbar ein CPU. Den andre har 1100 løp som skyt på likt, og Mona Lisa står ferdig på 80 millisekund. Slik jobbar ein GPU.</p>
+    <div class="row">
+        <button class="btn primary" id="spelAv">▶ Spel av videoen her</button>
+        <a href="https://www.youtube.com/watch?v=8_ZTvG1WQxM" target="_blank" rel="noopener">Opne på YouTube</a>
+    </div>
+    <div id="videoRamme"></div>
+    <p class="small" style="margin-top:6px">3 min 50 s, engelsk tale. Videoen blir først henta frå YouTube når du trykkjer.</p>
     <details><summary>Kvifor GPU og ikkje vanleg prosessor?</summary>
         <p>Ein GPU (grafikkprosessor) vart laga for å teikne spelgrafikk: tusenvis av enkle reknestykke på likt. Ein språkmodell treng akkurat det same, berre mykje meir av det. Ein vanleg prosessor (CPU) gjer få ting om gongen og ville brukt minutt på eit svar som ein GPU lagar på sekund.</p>
         <p>Modellen må òg få plass i minnet på GPU-en. Difor har dei store datasentera GPU-ar med svært mykje minne, og difor brukar KI så mykje straum.</p>
@@ -342,7 +351,7 @@ ul.tett { margin: 6px 0 4px; padding-left: 20px; } ul.tett li { margin-bottom: 4
     <p id="quizRes" style="font-weight:700; margin-top:12px"></p>
 </section>
 
-<footer>Frode · IM-Stord · Alt skjer i nettlesaren din. Sida brukar ingen KI-teneste og sender ingenting nokon stad.</footer>
+<footer>Frode · IM-Stord · Alt skjer i nettlesaren din. Sida brukar ingen KI-teneste og sender ingenting nokon stad. Unntaket er YouTube-videoen i steg 4, som først blir henta når du trykkjer på han.</footer>
 </main>
 
 <script>
@@ -608,6 +617,12 @@ function visTrinn() {
 $("trinnForrige").onclick = () => { if (trinn > 0) { trinn--; visTrinn(); } };
 $("trinnNeste").onclick = () => { trinn = trinn === TRINN.length - 1 ? 0 : trinn + 1; visTrinn(); };
 visTrinn();
+
+/* Videoen blir ikkje henta frå YouTube før eleven trykkjer */
+$("spelAv").onclick = () => {
+    $("videoRamme").innerHTML = '<iframe src="https://www.youtube-nocookie.com/embed/8_ZTvG1WQxM?autoplay=1&rel=0" title="Mythbusters: GPU mot CPU" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>';
+    $("spelAv").style.display = "none";
+};
 
 /* ---------- Sjekk deg sjølv ---------- */
 const QUIZ = [
