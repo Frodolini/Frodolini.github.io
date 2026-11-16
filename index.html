@@ -131,7 +131,8 @@
         li > a::after { content: ""; position: absolute; inset: 0; border-radius: 8px; }
         li:hover > a { text-decoration: underline; text-underline-offset: 3px; }
         .forklaring { display: block; color: var(--dempa); font-size: 14.5px; margin-top: 2px; }
-        .utgaver { display: inline-flex; gap: 5px; margin-left: 8px; vertical-align: 2px; }
+        .utgaver { display: inline-flex; align-items: center; gap: 5px; margin-left: 8px; vertical-align: 2px; position: relative; z-index: 1; }
+        .utgaver .eldre { font-size: 13px; color: var(--dempa); }
         .utgaver a {
             font-size: 13px; font-weight: 700; text-decoration: none;
             color: var(--lenke);
@@ -315,6 +316,8 @@
                 <span class="forklaring">Gjer fargebilete om til gråtonar, terskel eller dithering – sjå utrekninga per piksel</span></li>
             <li><a href="enkelbod.html">Enkelbod</a>
                 <span class="forklaring">Teikn utebod eller utedo, få PDF og materialliste</span></li>
+            <li><a href="arkiv.html">Stord i arkivet</a>
+                <span class="forklaring">Bilete, avissider, bøker og radioklipp frå Nasjonalbiblioteket om hendingar på Stord og i Sunnhordland</span></li>
         </ul>
     </section>
 
@@ -350,29 +353,28 @@
         <ul>
             <li><a href="https://claude.ai/public/artifacts/727a28f1-d76a-4e1f-bcc2-cfef1f28949e">MineSweeper Stord</a>
                 <span class="forklaring">Oppdrag frå 1940 – sveip miner rundt Stord</span></li>
-            <li><a href="aksjespel.html">Aksjespelet</a>
-                <span class="forklaring">Klassen investerer liksompengar på Oslo Børs og i New York, med felles toppliste</span></li>
-            <li><a href="aksjespel_v2.html">Aksjespelet V2</a><span class="merke">Ny</span>
-                <span class="forklaring">Fleire klassar med klassekamp, og handel berre i børsen si opningstid</span></li>
+            <li><a href="aksjespel_v2.html">Aksjespelet</a>
+                <span class="utgaver"><span class="eldre">Eldre:</span>
+                    <a href="aksjespel.html" title="Første utgåve: éin klasse, handel heile døgnet">1</a>
+                </span>
+                <span class="forklaring">Klassar investerer liksompengar på Oslo Børs og i New York, med toppliste, klassekamp og handel i børsen si opningstid</span></li>
             <li><a href="snake3d.html">IM-Stord 3D Snake</a>
                 <span class="forklaring">Slangen kryp gjennom fem kjellarrom fram til alle edderkoppars mor</span></li>
             <li><a href="fagdactle.html">FAGDACTLE</a>
                 <span class="forklaring">Gjett den sladda IT-artikkelen frå norsk Wikipedia</span></li>
-            <li><span class="tittel">Plinko</span>
-                <span class="utgaver">
+            <li><a href="plimko3.html">Plinko</a>
+                <span class="utgaver"><span class="eldre">Eldre:</span>
                     <a href="plimko.html" title="Klassisk, vel innsats sjølv">1</a>
                     <a href="plimko2.html" title="Kor lenge held pengane?">2</a>
-                    <a href="plimko3.html" title="Pass deg for tjuven!">3</a>
                 </span>
-                <span class="forklaring">1: klassisk · 2: kor lenge held pengane? · 3: pass deg for tjuven! (pausekonk for 2ITKA)</span></li>
-            <li><span class="tittel">Piano</span>
-                <span class="utgaver">
-                    <a href="piano.html" title="Spel med mus, fingrar eller tastatur">1</a>
+                <span class="forklaring">Pass deg for tjuven! Pausekonk for 2ITKA</span></li>
+            <li><a href="piano4.html">Piano</a>
+                <span class="utgaver"><span class="eldre">Eldre:</span>
+                    <a href="piano.html" title="Spel fritt med mus, fingrar eller tastatur">1</a>
                     <a href="piano2.html" title="Spel inn, lagre og del låtar">2</a>
                     <a href="piano3.html" title="Fallande notar">3</a>
-                    <a href="piano4.html" title="Fallande notar med toppliste">4</a>
                 </span>
-                <span class="forklaring">1: spel fritt · 2: spel inn og del låtar · 3: fallande notar · 4: fallande notar med felles toppliste for klassen</span></li>
+                <span class="forklaring">Fallande notar med felles toppliste for klassen</span></li>
             <li><a href="https://learningcontent.cisco.com/games/binary/index.html">Cisco Binary Game</a>
                 <span class="forklaring">Øv på å rekne mellom binært og desimalt (ekstern, Cisco)</span></li>
         </ul>

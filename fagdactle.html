@@ -87,6 +87,8 @@ header.top {
     background: var(--panel);
     border-bottom: 1px solid var(--border);
 }
+.heim { color: var(--muted); font-size: 14px; font-weight: 600; text-decoration: none; white-space: nowrap; }
+.heim:hover { text-decoration: underline; }
 .brand { display: flex; align-items: baseline; gap: 8px; white-space: nowrap; }
 .brand-small { color: var(--muted); font-weight: 600; font-size: 14px; }
 .logo { font-weight: 700; font-size: 22px; letter-spacing: 1px; }
@@ -234,6 +236,7 @@ canvas.confetti { position: fixed; inset: 0; pointer-events: none; z-index: 1000
 </head>
 <body>
 <header class="top">
+    <a class="heim" href="index.html">← Sandkassa</a>
     <div class="brand"><span class="brand-small">IM-Stord sin</span><span class="logo">FAG<span class="logo-r">D</span>ACTLE</span></div>
     <nav>
         <button id="btnNew" type="button">Ny artikkel</button>
