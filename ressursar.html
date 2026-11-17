@@ -25,6 +25,7 @@
     --sol: #ffd54a;
     --sol-tekst: #4a3800;
     --treff: #fff0a8;
+    --raud: #b3261e;
     --overskrift: "Bricolage Grotesque", "Trebuchet MS", "Segoe UI", sans-serif;
     --tekst: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
 }
@@ -134,6 +135,32 @@ li:hover > a { text-decoration: underline; text-underline-offset: 3px; }
 .vett .merke { margin-left: 0; vertical-align: 1px; }
 mark { background: var(--treff); color: inherit; border-radius: 3px; }
 
+/* Stemmer: tommel opp/ned under kvar ressurs. Ligg over den heildekkjande lenkja (z-index). */
+.stemmer { display: flex; gap: 6px; margin-top: 8px; position: relative; z-index: 1; width: max-content; }
+.stemmer button {
+    display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+    min-width: 44px; height: 32px; padding: 0 11px;
+    font: 600 13px var(--tekst); font-variant-numeric: tabular-nums;
+    color: var(--dempa); background: transparent;
+    border: 1.5px solid var(--linje); border-radius: 999px;
+    cursor: pointer;
+}
+.stemmer svg { width: 15px; height: 15px; fill: currentColor; flex: none; }
+.stemmer .ned svg { transform: rotate(180deg); }
+.stemmer .tal:empty { display: none; }
+.stemmer button:hover:not(:disabled) { color: var(--lenke); border-color: currentColor; }
+.stemmer .opp[aria-pressed="true"] { background: var(--gron); border-color: var(--gron); color: #fff; }
+.stemmer .ned[aria-pressed="true"] { background: var(--raud); border-color: var(--raud); color: #fff; }
+.stemmer button:disabled { opacity: .55; cursor: default; }
+.utan-stemmer .stemmer, .utan-stemmer .om-stemmer { display: none; }
+#melding {
+    position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%);
+    max-width: calc(100vw - 32px);
+    background: var(--blekk); color: var(--bakgrunn);
+    padding: 10px 16px; border-radius: 10px; font-size: 14px; z-index: 5;
+}
+#melding:empty { display: none; }
+
 /* Reddit-vett: eit lite kort med reglar før lista */
 .vett {
     margin: 22px 0 0;
@@ -196,6 +223,7 @@ footer .innhald { display: flex; flex-wrap: wrap; gap: 6px 24px; justify-content
             <li>Reddit er delt i <strong>subreddit</strong> – eitt forum per tema. Du kan lese utan konto. Søk før du spør, og les reglane i sidefeltet.</li>
             <li>Del aldri passord, namn, IP-adresser eller andre opplysningar frå skulen eller lærebedrifta.</li>
             <li>Råd frå framande er ikkje fasit. Forstå kva ein kommando gjer før du køyrer han, og test i labben først.</li>
+            <li class="om-stemmer">Gi tommel opp til det du har hatt nytte av, og tommel ned til det som ikkje var noko. Då ser dei andre kva som er verdt å prøve.</li>
         </ol>
     </div>
 
@@ -518,6 +546,7 @@ footer .innhald { display: flex; flex-wrap: wrap; gap: 6px 24px; justify-content
         </ul>
     </section>
 
+    <p id="melding" role="status" aria-live="polite"></p>
     <p id="ingen">Fann ingenting som passa søket. Prøv eit kortare ord, eller <button type="button" id="nullstill">vis alt</button>.</p>
 </main>
 
@@ -534,7 +563,9 @@ footer .innhald { display: flex; flex-wrap: wrap; gap: 6px 24px; justify-content
     const ingen = document.getElementById('ingen');
     const vett = document.getElementById('vett');
     const seksjonar = [...document.querySelectorAll('main section')];
-    const totalt = document.querySelectorAll('main section li').length;
+    const alleLi = [...document.querySelectorAll('main section li')];
+    const totalt = alleLi.length;
+    alleLi.forEach(li => li.dataset.sok = li.textContent.toLowerCase());
 
     // Tal på ressursar per fag, vist i menyen
     const menyTal = {};
@@ -567,7 +598,7 @@ footer .innhald { display: flex; flex-wrap: wrap; gap: 6px 24px; justify-content
             const heileSeksjonen = seksjon.querySelector('h2').textContent.toLowerCase().includes(ord);
             let synlege = 0;
             seksjon.querySelectorAll('li').forEach(li => {
-                const passar = !ord || heileSeksjonen || li.textContent.toLowerCase().includes(ord);
+                const passar = !ord || heileSeksjonen || li.dataset.sok.includes(ord);
                 li.classList.toggle('skjult', !passar);
                 if (passar) synlege++;
             });
@@ -594,6 +625,134 @@ footer .innhald { display: flex; flex-wrap: wrap; gap: 6px 24px; justify-content
         else if (e.key === 'Escape' && document.activeElement === sok && sok.value) { sok.value = ''; filtrer(); }
     });
     filtrer();
+
+    /* ---------- Stemmer (tommel opp/ned) ----------
+       Stemmene ligg i Supabase (tabellen ressurs_stemmer). Nøkkelen under er offentleg;
+       sida kan berre kalle to funksjonar: ressurs_tal() og stem_ressurs().
+       Kvar nettlesar får ein tilfeldig ID i localStorage – éi stemme per ressurs per nettlesar. */
+    const SUPABASE_URL = "https://jweqcrfxcfwknthwafiy.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_AVk07xriWcOERP6DBPpoQw_3NCktPNP";
+    const LAGER = 'ressursar-stemmer';
+    const TOMMEL = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"/></svg>';
+    const melding = document.getElementById('melding');
+
+    function nyId() {
+        if (crypto.randomUUID) return crypto.randomUUID();
+        const b = crypto.getRandomValues(new Uint8Array(16));
+        b[6] = b[6] & 0x0f | 0x40; b[8] = b[8] & 0x3f | 0x80;
+        const h = [...b].map(x => x.toString(16).padStart(2, '0')).join('');
+        return h.slice(0, 8) + '-' + h.slice(8, 12) + '-' + h.slice(12, 16) + '-' + h.slice(16, 20) + '-' + h.slice(20);
+    }
+    let minne = { klient: nyId(), mine: {} };
+    try {
+        const lagra = JSON.parse(localStorage.getItem(LAGER));
+        if (lagra && lagra.klient) minne = { klient: lagra.klient, mine: lagra.mine || {} };
+    } catch (e) { /* utan lagring gjeld stemmene berre til sida blir lasta på nytt */ }
+    function lagre() { try { localStorage.setItem(LAGER, JSON.stringify(minne)); } catch (e) {} }
+
+    async function rpc(namn, kropp) {
+        const avbryt = new AbortController();
+        const tid = setTimeout(() => avbryt.abort(), 8000);
+        try {
+            const svar = await fetch(SUPABASE_URL + '/rest/v1/rpc/' + namn, {
+                method: 'POST',
+                headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json' },
+                body: JSON.stringify(kropp || {}),
+                signal: avbryt.signal
+            });
+            if (!svar.ok) throw new Error('HTTP ' + svar.status);
+            const tekst = await svar.text();
+            return tekst ? JSON.parse(tekst) : null;
+        } finally { clearTimeout(tid); }
+    }
+
+    // Nøkkelen til ein ressurs er adressa utan https://, www. og skråstrek til slutt
+    function nokkel(href) {
+        return href.replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/+$/, '').toLowerCase();
+    }
+
+    const tal = {};      // nøkkel -> { opp, ned }
+    const knappar = {};  // nøkkel -> { opp, ned } (button-element)
+
+    function teikn(n) {
+        const t = tal[n] || { opp: 0, ned: 0 };
+        const mi = minne.mine[n] || 0;
+        const k = knappar[n];
+        k.opp.querySelector('.tal').textContent = t.opp || '';
+        k.ned.querySelector('.tal').textContent = t.ned || '';
+        k.opp.setAttribute('aria-pressed', mi === 1);
+        k.ned.setAttribute('aria-pressed', mi === -1);
+    }
+
+    function flytt(n, fra, til) {
+        const t = tal[n] || (tal[n] = { opp: 0, ned: 0 });
+        if (fra === 1) t.opp = Math.max(0, t.opp - 1);
+        if (fra === -1) t.ned = Math.max(0, t.ned - 1);
+        if (til === 1) t.opp++;
+        if (til === -1) t.ned++;
+        if (til) minne.mine[n] = til; else delete minne.mine[n];
+        teikn(n);
+    }
+
+    let meldingTid;
+    function sei(tekst) {
+        melding.textContent = tekst;
+        clearTimeout(meldingTid);
+        meldingTid = setTimeout(() => melding.textContent = '', 5000);
+    }
+
+    async function stem(n, verdi) {
+        const k = knappar[n];
+        const gammal = minne.mine[n] || 0;
+        const ny = gammal === verdi ? 0 : verdi;   // trykk på same tommel ein gong til = angre
+        k.opp.disabled = k.ned.disabled = true;
+        flytt(n, gammal, ny);
+        try {
+            await rpc('stem_ressurs', { p_ressurs: n, p_klient: minne.klient, p_stemme: ny });
+            lagre();
+        } catch (e) {
+            flytt(n, ny, gammal);
+            sei('Fekk ikkje lagra stemma. Prøv ein gong til.');
+        } finally {
+            k.opp.disabled = k.ned.disabled = false;
+        }
+    }
+
+    function lagKnapp(klasse, etikett, n, verdi) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = klasse;
+        b.disabled = true;
+        b.setAttribute('aria-pressed', 'false');
+        b.setAttribute('aria-label', etikett);
+        b.title = etikett;
+        b.innerHTML = TOMMEL + '<span class="tal"></span>';
+        b.addEventListener('click', () => stem(n, verdi));
+        return b;
+    }
+
+    alleLi.forEach(li => {
+        const lenke = li.querySelector('a');
+        const n = nokkel(lenke.getAttribute('href'));
+        const gruppe = document.createElement('span');
+        gruppe.className = 'stemmer';
+        gruppe.setAttribute('role', 'group');
+        gruppe.setAttribute('aria-label', 'Var ' + lenke.dataset.tekst + ' nyttig?');
+        knappar[n] = { opp: lagKnapp('opp', 'Nyttig', n, 1), ned: lagKnapp('ned', 'Ikkje nyttig', n, -1) };
+        gruppe.append(knappar[n].opp, knappar[n].ned);
+        li.append(gruppe);
+    });
+
+    rpc('ressurs_tal').then(rader => {
+        (rader || []).forEach(r => tal[r.ressurs] = { opp: Number(r.opp), ned: Number(r.ned) });
+        Object.keys(knappar).forEach(n => {
+            teikn(n);
+            knappar[n].opp.disabled = knappar[n].ned.disabled = false;
+        });
+    }).catch(() => {
+        // Får vi ikkje kontakt med databasen, skjuler vi stemmeknappane. Resten av sida verkar som før.
+        document.body.classList.add('utan-stemmer');
+    });
 </script>
 </body>
 </html>
