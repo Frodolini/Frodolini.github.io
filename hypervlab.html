@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="nn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hyper-V-lab rekkjefølgjedrill</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Layout: grøn tittellinje øvst, éi smal kolonne: innstillingar, framdrift, val, tilbakemelding, logg. */
+:root{
+  --green:#1e7a3c; --green-ink:#ffffff;
+  --bg:#f3f6f3; --surface:#ffffff; --ink:#17211a; --muted:#5b6a5f; --line:#d3dcd5;
+  --ok:#1e7a3c; --ok-bg:#e3f3e7; --bad:#b3261e; --bad-bg:#fbe9e7;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --green:#1c6b36; --green-ink:#f2fbf4;
+    --bg:#111612; --surface:#1a211c; --ink:#e7efe9; --muted:#9aaba0; --line:#2f3a32;
+    --ok:#6fd08a; --ok-bg:#16301d; --bad:#ff8a80; --bad-bg:#3a1a18;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --green:#1c6b36; --green-ink:#f2fbf4;
+  --bg:#111612; --surface:#1a211c; --ink:#e7efe9; --muted:#9aaba0; --line:#2f3a32;
+  --ok:#6fd08a; --ok-bg:#16301d; --bad:#ff8a80; --bad-bg:#3a1a18;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.45}
+.bar{background:var(--green);color:var(--green-ink);position:sticky;top:0;z-index:5}
+.bar-in{max-width:620px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.bar h1{font-size:17px;font-weight:600;margin:0;flex:1 1 auto;text-wrap:balance}
+.heim{color:var(--green-ink);font-size:14px;text-decoration:none;opacity:.9;white-space:nowrap}
+.heim:hover{text-decoration:underline}
+.heim:focus-visible{outline:2px solid var(--green-ink);outline-offset:2px}
+.stat{font-family:var(--mono);font-size:15px;font-variant-numeric:tabular-nums;white-space:nowrap}
+main{max-width:620px;margin:0 auto;padding:16px;display:flex;flex-direction:column;gap:16px}
+.setup{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}
+.field{display:flex;flex-direction:column;gap:4px;flex:1 1 150px}
+.field label,.lbl{font-size:13px;color:var(--muted);font-weight:500}
+input[type=text]{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:9px 10px;width:100%}
+.seg{display:flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--surface)}
+.seg button{flex:1;font:inherit;font-weight:500;color:var(--muted);background:none;border:0;padding:9px 12px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--green);color:var(--green-ink)}
+.names{font-family:var(--mono);font-size:13px;color:var(--muted);overflow-wrap:anywhere}
+.prog{display:flex;flex-direction:column;gap:6px}
+.prog-row{display:flex;justify-content:space-between;font-size:13px;color:var(--muted)}
+.track{height:8px;background:var(--line);border-radius:4px;overflow:hidden}
+.fill{height:100%;width:0;background:var(--green);transition:width .25s}
+h2{font-size:20px;font-weight:600;margin:0}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{font:inherit;text-align:left;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--green);border-radius:6px;padding:12px 14px;cursor:pointer;display:flex;flex-direction:column;gap:2px}
+.opt strong{font-weight:600;overflow-wrap:anywhere}
+.opt span{font-size:14px;color:var(--muted);overflow-wrap:anywhere}
+.opt:hover{border-color:var(--green)}
+.opt.wrong{border-left-color:var(--bad);animation:shake .3s}
+.opt:disabled{opacity:.5;cursor:default}
+button:focus-visible,input:focus-visible{outline:3px solid var(--green);outline-offset:2px}
+.fb{border-radius:6px;padding:12px 14px;font-size:15px;min-height:48px;border:1px dashed var(--line);color:var(--muted)}
+.fb.ok{background:var(--ok-bg);color:var(--ok);border:1px solid var(--ok)}
+.fb.bad{background:var(--bad-bg);color:var(--bad);border:1px solid var(--bad)}
+.fb b{font-weight:600}
+.log{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px;counter-reset:s}
+.log li{counter-increment:s;display:flex;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:8px 12px;font-size:15px;overflow-wrap:anywhere}
+.log li::before{content:counter(s);font-family:var(--mono);color:var(--ok);min-width:1.6em}
+.empty{font-size:14px;color:var(--muted)}
+.result{background:var(--surface);border:2px solid var(--green);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.big{font-family:var(--mono);font-size:26px;font-variant-numeric:tabular-nums}
+.go{font:inherit;font-weight:600;background:var(--green);color:var(--green-ink);border:0;border-radius:6px;padding:12px 16px;cursor:pointer;align-self:flex-start}
+[hidden]{display:none!important}
+@keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+@media (prefers-reduced-motion: reduce){.opt.wrong{animation:none}.fill{transition:none}}
+</style>
+</head>
+<body>
+<header class="bar">
+  <div class="bar-in">
+    <a class="heim" href="index.html">← Frode</a>
+    <h1>Hyper-V-lab: rekkjefølgja</h1>
+    <span class="stat" id="timer" aria-label="Tid">0:00</span>
+    <span class="stat" id="errs">0 feil</span>
+  </div>
+</header>
+<main>
+  <section class="setup" aria-label="Innstillingar">
+    <div class="field">
+      <label for="navn">Fornamnet ditt</label>
+      <input type="text" id="navn" value="Ola" maxlength="8" autocomplete="off" spellcheck="false">
+    </div>
+    <div class="field">
+      <span class="lbl" id="modlbl">Nivå</span>
+      <div class="seg" role="group" aria-labelledby="modlbl">
+        <button type="button" id="mod-ov" aria-pressed="true">Øving</button>
+        <button type="button" id="mod-me" aria-pressed="false">Meistring</button>
+      </div>
+    </div>
+  </section>
+  <div class="names" id="names"></div>
+
+  <section class="prog" aria-label="Framdrift">
+    <div class="prog-row"><span id="progtxt">Steg 1 av 19</span><span id="best"></span></div>
+    <div class="track"><div class="fill" id="fill"></div></div>
+  </section>
+
+  <section id="play" style="display:flex;flex-direction:column;gap:12px">
+    <h2>Kva gjer du no?</h2>
+    <div class="opts" id="opts"></div>
+  </section>
+
+  <section class="result" id="result" hidden>
+    <h2 id="restitle">Laben er oppe</h2>
+    <div class="big" id="resbig"></div>
+    <div id="restxt"></div>
+    <button type="button" class="go" id="again">Ein gong til</button>
+  </section>
+
+  <div class="fb" id="fb" role="status" aria-live="polite">Trykk på steget som kan gjerast no. Klokka startar på første trykk.</div>
+
+  <section style="display:flex;flex-direction:column;gap:8px">
+    <span class="lbl">Dette har du gjort</span>
+    <div class="empty" id="empty">Ingenting enno.</div>
+    <ol class="log" id="log"></ol>
+  </section>
+</main>
+
+<script>
+// Kvart steg: t = tittel, d = detalj, needs = { føresetnad: kvifor du må venta }.
+// {S} = server, {K} = klient, {D} = domene.
+var STEPS = [
+ {id:"plan", t:"Lag IP-plan", d:"Nettadresse, nettmaske og fast adresse til {S} og {K}. DNS for begge vert adressa til serveren.", needs:{}},
+ {id:"hyperv", t:"Slå på Hyper-V på arbeidsstasjonen", d:"Windows-funksjonar, deretter omstart.", needs:{}},
+ {id:"privsw", t:"Lag ein privat virtuell svitsj", d:"Virtual Switch Manager, type Private.", needs:{hyperv:"Virtual Switch Manager finst ikkje før Hyper-V er slått på."}},
+ {id:"vm", t:"Lag VM-ane {S} og {K} på Default Switch", d:"Default Switch gjev internett til aktiveringa.", needs:{hyperv:"Du kan ikkje laga VM-ar før Hyper-V er slått på."}},
+ {id:"os", t:"Installer Windows Server og Windows 11", d:"Server på {S}, Windows 11 på {K}.", needs:{vm:"Du treng VM-ane før du kan installera noko i dei."}},
+ {id:"akt", t:"Aktiver Windows på begge maskinene", d:"Krev internett. Difor står dei på Default Switch no.", needs:{os:"Det er ikkje noko Windows å aktivera enno."}},
+ {id:"namnserver", t:"Endra maskinnamn på serveren til {S}", d:"Omstart etter namnebyte.", needs:{os:"Windows Server må vera installert før du kan byta maskinnamn."}},
+ {id:"namnklient", t:"Endra maskinnamn på klienten til {K}", d:"Omstart etter namnebyte.", needs:{os:"Windows 11 må vera installert før du kan byta maskinnamn."}},
+ {id:"flytt", t:"Flytt begge VM-ane til den private svitsjen", d:"Innstillingar for VM-en, Network Adapter.", needs:{privsw:"Den private svitsjen er ikkje laga enno.", akt:"Aktiveringa treng internett. På privat svitsj er maskinene isolerte."}},
+ {id:"ipserver", t:"Set fast IP på {S}", d:"Adresse og maske frå IP-planen. DNS peikar på seg sjølv. Ingen gateway.", needs:{plan:"Du har ingen IP-plan å henta adressa frå.", flytt:"På Default Switch får maskina adresse frå DHCP. Den faste adressa høyrer til det private nettet."}},
+ {id:"ipklient", t:"Set fast IP på {K}", d:"Adresse og maske frå IP-planen. Ingen gateway.", needs:{plan:"Du har ingen IP-plan å henta adressa frå.", flytt:"På Default Switch får maskina adresse frå DHCP. Den faste adressa høyrer til det private nettet."}},
+ {id:"dnsklient", t:"Endra til rett DNS på {K}", d:"DNS-server skal vera IP-adressa til {S}.", needs:{ipklient:"Set den faste adressa på klienten først. DNS ligg i same vindauge."}},
+ {id:"adds", t:"Installer rolla AD DS på {S}", d:"Server Manager, Add Roles and Features.", needs:{namnserver:"Byt namn først. Å endra namn på ein domenekontrollar etterpå er tungvint.", ipserver:"Ein domenekontrollar må ha fast IP før AD og DNS vert sett opp."}},
+ {id:"promoter", t:"Promoter {S} til domenekontrollar", d:"Ny skog: {D}. DNS vert installert samstundes. Omstart.", needs:{adds:"Rolla AD DS må vera installert før du kan promotera."}},
+ {id:"dnssjekk", t:"Kontroller DNS på {S}", d:"DNS Manager: sona {D} skal finnast.", needs:{promoter:"DNS-sona vert laga når serveren vert promotert."}},
+ {id:"nslookup", t:"Test frå {K}: nslookup {D}", d:"Svaret skal vera IP-adressa til {S}.", needs:{promoter:"Domenet finst ikkje enno.", dnsklient:"Klienten må bruka serveren som DNS for å finna domenet."}},
+ {id:"brukar", t:"Lag ein domenebrukar", d:"Active Directory Users and Computers på {S}.", needs:{promoter:"Det finst ingen katalog å laga brukaren i før serveren er domenekontrollar."}},
+ {id:"join", t:"Meld {K} inn i {D}", d:"Krev brukarnamn og passord til ein domeneadministrator. Omstart.", needs:{namnklient:"Byt namn på klienten før innmeldinga, så får han rett namn i AD.", nslookup:"Test namneoppslaget først. Finn ikkje klienten domenet i DNS, feilar innmeldinga."}},
+ {id:"logginn", t:"Logg inn på {K} med domenebrukaren", d:"Då er laben ferdig.", needs:{join:"Klienten er ikkje medlem av domenet enno.", brukar:"Du har ingen domenebrukar å logga inn med."}}
+];
+var BYID = {}; STEPS.forEach(function(s){BYID[s.id]=s;});
+
+var $ = function(id){return document.getElementById(id);};
+var mode = "ov", done, errors, startT, tick, shown, masterOrder, finished;
+
+function nm(){
+  var n = $("navn").value.replace(/[^A-Za-zÆØÅæøå]/g,"");
+  return n || "Ola";
+}
+function fmt(s){
+  var n = nm();
+  return s.replace(/\{S\}/g, n+"Server1").replace(/\{K\}/g, n+"Klient1").replace(/\{D\}/g, n.toLowerCase()+"dom.internal");
+}
+function shuffle(a){
+  for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var x=a[i];a[i]=a[j];a[j]=x;}
+  return a;
+}
+function ready(s){ return Object.keys(s.needs).every(function(k){return done.indexOf(k)>=0;}); }
+function remaining(){ return STEPS.filter(function(s){return done.indexOf(s.id)<0;}); }
+function clock(ms){ var t=Math.floor(ms/1000); return Math.floor(t/60)+":"+("0"+(t%60)).slice(-2); }
+
+function pickShown(){
+  var rem = remaining();
+  if(mode==="me"){
+    shown = masterOrder.filter(function(id){return done.indexOf(id)<0;});
+    return;
+  }
+  var ok = shuffle(rem.filter(ready));
+  var first = ok[0];
+  var rest = shuffle(rem.filter(function(s){return s!==first;})).slice(0,3);
+  shown = shuffle([first].concat(rest)).map(function(s){return s.id;});
+}
+
+function renderOpts(){
+  var box = $("opts"); box.textContent="";
+  shown.forEach(function(id){
+    var s = BYID[id];
+    var b = document.createElement("button");
+    b.type="button"; b.className="opt"; b.id="opt-"+id;
+    var st=document.createElement("strong"); st.textContent=fmt(s.t);
+    var sp=document.createElement("span"); sp.textContent=fmt(s.d);
+    b.appendChild(st); b.appendChild(sp);
+    b.addEventListener("click", function(){choose(id,b);});
+    box.appendChild(b);
+  });
+}
+function renderLog(){
+  var ol=$("log"); ol.textContent="";
+  done.forEach(function(id){
+    var li=document.createElement("li");
+    var sp=document.createElement("span"); sp.textContent=fmt(BYID[id].t);
+    li.appendChild(sp); ol.appendChild(li);
+  });
+  $("empty").hidden = done.length>0;
+}
+function renderStatus(){
+  var n = nm();
+  $("names").textContent = n+"Server1 · "+n+"Klient1 · "+n.toLowerCase()+"dom.internal";
+  $("errs").textContent = errors+" feil";
+  $("progtxt").textContent = finished ? "Alle "+STEPS.length+" steg" : "Steg "+(done.length+1)+" av "+STEPS.length;
+  $("fill").style.width = (100*done.length/STEPS.length)+"%";
+  var b = getBest();
+  $("best").textContent = b ? "Beste: "+clock(b.ms)+", "+b.e+" feil" : "";
+}
+function setFb(kind, head, text){
+  var f=$("fb"); f.className="fb"+(kind?" "+kind:""); f.textContent="";
+  if(head){var b=document.createElement("b"); b.textContent=head+" "; f.appendChild(b);}
+  f.appendChild(document.createTextNode(text));
+}
+
+function choose(id, btn){
+  if(finished) return;
+  if(!startT){ startT=Date.now(); tick=setInterval(function(){ $("timer").textContent=clock(Date.now()-startT); },500); }
+  var s = BYID[id];
+  if(ready(s)){
+    done.push(id);
+    renderLog();
+    if(done.length===STEPS.length){ finish(); return; }
+    setFb("ok","Rett.", fmt(s.t)+" er gjort.");
+    pickShown(); renderOpts(); renderStatus();
+  } else {
+    errors++;
+    var miss = Object.keys(s.needs).filter(function(k){return done.indexOf(k)<0;})[0];
+    setFb("bad","Ikkje enno.", fmt(s.needs[miss])+" Gjer dette først: "+fmt(BYID[miss].t)+".");
+    btn.classList.remove("wrong"); void btn.offsetWidth; btn.classList.add("wrong");
+    if(mode==="ov") btn.disabled=true;
+    renderStatus();
+  }
+}
+function bestKey(){ return "labdrill-best-"+mode; }
+function getBest(){ try{ return JSON.parse(localStorage.getItem(bestKey())); }catch(e){ return null; } }
+function finish(){
+  finished=true; clearInterval(tick);
+  var ms = Date.now()-startT;
+  $("timer").textContent=clock(ms);
+  var b=getBest(), isBest = !b || errors<b.e || (errors===b.e && ms<b.ms);
+  if(isBest){ try{ localStorage.setItem(bestKey(), JSON.stringify({ms:ms,e:errors})); }catch(e){} }
+  $("play").style.display="none"; $("result").hidden=false;
+  $("resbig").textContent = clock(ms)+" · "+errors+" feil";
+  $("restitle").textContent = errors===0 ? "Feilfri runde" : "Laben er oppe";
+  $("restxt").textContent = (isBest && b ? "Ny beste runde. " : "") +
+    (errors===0 ? (mode==="ov" ? "Prøv Meistring, der ser du alle stega samstundes." : "Du kan rekkjefølgja. Prøv å slå tida.")
+                : "Ta ein runde til og sjå om du klarar det utan feil.");
+  setFb("ok","Ferdig.", "Du kan logga inn på klienten med ein domenebrukar.");
+  renderStatus();
+}
+function reset(){
+  clearInterval(tick); done=[]; errors=0; startT=0; finished=false;
+  masterOrder = shuffle(STEPS.map(function(s){return s.id;}));
+  $("timer").textContent="0:00";
+  $("play").style.display="flex"; $("result").hidden=true;
+  setFb("", "", "Trykk på steget som kan gjerast no. Klokka startar på første trykk.");
+  pickShown(); renderOpts(); renderLog(); renderStatus();
+}
+function setMode(m){
+  mode=m;
+  $("mod-ov").setAttribute("aria-pressed", m==="ov");
+  $("mod-me").setAttribute("aria-pressed", m==="me");
+  reset();
+}
+$("mod-ov").addEventListener("click", function(){setMode("ov");});
+$("mod-me").addEventListener("click", function(){setMode("me");});
+$("again").addEventListener("click", reset);
+$("navn").addEventListener("input", function(){ renderOpts(); renderLog(); renderStatus(); });
+reset();
+</script>
+</body>
+</html>
