@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Ressursar for Vg2 IT på Stord vgs: Brukarstøtte, Driftsstøtte og Utvikling. Første del: aktuelle subreddit.">
+<meta name="description" content="Ressursar for Vg2 IT på Stord vgs: dei beste nettstadene og aktuelle subreddit for Brukarstøtte, Driftsstøtte og Utvikling.">
 <meta name="theme-color" content="#2e7d32">
 <title>Ressursar for Vg2 IT</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -11,7 +11,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&display=swap" rel="stylesheet">
 <style>
 /* Layout: grøn tittellinje med søk øvst, fagmeny under, éin seksjon per fag.
-   Kvar seksjon har ei underoverskrift per ressurstype (no: Subreddit), slik at
+   Kvar seksjon har ei underoverskrift per ressurstype (Nettstader, Subreddit), slik at
    nye typar kan leggjast til som ny <h3> + <ul> utan å endre noko anna. */
 :root {
     --gron: #2e7d32;
@@ -130,6 +130,8 @@ li:hover > a { text-decoration: underline; text-underline-offset: 3px; }
     border-radius: 5px; padding: 1px 7px; margin-left: 8px; vertical-align: 2px;
     white-space: nowrap;
 }
+.merke.norsk { background: none; color: var(--lenke); box-shadow: inset 0 0 0 1.5px currentColor; }
+.vett .merke { margin-left: 0; vertical-align: 1px; }
 mark { background: var(--treff); color: inherit; border-radius: 3px; }
 
 /* Reddit-vett: eit lite kort med reglar før lista */
@@ -169,8 +171,8 @@ footer .innhald { display: flex; flex-wrap: wrap; gap: 6px 24px; justify-content
     <div class="innhald">
         <a class="heim" href="index.html">← Frode si Sandkasse</a>
         <h1>Ressursar for Vg2 IT</h1>
-        <p class="ingress">Stader på nettet der fagfolk og nybyrjarar hjelper kvarandre. Sortert etter dei tre faga: Brukarstøtte, Driftsstøtte og Utvikling.</p>
-        <input id="sok" type="search" placeholder="Søk, t.d. linux eller python" aria-label="Søk i ressursane" autocomplete="off">
+        <p class="ingress">Dei beste nettstadene og foruma for dei tre faga: Brukarstøtte, Driftsstøtte og Utvikling.</p>
+        <input id="sok" type="search" placeholder="Søk, t.d. linux, python eller norsk" aria-label="Søk i ressursane" autocomplete="off">
         <p id="status" aria-live="polite"></p>
     </div>
 </header>
@@ -187,11 +189,11 @@ footer .innhald { display: flex; flex-wrap: wrap; gap: 6px 24px; justify-content
 <main class="innhald" id="innhald">
 
     <div class="vett" id="vett">
-        <h2>Reddit-vett</h2>
+        <h2>Før du startar</h2>
         <ol>
-            <li>Reddit er delt i <strong>subreddit</strong> – eitt forum per tema. Nesten alt er på engelsk, og det er god fagtrening.</li>
-            <li>Du kan lese utan konto. Søk i subredditen før du spør – nokon har ofte hatt same feil før deg.</li>
-            <li>Les reglane i kvar subreddit (sidefeltet). Mange slettar spørsmål som manglar feilmelding, system og kva du har prøvd.</li>
+            <li>Start med <strong>NDLA og offisiell dokumentasjon</strong>. Forum er for det du ikkje finn der.</li>
+            <li>Det meste er på engelsk, og det er god fagtrening. Sider merkte <span class="merke norsk">Norsk</span> er på norsk.</li>
+            <li>Reddit er delt i <strong>subreddit</strong> – eitt forum per tema. Du kan lese utan konto. Søk før du spør, og les reglane i sidefeltet.</li>
             <li>Del aldri passord, namn, IP-adresser eller andre opplysningar frå skulen eller lærebedrifta.</li>
             <li>Råd frå framande er ikkje fasit. Forstå kva ein kommando gjer før du køyrer han, og test i labben først.</li>
         </ol>
@@ -200,6 +202,29 @@ footer .innhald { display: flex; flex-wrap: wrap; gap: 6px 24px; justify-content
     <section id="brukarstotte">
         <h2>Brukarstøtte</h2>
         <p class="om">Feilsøking, maskinvare, operativsystem og det å hjelpe brukarar på ein god måte.</p>
+        <h3>Nettstader</h3>
+        <ul>
+            <li><a href="https://ndla.no/nn/f/brukerstotte-im-itk-vg2/b678ae6a074d">Brukarstøtte på NDLA</a><span class="merke norsk">Norsk</span><span class="merke">Start her</span>
+                <span class="forklaring">Fagstoff og oppgåver laga for nettopp dette faget, etter læreplanen</span></li>
+            <li><a href="https://support.microsoft.com/nb-no">Microsoft Support</a><span class="merke norsk">Norsk</span>
+                <span class="forklaring">Offisielle løysingar for Windows, Microsoft 365, Teams og Outlook. Første stopp ved feil i Microsoft-produkt</span></li>
+            <li><a href="https://support.apple.com/no-no">Apple-støtte</a><span class="merke norsk">Norsk</span>
+                <span class="forklaring">Offisielle rettleiingar for Mac, iPhone og iPad</span></li>
+            <li><a href="https://support.google.com/?hl=no">Google Hjelp</a><span class="merke norsk">Norsk</span>
+                <span class="forklaring">Offisiell hjelp for Android, Chrome, Gmail og Google Workspace</span></li>
+            <li><a href="https://nettvett.no/">nettvett.no</a><span class="merke norsk">Norsk</span>
+                <span class="forklaring">Enkle råd om trygg bruk av nett, e-post og mobil. Godt å vise til når du rettleier brukarar</span></li>
+            <li><a href="https://www.professormesser.com/">Professor Messer</a>
+                <span class="forklaring">Gratis videokurs til CompTIA A+: maskinvare, operativsystem og feilsøking</span></li>
+            <li><a href="https://www.ifixit.com/">iFixit</a>
+                <span class="forklaring">Reparasjonsrettleiingar med bilete for PC-ar, mobilar og nettbrett</span></li>
+            <li><a href="https://www.howtogeek.com/">How-To Geek</a>
+                <span class="forklaring">Forklaringar og steg-for-steg-oppskrifter for Windows, mobil og heimenett</span></li>
+            <li><a href="https://www.bleepingcomputer.com/">BleepingComputer</a>
+                <span class="forklaring">Tryggleiksnyheiter og rettleiingar for å fjerne skadevare</span></li>
+            <li><a href="https://learn.microsoft.com/sysinternals/">Sysinternals</a>
+                <span class="forklaring">Microsoft sine gratis feilsøkingsverktøy: Process Explorer, Autoruns og fleire</span></li>
+        </ul>
         <h3>Subreddit</h3>
         <ul>
             <li><a href="https://www.reddit.com/r/techsupport/">r/techsupport</a><span class="merke">Start her</span>
@@ -232,6 +257,54 @@ footer .innhald { display: flex; flex-wrap: wrap; gap: 6px 24px; justify-content
     <section id="drift">
         <h2>Driftsstøtte</h2>
         <p class="om">Serverar, nettverk, virtualisering, skript og tryggleik.</p>
+        <h3>Nettstader – server og drift</h3>
+        <ul>
+            <li><a href="https://ndla.no/nn/f/driftsstotte-im-itk-vg2/2c20017628cc">Driftsstøtte på NDLA</a><span class="merke norsk">Norsk</span><span class="merke">Start her</span>
+                <span class="forklaring">Fagstoff og oppgåver laga for nettopp dette faget, etter læreplanen</span></li>
+            <li><a href="https://learn.microsoft.com/">Microsoft Learn</a>
+                <span class="forklaring">Offisiell dokumentasjon og gratis læringsløp for Windows Server, Active Directory, Intune og Azure</span></li>
+            <li><a href="https://learn.microsoft.com/windows-server/">Windows Server-dokumentasjon</a>
+                <span class="forklaring">Rollene de set opp i labben: AD DS, DNS, DHCP, Hyper-V og gruppepolicy</span></li>
+            <li><a href="https://learn.microsoft.com/powershell/">PowerShell-dokumentasjon</a>
+                <span class="forklaring">Alle cmdletar med forklaring og døme, pluss innføring i skripting</span></li>
+            <li><a href="https://ss64.com/">SS64</a>
+                <span class="forklaring">Oppslagsverk for kommandoar i CMD, PowerShell og Bash, med døme</span></li>
+            <li><a href="https://pve.proxmox.com/wiki/Main_Page">Proxmox VE-wiki</a>
+                <span class="forklaring">Offisiell dokumentasjon for Proxmox: installasjon, VM-ar, containerar og backup</span></li>
+            <li><a href="https://docs.docker.com/">Docker Docs</a>
+                <span class="forklaring">Offisiell dokumentasjon for Docker, med «Get started» for nybyrjarar</span></li>
+        </ul>
+        <h3>Nettstader – Linux</h3>
+        <ul>
+            <li><a href="https://labex.io/linuxjourney">Linux Journey</a><span class="merke">Start her</span>
+                <span class="forklaring">Gratis Linux-kurs frå null, i små leksjonar: kommandolinje, filer, rettar, prosessar og nettverk</span></li>
+            <li><a href="https://explainshell.com/">explainshell</a>
+                <span class="forklaring">Lim inn ein Linux-kommando og få forklart kvar del av han</span></li>
+            <li><a href="https://overthewire.org/wargames/bandit/">OverTheWire: Bandit</a>
+                <span class="forklaring">Lær terminalen gjennom eit spel: logg inn med SSH og løys nivå for nivå</span></li>
+        </ul>
+        <h3>Nettstader – nettverk</h3>
+        <ul>
+            <li><a href="https://www.netacad.com/">Cisco Networking Academy</a><span class="merke">Start her</span>
+                <span class="forklaring">Gratis kurs i nettverk og tryggleik, og staden du lastar ned Packet Tracer</span></li>
+            <li><a href="https://www.practicalnetworking.net/">Practical Networking</a>
+                <span class="forklaring">Uvanleg klare forklaringar av subnett, VLAN, ruting, NAT og korleis ein pakke går gjennom nettet</span></li>
+            <li><a href="https://www.cloudflare.com/learning/">Cloudflare Learning Center</a>
+                <span class="forklaring">Korte forklaringar av DNS, HTTPS, DDoS og korleis internett heng saman</span></li>
+            <li><a href="https://help.ui.com/">UniFi-hjelp</a>
+                <span class="forklaring">Ubiquiti sine offisielle rettleiingar for UniFi-utstyr</span></li>
+        </ul>
+        <h3>Nettstader – tryggleik</h3>
+        <ul>
+            <li><a href="https://nsm.no/grunnprinsipper-ikt">NSM: Grunnprinsipp for IKT-tryggleik</a><span class="merke norsk">Norsk</span>
+                <span class="forklaring">Dei norske tilrådingane for korleis verksemder sikrar IT-systema sine. Nyttig i ROS-arbeid</span></li>
+            <li><a href="https://tryhackme.com/">TryHackMe</a>
+                <span class="forklaring">Øv på tryggleik i praksis, rett i nettlesaren. Krev konto, og berre delar er gratis</span></li>
+            <li><a href="https://haveibeenpwned.com/">Have I Been Pwned</a>
+                <span class="forklaring">Sjekk om ei e-postadresse er med i kjende datalekkasjar</span></li>
+            <li><a href="https://www.virustotal.com/">VirusTotal</a>
+                <span class="forklaring">Sjekk ei mistenkjeleg fil eller lenkje mot mange antivirusmotorar. Last aldri opp interne dokument</span></li>
+        </ul>
         <h3>Subreddit – server og drift</h3>
         <ul>
             <li><a href="https://www.reddit.com/r/sysadmin/">r/sysadmin</a>
@@ -297,6 +370,50 @@ footer .innhald { display: flex; flex-wrap: wrap; gap: 6px 24px; justify-content
     <section id="utvikling">
         <h2>Utvikling</h2>
         <p class="om">Programmering, nettsider, databasar, versjonskontroll, testing og brukargrensesnitt.</p>
+        <h3>Nettstader – kurs og øving</h3>
+        <ul>
+            <li><a href="https://ndla.no/nn/f/utvikling-im-itk-vg2/17e6fbba25ef">Utvikling på NDLA</a><span class="merke norsk">Norsk</span><span class="merke">Start her</span>
+                <span class="forklaring">Fagstoff og oppgåver laga for nettopp dette faget, etter læreplanen</span></li>
+            <li><a href="https://www.freecodecamp.org/">freeCodeCamp</a>
+                <span class="forklaring">Gratis kurs med oppgåver i nettlesaren: HTML, CSS, JavaScript, Python og databasar</span></li>
+            <li><a href="https://www.theodinproject.com/">The Odin Project</a>
+                <span class="forklaring">Gratis, prosjektbasert løp i webutvikling der du brukar ekte verktøy: Git, terminal og editor</span></li>
+            <li><a href="https://cs50.harvard.edu/x/">CS50</a>
+                <span class="forklaring">Harvard sitt gratis innføringskurs i programmering og informatikk. Krevjande, men svært godt</span></li>
+            <li><a href="https://oppgaver.kidsakoder.no/">Kodeklubben-oppgåver</a><span class="merke norsk">Norsk</span>
+                <span class="forklaring">Norske kodeoppgåver på ulike nivå frå Lær Kidsa Koding, mellom anna Python og nettsider</span></li>
+            <li><a href="https://docs.python.org/3/tutorial/">Python-opplæringa</a>
+                <span class="forklaring">Den offisielle innføringa i Python frå python.org</span></li>
+            <li><a href="https://learn.microsoft.com/dotnet/csharp/">C# på Microsoft Learn</a>
+                <span class="forklaring">Offisiell dokumentasjon og opplæring i C#, med interaktive leksjonar</span></li>
+            <li><a href="https://javascript.info/">JavaScript.info</a>
+                <span class="forklaring">Grundig lærebok i JavaScript, frå det første skriptet til det avanserte</span></li>
+            <li><a href="https://sqlbolt.com/">SQLBolt</a>
+                <span class="forklaring">Korte, interaktive leksjonar i SQL: SELECT, filter og JOIN</span></li>
+            <li><a href="https://learngitbranching.js.org/">Learn Git Branching</a>
+                <span class="forklaring">Øv på greiner, merge og rebase med ei levande teikning</span></li>
+            <li><a href="https://exercism.org/">Exercism</a>
+                <span class="forklaring">Gratis øvingsoppgåver i mange språk, løyste på eiga maskin</span></li>
+        </ul>
+        <h3>Nettstader – oppslag og krav</h3>
+        <ul>
+            <li><a href="https://developer.mozilla.org/">MDN Web Docs</a><span class="merke">Start her</span>
+                <span class="forklaring">Oppslagsverket for HTML, CSS og JavaScript. Det er hit du går for å sjå korleis noko eigentleg verkar</span></li>
+            <li><a href="https://www.w3schools.com/">W3Schools</a>
+                <span class="forklaring">Korte forklaringar og døme du kan prøve direkte i nettlesaren</span></li>
+            <li><a href="https://stackoverflow.com/">Stack Overflow</a>
+                <span class="forklaring">Spørsmål og svar om kode. Søk på feilmeldinga di – nokon har truleg spurt før</span></li>
+            <li><a href="https://docs.github.com/">GitHub Docs</a>
+                <span class="forklaring">Offisiell dokumentasjon for GitHub: repo, pull request, Pages og Actions</span></li>
+            <li><a href="https://roadmap.sh/">roadmap.sh</a>
+                <span class="forklaring">Kart over kva ein utviklar bør lære, steg for steg, for ulike roller</span></li>
+            <li><a href="https://www.uutilsynet.no/">Uutilsynet</a><span class="merke norsk">Norsk</span>
+                <span class="forklaring">Krava til universell utforming av nettsider og appar i Noreg, med rettleiing</span></li>
+            <li><a href="https://owasp.org/www-project-top-ten/">OWASP Top 10</a>
+                <span class="forklaring">Dei ti vanlegaste tryggleikshola i nettappar, og korleis du unngår dei</span></li>
+            <li><a href="https://www.kode24.no/">kode24</a><span class="merke norsk">Norsk</span>
+                <span class="forklaring">Norsk nettavis for utviklarar: nyheiter, verktøy og arbeidsliv</span></li>
+        </ul>
         <h3>Subreddit – lære å kode</h3>
         <ul>
             <li><a href="https://www.reddit.com/r/learnprogramming/">r/learnprogramming</a><span class="merke">Start her</span>
@@ -363,7 +480,20 @@ footer .innhald { display: flex; flex-wrap: wrap; gap: 6px 24px; justify-content
 
     <section id="felles">
         <h2>Felles</h2>
-        <p class="om">Læreplass og karriere – og litt til pausen.</p>
+        <p class="om">Læreplan, læreplass og regelverk – og litt til pausen.</p>
+        <h3>Nettstader</h3>
+        <ul>
+            <li><a href="https://www.udir.no/lk20/itk02-01?lang=nno">Læreplanen for Vg2 informasjonsteknologi</a><span class="merke norsk">Norsk</span>
+                <span class="forklaring">Kompetansemåla i dei tre faga og eksamensordninga, frå Utdanningsdirektoratet</span></li>
+            <li><a href="https://utdanning.no/utdanningsoversikt/it-driftsfaget">IT-driftsfaget på utdanning.no</a><span class="merke norsk">Norsk</span>
+                <span class="forklaring">Kva læretida i IT-driftsfaget går ut på, og vegen til fagbrev</span></li>
+            <li><a href="https://utdanning.no/utdanningsoversikt/it-utviklerfaget">IT-utviklarfaget på utdanning.no</a><span class="merke norsk">Norsk</span>
+                <span class="forklaring">Kva læretida i IT-utviklarfaget går ut på, og vegen til fagbrev</span></li>
+            <li><a href="https://www.datatilsynet.no/">Datatilsynet</a><span class="merke norsk">Norsk</span>
+                <span class="forklaring">Personvern og GDPR i praksis, mellom anna innebygd personvern og avvikshandtering</span></li>
+            <li><a href="https://www.digi.no/">digi.no</a><span class="merke norsk">Norsk</span>
+                <span class="forklaring">Norske IT-nyheiter. Nokre saker krev abonnement</span></li>
+        </ul>
         <h3>Subreddit – læreplass og jobb</h3>
         <ul>
             <li><a href="https://www.reddit.com/r/ITCareerQuestions/">r/ITCareerQuestions</a>
@@ -394,7 +524,7 @@ footer .innhald { display: flex; flex-wrap: wrap; gap: 6px 24px; justify-content
 <footer>
     <div class="innhald">
         <a href="index.html">Frode si Sandkasse</a>
-        <span>Eksterne lenkjer til reddit.com · Sist oppdatert 17.11.2026</span>
+        <span>Alle lenkjer går til eksterne nettstader · Sist oppdatert 17.11.2026</span>
     </div>
 </footer>
 
