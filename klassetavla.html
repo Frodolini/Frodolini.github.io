@@ -139,7 +139,10 @@ create policy "Innlegging berre når tavla er open" on meldingar
   );</pre>
             <p>Det finst ingen regel for <code>update</code> eller <code>delete</code>, så ingen kan endre eller slette meldingar frå nettsida. I tillegg har tabellen grenser på lengda (maks 30 teikn namn, 200 teikn tekst), og nettsida får berre lov å fylle ut <code>namn</code> og <code>tekst</code>. Tidspunktet set databasen sjølv.</p>
             <p>Brytaren <code>open</code> i tabellen <code>innstillingar</code> kan berre læraren endre, i Supabase-dashbordet. Nye meldingar og endringar på brytaren kjem ut til alle med ein gong via <em>Realtime</em> (WebSocket).</p>
-            <p><strong>Prøv sjølv:</strong> Opne utviklarverktøya (F12) og sjå på nettverksfana når du sender. Prøv å sende når tavla er stengd: då svarar databasen med feilkode <code>42501</code> (brot på RLS).</p>
+            <p><strong>Prøv sjølv:</strong> Opne utviklarverktøya (F12) og sjå på nettverksfana når du sender.</p>
+            <p>Når tavla er stengd, er Send-knappen sperra – men den sperra finst berre i nettlesaren din, og den kan du fjerne. Skriv dette i <em>Console</em>-fana:</p>
+<pre>el("sendknapp").disabled = false</pre>
+            <p>(eller høgreklikk knappen → Inspiser, og slett <code>disabled</code>). Send så ei melding. Då går førespurnaden heilt fram, og databasen svarar med feilkode <code>42501</code> (brot på RLS). Poenget: ein knapp kan omgåast, ein regel i databasen kan ikkje.</p>
         </details>
     </section>
 </main>
